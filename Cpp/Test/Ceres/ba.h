@@ -1,3 +1,6 @@
+#ifndef TEST_CERES_BA
+#define TEST_CERES_BA
+
 #include "ceres/ceres.h"
 #include "ceres/rotation.h"
 
@@ -22,7 +25,6 @@ void radial_distort(const T* const rad_params, T *proj)
 //            f is the focal length in pixels
 //			  [u0 v0]' is the principal point
 //            k1, k2 are radial distortion parameters
-// R 3*3 column major rotation matrix
 // X 3 point
 // proj 2 projection
 // projection: 
@@ -72,7 +74,6 @@ void computeFocalPriorError(const T* const cam1,
 		+ cam3[FOCAL_IDX];
 }
 
-// temporal prior
 template<typename T>
 void computeZachWeightError(const T* const w, T* err)
 {
@@ -125,3 +126,5 @@ void ba_objective(int n, int m, int p, double *cams, double *X,
 		computeZachWeightError(&w[i], &w_err[i]);
 	}
 }
+
+#endif //TEST_CERES_BA

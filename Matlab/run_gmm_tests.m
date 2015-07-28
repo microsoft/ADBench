@@ -48,9 +48,9 @@ for ip=1:size(params,2)
     num_params = numel(paramsGMM.alphas) + numel(paramsGMM.means) + ...
         numel(paramsGMM.inv_cov_factors)
     
-%     cmd = ['Z:\C\Test\x64\Release\Tapenade.exe ' fn];
-%     cmd = ['Z:\C\Test\x64\Release\ADOLC.exe ' fn];
-    cmd = ['Z:\C\Test\x64\Release\Ceres.exe ' fn];
+%     cmd = ['Z:\autodiff\Cpp\Test\x64\Release\Tapenade.exe ' fn];
+%     cmd = ['Z:\autodiff\Cpp\Test\x64\Release\ADOLC.exe ' fn];
+    cmd = ['Z:\autodiff\Cpp\Test\x64\Release\Ceres.exe ' fn];
     system(cmd);
     
 %     Jexternal = load_J([fn 'J_Tapenade_b.txt']);

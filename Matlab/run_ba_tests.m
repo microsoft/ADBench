@@ -10,7 +10,7 @@ addpath('awful\matlab');
 % both reverse mode and forward vectorized mode
 
 %% run options
-nruns = 1;
+nruns = 10;
 % differentiate only with respect to the first+ 3 parameters
 % also set the shape of function results
 
@@ -20,7 +20,7 @@ params = [  2   2    2   10    10   30    50     2   150
 times = zeros(4,size(params,2));
 niters = times;
       
-tlimit_per_iter = (20*60*60)/size(params,2);
+tlimit_per_iter = (11*60*60)/size(params,2);
 ttotal = 0;
 for ip=5:9%1:size(params,2)
     
@@ -32,7 +32,7 @@ for ip=5:9%1:size(params,2)
     p = params(3,ip);
     rng(1);
 %     [cams,X,w,obs] = generate_random_ba_instance(n,m,p);
-%     
+    
     fn = ['Z:\ba_instances\ba' num2str(ip)];
 %     save_ba_instance([fn '.txt'],cams,X,w,obs);
     [cams, X, w, obs] = load_ba_instance( [fn '.txt']);
@@ -40,15 +40,15 @@ for ip=5:9%1:size(params,2)
     num_in = numel(cams) + numel(X) + numel(w)
     num_out = 2*p + n-2 + p
 
-% %     cmd = ['Z:\C\Test\x64\Release\Tapenade.exe ' fn];
-% %     cmd = ['Z:\C\Test\x64\Release\ADOLC.exe ' fn];
-%     cmd = ['Z:\C\Test\x64\Release\Ceres.exe ' fn];
+%     cmd = ['Z:\autodiff\Cpp\Test\x64\Release\Tapenade.exe ' fn];
+% %     cmd = ['Z:\autodiff\Cpp\Test\x64\Release\ADOLC.exe ' fn];
+% %     cmd = ['Z:\autodiff\Cpp\Test\x64\Release\Ceres.exe ' fn];
 %     system(cmd);
 %     
-% %     Jexternal = load_J_sparse([fn 'J_Tapenade_b.txt']);
+%     Jexternal = load_J_sparse([fn 'J_Tapenade_bv.txt']);
 % %     Jexternal = load_J_sparse([fn 'J_Tapenade_dv.txt']);
 % %     Jexternal = load_J_sparse([fn 'J_ADOLC.txt']);
-%     Jexternal = load_J_sparse([fn 'J_Ceres.txt']);
+% %     Jexternal = load_J_sparse([fn 'J_Ceres.txt']);
 %     non_zero_pattern = create_nonzero_pattern(n,m,obs);
 %     optPattern = admOptions('independents', [1 2 3],  'functionResults', ...
 %         {zeros(2,p) zeros(1,n-2) zeros(1,p)},...
@@ -105,7 +105,7 @@ for ip=5:9%1:size(params,2)
 %     ttotal = ttotal + tFD;
 %     times(2,ip)=tFD/i;
 %     niters(2,ip) = i;
-%     
+    
     disp('runnning R');
     % run reverse mode
     tic

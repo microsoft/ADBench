@@ -121,9 +121,7 @@
     <ClCompile Include="adBuffer.c" />
     <ClCompile Include="adStack.c" />
     <ClCompile Include="ba.c" />
-    <ClCompile Include="ba_b-all.c" />
     <ClCompile Include="ba_bv-all.c" />
-    <ClCompile Include="ba_d-all.c" />
     <ClCompile Include="ba_dv-all.c" />
     <ClCompile Include="gmm.c" />
     <ClCompile Include="gmm_b-all.c" />
@@ -138,6 +136,8 @@
     <ClInclude Include="adBuffer.h" />
     <ClInclude Include="adStack.h" />
     <ClInclude Include="ba.h" />
+    <ClInclude Include="ba_bv.h" />
+    <ClInclude Include="ba_dv.h" />
     <ClInclude Include="gmm.h" />
     <ClInclude Include="gmm_b.h" />
     <ClInclude Include="gmm_dv.h" />

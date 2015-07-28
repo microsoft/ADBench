@@ -1,61 +1,42 @@
+#include "ba.h"
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
 
-// rot 3 rotation parameters
-// R 3*3 rotation matrix (column major)
-// easy to understand calculation in matlab:
-//	theta = sqrt(sum(w. ^ 2));
-//	n = w / theta;
-//	n_x = au_cross_matrix(n);
-//	R = eye(3) + n_x*sin(theta) + n_x*n_x*(1 - cos(theta));
-void rodrigues_rot(double *rot, double *R)
+void rodrigues_rotate_point(double *rot, double *pt, double *rotatedPt)
 {
-	double w1,w2,w3,t2,t3,t4,t5,t6,t7,t8,
-		t9,t10,t11,t12,t13,t14,t15,t17,t23,t32;
+	int i;
+	double theta, costheta, sintheta, theta_inverse,
+		w[3], w_cross_pt[3], tmp;
+	
+	// norm of rot
+	theta = 0.;
+	for (i = 0; i < 3; i++)
+	{
+		theta = theta + rot[i] * rot[i];
+	}
+	theta = sqrt(theta);
 
-	w1 = rot[0];
-	w2 = rot[1];
-	w3 = rot[2];
+	costheta = cos(theta);
+	sintheta = sin(theta);
+	theta_inverse = 1.0 / theta;
 
-	t2 = w2*w2;
-	t3 = w1*w1;
-	t4 = w3*w3;
-	t5 = t2 + t3 + t4 + DBL_EPSILON;
+	w[0] = rot[0] * theta_inverse;
+	w[1] = rot[1] * theta_inverse;
+	w[2] = rot[2] * theta_inverse;
 
-	t7 = sqrt(t5);
-	t8 = cos(t7);
-	t10 = sin(t7);
-	t9 = t8 - 1.0;
-	t11 = 1. / t7;
-	t13 = t10*t11*w2;
+	w_cross_pt[0] = w[1] * pt[2] - w[2] * pt[1];
+	w_cross_pt[1] = w[2] * pt[0] - w[0] * pt[2];
+	w_cross_pt[2] = w[0] * pt[1] - w[1] * pt[0];
 
-	t6 = 1. / t5;
-	t12 = t4*t6;
-	t14 = t3*t6;
-	t15 = t2*t6;
-	t17 = t12 + t15;
-	t23 = t12 + t14;
-	t32 = t14 + t15;
+	tmp = (w[0] * pt[0] + w[1] * pt[1] + w[2] * pt[2]) * 
+		(1. - costheta);
 
-	// first row
-	R[0 * 3 + 0] = t9*t17 + 1.;
-	R[1 * 3 + 0] = -t10*t11*w3 - t6*t9*w1*w2;
-	R[2 * 3 + 0] = t13 - t6*t9*w1*w3;
-
-	// second row
-	R[0 * 3 + 1] = t10*t11*w3 - t6*t9*w1*w2;
-	R[1 * 3 + 1] = t9*t23 + 1.0;
-	R[2 * 3 + 1] = -t10*t11*w1 - t6*t9*w2*w3;
-
-	// third row
-	R[0 * 3 + 2] = -t13 - t6*t9*w1*w3;
-	R[1 * 3 + 2] = t10*t11*w1 - t6*t9*w2*w3;
-	R[2 * 3 + 2] = t9*t32 + 1.0;
+	rotatedPt[0] = pt[0] * costheta + w_cross_pt[0] * sintheta + w[0] * tmp;
+	rotatedPt[1] = pt[1] * costheta + w_cross_pt[1] * sintheta + w[1] * tmp;
+	rotatedPt[2] = pt[2] * costheta + w_cross_pt[2] * sintheta + w[2] * tmp;
 }
 
-// rad_params 2 radial distortion parameters
-// proj 2 projection to be distorted
 void radial_distort(double *rad_params, double *proj)
 {
 	double rsq, L; 
@@ -65,23 +46,8 @@ void radial_distort(double *rad_params, double *proj)
 	proj[1] = proj[1] * L;
 }
 
-// cam 11 cameras in format [r1 r2 r3 C1 C2 C3 f u0 v0 k1 k2]
-//            r1, r2, r3 are angle - axis rotation parameters(Rodrigues)
-//			  [C1 C2 C3]' is the camera center
-//            f is the focal length in pixels
-//			  [u0 v0]' is the principal point
-//            k1, k2 are radial distortion parameters
-// R 3*3 column major rotation matrix
-// X 3 point
-// proj 2 projection
-// projection: 
-// Xcam = R * (X - C)
-// distorted = radial_distort(projective2euclidean(Xcam), radial_parameters)
-// proj = distorted * f + principal_point
-// err = sqsum(proj - measurement)
-void project(double *cam, double *R, double *X, double *proj)
+void project(double *cam, double *X, double *proj)
 {
-	int i,k,Ridx;
 	double *C;
 	double Xo[3],Xcam[3];
 	C = &cam[3];
@@ -90,18 +56,7 @@ void project(double *cam, double *R, double *X, double *proj)
 	Xo[1] = X[1] - C[1];
 	Xo[2] = X[2] - C[2];
 
-	Xcam[0] = 0.;
-	Xcam[1] = 0.;
-	Xcam[2] = 0.;
-	Ridx = 0;
-	for (i = 0; i < 3; i++)
-	{
-		for (k = 0; k < 3; k++)
-		{
-			Xcam[k] = Xcam[k] + R[Ridx] * Xo[i];
-			Ridx = Ridx + 1;
-		}
-	}
+	rodrigues_rotate_point(&cam[0], Xo, Xcam);
 
 	proj[0] = Xcam[0] / Xcam[2];
 	proj[1] = Xcam[1] / Xcam[2];
@@ -112,49 +67,60 @@ void project(double *cam, double *R, double *X, double *proj)
 	proj[1] = proj[1] * cam[6] + cam[8];
 }
 
-// n number of cameras
-// m number of points
-// p number of observations
-// cams 11*n cameras in format [r1 r2 r3 C1 C2 C3 f u0 v0 k1 k2]
-//            r1, r2, r3 are angle - axis rotation parameters(Rodrigues)
-//			  [C1 C2 C3]' is the camera center
-//            f is the focal length in pixels
-//			  [u0 v0]' is the principal point
-//            k1, k2 are radial distortion parameters
-// X 3*m points
-// obs 2*p observations (pairs cameraIdx, pointIdx)
-// feats 2*p features (x,y coordinates corresponding to observations)
-// err p squared errors of observations
-// projection: 
-// Xcam = R * (X - C)
-// distorted = radial_distort(projective2euclidean(Xcam), radial_parameters)
-// proj = distorted * f + principal_point
-// err = sqsum(proj - measurement)
-void ba(int n, int m, int p, double *cams, double *X, int *obs, double *feats,
+void computeReprojError(double *cam,
+	double *X, double *w, double feat_x, double feat_y,
 	double *err)
 {
-	int i, nCamParams, camIdx, ptIdx;
-	double *R, *proj;
-	nCamParams = 11;
-	R = (double *)malloc(3 * 3 * n * sizeof(double));
-	proj = (double*)malloc(2 * sizeof(double));
-	for (i = 0; i < n; i++)
-	{
-		rodrigues_rot(&cams[i*nCamParams],&R[i*3*3]);
-	}
+	double proj[2];
+	project(cam, X, proj);
+
+	err[0] = (*w)*(proj[0] - feat_x);
+	err[1] = (*w)*(proj[1] - feat_y);
+}
+
+// temporal prior
+void computeFocalPriorError(double *cam1,
+	double *cam2, double *cam3, double *err)
+{
+	*err = cam1[FOCAL_IDX] - 2 * cam2[FOCAL_IDX]
+		+ cam3[FOCAL_IDX];
+}
+
+void computeZachWeightError(double *w, double *err)
+{
+	*err = 1 - (*w)*(*w);
+}
+
+void ba_objective(int n, int m, int p, double *cams, double *X,
+	double *w, int *obs, double *feats,
+	double *reproj_err, double *f_prior_err, double *w_err)
+{
+	int i, camIdx, ptIdx, idx1, idx2, idx3;
 
 	for (i = 0; i < p; i++)
 	{
 		camIdx = obs[i * 2 + 0];
 		ptIdx = obs[i * 2 + 1];
-		project(&cams[camIdx * nCamParams], &R[camIdx * 3 * 3], &X[ptIdx * 3], proj);
-		proj[0] = proj[0] - feats[i * 2 + 0];
-		proj[1] = proj[1] - feats[i * 2 + 1];
-		err[i] = proj[0] * proj[0] + proj[1] * proj[1];
+		computeReprojError(&cams[camIdx * BA_NCAMPARAMS], &X[ptIdx * 3],
+			&w[i], feats[i * 2 + 0], feats[i * 2 + 1], &reproj_err[2 * i]);
 	}
 
-	free(R);
-	free(proj);
+	for (i = 0; i < n - 2; i++)
+	{
+		idx1 = BA_NCAMPARAMS * i;
+		idx2 = BA_NCAMPARAMS * (i + 1);
+		idx3 = BA_NCAMPARAMS * (i + 2);
+		computeFocalPriorError(&cams[idx1], &cams[idx2], &cams[idx3],
+			&f_prior_err[i]);
+	}
 
-	err[0] = err[0] + ((cams[0] - cams[0]) + (X[0] - X[0]));
+	for (i = 0; i < p; i++)
+	{
+		computeZachWeightError(&w[i], &w_err[i]);
+	}
+
+	// This term is here so that tapenade correctly 
+	// recognizes inputs to be the inputs
+	reproj_err[0] = reproj_err[0] + ((cams[0] - cams[0]) + 
+		(X[0] - X[0]) + (w[0] - w[0]));
 }
