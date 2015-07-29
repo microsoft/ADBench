@@ -1,0 +1,133 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{2CF9CDC0-3E44-441F-B837-87B5DF342B4A}</ProjectGuid>
+    <RootNamespace>Ceres</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>Z:\autodiff\Cpp\ceres\ceres-solver-1.10.0\include;Z:\autodiff\Cpp\ceres\ceres-solver-1.10.0\internal;Z:\autodiff\Cpp\ceres\ceres-solver-1.10.0\internal\ceres;Z:\autodiff\Cpp\ceres\glog-master\src\windows;Z:\autodiff\Cpp\ceres\eigen-3.2.5;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\install\include\suitesparse;Z:\autodiff\Cpp\ceres\ceres-solver-1.10.0\build3\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;Z:\autodiff\Cpp\ceres\install\lib\ceres-debug.lib;Z:\autodiff\Cpp\ceres\glog-master\x64\Release\libglog.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\lib\Release\spqr.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\lib\Release\cholmod.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\lib\Release\ccolamd.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\lib\Release\camd.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\lib\Release\colamd.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\install\lib64\amd.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\install\lib64\lapack_blas_windows\liblapack.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\install\lib64\lapack_blas_windows\libblas.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\install\lib64\suitesparseconfig.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>Z:\autodiff\Cpp\ceres\ceres-solver-1.10.0\include;Z:\autodiff\Cpp\ceres\ceres-solver-1.10.0\internal;Z:\autodiff\Cpp\ceres\ceres-solver-1.10.0\internal\ceres;Z:\autodiff\Cpp\ceres\glog-master\src\windows;Z:\autodiff\Cpp\ceres\eigen-3.2.5;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\install\include\suitesparse;Z:\autodiff\Cpp\ceres\ceres-solver-1.10.0\build3\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;Z:\autodiff\Cpp\ceres\install\lib\ceres.lib;Z:\autodiff\Cpp\ceres\glog-master\x64\Release\libglog.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\lib\Release\spqr.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\lib\Release\cholmod.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\lib\Release\ccolamd.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\lib\Release\camd.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\lib\Release\colamd.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\install\lib64\amd.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\install\lib64\lapack_blas_windows\liblapack.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\install\lib64\lapack_blas_windows\libblas.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\install\lib64\suitesparseconfig.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\defs.h" />
+    <ClInclude Include="..\utils.h" />
+    <ClInclude Include="ba.h" />
+    <ClInclude Include="gmm.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
