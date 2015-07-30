@@ -18,60 +18,40 @@
 % WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 %
 % Parameters:
-%  - dependents=y
-%  - independents=r
+%  - dependents=z
+%  - independents=x
 %  - inputEncoding=ISO-8859-1
 %
 % Functions in this file: d_foo
 %
 
-function [d_y y] = d_foo(d_r, r, X)
-   d_tmpca2 = adimat_opdiff_epow_right(d_r, r, 2);
-   tmpca2 = r .^ 2;
-   d_tmpca1 = adimat_diff_sum1(d_tmpca2, tmpca2);
-   tmpca1 = sum(tmpca2);
-   [d_theta theta] = adimat_diff_sqrt(d_tmpca1, tmpca1);
-   d_w = adimat_opdiff_div(d_r, r, d_theta, theta);
-   w = r / theta;
-   d_tmpca3 = adimat_opdiff_mult_right(adimat_opdiff_trans(d_w, w), w', X);
-   tmpca3 = w' * X;
-   [d_tmpca2 tmpca2] = adimat_diff_cos(d_theta, theta);
-   d_tmpca1 = adimat_opdiff_sum(-d_tmpca2, d_zeros(1));
-   tmpca1 = 1 - tmpca2;
-   d_tmp = adimat_opdiff_mult(d_tmpca1, tmpca1, d_tmpca3, tmpca3);
-   tmp = tmpca1 * tmpca3;
-   d_tmpca9 = adimat_opdiff_mult_right(adimat_opdiff_subsref(d_w, struct('type', '()', 'subs', {{2}})), w(2), X(1));
-   tmpca9 = w(2) * X(1);
-   d_tmpca8 = adimat_opdiff_mult_right(adimat_opdiff_subsref(d_w, struct('type', '()', 'subs', {{1}})), w(1), X(2));
-   tmpca8 = w(1) * X(2);
-   d_tmpca7 = adimat_opdiff_sum(d_tmpca8, -d_tmpca9);
-   tmpca7 = tmpca8 - tmpca9;
-   d_tmpca6 = adimat_opdiff_mult_right(adimat_opdiff_subsref(d_w, struct('type', '()', 'subs', {{1}})), w(1), X(3));
-   tmpca6 = w(1) * X(3);
-   d_tmpca5 = adimat_opdiff_mult_right(adimat_opdiff_subsref(d_w, struct('type', '()', 'subs', {{3}})), w(3), X(1));
-   tmpca5 = w(3) * X(1);
-   d_tmpca4 = adimat_opdiff_sum(d_tmpca5, -d_tmpca6);
-   tmpca4 = tmpca5 - tmpca6;
-   d_tmpca3 = adimat_opdiff_mult_right(adimat_opdiff_subsref(d_w, struct('type', '()', 'subs', {{3}})), w(3), X(2));
-   tmpca3 = w(3) * X(2);
-   d_tmpca2 = adimat_opdiff_mult_right(adimat_opdiff_subsref(d_w, struct('type', '()', 'subs', {{2}})), w(2), X(3));
-   tmpca2 = w(2) * X(3);
-   d_tmpca1 = adimat_opdiff_sum(d_tmpca2, -d_tmpca3);
-   tmpca1 = tmpca2 - tmpca3;
-   d_w_cross_X = adimat_fdiff_cat(2, adimat_fdiff_cat(3, d_tmpca1), adimat_fdiff_cat(3), adimat_fdiff_cat(3, d_tmpca4), adimat_fdiff_cat(3), adimat_fdiff_cat(3, d_tmpca7));
-   w_cross_X = [tmpca1
-         
-         tmpca4
-         
-         tmpca7];
-   d_tmpca5 = adimat_opdiff_mult(d_tmp, tmp, d_w, w);
-   tmpca5 = tmp * w;
-   [d_tmpca4 tmpca4] = adimat_diff_sin(d_theta, theta);
-   d_tmpca3 = adimat_opdiff_mult(d_w_cross_X, w_cross_X, d_tmpca4, tmpca4);
-   tmpca3 = w_cross_X * tmpca4;
-   [d_tmpca2 tmpca2] = adimat_diff_cos(d_theta, theta);
-   d_tmpca1 = adimat_opdiff_mult_right(d_tmpca2, tmpca2, X);
-   tmpca1 = tmpca2 * X;
-   d_y = adimat_opdiff_sum(d_tmpca1, d_tmpca3, d_tmpca5);
-   y = tmpca1 + tmpca3 + tmpca5;
+function [d_z z] = d_foo(k, d_x, x)
+   d_y = adimat_opdiff_div(adimat_opdiff_subsref(d_x, struct('type', '()', 'subs', {{1 : 2}})), x(1 : 2), adimat_opdiff_subsref(d_x, struct('type', '()', 'subs', {{3}})), x(3));
+   y = x(1 : 2) / x(3);
+   d_tmpca1 = adimat_opdiff_epow_right(d_y, y, 2);
+   tmpca1 = y .^ 2;
+   d_rsq = adimat_diff_sum1(d_tmpca1, tmpca1);
+   rsq = sum(tmpca1);
+   d_tmpca4 = adimat_opdiff_mult_left(k(2), d_rsq, rsq);
+   tmpca4 = k(2) * rsq;
+   d_tmpca3 = adimat_opdiff_mult(d_tmpca4, tmpca4, d_rsq, rsq);
+   tmpca3 = tmpca4 * rsq;
+   d_tmpca2 = adimat_opdiff_mult_left(k(1), d_rsq, rsq);
+   tmpca2 = k(1) * rsq;
+   d_tmpca1 = adimat_opdiff_sum(d_tmpca2, d_tmpca3, d_zeros(1));
+   tmpca1 = 1 + tmpca2 + tmpca3;
+   d_z = adimat_opdiff_mult(d_y, y, d_tmpca1, tmpca1);
+   z = y * tmpca1;
 end
+% function y = rodri(r,X)
+% 
+% 
+% theta = sqrt(sum(r.^2));
+% w = r/theta;
+% tmp = (1-cos(theta))*(w'*X);
+% w_cross_X = [w(2)*X(3) - w(3)*X(2);
+%              w(3)*X(1) - w(1)*X(3);
+%              w(1)*X(2) - w(2)*X(1)];
+% y = cos(theta)*X + w_cross_X*sin(theta)+tmp*w;
+% 
+% end

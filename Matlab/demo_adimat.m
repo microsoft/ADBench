@@ -6,14 +6,14 @@ addpath('awful/matlab');
 
 %%
 
-r = rand(3,1);
-X = rand(3,1);
-opt = admOptions('independents', [1]);
+k = rand(2,1);
+x = rand(3,1);
+opt = admOptions('independents', [2]);
 
 %%
 
-JforV = admDiffVFor(@foo, 1, r, X, opt)
-dy = foo_d(r,X)
+JforV = admDiffVFor(@foo, 1, k, x, opt)
+dy = foo_d(k,x)
 JforV - dy
 
 %% create random GMM instance
@@ -30,7 +30,7 @@ x = randn(d,n);
 hparams = [1 0];
 
 fn = 'Z:/gmm1';
-save_gmm_instance([fn '.txt'],gmm,x,hparams);
+% save_gmm_instance([fn '.txt'],gmm,x,hparams);
 [gmm,x,hparams] = load_gmm_instance([fn '.txt']);
 
 num_params = numel(gmm.alphas) + numel(gmm.means) + ...
@@ -144,14 +144,14 @@ num_in = numel(cams) + numel(X) + numel(w)
 num_out = 2*p + n-2 + p
 
 fn = 'Z:/ba1';
-save_ba_instance( [fn '.txt'], cams, X, w, obs )
+% save_ba_instance( [fn '.txt'], cams, X, w, obs )
 [cams, X, w, obs] = load_ba_instance( [fn '.txt']);
 
 %% run options
 nruns = 100;%1000
 non_zero_pattern = create_nonzero_pattern(n,m,obs);
-differentiate only with respect to the first 2 parameters
-also set the shape of function results
+% differentiate only with respect to the first 2 parameters
+% also set the shape of function results
 opt = admOptions('independents', [1 2 3],  'functionResults', ...
     {zeros(2,p) zeros(1,n-2) zeros(1,p)},...
     'JPattern',non_zero_pattern);
@@ -160,10 +160,11 @@ opt2 = admOptions('independents', [1 2 3],  'functionResults', ...
 
 %%
 
-Jexternal = load_J_sparse([fn 'J_Tapenade_bv.txt']);
-Jexternal = load_J_sparse([fn 'J_Tapenade_dv.txt']);
-Jexternal = load_J_sparse([fn 'J_ADOLC.txt']);
-Jexternal = load_J_sparse([fn 'J_Ceres.txt']);
+% Jexternal = load_J_sparse([fn 'J_Tapenade_bv.txt']);
+% Jexternal = load_J_sparse([fn 'J_Tapenade_dv.txt']);
+% Jexternal = load_J_sparse([fn 'J_ADOLC.txt']);
+% Jexternal = load_J_sparse([fn 'J_Ceres.txt']);
+Jexternal = load_J_sparse([fn 'J_manual.txt']);
 [JforV, fvalforV1, fvalforV2, fvalforV3] = ...
     admDiffVFor(@ba_objective, 1, cams, X, w, obs, opt);
 

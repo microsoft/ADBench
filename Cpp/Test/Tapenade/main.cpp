@@ -466,9 +466,6 @@ void test_ba(char *argv[])
 	read_ba_instance(fn + ".txt", n, m, p, 
 		cams, X, w, obs, feats);
 
-	int Jcols = BA_NCAMPARAMS * n + 3 * m;
-	int Jrows = p;
-
 	double *reproj_err = new double[2*p];
 	double *f_prior_err = new double[n-2];
 	double *w_err = new double[p];

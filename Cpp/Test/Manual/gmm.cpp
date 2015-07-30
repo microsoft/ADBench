@@ -31,6 +31,12 @@ double log_gamma_distrib(double a, double p)
 	return out;
 }
 
+// p dim
+// k number of components
+// wishart parameters
+// icf  (p*(p+1)/2)*k parametrizing lower triangular 
+//					square roots of inverse covariances log of diagonal 
+//					is first p params
 double log_wishart_prior(int p, int k, Wishart wishart,
 	const vector<Map<const ArrayXd>>& log_Ldiags, const double *icf)
 {
