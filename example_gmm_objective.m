@@ -42,8 +42,8 @@ if nargin == 0
   %%
   
   % Make a small random GMM
-  d = 10;
-  K = 5;
+  d = 2;
+  K = 50;
   params.log_alphas = randn(K,1);
   params.means = au_map(@(i) rand(d,1), cell(K,1));
   params.inv_cov_factors = au_map(@(i) randn(d*(d+1)/2,1), cell(K,1));
@@ -70,10 +70,13 @@ if nargin == 0
   f(x, data)
   
   mexname = sprintf('autogen_example_gmm_objective_mex_d%d_K%d', d, K);
-  fprintf('example_gmm: making mex file %s\n', mexname);
-  au_autodiff_generate(f, x, data, [mexname '.cxx']);
+
+  if ~exist(mexname, 'file')
+    fprintf('example_gmm: making mex file %s\n', mexname);
+    au_autodiff_generate(f, x, data, [mexname '.cxx']);
+  end
   
-  %
+  %%
   n=1000;
   ts = [0 0];
   for dojac = 0:1
