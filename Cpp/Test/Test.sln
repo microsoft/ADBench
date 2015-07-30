@@ -9,6 +9,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ADOLC", "ADOLC\ADOLC.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Ceres", "Ceres\Ceres.vcxproj", "{2CF9CDC0-3E44-441F-B837-87B5DF342B4A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Manual", "Manual\Manual.vcxproj", "{06967A76-8D0A-4BC9-B3D1-35E715A105F8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B7EB035E-E101-4CD1-90A1-87A2B0110A87}"
+	ProjectSection(SolutionItems) = preProject
+		Performance1.psess = Performance1.psess
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -55,8 +62,22 @@ Global
 		{2CF9CDC0-3E44-441F-B837-87B5DF342B4A}.Release|Win32.Build.0 = Release|Win32
 		{2CF9CDC0-3E44-441F-B837-87B5DF342B4A}.Release|x64.ActiveCfg = Release|x64
 		{2CF9CDC0-3E44-441F-B837-87B5DF342B4A}.Release|x64.Build.0 = Release|x64
+		{06967A76-8D0A-4BC9-B3D1-35E715A105F8}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{06967A76-8D0A-4BC9-B3D1-35E715A105F8}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{06967A76-8D0A-4BC9-B3D1-35E715A105F8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{06967A76-8D0A-4BC9-B3D1-35E715A105F8}.Debug|Win32.Build.0 = Debug|Win32
+		{06967A76-8D0A-4BC9-B3D1-35E715A105F8}.Debug|x64.ActiveCfg = Debug|x64
+		{06967A76-8D0A-4BC9-B3D1-35E715A105F8}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{06967A76-8D0A-4BC9-B3D1-35E715A105F8}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{06967A76-8D0A-4BC9-B3D1-35E715A105F8}.Release|Win32.ActiveCfg = Release|Win32
+		{06967A76-8D0A-4BC9-B3D1-35E715A105F8}.Release|Win32.Build.0 = Release|Win32
+		{06967A76-8D0A-4BC9-B3D1-35E715A105F8}.Release|x64.ActiveCfg = Release|x64
+		{06967A76-8D0A-4BC9-B3D1-35E715A105F8}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

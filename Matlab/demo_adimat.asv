@@ -6,15 +6,18 @@ addpath('awful/matlab');
 
 %%
 
-r = rand(3,1);
-X = rand(3,1);
-opt = admOptions('independents', [1]);
+p = 2;
+mu = rand(p,1);
+x = rand(p,1);
+q = rand(p,1);
+L = rand(p,p);
+opt = admOptions('independents', [4],  'functionResults', {zeros(p*p,1)});
 
 %%
 
-JforV = admDiffVFor(@foo, 1, r, X, opt)
-dy = foo_d(r,X)
-JforV - dy
+JforV = admDiffVFor(@foo, 1, mu,...
+    x, q, L, opt)
+dy = foo_d(mu,x,q,L)
 
 %% create random GMM instance
 d = 2;
@@ -47,8 +50,7 @@ opt = admOptions('independents', [1 2 3],  'functionResults', {1});
 % Jexternal = load_J([fn 'J_Tapenade_b.txt']);
 % Jexternal = load_J([fn 'J_Tapenade_dv.txt']);
 % Jexternal = load_J([fn 'J_ADOLC.txt']);
-% Jexternal = load_J([fn 'J_Ceres.txt']);
-Jexternal = load_J([fn 'J_manual.txt']);
+Jexternal = load_J([fn 'J_Ceres.txt']);
 [Jrev,fvalrev] = admDiffRev(@gmm_objective, 1, gmm.alphas,...
     gmm.means, gmm.inv_cov_factors, x, hparams, opt);
 

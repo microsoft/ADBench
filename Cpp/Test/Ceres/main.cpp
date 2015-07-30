@@ -86,8 +86,8 @@ void test_gmm(char **argv)
 
 	// Test
 	high_resolution_clock::time_point start, end;
-	double tf, tJ;
-	int nruns = 10;
+	double tf, tJ = 0.;
+	int nruns = 1000;
 
 	start = high_resolution_clock::now();
 	for (int i = 0; i < nruns; i++)
@@ -98,7 +98,7 @@ void test_gmm(char **argv)
 	end = high_resolution_clock::now();
 	tf = duration_cast<duration<double>>(end - start).count() / nruns;
 
-	start = high_resolution_clock::now();
+	/*start = high_resolution_clock::now();
 	for (int i = 0; i < nruns; i++)
 	{
 		compute_gmm_J(d, k, n, alphas,
@@ -108,7 +108,7 @@ void test_gmm(char **argv)
 	tJ = duration_cast<duration<double>>(end - start).count() / nruns;
 
 	convert_gmm_J(d, k, J_ceres, J);
-	write_J(fn + "J_Ceres.txt", Jrows, Jcols, J);
+	write_J(fn + "J_Ceres.txt", Jrows, Jcols, J);*/
 	write_times(tf, tJ);
 
 	for (int i = 0; i < 3; i++)
@@ -296,8 +296,8 @@ void test_ba(char** argv)
 int main(int argc, char** argv) 
 {
 	google::InitGoogleLogging(argv[0]);
-	//test_gmm(argv);
-	test_ba(argv);
+	test_gmm(argv);
+	//test_ba(argv);
 	return 0;
 }
 

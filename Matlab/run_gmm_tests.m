@@ -50,7 +50,7 @@ for ip=1:size(params,2)
     
 %     cmd = ['Z:\autodiff\Cpp\Test\x64\Release\Tapenade.exe ' fn];
 %     cmd = ['Z:\autodiff\Cpp\Test\x64\Release\ADOLC.exe ' fn];
-    cmd = ['Z:\autodiff\Cpp\Test\x64\Release\Ceres.exe ' fn];
+    cmd = ['Z:\autodiff\Cpp\Test\x64\Release\Manual.exe ' fn];
     system(cmd);
     
 %     Jexternal = load_J([fn 'J_Tapenade_b.txt']);

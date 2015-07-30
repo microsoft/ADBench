@@ -132,6 +132,7 @@ void test_gmm(char *argv[])
 	delete[] J;
 	delete[] alphas;
 	delete[] means;
+	delete[] x;
 	delete[] icf;
 }
 
