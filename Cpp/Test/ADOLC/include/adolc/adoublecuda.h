@@ -1,7 +1,7 @@
 /* ---------------------------------------------------------------------------
  ADOL-C -- Automatic Differentiation by Overloading in C++
 
- Revision: $Id$
+ Revision: $Id: adoublecuda.h 408 2013-02-12 16:19:10Z kulshres $
  Contents: adoublecuda.h contains the class of adouble specifically
            suited to be used within CUDA environment
 

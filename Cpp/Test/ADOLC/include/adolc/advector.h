@@ -1,7 +1,7 @@
 /* ---------------------------------------------------------------------------
  ADOL-C -- Automatic Differentiation by Overloading in C++
 
- Revision: $Id$
+ Revision: $Id: advector.h 427 2013-04-03 09:30:24Z kulshres $
  Contents: advector.h contains a vector<adouble> implementation
            that is able to trace subscripting operations.
 

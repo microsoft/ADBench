@@ -1,7 +1,7 @@
 /*----------------------------------------------------------------------------
  ADOL-C -- Automatic Differentiation by Overloading in C++
  File:     common.h
- Revision: $Id$
+ Revision: $Id: common.h 527 2014-07-15 14:09:31Z kulshres $
  Contents: Common (global) ADOL-C header  
  
  Copyright (c) Andrea Walther, Andreas Griewank, Andreas Kowarz, 
@@ -71,13 +71,23 @@
 #           define realloc rpl_realloc
 #       endif /* ADOLC_NO_REALLOC */
 
-#       ifndef HAVE_TRUNC
-#           define trunc(x) ( (x<0) ? ceil(x) : floor(x) )
-#       endif
+
+/*--------------------------------------------------------------------------*/
+/* Filip Srajer change 07/2015 - VS203 has trunc*/
+//#       ifndef HAVE_TRUNC
+//#           define trunc(x) ( (x<0) ? ceil(x) : floor(x) )
+//#       endif
 
 #   endif /* HAVE_CONFIG_H */
 #endif /* ADOLC_INTERNAL */
 
+/*--------------------------------------------------------------------------*/
+/* Filip Srajer change 07/2015 */
+#ifndef __func__
+#define __func__ __FUNCTION__
+#endif
+/*--------------------------------------------------------------------------*/
+	
 /*--------------------------------------------------------------------------*/
 /* developer and user parameters */
 #include <adolc/dvlparms.h>
