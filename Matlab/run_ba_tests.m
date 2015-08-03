@@ -41,23 +41,23 @@ for ip=1:size(params,2)
     num_out = 2*p + n-2 + p
 
 %     cmd = ['Z:\autodiff\Cpp\Test\x64\Release\Tapenade.exe ' fn];
-%     cmd = ['Z:\autodiff\Cpp\Test\x64\Release\ADOLC.exe ' fn];
+    cmd = ['Z:\autodiff\Cpp\Test\x64\Release\ADOLC.exe ' fn];
 %     cmd = ['Z:\autodiff\Cpp\Test\x64\Release\Ceres.exe ' fn];
-    cmd = ['Z:\autodiff\Cpp\Test\x64\Release\Manual.exe ' fn];
+%     cmd = ['Z:\autodiff\Cpp\Test\x64\Release\Manual.exe ' fn];
     system(cmd);
     
-%     Jexternal = load_J_sparse([fn 'J_Tapenade_bv.txt']);
-%     Jexternal = load_J_sparse([fn 'J_Tapenade_dv.txt']);
+% %     Jexternal = load_J_sparse([fn 'J_Tapenade_bv.txt']);
+% %     Jexternal = load_J_sparse([fn 'J_Tapenade_dv.txt']);
 %     Jexternal = load_J_sparse([fn 'J_ADOLC.txt']);
-%     Jexternal = load_J_sparse([fn 'J_Ceres.txt']);
-    Jexternal = load_J_sparse([fn 'J_manual.txt']);
-    non_zero_pattern = create_nonzero_pattern(n,m,obs);
-    optPattern = admOptions('independents', [1 2 3],  'functionResults', ...
-        {zeros(2,p) zeros(1,n-2) zeros(1,p)},...
-        'JPattern',non_zero_pattern);
-    [JforV, fvalforV1, fvalforV2, fvalforV3] = ...
-        admDiffVFor(@ba_objective, 1, cams, X, w, obs, optPattern);
-    norm(Jexternal(:) - JforV(:)) / norm(JforV(:))
+% %     Jexternal = load_J_sparse([fn 'J_Ceres.txt']);
+% %     Jexternal = load_J_sparse([fn 'J_manual.txt']);
+%     non_zero_pattern = create_nonzero_pattern(n,m,obs);
+%     optPattern = admOptions('independents', [1 2 3],  'functionResults', ...
+%         {zeros(2,p) zeros(1,n-2) zeros(1,p)},...
+%         'JPattern',non_zero_pattern);
+%     [JforV, fvalforV1, fvalforV2, fvalforV3] = ...
+%         admDiffVFor(@ba_objective, 1, cams, X, w, obs, optPattern);
+%     norm(Jexternal(:) - JforV(:)) / norm(JforV(:))
     
 %     non_zero_pattern = create_nonzero_pattern(n,m,obs);
 %     opt = admOptions('independents', [1 2 3],  'functionResults', ...

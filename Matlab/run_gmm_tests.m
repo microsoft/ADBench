@@ -1,5 +1,5 @@
 %% startup
-clear all
+% clear all
 addpath('adimat-0.6.0-4971');
 start_adimat
 addpath('awful\matlab');
@@ -24,7 +24,7 @@ niters = times;
       
 tlimit_per_iter = (13*60*60)/size(params,2); % 6 hours limit in total
 ttotal = 0;
-for ip=1:size(params,2)
+for ip=[1:8 10]%1:size(params,2)
     
     disp(['runnning gmm: ' num2str(ip)]);
     
@@ -50,17 +50,22 @@ for ip=1:size(params,2)
     
 %     cmd = ['Z:\autodiff\Cpp\Test\x64\Release\Tapenade.exe ' fn];
 %     cmd = ['Z:\autodiff\Cpp\Test\x64\Release\ADOLC.exe ' fn];
-    cmd = ['Z:\autodiff\Cpp\Test\x64\Release\Manual.exe ' fn];
-    system(cmd);
-    
+%     cmd = ['Z:\autodiff\Cpp\Test\x64\Release\Manual.exe ' fn];
+%     system(cmd);
+
+    tic
+    Jexternal = gmm_objective_d_symbolic(nruns,paramsGMM,x,hparams);
+    tmex = toc;
+    tmex = tmex/nruns
+
 %     Jexternal = load_J([fn 'J_Tapenade_b.txt']);
 %     Jexternal = load_J([fn 'J_Tapenade_dv.txt']);
 %     Jexternal = load_J([fn 'J_ADOLC.txt']);
-    Jexternal = load_J([fn 'J_Ceres.txt']);
-    [Jrev,fvalrev] = admDiffRev(@gmm_objective, 1, paramsGMM.alphas,...
-            paramsGMM.means, paramsGMM.inv_cov_factors, x, hparams, opt);
-    norm(Jexternal(:) - Jrev(:)) / norm(Jrev(:))
-
+%     Jexternal = load_J([fn 'J_Ceres.txt']);
+%     [Jrev,fvalrev] = admDiffRev(@gmm_objective, 1, paramsGMM.alphas,...
+%             paramsGMM.means, paramsGMM.inv_cov_factors, x, hparams, opt);
+%     norm(Jexternal(:) - Jrev(:)) / norm(Jrev(:))
+% 
 %     disp('runnning eval');
 %     
 %     % run object function
@@ -73,7 +78,7 @@ for ip=1:size(params,2)
 %     ttotal = ttotal + teval;
 %     times(1,ip)=teval/i;
 %     niters(1,ip) = i;
-%     
+% 
 %     disp('runnning R');
 %     
 %     % run reverse mode
