@@ -306,8 +306,8 @@ void test_ba(char *argv[])
 	double *w_err = new double[p];
 
 	high_resolution_clock::time_point start, end;
-	double tf, tJ;
-	int nruns = 1000;
+	double tf, tJ = 0;
+	int nruns = 10000;
 
 	start = high_resolution_clock::now();
 	for (int i = 0; i < nruns; i++)
@@ -318,11 +318,11 @@ void test_ba(char *argv[])
 	end = high_resolution_clock::now();
 	tf = duration_cast<duration<double>>(end - start).count() / nruns;
 
-	bool doRowCompression = false;
+	/*bool doRowCompression = false;
 	tJ = compute_ba_J(doRowCompression, nruns, n, m, p, cams, X, w, 
 		obs, feats, reproj_err, f_prior_err, w_err, &J);
 
-	write_J_sparse(fn + "J_ADOLC.txt", J);
+	write_J_sparse(fn + "J_ADOLC.txt", J);*/
 	write_times(tf, tJ);
 
 	delete[] reproj_err;

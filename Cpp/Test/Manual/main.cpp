@@ -181,8 +181,8 @@ void test_ba(char *argv[])
 	SparseMat J;
 
 	high_resolution_clock::time_point start, end;
-	double tf, tJ;
-	int nruns = 1000;
+	double tf, tJ=0;
+	int nruns = 10000;
 
 	start = high_resolution_clock::now();
 	for (int i = 0; i < nruns; i++)
@@ -193,7 +193,7 @@ void test_ba(char *argv[])
 	end = high_resolution_clock::now();
 	tf = duration_cast<duration<double>>(end - start).count() / nruns;
 
-	start = high_resolution_clock::now();
+	/*start = high_resolution_clock::now();
 	for (int i = 0; i < nruns; i++)
 	{
 		J = SparseMat();
@@ -203,7 +203,7 @@ void test_ba(char *argv[])
 	end = high_resolution_clock::now();
 	tJ = duration_cast<duration<double>>(end - start).count() / nruns;
 
-	write_J_sparse(fn + "J_manual.txt", J);
+	write_J_sparse(fn + "J_manual.txt", J);*/
 	write_times(tf, tJ);
 
 	delete[] reproj_err;
