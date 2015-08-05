@@ -42,8 +42,8 @@ if nargin == 0
   %%
   
   % Make a small random GMM
-  d = 2;
-  K = 50;
+  d = 20;
+  K = 5;
   params.log_alphas = randn(K,1);
   params.means = au_map(@(i) rand(d,1), cell(K,1));
   params.inv_cov_factors = au_map(@(i) randn(d*(d+1)/2,1), cell(K,1));
@@ -94,7 +94,6 @@ if nargin == 0
   %
   fprintf('example_gmm(%d,%d)->%d: %d: t0 = %g, t1 = %g, ratio = %.2f\n', ...
     d, K, numel(x), n, ts(1), ts(2), ts(2)/ts(1));
-  return
 end
 
 d = size(data,1)-3;

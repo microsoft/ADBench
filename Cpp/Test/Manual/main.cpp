@@ -2,6 +2,7 @@
 #include <string>
 #include <fstream>
 #include <chrono>
+#include <cassert>
 
 #include "../utils.h"
 #include "../defs.h"
@@ -171,6 +172,7 @@ void test_ba(char *argv[])
 	int *obs;
 
 	//read instance
+	assert(argv[1] != 0);
 	string fn(argv[1]);
 	read_ba_instance(fn + ".txt", n, m, p,
 		cams, X, w, obs, feats);
@@ -218,6 +220,6 @@ void test_ba(char *argv[])
 
 int main(int argc, char *argv[])
 {
-	//test_gmm(argv);
-	test_ba(argv);
+	test_gmm(argv);
+	//test_ba(argv);
 }
