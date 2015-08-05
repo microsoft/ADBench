@@ -110,7 +110,7 @@ void test_gmm(char *argv[])
 	// Test
 	high_resolution_clock::time_point start, end;
 	double tf, tJ;
-	int nruns = 100;
+	int nruns = 1;
 
 	start = high_resolution_clock::now();
 	for (int i = 0; i < nruns; i++)
@@ -338,6 +338,6 @@ void test_ba(char *argv[])
 
 int main(int argc, char *argv[])
 {
-	//test_gmm(argv);
-	test_ba(argv);
+	test_gmm(argv);
+	//test_ba(argv);
 }

@@ -37,13 +37,13 @@ for ip=1:size(params,2)
 %     save_ba_instance([fn '.txt'],cams,X,w,obs);
     [cams, X, w, obs] = load_ba_instance( [fn '.txt']);
     
-    num_in = numel(cams) + numel(X) + numel(w)
-    num_out = 2*p + n-2 + p
+%     num_in = numel(cams) + numel(X) + numel(w)
+%     num_out = 2*p + n-2 + p
 
 %     cmd = ['Z:\autodiff\Cpp\Test\x64\Release\Tapenade.exe ' fn];
-    cmd = ['Z:\autodiff\Cpp\Test\x64\Release\ADOLC.exe ' fn];
+%     cmd = ['Z:\autodiff\Cpp\Test\x64\Release\ADOLC.exe ' fn];
 %     cmd = ['Z:\autodiff\Cpp\Test\x64\Release\Ceres.exe ' fn];
-%     cmd = ['Z:\autodiff\Cpp\Test\x64\Release\Manual.exe ' fn];
+    cmd = ['Z:\autodiff\Cpp\Test\x64\Release\Manual.exe ' fn];
     system(cmd);
     
 % %     Jexternal = load_J_sparse([fn 'J_Tapenade_bv.txt']);
