@@ -21,6 +21,8 @@ elseif d==10 && k==5
     df = @(data) autogen_example_gmm_objective_mex_d10_K5(params_vec,data,do_jacobian);
 elseif d==10 && k==25
     df = @(data) autogen_example_gmm_objective_mex_d10_K25(params_vec,data,do_jacobian);
+elseif d==20 && k==5
+    df = @(data) autogen_example_gmm_objective_mex_d20_K5(params_vec,data,do_jacobian);
 end
 
 data = [x; 
