@@ -2,8 +2,8 @@
 open System.Diagnostics
 open System.IO
 open MathNet.Numerics
-//open DiffSharp.AD.Specialized.Reverse1
-open DiffSharp.AD
+open DiffSharp.AD.Specialized.Reverse1
+//open DiffSharp.AD
 
 ////// IO //////
 
@@ -185,11 +185,52 @@ let gmm_objective_wrapper d k (parameters:_[]) (x:float[][]) (wishart:Wishart) =
     gmm_objective_ parameters.[..(k-1)] (reshape d k parameters.[means_off..(means_off+d*k-1)])
                     (reshape icf_sz k parameters.[icf_off..(icf_off+icf_sz*k-1)]) x wishart
 
+/////// Derivative extras extras - fixing stack overflow ////////
+let gmm_objective_1 (alphas:D[]) (means:D[][]) (icf:D[][]) (x:float[])  =
+    let k = alphas.Length
+    let d = means.[0].Length
+    let n = x.Length
+    
+    let L_times_x (curr_icf:_[]) (curr_x:_[]) =
+        let mutable res = [|for i = 0 to d-1 do yield (exp(curr_icf.[i]) * curr_x.[i]) |]
+        let mutable curr_icf_idx = d
+        for i = 0 to d-1 do
+            for j = i+1 to d-1 do
+                res.[j] <- res.[j] + curr_icf.[curr_icf_idx] * curr_x.[i]
+                curr_icf_idx <- curr_icf_idx + 1
+        res
+
+    let main_term (curr_x:float[]) ik =
+        let xcentered = Array.map2 (-) curr_x means.[ik]
+        let mahal = L_times_x icf.[ik] xcentered
+        let sqsum_mahal = Array.sum (Array.map (fun x -> x*x) mahal)
+        let sumlog_Ldiag = Array.sum icf.[ik].[..(d-1)]
+        alphas.[ik]  + sumlog_Ldiag - 0.5*sqsum_mahal
+
+    logsumexp [| for i = 0 to k-1 do yield (main_term x i)|]
+    
+let gmm_objective_2 d n (alphas:D[]) (icf:D[][]) (wishart:Wishart)  =
+    let CONSTANT = 1. / (pown (sqrt (2. * Math.PI)) d)
+    (float n) * ((log CONSTANT) - (logsumexp alphas)) + (log_wishart_prior_ d wishart icf)
+    
+let gmm_objective_1wrapper d k (parameters:_[]) (x:float[]) =
+    let means_off = k
+    let icf_sz = d*(d + 1) / 2
+    let icf_off = means_off + d*k
+    gmm_objective_1 parameters.[..(k-1)] (reshape d k parameters.[means_off..(means_off+d*k-1)])
+                    (reshape icf_sz k parameters.[icf_off..(icf_off+icf_sz*k-1)]) x
+
+let gmm_objective_2wrapper d k n (parameters:_[]) (wishart:Wishart) =
+    let means_off = k
+    let icf_sz = d*(d + 1) / 2
+    let icf_off = means_off + d*k
+    gmm_objective_2 d n parameters.[..(k-1)] (reshape icf_sz k parameters.[icf_off..(icf_off+icf_sz*k-1)]) wishart
+
 [<EntryPoint>]
 let main argv = 
     let alphas, means, icf, x, wishart = read_gmm_instance (argv.[0] + ".txt")
     
-    let nruns = 10000
+    let nruns = 1000
     
     let mutable err = 0.
     let obj_stop_watch = Stopwatch.StartNew()
@@ -202,14 +243,23 @@ let main argv =
     let d = means.[0].Length
     let n = x.Length
     let gmm_objective_wrapper_ (parameters:_[]) = gmm_objective_wrapper d k parameters x wishart
+    let gmm_objective_1wrapper_ (parameters:_[]) = gmm_objective_1wrapper d k parameters x.[0]
+    let gmm_objective_2wrapper_ (parameters:_[]) = gmm_objective_2wrapper d k n parameters wishart
     let grad_gmm_objective = grad' gmm_objective_wrapper_
+    let grad_gmm_objective1 = grad' gmm_objective_1wrapper_
+    let grad_gmm_objective2 = grad' gmm_objective_2wrapper_
     
     let grad_stop_watch = Stopwatch.StartNew()
-    //for i = 1 to nruns do
-    //    let parameters = (vectorize alphas means icf) |> Array.map D
-    //    grad_gmm_objective parameters
-        //let err2,gradient = grad_gmm_objective parameters
-        //printfn "round %i: %f" i (float err2)
+    for i = 1 to nruns do
+        let parameters = (vectorize alphas means icf) //|> Array.map D
+        for i = 1 to n do
+            grad_gmm_objective1 parameters
+        grad_gmm_objective2 parameters
+//    for i = 1 to nruns do
+//        let parameters = (vectorize alphas means icf) |> Array.map D
+//        grad_gmm_objective parameters
+////        let err2,gradient = grad_gmm_objective parameters
+////        printfn "round %i: %f" i (float err2)
     grad_stop_watch.Stop()
     
     //let parameters = (vectorize alphas means icf) |> Array.map D
