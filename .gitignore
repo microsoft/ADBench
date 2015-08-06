@@ -1,3 +1,10 @@
 .ipynb_checkpoints/*
 *.mexw64
 Plot.ipynb
+*J_ADOLC.txt
+*J_Ceres.txt
+*J_diffsharp.txt
+*J_manual.txt
+*J_Tapenade_b.txt
+*J_Tapenade_bv.txt
+*J_Tapenade_dv.txt
