@@ -40,8 +40,8 @@ for ik=1:k
     lse(ik,:) = alphas(ik) + sum(logLdiag) - 0.5 * sum(mahal.^2,1);
 end
 
-constant = 1 / sqrt(2*pi)^d;
-err = n*log(constant) + sum(logsumexp_repmat(lse)) - n*logsumexp_repmat(alphas);
+constant = -n*d*0.5*log(2*pi);
+err = constant + sum(logsumexp_repmat(lse)) - n*logsumexp_repmat(alphas);
 
 % apply the prior on covariance
 err = err + log_wishart_prior(hparams,d,inv_cov_factors);

@@ -109,8 +109,8 @@ void test_gmm(char *argv[])
 
 	// Test
 	high_resolution_clock::time_point start, end;
-	double tf, tJ;
-	int nruns = 1;
+	double tf, tJ = 0.;
+	int nruns = 1000;
 
 	start = high_resolution_clock::now();
 	for (int i = 0; i < nruns; i++)
@@ -120,11 +120,12 @@ void test_gmm(char *argv[])
 	}
 	end = high_resolution_clock::now();
 	tf = duration_cast<duration<double>>(end - start).count() / nruns;
+	cout << "err: " << err << endl;
 
-	tJ = compute_gmm_J(nruns, d, k, n, alphas,
+	/*tJ = compute_gmm_J(nruns, d, k, n, alphas,
 		means, icf, x, wishart, err, J);
 
-	write_J(fn + "J_ADOLC.txt", Jrows, Jcols, J);
+	write_J(fn + "J_ADOLC.txt", Jrows, Jcols, J);*/
 	write_times(tf, tJ);
 
 	for (int i = 0; i < Jrows; i++)
@@ -338,6 +339,6 @@ void test_ba(char *argv[])
 
 int main(int argc, char *argv[])
 {
-	test_gmm(argv);
-	//test_ba(argv);
+	//test_gmm(argv);
+	test_ba(argv);
 }

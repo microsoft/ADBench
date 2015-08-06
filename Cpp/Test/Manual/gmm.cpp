@@ -1,9 +1,8 @@
 #include "gmm.h"
 
 #include <math.h>
-
-
 #include <vector>
+
 #include "Eigen\Dense"
 
 using Eigen::Map;
@@ -60,14 +59,16 @@ double log_wishart_prior(int p, int k, Wishart wishart,
 
 
 void gmm_objective(int d, int k, int n,
-  double* alphas,
+  const double* alphas,
   vector<Map<const VectorXd>> const& mus,
   vector<Map<const ArrayXd>> const& qs,
-  vector<MatrixXd> const& Ls,
+  vector<MatrixXd> const& Ls, 
+  const double *icf,
   const double *x,
   Wishart wishart, 
   double *err)
 {
+  int icf_sz = d*(d + 1) / 2;
   VectorXd xcentered(d), mahal(d), Ldiag(d), lse(k);
   double slse = 0.;
   for (int ix = 0; ix < n; ix++)
@@ -77,13 +78,13 @@ void gmm_objective(int d, int k, int n,
     {
       int icf_off = ik*icf_sz;
 
-      Ldiag = log_Ldiags[ik].exp();
+      Ldiag = qs[ik].exp();
 
       xcentered = curr_x - mus[ik];
       mahal.noalias() = Ldiag.cwiseProduct(xcentered) +
         Ls[ik].triangularView<Eigen::StrictlyLower>()*xcentered;
 
-      lse(ik) = alphas[ik] + log_Ldiags[ik].sum() - 0.5*mahal.squaredNorm();;
+      lse(ik) = alphas[ik] + qs[ik].sum() - 0.5*mahal.squaredNorm();;
     }
     slse += logsumexp(lse);
   }
@@ -91,11 +92,11 @@ void gmm_objective(int d, int k, int n,
   Map<const VectorXd> map_alphas(alphas, k);
   double lse_alphas = logsumexp(map_alphas);
 
-  double CONSTANT = -n*d*log(PI) / 2.;
+  double CONSTANT = -n*d*0.5*log(2*PI);
   
   *err = CONSTANT + slse - n*lse_alphas;
 
-  *err += log_wishart_prior(d, k, wishart, log_Ldiags, icf);
+  *err += log_wishart_prior(d, k, wishart, qs, icf);
 }
 
 void gmm_objective(int d, int k, int n, const double *alphas,
@@ -123,7 +124,8 @@ void gmm_objective(int d, int k, int n, const double *alphas,
     }
   }
 
-  return gmm_objective(d, k, n, alphas, mus, log_Ldiags, Ls);
+  gmm_objective(d, k, n, alphas, mus, log_Ldiags, 
+	  Ls, icf, x, wishart, err);
 }
 
 
@@ -131,7 +133,7 @@ void gmm_objective_d(int d, int k, int n, const double *alphas,
   const double *means, const double *icf, const double *x,
   Wishart wishart, double *err, double *J)
 {
-  const double CONSTANT = 1 / (pow(sqrt(2 * PI), d));
+  const double CONSTANT = -n*d*0.5*log(2 * PI);
   int icf_sz = d*(d + 1) / 2;
 
   // init eigen wrappers first
@@ -225,7 +227,7 @@ void gmm_objective_d(int d, int k, int n, const double *alphas,
   RowVectorXd e_alphas = map_alphas.exp();
   alphas_d -= (n*e_alphas) / e_alphas.sum();
 
-  *err = n*log(CONSTANT) + slse - n*lse_alphas;
+  *err = CONSTANT + slse - n*lse_alphas;
 
   *err += log_wishart_prior(d, k, wishart, log_Ldiags, icf);
 }

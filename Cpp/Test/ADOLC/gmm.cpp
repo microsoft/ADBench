@@ -61,7 +61,7 @@ adouble log_wishart_prior(int p, int k, Wishart wishart,
 void gmm_objective(int d, int k, int n, adouble *alphas, adouble *means,
 	adouble *icf, double *x, Wishart wishart, adouble *err)
 {
-	const double CONSTANT = 1 / (pow(sqrt(2 * PI), d));
+	const double CONSTANT = -n*d*0.5*log(2 * PI);
 	int icf_sz = d*(d + 1) / 2;
 
 	adouble *Ldiag = new adouble[d];
@@ -114,7 +114,7 @@ void gmm_objective(int d, int k, int n, adouble *alphas, adouble *means,
 
 	adouble lse_alphas = logsumexp(k, alphas);
 
-	*err = n*log(CONSTANT) + slse - n*lse_alphas;
+	*err = CONSTANT + slse - n*lse_alphas;
 
 	*err += log_wishart_prior(d, k, wishart, icf);
 }
@@ -185,7 +185,7 @@ double log_wishart_prior(int p, int k, Wishart wishart,
 void gmm_objective(int d, int k, int n, double *alphas, double *means,
 	double *icf, double *x, Wishart wishart, double *err)
 {
-	const double CONSTANT = 1 / (pow(sqrt(2 * PI), d));
+	const double CONSTANT = -n*d*0.5*log(2*PI);
 	int icf_sz = d*(d + 1) / 2;
 
 	double *Ldiag = new double[d];
@@ -238,7 +238,7 @@ void gmm_objective(int d, int k, int n, double *alphas, double *means,
 
 	double lse_alphas = logsumexp(k, alphas);
 
-	*err = n*log(CONSTANT) + slse - n*lse_alphas;
+	*err = CONSTANT + slse - n*lse_alphas;
 
 	*err += log_wishart_prior(d, k, wishart, icf);
 }

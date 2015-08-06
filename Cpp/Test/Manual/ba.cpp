@@ -1,8 +1,8 @@
 #include "ba.h"
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
-#include <float.h>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
+#include <cfloat>
 #include "Eigen\Dense"
 
 using Eigen::Map;

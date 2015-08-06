@@ -1,6 +1,8 @@
 #ifndef TEST_UTILS
 #define TEST_UTILS
 
+#pragma warning (disable : 4996) // fopen
+
 #include <cstring>
 #include <iostream>
 #include <string>
@@ -34,9 +36,9 @@ void read_gmm_instance(const string& fn,
 	double*& means, double*& icf,
 	double*& x, Wishart& wishart)
 {
-	std::ifstream in(fn);
+	FILE *fid = fopen(fn.c_str(), "r");
 
-	in >> d >> k >> n;
+	fscanf(fid, "%i %i %i", &d, &k, &n);
 
 	int icf_sz = d*(d + 1) / 2;
 	alphas = new double[k];
@@ -46,14 +48,14 @@ void read_gmm_instance(const string& fn,
 
 	for (int i = 0; i < k; i++)
 	{
-		in >> alphas[i];
+		fscanf(fid, "%lf", &alphas[i]);
 	}
 
 	for (int i = 0; i < k; i++)
 	{
 		for (int j = 0; j < d; j++)
 		{
-			in >> means[i*d + j];
+			fscanf(fid, "%lf", &means[i*d + j]);
 		}
 	}
 
@@ -61,7 +63,7 @@ void read_gmm_instance(const string& fn,
 	{
 		for (int j = 0; j < icf_sz; j++)
 		{
-			in >> icf[i*icf_sz + j];
+			fscanf(fid, "%lf", &icf[i*icf_sz + j]);
 		}
 	}
 
@@ -69,21 +71,21 @@ void read_gmm_instance(const string& fn,
 	{
 		for (int j = 0; j < d; j++)
 		{
-			in >> x[i*d + j];
+			fscanf(fid, "%lf", &x[i*d + j]);
 		}
 	}
 
-	in >> wishart.gamma >> wishart.m;
+	fscanf(fid, "%lf %i", &(wishart.gamma), &(wishart.m));
 
-	in.close();
+	fclose(fid);
 }
 
 void read_ba_instance(const string& fn, int& n, int& m, int& p,
 	double*& cams, double*& X, double*& w, int*& obs, double*& feats)
 {
-	std::ifstream in(fn);
+	FILE *fid = fopen(fn.c_str(), "r");
 
-	in >> n >> m >> p;
+	fscanf(fid, "%i %i %i", &n, &m, &p);
 	int nCamParams = 11;
 
 	cams = new double[nCamParams * n];
@@ -96,7 +98,7 @@ void read_ba_instance(const string& fn, int& n, int& m, int& p,
 	{
 		for (int j = 0; j < nCamParams; j++)
 		{
-			in >> cams[i * nCamParams + j];
+			fscanf(fid, "%lf", &cams[i * nCamParams + j]);
 		}
 	}
 
@@ -104,26 +106,26 @@ void read_ba_instance(const string& fn, int& n, int& m, int& p,
 	{
 		for (int j = 0; j < 3; j++)
 		{
-			in >> X[i * 3 + j];
+			fscanf(fid, "%lf", &X[i * 3 + j]);
 		}
 	}
 
 	for (int i = 0; i < p; i++)
 	{
-		in >> w[i];
+		fscanf(fid, "%lf", &w[i]);
 	}
 
 	for (int i = 0; i < p; i++)
 	{
-		in >> obs[i * 2 + 0] >> obs[i * 2 + 1];
+		fscanf(fid, "%i %i", &obs[i * 2 + 0], &obs[i * 2 + 1]);
 	}
 
 	for (int i = 0; i < p; i++)
 	{
-		in >> feats[i * 2 + 0] >> feats[i * 2 + 1];
+		fscanf(fid, "%lf %lf", &feats[i * 2 + 0], &feats[i * 2 + 1]);
 	}
 
-	in.close();
+	fclose(fid);
 }
 
 void write_J_sparse(const string& fn, SparseMat& J)

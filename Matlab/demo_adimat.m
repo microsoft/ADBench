@@ -29,7 +29,7 @@ gmm.inv_cov_factors = [gmm.inv_cov_factors{:}];
 x = randn(d,n);
 hparams = [1 0];
 
-fn = 'Z:/gmm1';
+fn = 'Z:/autodiff/gmm';
 % save_gmm_instance([fn '.txt'],gmm,x,hparams);
 [gmm,x,hparams] = load_gmm_instance([fn '.txt']);
 
@@ -143,7 +143,7 @@ rng(1);
 num_in = numel(cams) + numel(X) + numel(w)
 num_out = 2*p + n-2 + p
 
-fn = 'Z:/ba1';
+fn = 'Z:/ba';
 % save_ba_instance( [fn '.txt'], cams, X, w, obs )
 [cams, X, w, obs] = load_ba_instance( [fn '.txt']);
 

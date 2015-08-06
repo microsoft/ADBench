@@ -95,7 +95,7 @@ void gmm_objective(int d, int k, int n, const T* const alphas,
 	const T* const means, const T* const icf, 
 	const double* const x, Wishart wishart, T* err)
 {
-	const double CONSTANT = 1 / (pow(sqrt(2 * PI), d));
+	const double CONSTANT = -n*d*0.5*log(2 * PI);
 	int icf_sz = d*(d + 1) / 2;
 
 	T *Ldiag = new T[d];
@@ -148,7 +148,7 @@ void gmm_objective(int d, int k, int n, const T* const alphas,
 
 	T lse_alphas = logsumexp(k, alphas);
 
-	*err = T(n*log(CONSTANT)) + slse - T(n)*lse_alphas;
+	*err = T(CONSTANT) + slse - T(n)*lse_alphas;
 
 	*err += log_wishart_prior(d, k, wishart, icf);
 }

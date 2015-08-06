@@ -125,33 +125,33 @@ void test_gmm(char *argv[])
 	tf = duration_cast<duration<double>>(end - start).count() / nruns;
 
 
-	/*start = high_resolution_clock::now();
+	start = high_resolution_clock::now();
 	for (int i = 0; i < nruns; i++)
 	{
 		compute_gmm_Jb(d, k, n, alphas, 
 			means, icf, x, wishart, e3, Jb);
 	}
 	end = high_resolution_clock::now();
-	tb = duration_cast<duration<double>>(end - start).count() / nruns;*/
+	tb = duration_cast<duration<double>>(end - start).count() / nruns;
 
 
-	start = high_resolution_clock::now();
+	/*start = high_resolution_clock::now();
 	for (int i = 0; i < nruns; i++)
 	{
 		compute_gmm_Jdv(d, k, n, alphas, 
 			means, icf, x, wishart, e4, Jdv);
 	}
 	end = high_resolution_clock::now();
-	tdv = duration_cast<duration<double>>(end - start).count() / nruns;
+	tdv = duration_cast<duration<double>>(end - start).count() / nruns;*/
 
 	/////////////////// results //////////////////////////
 	//cout << "true_obj - b_obj = " << e1 - e3 << endl;
 	//cout << "true_obj - dv_obj = " << e1 - e4 << endl;
 
-	//write_J(fn + "J_Tapenade_b.txt", 1, Jsz, Jb);
-	write_J(fn + "J_Tapenade_dv.txt", 1, Jsz, Jdv);
-	//write_times(tf, tb);
-	write_times(tf, tdv);
+	write_J(fn + "J_Tapenade_b.txt", 1, Jsz, Jb);
+	//write_J(fn + "J_Tapenade_dv.txt", 1, Jsz, Jdv);
+	write_times(tf, tb);
+	//write_times(tf, tdv);
 
 	delete[] Jb;
 	delete[] Jdv;
@@ -520,6 +520,6 @@ void test_ba(char *argv[])
 
 int main(int argc, char *argv[])
 {
-	//test_gmm(argv);
-	test_ba(argv);
+	test_gmm(argv);
+	//test_ba(argv);
 }
