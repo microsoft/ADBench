@@ -2,8 +2,8 @@
 open System.Diagnostics
 open System.IO
 open MathNet.Numerics
-open DiffSharp.AD.Specialized.Reverse1
-//open DiffSharp.AD
+//open DiffSharp.AD.Specialized.Reverse1
+open DiffSharp.AD
 
 ////// IO //////
 
@@ -182,8 +182,9 @@ let gmm_objective_wrapper d k (parameters:_[]) (x:float[][]) (wishart:Wishart) =
     let means_off = k
     let icf_sz = d*(d + 1) / 2
     let icf_off = means_off + d*k
-    gmm_objective_ parameters.[..(k-1)] (reshape d k parameters.[means_off..(means_off+d*k-1)])
-                    (reshape icf_sz k parameters.[icf_off..(icf_off+icf_sz*k-1)]) x wishart
+    let means = (reshape d k parameters.[means_off..(means_off+d*k-1)])
+    let icf = (reshape icf_sz k parameters.[icf_off..(icf_off+icf_sz*k-1)])
+    gmm_objective_ parameters.[..(k-1)] means icf x wishart
 
 /////// Derivative extras extras - fixing stack overflow ////////
 let gmm_objective_1 (alphas:D[]) (means:D[][]) (icf:D[][]) (x:float[])  =
@@ -230,7 +231,7 @@ let gmm_objective_2wrapper d k n (parameters:_[]) (wishart:Wishart) =
 let main argv = 
     let alphas, means, icf, x, wishart = read_gmm_instance (argv.[0] + ".txt")
     
-    let nruns = 1000
+    let nruns = 3
     
     let mutable err = 0.
     let obj_stop_watch = Stopwatch.StartNew()
@@ -250,16 +251,16 @@ let main argv =
     let grad_gmm_objective2 = grad' gmm_objective_2wrapper_
     
     let grad_stop_watch = Stopwatch.StartNew()
-    for i = 1 to nruns do
-        let parameters = (vectorize alphas means icf) //|> Array.map D
-        for i = 1 to n do
-            grad_gmm_objective1 parameters
-        grad_gmm_objective2 parameters
 //    for i = 1 to nruns do
-//        let parameters = (vectorize alphas means icf) |> Array.map D
-//        grad_gmm_objective parameters
-////        let err2,gradient = grad_gmm_objective parameters
-////        printfn "round %i: %f" i (float err2)
+//        let parameters = (vectorize alphas means icf) //|> Array.map D
+//        for i = 1 to n do
+//            grad_gmm_objective1 parameters
+//        grad_gmm_objective2 parameters
+    for i = 1 to nruns do
+        let parameters = (vectorize alphas means icf) |> Array.map D
+        grad_gmm_objective parameters
+//        let err2,gradient = grad_gmm_objective parameters
+//        printfn "round %i: %f" i (float err2)
     grad_stop_watch.Stop()
     
     //let parameters = (vectorize alphas means icf) |> Array.map D
