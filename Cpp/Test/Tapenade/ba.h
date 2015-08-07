@@ -38,12 +38,12 @@ void radial_distort(double *rad_params, double *proj);
 void project(double *cam, double *X, double *proj);
 
 void computeReprojError(double *cam,
-	double *X, double *w, double feat_x, double feat_y,
-	double *err);
+  double *X, double *w, double feat_x, double feat_y,
+  double *err);
 
 // temporal prior
 void computeFocalPriorError(double *cam1,
-	double *cam2, double *cam3, double *err);
+  double *cam2, double *cam3, double *err);
 
 void computeZachWeightError(double *w, double *err);
 
@@ -68,7 +68,7 @@ void computeZachWeightError(double *w, double *err);
 // proj = distorted * f + principal_point
 // err = sqsum(proj - measurement)
 void ba_objective(int n, int m, int p, double *cams, double *X,
-	double *w, int *obs, double *feats,
-	double *reproj_err, double *f_prior_err, double *w_err);
+  double *w, int *obs, double *feats,
+  double *reproj_err, double *f_prior_err, double *w_err);
 
 #endif //TEST_TAPENADE_BA

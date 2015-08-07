@@ -1,8 +1,6 @@
 #include <iostream>
 #include <string>
-#include <fstream>
 #include <chrono>
-#include <vector>
 #include <set>
 
 #include "adolc/adolc.h"
@@ -22,9 +20,6 @@ double compute_gmm_J(int nruns,
 	double *means, double *icf, double *x, 
 	Wishart wishart, double& err, double **J)
 {
-	high_resolution_clock::time_point start, end;
-	start = high_resolution_clock::now();
-
 	int tapeTag = 1;
 	int icf_sz = d*(d + 1) / 2;
 	int Jrows = 1;
@@ -63,6 +58,10 @@ double compute_gmm_J(int nruns,
 	delete[] ameans;
 	delete[] aicf;
 
+
+	high_resolution_clock::time_point start, end;
+	start = high_resolution_clock::now();
+
 	// Compute J
 	double *in = new double[Jcols];
 	memcpy(in, alphas, k*sizeof(double));
@@ -83,60 +82,98 @@ double compute_gmm_J(int nruns,
 
 	end = high_resolution_clock::now();
 	return duration_cast<duration<double>>(end - start).count() / nruns;
+
+	delete[] in;
 }
 
-void test_gmm(char *argv[])
+double compute_gmm_J_split(int nruns,
+  int d, int k, int n, double *alphas,
+  double *means, double *icf, double *x,
+  Wishart wishart, double& err, double **J)
 {
-	int d, k, n;
-	double *alphas, *means, *icf, *x;
-	double err;
-	Wishart wishart;
+  int innerTapeTag = 0;
+  int otherTapeTag = 0;
+  int icf_sz = d*(d + 1) / 2;
+  int Jrows = 1;
+  int Jcols = (k*(d + 1)*(d + 2)) / 2;
+  adouble *aalphas, *ameans, *aicf, aerr;
+  aalphas = new adouble[k];
+  ameans = new adouble[d*k];
+  aicf = new adouble[icf_sz*k];
 
-	// Read instance
-	string fn(argv[1]);
-	read_gmm_instance(fn + ".txt", d, k, n, 
-		alphas, means, icf, x, wishart);
+  // Record on a tape
+  trace_on(otherTapeTag);
 
-	int icf_sz = d*(d + 1) / 2;
-	int Jrows = 1;
-	int Jcols = (k*(d + 1)*(d + 2)) / 2;
+  for (int i = 0; i < k; i++)
+    aalphas[i] <<= alphas[i];
+  for (int i = 0; i < d*k; i++)
+    ameans[i] <<= means[i];
+  for (int i = 0; i < icf_sz*k; i++)
+    aicf[i] <<= icf[i];
 
-	double **J = new double*[Jrows];
-	for (int i = 0; i < Jrows; i++)
-	{
-		J[i] = new double[Jcols];
-	}
+  gmm_objective_split_other(d, k, n, aalphas, ameans,
+    aicf, wishart, &aerr);
 
-	// Test
-	high_resolution_clock::time_point start, end;
-	double tf, tJ = 0.;
-	int nruns = 1000;
+  aerr >>= err;
 
-	start = high_resolution_clock::now();
-	for (int i = 0; i < nruns; i++)
-	{
-		gmm_objective(d, k, n, alphas, means, 
-			icf, x, wishart, &err);
-	}
-	end = high_resolution_clock::now();
-	tf = duration_cast<duration<double>>(end - start).count() / nruns;
-	cout << "err: " << err << endl;
+  trace_off();
 
-	/*tJ = compute_gmm_J(nruns, d, k, n, alphas,
-		means, icf, x, wishart, err, J);
+  high_resolution_clock::time_point start, end;
+  start = high_resolution_clock::now();
 
-	write_J(fn + "J_ADOLC.txt", Jrows, Jcols, J);*/
-	write_times(tf, tJ);
+  // Compute J
+  double *in = new double[Jcols];
+  memcpy(in, alphas, k*sizeof(double));
+  int off = k;
+  memcpy(in + off, means, d*k*sizeof(double));
+  off += d*k;
+  memcpy(in + off, icf, icf_sz*k*sizeof(double));
 
-	for (int i = 0; i < Jrows; i++)
-	{
-		delete[] J[i];
-	}
-	delete[] J;
-	delete[] alphas;
-	delete[] means;
-	delete[] x;
-	delete[] icf;
+  double *Jtmp = new double[Jcols];
+  for (int i = 0; i < nruns; i++)
+  {
+    gradient(otherTapeTag, Jcols, in, J[0]);
+    for (int i = 0; i < n; i++)
+    {
+      // Record on a tape
+      int keepValues = 1; // those are used for gradient right after
+      trace_on(innerTapeTag, keepValues);
+
+      for (int i = 0; i < k; i++)
+        aalphas[i] <<= alphas[i];
+      for (int i = 0; i < d*k; i++)
+        ameans[i] <<= means[i];
+      for (int i = 0; i < icf_sz*k; i++)
+        aicf[i] <<= icf[i];
+
+      gmm_objective_split_inner(d, k, aalphas, ameans,
+        aicf, &x[i*d], wishart, &aerr);
+
+      aerr >>= err;
+
+      trace_off();
+
+      gradient(innerTapeTag, Jcols, in, Jtmp);
+      for (int i = 0; i < Jcols; i++)
+      {
+        J[0][i] += Jtmp[i];
+      }
+    }
+
+    //int keepValues = 1;
+    //double errd = 1;
+    //zos_forward(tapeTag, Jrows, Jcols, keepValues, in, &err);
+    //fos_reverse(tapeTag, Jrows, Jcols, &errd, J[0]);
+  }
+
+  end = high_resolution_clock::now();
+  return duration_cast<duration<double>>(end - start).count() / nruns;
+
+  delete[] aalphas;
+  delete[] ameans;
+  delete[] aicf;
+  delete[] Jtmp;
+  delete[] in;
 }
 
 void convert_J(int nnz, unsigned int *ridxs, unsigned int *cidxs,
@@ -287,14 +324,68 @@ double compute_ba_J(bool doRowCompression,int nruns, int n, int m, int p,
 	return t_J;
 }
 
-void test_ba(char *argv[])
+void test_gmm(const string& fn, int nruns)
+{
+  int d, k, n;
+  double *alphas, *means, *icf, *x;
+  double err;
+  Wishart wishart;
+
+  // Read instance
+  read_gmm_instance(fn + ".txt", d, k, n,
+    alphas, means, icf, x, wishart);
+
+  int icf_sz = d*(d + 1) / 2;
+  int Jrows = 1;
+  int Jcols = (k*(d + 1)*(d + 2)) / 2;
+
+  double **J = new double*[Jrows];
+  for (int i = 0; i < Jrows; i++)
+  {
+    J[i] = new double[Jcols];
+  }
+
+  // Test
+  high_resolution_clock::time_point start, end;
+  double tf, tJ = 0.;
+
+  start = high_resolution_clock::now();
+  for (int i = 0; i < nruns; i++)
+  {
+    gmm_objective(d, k, n, alphas, means,
+      icf, x, wishart, &err);
+  }
+  end = high_resolution_clock::now();
+  tf = duration_cast<duration<double>>(end - start).count() / nruns;
+  cout << "err: " << err << endl;
+
+  tJ = compute_gmm_J(nruns, d, k, n, alphas, means, icf, x, wishart, err, J);
+  //tJ = compute_gmm_J_split(nruns, d, k, n, alphas, means, icf, x, wishart, err, J);
+
+  string name = "J_ADOLC";
+  //string name = "J_ADOLC_split";
+  write_J(fn + name + ".txt", Jrows, Jcols, J);
+  //write_times(tf, tJ);
+  write_times(fn + name + "_times.txt", tf, tJ);
+
+  for (int i = 0; i < Jrows; i++)
+  {
+    delete[] J[i];
+  }
+  delete[] J;
+  delete[] alphas;
+  delete[] means;
+  delete[] x;
+  delete[] icf;
+}
+
+void test_ba(const string& fn, int nruns)
 {
 	int n, m, p;
 	double *cams, *X, *w, *feats;
 	int *obs;
 
 	//read instance
-	string fn(argv[1]);
 	read_ba_instance(fn + ".txt", n, m, p, 
 		cams, X, w, obs, feats);
 
@@ -308,7 +399,6 @@ void test_ba(char *argv[])
 
 	high_resolution_clock::time_point start, end;
 	double tf, tJ = 0;
-	int nruns = 10000;
 
 	start = high_resolution_clock::now();
 	for (int i = 0; i < nruns; i++)
@@ -319,11 +409,11 @@ void test_ba(char *argv[])
 	end = high_resolution_clock::now();
 	tf = duration_cast<duration<double>>(end - start).count() / nruns;
 
-	/*bool doRowCompression = false;
+	bool doRowCompression = false;
 	tJ = compute_ba_J(doRowCompression, nruns, n, m, p, cams, X, w, 
 		obs, feats, reproj_err, f_prior_err, w_err, &J);
 
-	write_J_sparse(fn + "J_ADOLC.txt", J);*/
+	write_J_sparse(fn + "J_ADOLC.txt", J);
 	write_times(tf, tJ);
 
 	delete[] reproj_err;
@@ -339,6 +429,10 @@ void test_ba(char *argv[])
 
 int main(int argc, char *argv[])
 {
-	//test_gmm(argv);
-	test_ba(argv);
+  string fn(argv[1]);
+  int nruns = 1;
+  if (argc >= 3)
+    nruns = std::stoi(string(argv[2]));
+	test_gmm(fn, nruns);
+	//test_ba(fn, nruns);
 }

@@ -16,7 +16,7 @@ double logsumexp(int n, double* x);
 //					square roots of inverse covariances log of diagonal 
 //					is first p params
 double log_wishart_prior(int p, int k, Wishart wishart,
-	double* icf);
+  double* icf);
 double log_gamma_distrib(double a, double p);
 
 // d dim
@@ -35,8 +35,8 @@ double log_gamma_distrib(double a, double p);
 //           L = inv(chol(C, 'lower'));
 //           inv_cov_factor = [log(diag(L)); L(au_tril_indices(d, -1))]
 void gmm_objective(int d, int k, int n,
-	double* alphas, double* means,
-	double* icf, double *x,
-	Wishart wishart, double *err);
+  double* alphas, double* means,
+  double* icf, double *x,
+  Wishart wishart, double *err);
 
 #endif // TEST_TAPENADE_GMM

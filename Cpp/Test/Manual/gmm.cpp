@@ -1,6 +1,6 @@
 #include "gmm.h"
 
-#include <math.h>
+#include <cmath>
 #include <vector>
 
 #include "Eigen\Dense"
@@ -22,7 +22,7 @@ double logsumexp(const ArrayXd& x)
 
 double log_gamma_distrib(double a, double p)
 {
-  double out = log(pow(PI, 0.25 * p * (p - 1)));
+  double out = 0.25 * p * (p - 1) * log(PI);
   for (int j = 1; j <= p; j++)
   {
     out += lgamma(a + 0.5*(1 - j));
@@ -36,8 +36,10 @@ double log_gamma_distrib(double a, double p)
 // icf  (p*(p+1)/2)*k parametrizing lower triangular 
 //					square roots of inverse covariances log of diagonal 
 //					is first p params
-double log_wishart_prior(int p, int k, Wishart wishart,
-  const vector<Map<const ArrayXd>>& log_Ldiags, const double *icf)
+double log_wishart_prior(int p, int k, 
+  Wishart wishart,
+  const vector<Map<const ArrayXd>>& log_Ldiags, 
+  const double *icf)
 {
   int n = p + wishart.m + 1;
   int icf_sz = p*(p + 1) / 2;
@@ -62,10 +64,10 @@ void gmm_objective(int d, int k, int n,
   const double* alphas,
   vector<Map<const VectorXd>> const& mus,
   vector<Map<const ArrayXd>> const& qs,
-  vector<MatrixXd> const& Ls, 
+  vector<MatrixXd> const& Ls,
   const double *icf,
   const double *x,
-  Wishart wishart, 
+  Wishart wishart,
   double *err)
 {
   int icf_sz = d*(d + 1) / 2;
@@ -92,16 +94,20 @@ void gmm_objective(int d, int k, int n,
   Map<const VectorXd> map_alphas(alphas, k);
   double lse_alphas = logsumexp(map_alphas);
 
-  double CONSTANT = -n*d*0.5*log(2*PI);
-  
+  double CONSTANT = -n*d*0.5*log(2 * PI);
+
   *err = CONSTANT + slse - n*lse_alphas;
 
   *err += log_wishart_prior(d, k, wishart, qs, icf);
 }
 
-void gmm_objective(int d, int k, int n, const double *alphas,
-  const double *means, const double *icf, const double *x,
-  Wishart wishart, double *err)
+void gmm_objective(int d, int k, int n, 
+  const double *alphas,
+  const double *means, 
+  const double *icf, 
+  const double *x,
+  Wishart wishart, 
+  double *err)
 {
   int icf_sz = d*(d + 1) / 2;
 
@@ -124,14 +130,19 @@ void gmm_objective(int d, int k, int n, const double *alphas,
     }
   }
 
-  gmm_objective(d, k, n, alphas, mus, log_Ldiags, 
-	  Ls, icf, x, wishart, err);
+  gmm_objective(d, k, n, alphas, mus, log_Ldiags,
+    Ls, icf, x, wishart, err);
 }
 
 
-void gmm_objective_d(int d, int k, int n, const double *alphas,
-  const double *means, const double *icf, const double *x,
-  Wishart wishart, double *err, double *J)
+void gmm_objective_d(int d, int k, int n, 
+  const double *alphas,
+  const double *means, 
+  const double *icf, 
+  const double *x,
+  Wishart wishart, 
+  double *err, 
+  double *J)
 {
   const double CONSTANT = -n*d*0.5*log(2 * PI);
   int icf_sz = d*(d + 1) / 2;
@@ -198,7 +209,11 @@ void gmm_objective_d(int d, int k, int n, const double *alphas,
     }
     slse += logsumexp(main_term);
     e_main_term = main_term.exp();
-    e_main_term /= e_main_term.sum();
+    double normalizer = e_main_term.sum();
+    if (normalizer == 0.)
+      e_main_term.setZero();
+    else
+      e_main_term /= e_main_term.sum();
     alphas_d += e_main_term;
     for (int id = 0; id < d; id++)
     {
@@ -221,7 +236,7 @@ void gmm_objective_d(int d, int k, int n, const double *alphas,
       wishart.gamma*wishart.gamma*
       Map<const VectorXd>(&icf[ik*icf_sz + d], icf_sz - d);
   }
-
+  
   Map<const ArrayXd> map_alphas(alphas, k);
   double lse_alphas = logsumexp(map_alphas);
   RowVectorXd e_alphas = map_alphas.exp();
