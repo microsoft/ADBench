@@ -4,6 +4,8 @@
 #include <chrono>
 #include <cassert>
 
+#define COMPILE_EIGEN_VERSION
+
 #include "../utils.h"
 #include "../defs.h"
 #include "gmm.h"

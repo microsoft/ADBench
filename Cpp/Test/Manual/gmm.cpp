@@ -5,7 +5,7 @@
 
 using std::vector;
 
-#if 0
+#ifndef COMPILE_EIGEN_VERSION
 
 double arr_max(int n, const double* const x)
 {
