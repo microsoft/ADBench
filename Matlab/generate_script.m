@@ -209,15 +209,16 @@ for i=1:ntasks
     
     nruns_curr = 1000;
     
-%     tic
-%     for j=1:nruns_curr
-%         fval = gmm_objective(paramsGMM.alphas,paramsGMM.means,...
-%             paramsGMM.inv_cov_factors,x,hparams);
-%     end
-%     times_mupad_f(i) = toc/nruns_curr;
+    tic
+    [ J, err ] = gmm_objective_d_symbolic(nruns_curr, paramsGMM, x, ...
+        hparams, false);
+    if ~isempty(J)
+        times_mupad_f(i) = toc/nruns_curr;
+    end
     
     tic
-    [ J, err ] = gmm_objective_d_symbolic(nruns_curr, paramsGMM, x, hparams);
+    [ J, err ] = gmm_objective_d_symbolic(nruns_curr, paramsGMM, x,...
+        hparams, true);
     if ~isempty(J)
         times_mupad_J(i) = toc/nruns_curr;
     end
@@ -330,15 +331,13 @@ xlabel('# parameters')
 ylabel('runtime [seconds]')
 
 figure
-semilogx(x, times_relative(:, order),'linewidth',lw,'markersize',msz);
-legend({tools{order}}, 'location', 'se');
+loglog(x, times_relative(:, order),'linewidth',lw,'markersize',msz);
+legend({tools{order}}, 'location', 'nw');
 set(gca,'FontSize',14)
 xlim([min(x) max(x)])
-ylim([0 100])
 title('relative runtimes')
 xlabel('# parameters')
 ylabel('relative runtime')
-
 
 %% do 2D plots
 tool_id = 2;
@@ -374,3 +373,24 @@ for i=1:ntasks
 end
 xlswrite('tmp.xlsx',labels')
 xlswrite('tmp.xlsx',tools,1,'B1')
+
+%% mupad compilation
+mupad_compile_times = Inf(1,ntasks);
+mupad_compile_times(1:13) = [0.0014, 0.0019, 0.014, 0.15, 0.089,...
+    0.6, 0.5, 3.3, 4.25, 8.7, 15.1, 26, 50];
+
+vals = zeros(numel(d_all),numel(k_all));
+for i=1:ntasks
+    d = params{i}(1);
+    k = params{i}(2);
+    vals(d_all==d,k_all==k) = mupad_compile_times(i);
+end
+[x,y]=meshgrid(k_all,d_all);
+figure
+surf(x,y,vals);
+xlabel('d')
+ylabel('K')
+set(gca,'FontSize',14,'ZScale','log')
+title('Compile time (hours): MuPAD')
+
+

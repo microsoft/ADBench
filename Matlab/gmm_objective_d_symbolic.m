@@ -1,5 +1,5 @@
 function [ J, err ] = gmm_objective_d_symbolic( nruns, params,...
-    x,hparams )
+    x,hparams,do_jacobian)
 %GMM_OBJECTIVE_D_SYMBOLIC Use mexed files
 
 d = size(x,1);
@@ -7,8 +7,6 @@ k = size(params.alphas,2);
 n = size(x,2);
 
 params_vec = repmat(au_deep_vectorize(params),1,n);
-
-do_jacobian = true;
 
 mexname = sprintf('example_gmm_objective_mex_d%d_K%d', d, k);
 if ~exist(mexname, 'file')
