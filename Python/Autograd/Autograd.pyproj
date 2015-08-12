@@ -4,13 +4,15 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>25e5af84-1df1-4561-ac43-7338df8f38c6</ProjectGuid>
-    <ProjectHome>.</ProjectHome>
-    <StartupFile>PythonTestsSplit.py</StartupFile>
+    <ProjectHome>
+    </ProjectHome>
+    <StartupFile>
+    </StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>PythonTests</Name>
+    <Name>Autograd</Name>
     <RootNamespace>PythonTests</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <CommandLineArguments>..\..\..\gmm 1</CommandLineArguments>
@@ -26,9 +28,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="PythonTestsSplit.py" />
-    <Compile Include="PythonTests - Copy.py" />
-    <Compile Include="PythonTests.py" />
+    <Compile Include="gmm_python_objective.py" />
+    <Compile Include="autograd_split.py" />
+    <Compile Include="autograd.py" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

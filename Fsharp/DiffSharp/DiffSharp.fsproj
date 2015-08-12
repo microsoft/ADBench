@@ -5,37 +5,37 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>691d7287-2245-4960-87d7-93d0f5c307e1</ProjectGuid>
+    <ProjectGuid>b50bae60-b142-4e9a-a23b-d29fac2bfd4f</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>DiffSharpBA</RootNamespace>
-    <AssemblyName>DiffSharpBA</AssemblyName>
+    <RootNamespace>DiffSharp</RootNamespace>
+    <AssemblyName>DiffSharp</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
-    <Name>DiffSharpBA</Name>
+    <Name>DiffSharp</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <Tailcalls>false</Tailcalls>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\..\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Debug\DiffSharpBA.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\DiffSharp.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
-    <StartArguments>Z:\ba</StartArguments>
+    <StartArguments>Z:\gmm_instances\gmm3 1</StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\..\Release\DiffSharp\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Release\DiffSharpBA.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\DiffSharp.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
@@ -55,22 +55,27 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
-    <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Program.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
+    <Compile Include="gmm.fs" />
+    <Compile Include="ba.fs" />
+    <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="DiffSharp">
-      <HintPath>..\packages\DiffSharp.0.6.3\lib\DiffSharp.dll</HintPath>
+      <HintPath>..\..\packages\DiffSharp.0.6.3\lib\DiffSharp.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FsAlg">
-      <HintPath>..\packages\FsAlg.0.5.8\lib\FsAlg.dll</HintPath>
+      <HintPath>..\..\packages\FsAlg.0.5.8\lib\FsAlg.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FSharp.Quotations.Evaluator">
-      <HintPath>..\packages\FSharp.Quotations.Evaluator.1.0.6\lib\net40\FSharp.Quotations.Evaluator.dll</HintPath>
+      <HintPath>..\..\packages\FSharp.Quotations.Evaluator.1.0.6\lib\net40\FSharp.Quotations.Evaluator.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="MathNet.Numerics">
+      <HintPath>..\..\packages\MathNet.Numerics.3.7.0\lib\net40\MathNet.Numerics.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />

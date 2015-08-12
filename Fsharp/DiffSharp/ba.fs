@@ -1,8 +1,11 @@
-﻿open System
+﻿module ba
+let abc = printfn "abc"
+
+open System
 open System.Diagnostics
 open System.IO
-//open DiffSharp.AD
 open DiffSharp.AD.Specialized.Reverse1
+//open DiffSharp.AD
 
 ////// IO //////
 
@@ -196,48 +199,3 @@ let ba_objective_ (cams:_[][]) (X:_[][]) (w:_[]) (obs:int[][]) (feat:float[][]) 
     let J_w_err = Array.map diff_w_err w
 
     J_reproj_err, J_f_prior_err, J_w_err
-
-[<EntryPoint>]
-let main argv = 
-    let cams, X, w, obs, feat = read_ba_instance (argv.[0] + ".txt")
-
-    let nruns = 1000
-
-//    let reproj_err, f_prior_err, w_err = ba_objective cams X w obs feat
-//    printfn "%A" reproj_err
-//    printfn "%A" f_prior_err
-//    printfn "%A" w_err
-    let obj_stop_watch = Stopwatch.StartNew()
-    for i = 1 to nruns do    
-        ba_objective cams X w obs feat
-    obj_stop_watch.Stop()
-    
-    let n = cams.Length
-    let m = X.Length
-    let p = obs.Length
-
-//    let parameters = vectorize_in cams X w |> Array.map D
-//    let err, J = jac_ba_objective parameters
-//    printfn "%A" err
-//    printfn "%A" J
-
-//    let jac_stop_watch = Stopwatch.StartNew()
-//    for i = 1 to nruns do
-//        let camsD = cams |> Array.map (Array.map D)
-//        let XD = X |> Array.map (Array.map D)
-//        let wD = w |> Array.map D
-//        ba_objective_ camsD XD wD obs feat
-//    jac_stop_watch.Stop()
-    
-    let jac_stop_watch = Stopwatch.StartNew()
-    for i = 1 to nruns do
-        ba_objective_ cams X w obs feat
-    jac_stop_watch.Stop()
-
-    let tf = ((float obj_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns)
-    let tJ = ((float jac_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns)
-    printfn "tf: %f" tf
-    printfn "tJ: %f" tJ
-    printfn "tJ/tf: %f" (tJ/tf)
-    
-    0 

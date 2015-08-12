@@ -1,13 +1,15 @@
-﻿open System
+﻿module gmm
+
+open System
 open System.Diagnostics
 open System.IO
 open MathNet.Numerics
 open DiffSharp.AD.Specialized.Reverse1
 //open DiffSharp.AD
 
-////// IO //////
-
 type Wishart = {gamma:Double; m:Int32}
+
+////// IO //////
 
 let rec flatten list = 
     match list with
@@ -52,17 +54,11 @@ let read_gmm_instance (fn:string) =
    
     alphas, means, icf, x, wishart
 
-let write_grad (fn:string) (gradient:_[]) =
+let write_grad (fn:string) (gradient:float[]) =
     let line1 = sprintf "1 %i\n" gradient.Length
     let mutable line2 = ""
     for elem in gradient do
         line2 <- line2 + (sprintf "%f " (float elem))
-    let lines = [|line1; line2|]
-    File.WriteAllLines(fn,lines)
-    
-let write_times (fn:string) (tf:float) (tJ:float) =
-    let line1 = sprintf "%f %f\n" tf tJ
-    let line2 = sprintf "tf tJ"
     let lines = [|line1; line2|]
     File.WriteAllLines(fn,lines)
 
@@ -232,58 +228,3 @@ let gmm_objective_2wrapper d k n (parameters:_[]) (wishart:Wishart) =
     let icf_sz = d*(d + 1) / 2
     let icf_off = means_off + d*k
     gmm_objective_2 d n parameters.[..(k-1)] (reshape icf_sz k parameters.[icf_off..(icf_off+icf_sz*k-1)]) wishart
-
-[<EntryPoint>]
-let main argv = 
-    let alphas, means, icf, x, wishart = read_gmm_instance (argv.[0] + ".txt")
-    
-    let nruns = 
-        if argv.Length >= 2 then
-            Int32.Parse argv.[1]
-        else
-            1
-    
-    let obj_stop_watch = Stopwatch.StartNew()
-    for i = 1 to nruns do
-        gmm_objective alphas means icf x wishart
-    obj_stop_watch.Stop()
-
-    let k = alphas.Length
-    let d = means.[0].Length
-    let n = x.Length
-    let gmm_objective_wrapper_ (parameters:_[]) = gmm_objective_wrapper d k parameters x wishart
-    
-    let gmm_objective_2wrapper_ (parameters:_[]) = gmm_objective_2wrapper d k n parameters wishart
-    let grad_gmm_objective = grad' gmm_objective_wrapper_
-    
-    let grad_gmm_objective2 = grad' gmm_objective_2wrapper_
-    let grad_gmm_objective_split (parameters:_[]) =
-        for i = 0 to n-1 do
-            let gmm_objective_1wrapper_ (parameters:_[]) = gmm_objective_1wrapper d k parameters x.[i]
-            let grad_gmm_objective1 = grad' gmm_objective_1wrapper_
-            grad_gmm_objective1 parameters
-        grad_gmm_objective2 parameters
-        
-    
-    let grad_stop_watch = Stopwatch.StartNew()
-    let parameters = (vectorize alphas means icf) //|> Array.map D
-    for i = 1 to nruns do
-//        grad_gmm_objective_split parameters
-        grad_gmm_objective parameters
-    grad_stop_watch.Stop()
-    
-    let name = "J_diffsharpAD"
-    let name = "J_diffsharpR"
-    let name = "J_diffsharpRsplit"
-    let err2,gradient = (grad_gmm_objective parameters)
-    write_grad (argv.[0] + name + ".txt") gradient   
-
-    let tf = ((float obj_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns)
-    let tJ = ((float grad_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns)
-    write_times (argv.[0] + name + "_times.txt") tf tJ
-//    printfn "tf: %f" tf
-//    printfn "tJ: %f" tJ
-//    printfn "tJ/tf: %f" (tJ/tf)
-     
-
-    0 
