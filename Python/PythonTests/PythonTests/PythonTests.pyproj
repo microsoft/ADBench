@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>25e5af84-1df1-4561-ac43-7338df8f38c6</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>PythonTests.py</StartupFile>
+    <StartupFile>PythonTestsSplit.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -13,8 +13,9 @@
     <Name>PythonTests</Name>
     <RootNamespace>PythonTests</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>..\..\..\gmm_instances\gmm_d20_K5 1</CommandLineArguments>
+    <CommandLineArguments>..\..\..\gmm 1</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
+    <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -25,6 +26,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="PythonTestsSplit.py" />
     <Compile Include="PythonTests - Copy.py" />
     <Compile Include="PythonTests.py" />
   </ItemGroup>

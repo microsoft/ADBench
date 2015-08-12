@@ -91,7 +91,7 @@ double compute_gmm_J_split(int nruns,
   double *means, double *icf, double *x,
   Wishart wishart, double& err, double **J)
 {
-  int innerTapeTag = 0;
+  int innerTapeTag = 1;
   int otherTapeTag = 0;
   int icf_sz = d*(d + 1) / 2;
   int Jrows = 1;
@@ -359,11 +359,11 @@ void test_gmm(const string& fn, int nruns)
   tf = duration_cast<duration<double>>(end - start).count() / nruns;
   cout << "err: " << err << endl;
 
-  tJ = compute_gmm_J(nruns, d, k, n, alphas, means, icf, x, wishart, err, J);
-  //tJ = compute_gmm_J_split(nruns, d, k, n, alphas, means, icf, x, wishart, err, J);
+  //tJ = compute_gmm_J(nruns, d, k, n, alphas, means, icf, x, wishart, err, J);
+  tJ = compute_gmm_J_split(nruns, d, k, n, alphas, means, icf, x, wishart, err, J);
 
-  string name = "J_ADOLC";
-  //string name = "J_ADOLC_split";
+  //string name = "J_ADOLC";
+  string name = "J_ADOLC_split";
   write_J(fn + name + ".txt", Jrows, Jcols, J);
   //write_times(tf, tJ);
   write_times(fn + name + "_times.txt", tf, tJ);

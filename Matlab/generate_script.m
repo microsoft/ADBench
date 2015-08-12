@@ -1,36 +1,55 @@
-
 %% tools
-
 executables = {...
-    'Z:\autodiff\Cpp\Test\x64\Release\Manual.exe',...
+    'Z:\autodiff\Cpp\Test\x64\Release\Manual_Eigen.exe',...
+    'Z:\autodiff\Cpp\Test\x64\Release\Manual_VS.exe',...
     'Z:\autodiff\Cpp\Test\x64\Release\Tapenade.exe',...
     'Z:\autodiff\Cpp\Test\x64\Release\ADOLC_split.exe',...
     'Z:\autodiff\Cpp\Test\x64\Release\ADOLC.exe',...
     'Z:\autodiff\Fsharp\Tests\DiffSharp\bin\ReleaseRsplit\DiffSharpTest.exe',...
     'Z:\autodiff\Fsharp\Tests\DiffSharp\bin\ReleaseR\DiffSharpTest.exe',...
     'Z:\autodiff\Fsharp\Tests\DiffSharp\bin\ReleaseAD\DiffSharpTest.exe',...
+    'python.exe Z:\autodiff\Python\PythonTests\PythonTests\PythonTestsSplit.py',...
     'python.exe Z:\autodiff\Python\PythonTests\PythonTests\PythonTests.py',...
     };
-
 names = {...
     'J_manual',...
+    'J_manual_VS',...
     'J_Tapenade_b',...
     'J_ADOLC_split',...
     'J_ADOLC',...
     'J_diffsharpRsplit',...
     'J_diffsharpR',...
     'J_diffsharpAD',...
+    'J_Autograd_split',...
     'J_Autograd',...
     };
-
 nexe = numel(executables);
+tools = {...
+    'manual\_Eigen',...
+    'manual\_Cpp',...
+    'Tapenade\_R',...
+    'ADOLC\_R\_split',...
+    'ADOLC\_R',...
+    'DiffSharp\_R\_split',...
+    'DiffSharp\_R',...
+    'DiffSharp',...
+    'Autograd\_R\_split',...
+    'Autograd\_R',...
+    'AdiMat\_R',...
+    'MuPAD'...
+    };
+ntools = numel(tools);
+adimat_id = ntools-1;
+mupad_id = ntools;
 
 %% generate parameters and order them
+d_all = [2 10 20 32 64];
+k_all = [5 10 25 50 100 200];
 params = {};
 num_params = [];
-for d = [2 10 20 32 64]
+for d = d_all
     icf_sz = d*(d + 1) / 2;
-    for k = [5 10 25 50 100 200]
+    for k = k_all
         num_params(end+1) = k + d*k + icf_sz*k;
         params{end+1} = [d k num_params(end)];
     end
@@ -54,7 +73,6 @@ ntasks = numel(params);
 % save('params_gmm.mat','params');
 
 %% write instances into files
-
 fns = {};
 for i=1:ntasks
     disp(['runnning gmm: ' num2str(i) '; params: ' num2str(params{i})]);
@@ -75,8 +93,7 @@ for i=1:ntasks
     save_gmm_instance([fns{end} '.txt'], paramsGMM, x, hparams);
 end
 
-%% write script for running AD tools
-
+%% write script for running AD tools once
 fn = 'run_experiments.bat';
 fid = fopen(fn,'w');
 for i=1:nexe
@@ -86,8 +103,7 @@ for i=1:nexe
 end
 fclose(fid);
 
-%% run experiments
-
+%% run experiments for time estimates
 tic
 system(fn);
 toc
@@ -117,10 +133,9 @@ for i=1:ntasks
     times_est_adimat_J(i) = toc;
 end
 
-%% read times
-
-times_est_J = Inf(ntasks,nexe+1);
-times_est_f = Inf(ntasks,nexe+1);
+%% read time estimates
+times_est_J = Inf(ntasks,ntools);
+times_est_f = Inf(ntasks,ntools);
 for i=1:ntasks
     for j=1:nexe
         fn = [fns{i} names{j} '_times.txt'];
@@ -132,12 +147,11 @@ for i=1:ntasks
         end
     end
 end
-times_est_J(:,end) = times_est_adimat_J;
-times_est_f(:,end) = times_est_adimat_f;
+times_est_J(:,adimat_id) = times_est_adimat_J;
+times_est_f(:,adimat_id) = times_est_adimat_f;
 
 %% determine nruns for everyone
-
-nruns = zeros(ntasks,nexe+1);
+nruns = zeros(ntasks,ntools);
 for i=1:numel(times_est_J)
     if times_est_J(i) < 5
         nruns(i) = 1000;
@@ -146,12 +160,12 @@ for i=1:numel(times_est_J)
     elseif times_est_J(i) < 120
         nruns(i) = 10;
     elseif ~isinf(times_est_J(i))
-        nruns(i) = 1;
+%         nruns(i) = 1; 
+        nruns(i) = 0; % it has already ran once
     end
 end
 
-%% run all (adimat first)
-
+%% run adimat all
 addpath('adimat-0.6.0-4971');
 start_adimat
 addpath('awful\matlab');
@@ -164,7 +178,7 @@ for i=1:ntasks
     k = params{i}(2);
     [paramsGMM,x,hparams] = load_gmm_instance([fns{i} '.txt']);
     
-    nruns_curr = nruns(i,end);
+    nruns_curr = nruns(i,adimat_id);
     
     tic
     for j=1:nruns_curr
@@ -183,6 +197,35 @@ for i=1:ntasks
     save('gmm_adimat_times','times_adimat_f','times_adimat_J');
 end
 
+%% run mupad
+addpath('awful\matlab');
+times_mupad_f = Inf(1,ntasks);
+times_mupad_J = Inf(1,ntasks);
+for i=1:ntasks
+    disp(['runnning gmm: ' num2str(i) '; params: ' num2str(params{i})]);
+    d = params{i}(1);
+    k = params{i}(2);
+    [paramsGMM,x,hparams] = load_gmm_instance([fns{i} '.txt']);
+    
+    nruns_curr = 1000;
+    
+%     tic
+%     for j=1:nruns_curr
+%         fval = gmm_objective(paramsGMM.alphas,paramsGMM.means,...
+%             paramsGMM.inv_cov_factors,x,hparams);
+%     end
+%     times_mupad_f(i) = toc/nruns_curr;
+    
+    tic
+    [ J, err ] = gmm_objective_d_symbolic(nruns_curr, paramsGMM, x, hparams);
+    if ~isempty(J)
+        times_mupad_J(i) = toc/nruns_curr;
+    end
+    
+    save('gmm_mupad_times','times_mupad_f','times_mupad_J');
+end
+
+%% generate script for others
 fn = 'run_experiments_final.bat';
 fid = fopen(fn,'w');
 for i=1:nexe
@@ -195,12 +238,12 @@ for i=1:nexe
 end
 fclose(fid);
 
+%% run others
 tic
 system(fn);
 toc
 
 %% verify results
-
 addpath('adimat-0.6.0-4971');
 start_adimat
 addpath('awful\matlab');
@@ -240,9 +283,7 @@ for i=1:numel(bad)
     disp([bad{i}{1} ' : ' num2str(bad{i}{2})]);
 end
 
-
 %% read final times
-
 times_f = Inf(ntasks,nexe+1);
 times_J = Inf(ntasks,nexe+1);
 for i=1:ntasks
@@ -257,62 +298,79 @@ for i=1:ntasks
     end
 end
 ld = load('gmm_adimat_times');
-times_f(:,end) = ld.times_adimat_f;
-times_J(:,end) = ld.times_adimat_J;
+times_f(:,adimat_id) = ld.times_adimat_f;
+times_J(:,adimat_id) = ld.times_adimat_J;
+ld = load('gmm_mupad_times');
+times_f(:,mupad_id) = ld.times_mupad_f;
+times_J(:,mupad_id) = ld.times_mupad_J;
+
+times_relative = times_J./times_f;
+times_relative(isnan(times_relative)) = Inf;
+times_relative(times_relative==0) = Inf;
+
+%% output results
+save(['times_' date],'times_f','times_J','times_relative','params','tools');
 
 %% plot times
+set(groot,'defaultAxesColorOrder',...
+    [.8 .1 0;0 .7 0;.2 .2 1; 0 0 0; .8 .8 0],...
+    'defaultAxesLineStyleOrder', '-|s-|x-')
+lw = 2;
+msz = 7;
+order = fliplr([2 12 11 1 3 5 4 6 7 8 9 10]);
+x=[params{:}]; x=x(3:3:end);
 
 figure
-color_order = {...
-    [0    0.4470    0.7410],...
-    [0.8500    0.3250    0.0980],...
-    [0.9290    0.6940    0.1250],...
-    [0.4940    0.1840    0.5560],...
-    [0.4660    0.6740    0.1880],...
-    [0.3010    0.7450    0.9330],...
-    [0.6350    0.0780    0.1840],...
-    'm',...
-    'g',...
-    };
-lw = 2;
-for i=1:size(times_J,2)
-    semilogy(times_J(:,i),'linewidth',lw,'color',color_order{i});hold on
+loglog(x, times_J(:, order),'linewidth',lw,'markersize',msz);
+legend({tools{order}}, 'location', 'se');
+set(gca,'FontSize',14)
+xlim([min(x) max(x)])
+title('runtimes (seconds)')
+xlabel('# parameters')
+ylabel('runtime [seconds]')
+
+figure
+semilogx(x, times_relative(:, order),'linewidth',lw,'markersize',msz);
+legend({tools{order}}, 'location', 'se');
+set(gca,'FontSize',14)
+xlim([min(x) max(x)])
+ylim([0 100])
+title('relative runtimes')
+xlabel('# parameters')
+ylabel('relative runtime')
+
+
+%% do 2D plots
+tool_id = 2;
+vals_J = zeros(numel(d_all),numel(k_all));
+vals_relative = vals_J;
+for i=1:ntasks
+    d = params{i}(1);
+    k = params{i}(2);
+    vals_relative(d_all==d,k_all==k) = times_relative(i,tool_id);
+    vals_J(d_all==d,k_all==k) = times_J(i,tool_id);
 end
-legend('manual','Tapenade\_R','ADOLC\_R\_split',...
-    'ADOLC\_R','DiffSharp\_R\_split','DiffSharp\_R',...
-    'DiffSharp','Autograd','AdiMat')
+[x,y]=meshgrid(k_all,d_all);
+figure
+surf(x,y,vals_J);
+xlabel('d')
+ylabel('K')
+set(gca,'FontSize',14,'ZScale','log')
+title(['Runtime (seconds): ' tools{tool_id}])
+figure
+surf(x,y,vals_relative);
+xlabel('d')
+ylabel('K')
+set(gca,'FontSize',14)
+title(['Runtime (relative): ' tools{tool_id}])
+
+%% output into excel/csv
+csvwrite('tmp.csv',times_J*1000,2,1);
+csvwrite('tmp2.csv',times_relative,2,1);
 labels = {};
 for i=1:ntasks
     labels{end+1} = [num2str(params{i}(1)) ',' num2str(params{i}(2)) ...
         '->' num2str(params{i}(3))];
 end
-set(gca,'xtick',1:ntasks,'xticklabel',labels,'xticklabelrotation',45,...
-    'FontSize',14)
-title('runtimes (seconds) - log-plot of y axis')
-xlim([1 ntasks])
-hold off
-
-figure
-for i=1:size(times_relative,2)
-    plot(times_relative(:,i),'linewidth',lw,'color',color_order{i});hold on
-end
-legend('manual','Tapenade\_R','ADOLC\_R\_split',...
-    'ADOLC\_R','DiffSharp\_R\_split','DiffSharp\_R',...
-    'DiffSharp','Autograd','AdiMat')
-set(gca,'xtick',1:ntasks,'xticklabel',labels,'xticklabelrotation',45,...
-    'FontSize',14)
-title('relative runtimes (seconds)')
-ylim([0 100])
-xlim([1 ntasks])
-hold off
-
-%% output results
-
-times_relative = times_J./times_f;
-times_relative(isnan(times_relative)) = Inf;
-date = 'date';
-save(['times_' date],'times_f','times_J','times_relative','params');
-
-
-
-
+xlswrite('tmp.xlsx',labels')
+xlswrite('tmp.xlsx',tools,1,'B1')
