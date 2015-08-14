@@ -1,7 +1,10 @@
-import numpy as np
+﻿import numpy as np
+from numpy.random import rand, randn
 from scipy import special as scipy_special
 import theano as th
 import theano.tensor as T
+import time as t
+import sys
 
 def read_gmm_instance(fn):
     fid = open(fn, "r")
@@ -22,6 +25,24 @@ def read_gmm_instance(fn):
     fid.close()
     return alphas,means,icf,x,wishart_gamma,wishart_m
 
+def write_times(fn,tf,tJ):
+    fid = open(fn, "w")
+    print("%f %f" % (tf,tJ) , file = fid)
+    print("tf tJ" , file = fid)
+    fid.close()
+    
+def write_J(fn,grad):
+    fid = open(fn, "w")
+    J = np.concatenate((grad[0],grad[1].flatten(),grad[2].flatten()))
+    print("%i %i" % (1,J.size) , file = fid)
+    line = ""
+    for elem in J:
+        line = line + ("%f " % elem)
+    print(line,file = fid)
+    fid.close()
+
+############### Clean objective ######################
+
 def logsumexp(x):
     mx = np.amax(x)
     semx = (np.exp(x - mx)).sum()
@@ -29,32 +50,26 @@ def logsumexp(x):
 
 def log_gamma_distrib(a,p):
     return scipy_special.multigammaln(a,p)
-    #out = 0.25 * p * (p - 1) * np.log(np.pi);
-    #for j in range(1,p+1):
-    #    out = out + scipy_special.gammaln(a + 0.5*(1 - j))
-    #return out
 
 def sqsum(x):
     return (np.square(x)).sum()
 
-def log_wishart_prior(p,wishart_gamma,wishart_m,icf):
+def log_wishart_prior(p,wishart_gamma,wishart_m,sum_qs,Qdiags,ltri):
     n = p + wishart_m + 1
     k = icf.shape[0]
     out = 0
     for ik in range(k):
-        sumlog_Ldiag = icf[ik,:p].sum()
-        frobenius = sqsum(np.exp(icf[ik,:p])) + sqsum(icf[ik,p:])
-        out = out + 0.5*wishart_gamma*wishart_gamma*frobenius - wishart_m*sumlog_Ldiag
+        frobenius = sqsum(Qdiags[ik,:]) + sqsum(ltri[ik,:])
+        out = out + 0.5*wishart_gamma*wishart_gamma*frobenius - wishart_m*sum_qs[ik]
     C = n*p*(np.log(wishart_gamma)-0.5*np.log(2)) - log_gamma_distrib(0.5*n,p)
     return out - k*C
 
-def Ltimesx(d,icf,x):
-    Ldiag = np.exp(icf[:d])
-    res = np.multiply(Ldiag,x)
-    Lparamidx = d
+def Qtimesx(d,Qdiag,ltri,x):
+    res = np.multiply(Qdiag,x)
+    Lparamidx = 0
     for i in range(d):
         for j in range(i+1,d):
-            res[j] = res[j] + icf[Lparamidx] * x[i]
+            res[j] = res[j] + ltri[Lparamidx] * x[i]
             Lparamidx += 1
     return res
 
@@ -62,23 +77,155 @@ def gmm_objective(alphas,means,icf,x,wishart_gamma,wishart_m):
     n = x.shape[0]
     d = x.shape[1]
     k = alphas.size
+    sum_qs = np.sum(icf[:,:d],axis=1)
+    Qdiags = np.exp(icf[:,:d])
     slse = 0
     for ix in range(n):
         lse = np.empty(k)
         for ik in range(k):
-            sumlog_Ldiag = icf[ik,:d].sum()
             xcentered = x[ix,:] - means[ik,:]
             # Autograd does not support indexed assignment to arrays A[0,0] = x 
             # Hence we do implicit Ltimesx instead of creating a matrix first
-            Lxcentered = Ltimesx(d,icf[ik,:],xcentered)
-            sqsum_Lxcentered = sqsum(Lxcentered)
-            lse[ik] = alphas[ik] + sumlog_Ldiag - 0.5*sqsum_Lxcentered
+            Qxcentered = Qtimesx(d,Qdiags[ik,:],icf[ik,d:],xcentered)
+            sqsum_Lxcentered = sqsum(Qxcentered)
+            lse[ik] = alphas[ik] + sum_qs[ik] - 0.5*sqsum_Lxcentered
         slse = slse + logsumexp(lse)
 
     CONSTANT = -n*d*0.5*np.log(2 * np.pi)
-    return CONSTANT + slse - n*logsumexp(alphas) + log_wishart_prior(d,wishart_gamma,wishart_m,icf)
+    return CONSTANT + slse - n*logsumexp(alphas) + log_wishart_prior(d,wishart_gamma,wishart_m,sum_qs,Qdiags,icf[:,d:])
 
-alphas,means,icf,x,wishart_gamma,wishart_m = read_gmm_instance("..\..\..\gmm.txt")
+############## Objective in theano ##################
 
-err = gmm_objective(alphas,means,icf,x,wishart_gamma,wishart_m)
-print(err)
+def mkmat(name,rows,cols):
+    tmp = T.dmatrix(name)
+    tmp.tag.test_value = rand(rows,cols)
+    return tmp
+
+def mkvec(name,sz):
+    tmp = T.dvector(name)
+    tmp.tag.test_value = rand(sz)
+    return tmp
+
+def mkscalar(name):
+    tmp = T.dscalar(name)
+    tmp.tag.test_value = 47.
+    return tmp
+
+def th_logsumexp(x):
+    mx = T.max(x,0)
+    semx = T.sum(T.exp(x - mx))
+    return T.log(semx) + mx
+
+def th_log_gamma_distrib(a,p):
+    def in_loop(i,prev_res):
+        j=i+1
+        res = prev_res + T.gammaln(a + 0.5*(1 - j))
+        return res
+    init_val = 0.25 * p * (p - 1) * np.log(np.pi)
+    results, updates = th.scan(fn=in_loop,
+                               outputs_info=init_val,
+                               sequences=[T.arange(p)])
+    return results[-1]
+
+def th_sqsum(x):
+    return T.sum(T.square(x))        
+
+def th_log_wishart_prior(p,gamma,m,sum_qs,Qdiags,icf):
+    def in_loop(i,prev_res):
+        frobenius = th_sqsum(Qdiags[i,:]) + th_sqsum(icf[i,p:])
+        res = prev_res + 0.5*gamma*gamma*frobenius
+        return res
+    n = p + m + 1
+    k = sum_qs.shape[0]
+    C = n*p*(T.log(gamma)-0.5*np.log(2.)) - th_log_gamma_distrib(0.5*n,p)
+    results, updates = th.scan(fn=in_loop,
+                               outputs_info=T.zeros_like(icf[0,0]),
+                               sequences=[T.arange(k)])
+    return results[-1] - m*T.sum(sum_qs) - k*C
+
+def th_Ltimesx(d,ltri,x):
+    def inner_term(i,ltri_idx,prev_res):
+        j = i + 1
+        n_elems = d - j
+        res = T.concatenate((prev_res[:j],prev_res[j:] + ltri[ltri_idx:(ltri_idx+n_elems)]*x[i]))
+        return (ltri_idx+n_elems,res)
+    results, updates = th.scan(fn=inner_term,
+                               outputs_info=(T.zeros_like(d),T.zeros_like(x)),
+                               sequences=[T.arange(d)])
+    return results[-1][-1]
+
+def th_gmm_objective(alphas,means,icf,x,wishart_gamma,wishart_m):
+    d = means.shape[1]
+    k = means.shape[0]
+    n = x.shape[0]
+    sum_qs = T.sum(icf[:,:d],1)
+    Qdiags = T.exp(icf[:,:d])
+
+    def inner_loop(ix,prev_slse,ltri_pack):
+        def main_term(ik,dummy,curr_x):
+            xcentered = curr_x - means[ik,:]
+            Qxcentered = Qdiags[ik,:]*xcentered + th_Ltimesx(d,ltri_pack[ik,:],xcentered)
+            return th_sqsum(Qxcentered)
+        k = alphas.shape[0]
+        sqsum_Qxcentered, updates = th.scan(fn=main_term,
+                               outputs_info=T.zeros_like(x[0,0]),
+                               sequences=[T.arange(k)],
+                               non_sequences=[x[ix,:]])
+
+        slse = prev_slse + th_logsumexp(alphas + sum_qs - 0.5*sqsum_Qxcentered)
+        return slse
+    slse_, updates = th.scan(fn=inner_loop,
+                             outputs_info=T.zeros_like(alphas[0]),
+                             sequences=[T.arange(n)],
+                             non_sequences=[icf[:,d:]])
+
+    CONSTANT = -n*d*0.5*np.log(2 * np.pi)
+    out = CONSTANT + slse_[-1] - n*th_logsumexp(alphas)
+    return out + th_log_wishart_prior(d,wishart_gamma,wishart_m,sum_qs,Qdiags,icf)
+
+d_ = 3;
+k_ = 5;
+n_ = 10;
+icf_sz_ = d_*(d_ + 1) / 2;
+alphas_ = mkvec('alphas',k_)
+means_ = mkmat('means',k_,d_)
+icf_ = mkmat('icf',k_,icf_sz_)
+x_ = mkmat('x',n_,d_)
+wishart_gamma_ = mkscalar('wishart_gamma')
+wishart_m_ = mkscalar('wishart_m') 
+
+err_ = th_gmm_objective(alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_)
+f = th.function([alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_], err_,mode='FAST_RUN')
+grad = T.grad(err_,[alphas_, means_, icf_])
+fgrad = th.function([alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_],grad,mode='FAST_RUN')
+
+ntasks = (len(sys.argv)-1)//2
+for task_id in range(ntasks):
+    print("task_id: %i" % task_id)
+
+    argv_idx = task_id*2 + 1
+    fn = sys.argv[argv_idx]
+    nruns = int(sys.argv[argv_idx+1])
+    
+    alphas,means,icf,x,wishart_gamma,wishart_m = read_gmm_instance(fn + ".txt")
+
+    start = t.time()
+    for i in range(nruns):
+        err = gmm_objective(alphas,means,icf,x,wishart_gamma,wishart_m)
+    end = t.time()
+    tf = (end - start)/nruns
+    print("err: %f" % err)
+
+    start = t.time()
+    for i in range(nruns):
+        err_th = f(alphas,means,icf,x,wishart_gamma,wishart_m)
+        J = fgrad(alphas,means,icf,x,wishart_gamma,wishart_m)
+    end = t.time()
+    tJ = (end - start)/nruns
+    print("err_th: %f" % err_th)
+    
+    name = "J_Theano"
+    write_J(fn + name + ".txt",J)
+    write_times(fn + name + "_times.txt",tf,tJ)
+
+
