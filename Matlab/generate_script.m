@@ -10,6 +10,7 @@ executables = {...
     'Z:\autodiff\Release\ReleaseAD\DiffSharp.exe',...
     'python.exe Z:\autodiff\Python\Autograd\autograd_split.py',...
     'python.exe Z:\autodiff\Python\Autograd\autograd.py',...
+    'python.exe Z:\\autodiff\\Python\\Theano\\Theano.py',...
     };
 names = {...
     'J_manual',...
@@ -22,6 +23,21 @@ names = {...
     'J_diffsharpAD',...
     'J_Autograd_split',...
     'J_Autograd',...
+    'J_Theano',...
+    };
+executables = {...
+    'Z:\autodiff\Release\Manual_Eigen.exe',...
+    'Z:\autodiff\Release\Manual_Eigen2.exe',...
+    'Z:\autodiff\Release\Manual_Eigen3.exe',...
+    'Z:\autodiff\Release\Manual_Eigen4.exe',...
+    'Z:\autodiff\Release\Manual_VS.exe',...
+    };
+names = {...
+    'J_manual',...
+    'J_manual_Eigen2',...
+    'J_manual_Eigen3',...
+    'J_manual_Eigen4',...
+    'J_manual_VS',...
     };
 nexe = numel(executables);
 tools = {...
@@ -35,6 +51,16 @@ tools = {...
     'DiffSharp',...
     'Autograd\_R\_split',...
     'Autograd\_R',...
+    'Theano',...
+    'AdiMat\_R',...
+    'MuPAD'...
+    };
+tools = {...
+    'manual\_Eigen',...
+    'manual\_Eigen2',...
+    'manual\_Eigen3',...
+    'manual\_Eigen4',...
+    'manual\_Cpp',...
     'AdiMat\_R',...
     'MuPAD'...
     };
@@ -67,7 +93,7 @@ fns = {};
 for i=1:numel(params)
     d = params{i}(1);
     k = params{i}(2);
-    fns{end+1} = ['Z:\autodiff\gmm_instances\gmm_d' num2str(d) '_K' num2str(k)];
+    fns{end+1} = ['Z:\\autodiff\\gmm_instances\\gmm_d' num2str(d) '_K' num2str(k)];
 end
 ntasks = numel(params);
 % save('params_gmm.mat','params');
@@ -97,8 +123,16 @@ end
 fn = 'run_experiments.bat';
 fid = fopen(fn,'w');
 for i=1:nexe
-    for j=1:ntasks
-        fprintf(fid,'START /MIN /WAIT %s %s 1\r\n',executables{i},fns{j});
+    if strcmp('Theano',tools{i}(1:6))
+        cmd = ['START /MIN /WAIT ' executables{i}];
+        for j=1:ntasks
+            cmd = [cmd ' ' fns{j} ' 1'];
+        end
+        fprintf(fid,[cmd '\r\n']);
+    else
+        for j=1:ntasks
+            fprintf(fid,'START /MIN /WAIT %s %s 1\r\n',executables{i},fns{j});
+        end
     end
 end
 fclose(fid);
@@ -109,13 +143,13 @@ system(fn);
 toc
 
 %% adimat time estimate
-
 addpath('adimat-0.6.0-4971');
 start_adimat
 addpath('awful\matlab');
 opt = admOptions('independents', [1 2 3],  'functionResults', {1});
 times_est_adimat_f = Inf(1,ntasks);
 times_est_adimat_J = Inf(1,ntasks);
+admTransform(@gmm_objective, admOptions('m', 'r','independents', [1 2 3]));
 for i=1:ntasks
     disp(['runnning gmm: ' num2str(i) '; params: ' num2str(params{i})]);
     d = params{i}(1);
@@ -169,9 +203,9 @@ end
 addpath('adimat-0.6.0-4971');
 start_adimat
 addpath('awful\matlab');
-opt = admOptions('independents', [1 2 3],  'functionResults', {1});
 times_adimat_f = Inf(1,ntasks);
 times_adimat_J = Inf(1,ntasks);
+times_adimat_J___ = Inf(1,ntasks);
 for i=1:ntasks
     disp(['runnning gmm: ' num2str(i) '; params: ' num2str(params{i})]);
     d = params{i}(1);
@@ -189,12 +223,13 @@ for i=1:ntasks
     
     tic
     for j=1:nruns_curr
-        [Jrev,fvalrev] = admDiffRev(@gmm_objective, 1, paramsGMM.alphas,...
-            paramsGMM.means, paramsGMM.inv_cov_factors, x, hparams, opt);
+        do_F_mode = false;
+        [J, fvalrev] = gmm_objective_adimat(do_F_mode,paramsGMM.alphas,...
+            paramsGMM.means,paramsGMM.inv_cov_factors,x,hparams);
     end
     times_adimat_J(i) = toc/nruns_curr;
     
-    save('gmm_adimat_times','times_adimat_f','times_adimat_J');
+%     save('gmm_adimat_times','times_adimat_f','times_adimat_J');
 end
 
 %% run mupad
@@ -219,22 +254,33 @@ for i=1:ntasks
     tic
     [ J, err ] = gmm_objective_d_symbolic(nruns_curr, paramsGMM, x,...
         hparams, true);
+    
     if ~isempty(J)
         times_mupad_J(i) = toc/nruns_curr;
     end
     
-    save('gmm_mupad_times','times_mupad_f','times_mupad_J');
+%     save('gmm_mupad_times','times_mupad_f','times_mupad_J');
 end
 
 %% generate script for others
 fn = 'run_experiments_final.bat';
 fid = fopen(fn,'w');
 for i=1:nexe
-    for j=1:ntasks
-        if nruns(j,i) == 0
-            continue
+    if strcmp('Theano',tools{i}(1:6))
+        cmd = ['START /MIN /WAIT ' executables{i}];
+        for j=1:ntasks
+            if nruns(j,i) > 0
+                cmd = [cmd ' ' fns{j} ' ' num2str(nruns(j,i))];
+            end
         end
-        fprintf(fid,'START /MIN /WAIT %s %s %i\r\n',executables{i},fns{j},nruns(j,i));
+        fprintf(fid,[cmd '\r\n']);
+    else
+        for j=1:ntasks
+            if nruns(j,i) == 0
+                continue
+            end
+            fprintf(fid,'START /MIN /WAIT %s %s %i\r\n',executables{i},fns{j},nruns(j,i));
+        end
     end
 end
 fclose(fid);
@@ -318,9 +364,11 @@ set(groot,'defaultAxesColorOrder',...
     'defaultAxesLineStyleOrder', '-|s-|x-')
 lw = 2;
 msz = 7;
-order = fliplr([2 12 11 1 3 5 4 6 7 8 9 10]);
+% order = fliplr([2 12 11 1 3 5 4 6 7 8 9 10]);
+order = fliplr([2:5 7 6 8 1]);
 x=[params{:}]; x=x(3:3:end);
 
+% Runtime
 figure
 loglog(x, times_J(:, order),'linewidth',lw,'markersize',msz);
 legend({tools{order}}, 'location', 'se');
@@ -330,6 +378,7 @@ title('runtimes (seconds)')
 xlabel('# parameters')
 ylabel('runtime [seconds]')
 
+% Relative
 figure
 loglog(x, times_relative(:, order),'linewidth',lw,'markersize',msz);
 legend({tools{order}}, 'location', 'nw');
@@ -339,8 +388,18 @@ title('relative runtimes')
 xlabel('# parameters')
 ylabel('relative runtime')
 
+% % Objective function
+% figure
+% loglog(x, times_f(:, order),'linewidth',lw,'markersize',msz);
+% legend({tools{order}}, 'location', 'se');
+% set(gca,'FontSize',14)
+% xlim([min(x) max(x)])
+% title('objective runtimes (seconds)')
+% xlabel('# parameters')
+% ylabel('runtime [seconds]')
+
 %% do 2D plots
-tool_id = 2;
+tool_id = 11;
 vals_J = zeros(numel(d_all),numel(k_all));
 vals_relative = vals_J;
 for i=1:ntasks
@@ -393,4 +452,11 @@ ylabel('K')
 set(gca,'FontSize',14,'ZScale','log')
 title('Compile time (hours): MuPAD')
 
-
+figure
+x=[params{:}]; x=x(3:3:end);
+loglog(x,mupad_compile_times,'linewidth',2)
+xmax = find(~isinf(mupad_compile_times)); xmax=x(xmax(end));
+xlim([x(1) xmax])
+xlabel('# parameters')
+ylabel('compile time [hours]')
+title('Compile time (hours): MuPAD')

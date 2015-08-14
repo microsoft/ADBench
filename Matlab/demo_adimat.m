@@ -1,25 +1,22 @@
 % startup
-clear all
 addpath('adimat-0.6.0-4971');
 start_adimat
 addpath('awful/matlab');
 
-%%
-
-k = rand(2,1);
-x = rand(3,1);
-opt = admOptions('independents', [2]);
-
-%%
-
-JforV = admDiffVFor(@foo, 1, k, x, opt)
-dy = foo_d(k,x)
-JforV - dy
+% %%
+% k = rand(2,1);
+% x = rand(3,1);
+% opt = admOptions('independents', [2]);
+% 
+% %%
+% JforV = admDiffVFor(@foo, 1, k, x, opt)
+% dy = foo_d(k,x)
+% JforV - dy
 
 %% create random GMM instance
 d = 2;
-k = 3;
-n = 1;
+k = 5;
+n = 2;
 rng(1);
 gmm.alphas = randn(1,k);
 gmm.means = au_map(@(i) rand(d,1), cell(k,1));
@@ -30,11 +27,17 @@ x = randn(d,n);
 hparams = [1 0];
 
 fn = 'Z:/autodiff/gmm';
+% fn = 'Z:/autodiff/gmm_instances/gmm_d2_K5';
 % save_gmm_instance([fn '.txt'],gmm,x,hparams);
 [gmm,x,hparams] = load_gmm_instance([fn '.txt']);
 
 num_params = numel(gmm.alphas) + numel(gmm.means) + ...
     numel(gmm.inv_cov_factors)
+
+%% translate
+independents = [1 2 3];
+admTransform(@gmm_objective, admOptions('m', 'r','independents', independents));
+admTransform(@gmm_objective, admOptions('m', 'f','independents', independents));
 
 %% run options
 nruns = 1;
@@ -42,30 +45,19 @@ nruns = 1;
 % also set the shape of function results
 opt = admOptions('independents', [1 2 3],  'functionResults', {1});
 
-%% read external result for comparison
+%% external result for comparison
 
+% Jexternal = load_J([fn 'J_Autograd_split.txt']);
 % Jexternal = load_J([fn 'J_Tapenade_b.txt']);
 % Jexternal = load_J([fn 'J_Tapenade_dv.txt']);
-% Jexternal = load_J([fn 'J_ADOLC.txt']);
+% Jexternal = load_J([fn 'J_ADOLC_split.txt']);
 % Jexternal = load_J([fn 'J_Ceres.txt']);
-Jexternal = load_J([fn 'J_manual.txt']);
+% Jexternal = load_J([fn 'J_manual.txt']);
+Jexternal = load_J([fn 'J_Theano.txt']);
 [Jrev,fvalrev] = admDiffRev(@gmm_objective, 1, gmm.alphas,...
     gmm.means, gmm.inv_cov_factors, x, hparams, opt);
 
 norm(Jrev(:) - Jexternal(:)) / norm(Jrev(:))
-
-%% translate
-
-[Jrev,fvalrev] = admDiffRev(@gmm_objective, 1, gmm.alphas,...
-    gmm.means, gmm.inv_cov_factors, x, hparams, opt);
-
-Jman = gmm_objective_d_man(gmm.alphas,gmm.means,...
-    gmm.inv_cov_factors,x,hparams);
-
-%% translate
-
-[JforV, fvalforV] = admDiffVFor(@gmm_objective, 1, gmm.alphas,...
-    gmm.means, gmm.inv_cov_factors, x, opt);
 
 %% run object function
 

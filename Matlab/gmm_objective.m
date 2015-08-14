@@ -45,7 +45,6 @@ err = constant + sum(logsumexp_repmat(lse)) - n*logsumexp_repmat(alphas);
 
 % apply the prior on covariance
 err = err + log_wishart_prior(hparams,d,inv_cov_factors);
-
 end
 
 function out = log_wishart_prior(hparams,p,inv_cov_factors)
@@ -67,7 +66,6 @@ term2 = m*sum(inv_cov_factors(1:p,:),1);
 C = n*p*(log(gamma) - 0.5*log(2)) - log_gamma_distrib(0.5*n,p);
 
 out = sum(term1 - term2 - C);
-
 end
 
 function out = log_gamma_distrib(a,p)
