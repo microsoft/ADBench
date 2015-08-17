@@ -81,9 +81,10 @@ double compute_gmm_J(int nruns,
 	}
 
 	end = high_resolution_clock::now();
-	return duration_cast<duration<double>>(end - start).count() / nruns;
 
 	delete[] in;
+
+  return duration_cast<duration<double>>(end - start).count() / nruns;
 }
 
 double compute_gmm_J_split(int nruns,
@@ -167,13 +168,14 @@ double compute_gmm_J_split(int nruns,
   }
 
   end = high_resolution_clock::now();
-  return duration_cast<duration<double>>(end - start).count() / nruns;
 
   delete[] aalphas;
   delete[] ameans;
   delete[] aicf;
   delete[] Jtmp;
   delete[] in;
+
+  return duration_cast<duration<double>>(end - start).count() / nruns;
 }
 
 void convert_J(int nnz, unsigned int *ridxs, unsigned int *cidxs,
