@@ -143,8 +143,8 @@ wishart_m_ = mkscalar('wishart_m')
 
 err_ = gmm_objective(alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_)
 f = th.function([alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_], err_,mode='FAST_RUN')
-#grad = T.grad(err_,[alphas_, means_, icf_])
-#fgrad = th.function([alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_],grad,mode='FAST_RUN')
+grad = T.grad(err_,[alphas_, means_, icf_])
+fgrad = th.function([alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_],grad,mode='FAST_RUN')
 
 ntasks = (len(sys.argv)-1)//2
 for task_id in range(ntasks):
@@ -163,14 +163,14 @@ for task_id in range(ntasks):
     tf = (end - start)/nruns
     print("err: %f" % err)
 
-    #start = t.time()
-    #for i in range(nruns):
-    #    J = fgrad(alphas,means,icf,x,wishart_gamma,wishart_m)
-    #end = t.time()
-    #tJ = ((end - start)/nruns) + tf ###!!!!!!!!! adding this because no function value is returned by fgrad
+    start = t.time()
+    for i in range(nruns):
+        J = fgrad(alphas,means,icf,x,wishart_gamma,wishart_m)
+    end = t.time()
+    tJ = ((end - start)/nruns) + tf ###!!!!!!!!! adding this because no function value is returned by fgrad
     
-    #name = "J_Theano"
-    #write_J(fn + name + ".txt",J)
-    #write_times(fn + name + "_times.txt",tf,tJ)
+    name = "J_Theano"
+    write_J(fn + name + ".txt",J)
+    write_times(fn + name + "_times.txt",tf,tJ)
 
 
