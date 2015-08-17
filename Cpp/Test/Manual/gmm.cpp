@@ -5,7 +5,7 @@
 
 using std::vector;
 
-#ifndef COMPILE_EIGEN_VERSION
+#ifdef COMPILE_CLEAN_CPP_VERSION
 
 double arr_max(int n, const double* const x)
 {
@@ -54,7 +54,7 @@ double sqsum(int n, const double* const x)
 // icf  (p*(p+1)/2)*k parametrizing lower triangular 
 //					square roots of inverse covariances log of diagonal 
 //					is first p params
-double log_wishart_prior(int p, int k, 
+double log_wishart_prior(int p, int k,
   Wishart wishart,
   const double* const sumlog_Ldiags,
   const double* const Ldiags,
@@ -70,13 +70,13 @@ double log_wishart_prior(int p, int k,
   {
     double frobenius = sqsum(p, &Ldiags[ik*p]) + sqsum(icf_sz - p, &icf[icf_sz*ik + p]);
     out = out + 0.5*wishart.gamma*wishart.gamma*frobenius
-      -wishart.m * sumlog_Ldiags[ik];
+      - wishart.m * sumlog_Ldiags[ik];
   }
   return out - k*C;
 }
 
 void preprocess_icf(int d, int k,
-  const double* const icf, 
+  const double* const icf,
   double *Ldiags,
   double *sumlog_Ldiags)
 {
@@ -121,12 +121,12 @@ void Ltimesx(int d,
     }
 }
 
-void gmm_objective(int d, int k, int n, 
-  const double* const alphas, 
+void gmm_objective(int d, int k, int n,
+  const double* const alphas,
   const double* const means,
-  const double* const icf, 
-  const double* const x, 
-  Wishart wishart, 
+  const double* const icf,
+  const double* const x,
+  Wishart wishart,
   double* err)
 {
   const double CONSTANT = -n*d*0.5*log(2 * PI);
@@ -156,7 +156,7 @@ void gmm_objective(int d, int k, int n,
 
   double lse_alphas = logsumexp(k, alphas);
 
-  *err = CONSTANT + slse - n*lse_alphas + 
+  *err = CONSTANT + slse - n*lse_alphas +
     log_wishart_prior(d, k, wishart, sumlog_Ldiags, Ldiags, icf);
 
   delete[] Ldiags;
@@ -255,7 +255,7 @@ void gmm_objective_d(int d, int k, int n,
 
   preprocess_icf(d, k, icf, Ldiags, sumlog_Ldiags);
 
-  memset(J, 0, (k + d*k +icf_sz*k) * sizeof(double));
+  memset(J, 0, (k + d*k + icf_sz*k) * sizeof(double));
 
   double *main_term = new double[k];
   double *curr_means_d = new double[d*k];
@@ -280,7 +280,7 @@ void gmm_objective_d(int d, int k, int n,
       compute_L_inner_term(d, xcentered, Lxcentered, &curr_L_d[ik*(icf_sz - d)]);
       main_term[ik] = alphas[ik] + sumlog_Ldiags[ik] - 0.5*sqsum(d, Lxcentered);
     }
-    slse += logsumexp(k,main_term);
+    slse += logsumexp(k, main_term);
     get_normalized_exp_term(k, main_term);
     for (int ik = 0; ik < k; ik++)
     {
@@ -314,10 +314,10 @@ void gmm_objective_d(int d, int k, int n,
     }
   }
 
-  double lse_alphas = logsumexp(k,alphas);
+  double lse_alphas = logsumexp(k, alphas);
   *err = CONSTANT + slse - n*lse_alphas;
   *err += log_wishart_prior(d, k, wishart, sumlog_Ldiags, Ldiags, icf);
-  
+
   delete[] Ldiags;
   delete[] sumlog_Ldiags;
   delete[] xcentered;
@@ -328,7 +328,7 @@ void gmm_objective_d(int d, int k, int n,
   delete[] curr_L_d;
 }
 
-#else
+#elif defined COMPILE_EIGEN_VERSION1
 
 #include "Eigen\Dense"
 
@@ -362,9 +362,10 @@ double log_gamma_distrib(double a, double p)
 // icf  (p*(p+1)/2)*k parametrizing lower triangular 
 //					square roots of inverse covariances log of diagonal 
 //					is first p params
-double log_wishart_prior(int p, int k, 
+double log_wishart_prior(int p, int k,
   Wishart wishart,
-  const vector<Map<const ArrayXd>>& log_Ldiags, 
+  const ArrayXd& sum_qs,
+  const vector<MatrixXd>& Qs,
   const double *icf)
 {
   int n = p + wishart.m + 1;
@@ -372,206 +373,354 @@ double log_wishart_prior(int p, int k,
 
   double C = n*p*(log(wishart.gamma) - 0.5*log(2.)) - log_gamma_distrib(0.5*n, p);
 
-  double out = 0;
+  double sum_frob = 0;
   for (int ik = 0; ik < k; ik++)
   {
     Map<const VectorXd> L(&icf[icf_sz*ik + p], icf_sz - p);
-    double frobenius = L.squaredNorm() + log_Ldiags[ik].exp().square().sum();
-    double sum_log_diag = log_Ldiags[ik].sum();
-    out = out + 0.5*wishart.gamma*wishart.gamma*frobenius
-      - wishart.m * sum_log_diag;
+    sum_frob += L.squaredNorm() + Qs[ik].diagonal().squaredNorm();
   }
 
-  return out - k*C;
+  return 0.5*wishart.gamma*wishart.gamma*sum_frob - wishart.m*sum_qs.sum() - k*C;
 }
 
 
-void gmm_objective(int d, int k, int n,
-  const double* alphas,
+void gmm_objective_no_priors(int d, int k, int n,
+  Map<const ArrayXd> const& alphas,
   vector<Map<const VectorXd>> const& mus,
-  vector<Map<const ArrayXd>> const& qs,
-  vector<MatrixXd> const& Ls,
+  ArrayXd const& sum_qs,
+  vector<MatrixXd> const& Qs,
+  const double *x,
+  Wishart wishart,
+  double *err)
+{
+  VectorXd xcentered(d), Qxcentered(d);
+  ArrayXd lse(k);
+  double slse = 0.;
+  for (int ix = 0; ix < n; ix++)
+  {
+    Map<const VectorXd> curr_x(&x[ix*d], d);
+    for (int ik = 0; ik < k; ik++)
+    {
+      switch (3) // 3 is the fastest
+      {
+      case 2:
+        xcentered = curr_x - mus[ik];
+        Qxcentered.noalias() = Qs[ik].triangularView<Eigen::Lower>()*xcentered;
+        lse(ik) = -0.5*Qxcentered.squaredNorm();
+        break;
+      case 3:
+        xcentered = curr_x - mus[ik];
+        Qxcentered.noalias() = Qs[ik] * xcentered;
+        lse(ik) = -0.5*Qxcentered.squaredNorm();
+        break;
+      case 4:
+        lse(ik) = -0.5*(Qs[ik].triangularView<Eigen::Lower>() * (curr_x - mus[ik])).squaredNorm();
+        break;
+      }
+    }
+    lse += alphas + sum_qs;
+    slse += logsumexp(lse);
+  }
+
+  double lse_alphas = logsumexp(alphas);
+  double CONSTANT = -n*d*0.5*log(2 * PI);
+
+  *err = CONSTANT + slse - n*lse_alphas;
+}
+
+void gmm_objective(int d, int k, int n,
+  const double *alphas,
+  const double *means,
   const double *icf,
   const double *x,
   Wishart wishart,
   double *err)
 {
   int icf_sz = d*(d + 1) / 2;
-  VectorXd xcentered(d), mahal(d), Ldiag(d), lse(k);
-  double slse = 0.;
-  for (int ix = 0; ix < n; ix++)
-  {
-    Map<const VectorXd> curr_x(&x[ix], d);
-    for (int ik = 0; ik < k; ik++)
-    {
-      int icf_off = ik*icf_sz;
-
-      Ldiag = qs[ik].exp();
-
-      xcentered = curr_x - mus[ik];
-      mahal.noalias() = Ldiag.cwiseProduct(xcentered) +
-        Ls[ik].triangularView<Eigen::StrictlyLower>()*xcentered;
-
-      lse(ik) = alphas[ik] + qs[ik].sum() - 0.5*mahal.squaredNorm();;
-    }
-    slse += logsumexp(lse);
-  }
-
-  Map<const VectorXd> map_alphas(alphas, k);
-  double lse_alphas = logsumexp(map_alphas);
-
-  double CONSTANT = -n*d*0.5*log(2 * PI);
-
-  *err = CONSTANT + slse - n*lse_alphas;
-
-  *err += log_wishart_prior(d, k, wishart, qs, icf);
-}
-
-void gmm_objective(int d, int k, int n, 
-  const double *alphas,
-  const double *means, 
-  const double *icf, 
-  const double *x,
-  Wishart wishart, 
-  double *err)
-{
-  int icf_sz = d*(d + 1) / 2;
 
   // init eigen wrappers first
   vector<Map<const VectorXd>> mus;
-  vector<Map<const ArrayXd>> log_Ldiags;
-  vector<MatrixXd> Ls(k, MatrixXd::Zero(d, d));
+  ArrayXd sum_qs(k);
+  vector<MatrixXd> Qs(k, MatrixXd::Zero(d, d));
   for (int ik = 0; ik < k; ik++)
   {
     int icf_off = ik*icf_sz;
     mus.emplace_back(&means[ik*d], d);
-    log_Ldiags.emplace_back(&icf[icf_off], d);
+    Map<const ArrayXd> q(&icf[icf_off], d);
+    sum_qs[ik] = q.sum();
     int Lparamsidx = d;
     for (int i = 0; i < d; i++)
     {
       int n_curr_elems = d - i - 1;
-      Ls[ik].col(i).bottomRows(n_curr_elems) =
+      Qs[ik].col(i).bottomRows(n_curr_elems) =
         Map<const VectorXd>(&icf[icf_off + Lparamsidx], n_curr_elems);
       Lparamsidx += n_curr_elems;
     }
+    Qs[ik].diagonal() = q.exp();
   }
 
-  gmm_objective(d, k, n, alphas, mus, log_Ldiags,
-    Ls, icf, x, wishart, err);
+  Map<const ArrayXd> map_alphas(alphas, k);
+  gmm_objective_no_priors(d, k, n, map_alphas, mus, sum_qs,
+    Qs, x, wishart, err);
+  *err += log_wishart_prior(d, k, wishart, sum_qs, Qs, icf);
 }
 
-
-void gmm_objective_d(int d, int k, int n, 
-  const double *alphas,
-  const double *means, 
-  const double *icf, 
-  const double *x,
-  Wishart wishart, 
-  double *err, 
+double log_wishart_prior_d(int p, int k,
+  Wishart wishart,
+  const ArrayXd& sum_qs,
+  const vector<MatrixXd>& Qs,
+  const double *icf,
   double *J)
 {
-  const double CONSTANT = -n*d*0.5*log(2 * PI);
-  int icf_sz = d*(d + 1) / 2;
+  int n = p + wishart.m + 1;
+  int icf_sz = p*(p + 1) / 2;
+  Map<MatrixXd> icf_d(&J[k + p*k], icf_sz, k);
 
-  // init eigen wrappers first
+  for (int ik = 0; ik < k; ik++)
+  {
+    icf_d.block(0, ik, p, 1) +=
+      (wishart.gamma*wishart.gamma*(Qs[ik].diagonal().array().square()) - wishart.m).matrix();
+
+    icf_d.block(p, ik, icf_sz - p, 1) +=
+      wishart.gamma*wishart.gamma*
+      Map<const VectorXd>(&icf[ik*icf_sz + p], icf_sz - p);
+  }
+
+  return log_wishart_prior(p, k, wishart, sum_qs, Qs, icf);
+}
+
+void gmm_objective_no_priors_d(int d, int k, int n,
+  Map<const ArrayXd> const& alphas,
+  vector<Map<const VectorXd>> const& mus,
+  ArrayXd const& sum_qs,
+  vector<MatrixXd> const& Qs,
+  const double *x,
+  Wishart wishart,
+  double *err,
+  double *J)
+{
+  int icf_sz = d*(d + 1) / 2;
   Map<RowVectorXd> alphas_d(J, k);
   Map<MatrixXd> means_d(&J[k], d, k);
   Map<MatrixXd> icf_d(&J[k + d*k], icf_sz, k);
-  alphas_d.setZero(); means_d.setZero(); icf_d.setZero();
-  vector<Map<const VectorXd>> mus;
-  vector<Map<const ArrayXd>> log_Ldiags;
-  vector<MatrixXd> Ls;
-  Ls.resize(k, MatrixXd::Zero(d, d));
-  for (int ik = 0; ik < k; ik++)
-  {
-    int icf_off = ik*icf_sz;
-    mus.emplace_back(&means[ik*d], d);
-    log_Ldiags.emplace_back(&icf[icf_off], d);
-    Ls[ik].diagonal() = log_Ldiags[ik].exp();
-    int Lparamsidx = d;
-    for (int i = 0; i < d; i++)
-    {
-      int n_curr_elems = d - i - 1;
-      Ls[ik].col(i).bottomRows(n_curr_elems) =
-        Map<const VectorXd>(&icf[icf_off + Lparamsidx], n_curr_elems);
-      Lparamsidx += n_curr_elems;
-    }
-  }
 
-  VectorXd xcentered(d), Lxcentered(d);
+  VectorXd xcentered(d), Qxcentered(d);
   ArrayXd main_term(k);
   MatrixXd curr_means_d(d, k);
   MatrixXd curr_logLdiag_d(d, k);
   MatrixXd curr_L_d(icf_sz - d, k);
-  RowVectorXd e_main_term;
   double slse = 0.;
   for (int ix = 0; ix < n; ix++)
   {
-    Map<const VectorXd> curr_x(&x[ix], d);
+    Map<const VectorXd> curr_x(&x[ix*d], d);
     for (int ik = 0; ik < k; ik++)
     {
-      int icf_off = ik*icf_sz;
-
       xcentered = curr_x - mus[ik];
-      Lxcentered.noalias() =
-        Ls[ik].triangularView<Lower>()*xcentered;
-      curr_means_d.col(ik).noalias() =
-        Ls[ik].triangularView<Lower>().transpose()*Lxcentered;
+      Qxcentered.noalias() = Qs[ik].triangularView<Lower>()*xcentered;
+      curr_means_d.col(ik).noalias() = Qs[ik].triangularView<Lower>().transpose()*Qxcentered;
       curr_logLdiag_d.col(ik).noalias() =
-        (1. -
-          ((Ls[ik].diagonal().cwiseProduct(xcentered)).asDiagonal() *
-            Lxcentered).array()).matrix();
+        (1. - ((Qs[ik].diagonal().cwiseProduct(xcentered)).cwiseProduct(Qxcentered)).array()).matrix();
 
       int Lparamsidx = 0;
       for (int i = 0; i < d; i++)
       {
         int n_curr_elems = d - i - 1;
-        curr_L_d.block(Lparamsidx, ik, n_curr_elems, 1) =
-          -xcentered(i)*Lxcentered.bottomRows(n_curr_elems);
+        curr_L_d.block(Lparamsidx, ik, n_curr_elems, 1) = -xcentered(i)*Qxcentered.bottomRows(n_curr_elems);
         Lparamsidx += n_curr_elems;
       }
 
-      main_term(ik) = alphas[ik] + log_Ldiags[ik].sum() - 0.5*Lxcentered.squaredNorm();
+      main_term(ik) = -0.5*Qxcentered.squaredNorm();
     }
+    main_term += alphas + sum_qs;
     slse += logsumexp(main_term);
-    e_main_term = main_term.exp();
-    double normalizer = e_main_term.sum();
+    main_term = main_term.exp();
+    double normalizer = main_term.sum();
     if (normalizer == 0.)
-      e_main_term.setZero();
+      main_term.setZero();
     else
-      e_main_term /= e_main_term.sum();
-    alphas_d += e_main_term;
-    for (int id = 0; id < d; id++)
-    {
-      means_d.row(id) += curr_means_d.row(id).cwiseProduct(e_main_term);
-      icf_d.row(id) += curr_logLdiag_d.row(id).cwiseProduct(e_main_term);
-    }
-    for (int i = d; i < icf_sz; i++)
-    {
-      icf_d.row(i) += curr_L_d.row(i - d).cwiseProduct(e_main_term);
-    }
+      main_term /= normalizer;
+    alphas_d += main_term.matrix();
+    means_d += curr_means_d.rowwise() * main_term;
+    icf_d.topRows(d) += curr_logLdiag_d.rowwise() * main_term;
+    icf_d.bottomRows(icf_sz - d) += curr_L_d.rowwise() * main_term;
   }
 
+  double lse_alphas = logsumexp(alphas);
+  auto e_alphas = alphas.exp();
+  double normalizer = e_alphas.sum();
+  if (normalizer != 0.)
+    alphas_d -= (n*e_alphas.matrix()) / normalizer;
+
+  const double CONSTANT = -n*d*0.5*log(2 * PI);
+  *err = CONSTANT + slse - n*lse_alphas;
+}
+
+void gmm_objective_d(int d, int k, int n,
+  const double *alphas,
+  const double *means,
+  const double *icf,
+  const double *x,
+  Wishart wishart,
+  double *err,
+  double *J)
+{
+  int icf_sz = d*(d + 1) / 2;
+  int Jsz = k + k*d + k*icf_sz;
+  memset(J, 0, Jsz*sizeof(double));
+
+  // init eigen wrappers first
+  vector<Map<const VectorXd>> mus;
+  ArrayXd sum_qs(k);
+  vector<MatrixXd> Qs(k, MatrixXd::Zero(d, d));
   for (int ik = 0; ik < k; ik++)
   {
-    icf_d.block(0, ik, d, 1) += ((wishart.gamma*wishart.gamma*
-      Ls[ik].diagonal().cwiseProduct(Ls[ik].diagonal()))
-      .array() - wishart.m).matrix();
-
-    icf_d.block(d, ik, icf_sz - d, 1) +=
-      wishart.gamma*wishart.gamma*
-      Map<const VectorXd>(&icf[ik*icf_sz + d], icf_sz - d);
+    int icf_off = ik*icf_sz;
+    mus.emplace_back(&means[ik*d], d);
+    Map<const ArrayXd> q(&icf[icf_off], d);
+    sum_qs[ik] = q.sum();
+    int Lparamsidx = d;
+    for (int i = 0; i < d; i++)
+    {
+      int n_curr_elems = d - i - 1;
+      Qs[ik].col(i).bottomRows(n_curr_elems) =
+        Map<const VectorXd>(&icf[icf_off + Lparamsidx], n_curr_elems);
+      Lparamsidx += n_curr_elems;
+    }
+    Qs[ik].diagonal() = q.exp();
   }
-  
+
   Map<const ArrayXd> map_alphas(alphas, k);
-  double lse_alphas = logsumexp(map_alphas);
-  RowVectorXd e_alphas = map_alphas.exp();
-  alphas_d -= (n*e_alphas) / e_alphas.sum();
-
-  *err = CONSTANT + slse - n*lse_alphas;
-
-  *err += log_wishart_prior(d, k, wishart, log_Ldiags, icf);
+  gmm_objective_no_priors_d(d, k, n, map_alphas, mus, sum_qs,
+    Qs, x, wishart, err, J);
+  *err += log_wishart_prior_d(d, k, wishart, sum_qs, Qs, icf, J);
 }
+
+#elif COMPILE_EIGEN_VERSION2
+
+#include "Eigen\Dense"
+
+using Eigen::Map;
+using Eigen::VectorXd;
+using Eigen::RowVectorXd;
+using Eigen::ArrayXd;
+using Eigen::MatrixXd;
+using Eigen::Lower;
+
+// logsumexp of rows
+void logsumexp(const MatrixXd& X, ArrayXd& out)
+{
+  RowVectorXd mX = X.colwise().maxCoeff();
+  RowVectorXd semX = (X.rowwise() - mX).array().exp().matrix().colwise().sum();
+  out = semX.array().log() + mX.array();
+}
+double logsumexp(const ArrayXd& x)
+{
+  double mx = x.maxCoeff();
+  double semx = (x.array() - mx).exp().sum();
+  return log(semx) + mx;
+}
+
+double log_gamma_distrib(double a, double p)
+{
+  double out = 0.25 * p * (p - 1) * log(PI);
+  for (int j = 1; j <= p; j++)
+  {
+    out += lgamma(a + 0.5*(1 - j));
+  }
+  return out;
+}
+
+// p dim
+// k number of components
+// wishart parameters
+// icf  (p*(p+1)/2)*k parametrizing lower triangular 
+//					square roots of inverse covariances log of diagonal 
+//					is first p params
+double log_wishart_prior(int p, int k,
+  Wishart wishart,
+  const ArrayXd& sum_qs,
+  const vector<MatrixXd>& Qs,
+  const double *icf)
+{
+  int n = p + wishart.m + 1;
+  int icf_sz = p*(p + 1) / 2;
+
+  double C = n*p*(log(wishart.gamma) - 0.5*log(2.)) - log_gamma_distrib(0.5*n, p);
+
+  double sum_frob = 0;
+  for (int ik = 0; ik < k; ik++)
+  {
+    Map<const VectorXd> L(&icf[icf_sz*ik + p], icf_sz - p);
+    sum_frob += L.squaredNorm() + Qs[ik].diagonal().squaredNorm();
+  }
+
+  return 0.5*wishart.gamma*wishart.gamma*sum_frob - wishart.m*sum_qs.sum() - k*C;
+}
+
+
+void gmm_objective_no_priors(int d, int k, int n,
+  Map<const ArrayXd> const& alphas,
+  Map<const MatrixXd> const& means,
+  ArrayXd const& sum_qs,
+  vector<MatrixXd> const& Qs,
+  Map<const MatrixXd> const& x,
+  Wishart wishart,
+  double *err)
+{
+  MatrixXd Qxcentered(d, n), main_term(k, n);
+  for (int ik = 0; ik < k; ik++)
+  {
+    Qxcentered.noalias() = Qs[ik] * (x.colwise() - means.col(ik));
+    main_term.row(ik) = -0.5*Qxcentered.colwise().squaredNorm();
+  }
+  main_term.colwise() += (alphas + sum_qs).matrix();
+  ArrayXd slse;
+  logsumexp(main_term, slse);
+
+  double lse_alphas = logsumexp(alphas);
+  double CONSTANT = -n*d*0.5*log(2 * PI);
+  double tmp = slse.sum();
+  *err = CONSTANT + slse.sum() - n*lse_alphas;
+}
+
+void gmm_objective(int d, int k, int n,
+  const double *alphas,
+  const double *means,
+  const double *icf,
+  const double *x,
+  Wishart wishart,
+  double *err)
+{
+  int icf_sz = d*(d + 1) / 2;
+
+  // init eigen wrappers first
+  Map<const ArrayXd> map_alphas(alphas, k);
+  Map<const MatrixXd> map_means(means, d, k);
+  Map<const MatrixXd> map_x(x, d, n);
+
+  ArrayXd sum_qs(k);
+  vector<MatrixXd> Qs(k, MatrixXd::Zero(d, d));
+  for (int ik = 0; ik < k; ik++)
+  {
+    int icf_off = ik*icf_sz;
+    Map<const ArrayXd> q(&icf[icf_off], d);
+    sum_qs[ik] = q.sum();
+    int Lparamsidx = d;
+    for (int i = 0; i < d; i++)
+    {
+      int n_curr_elems = d - i - 1;
+      Qs[ik].col(i).bottomRows(n_curr_elems) =
+        Map<const VectorXd>(&icf[icf_off + Lparamsidx], n_curr_elems);
+      Lparamsidx += n_curr_elems;
+    }
+    Qs[ik].diagonal() = q.exp();
+  }
+
+  gmm_objective_no_priors(d, k, n, map_alphas, map_means, sum_qs,
+    Qs, map_x, wishart, err);
+  *err += log_wishart_prior(d, k, wishart, sum_qs, Qs, icf);
+}
+
 
 #endif
 
