@@ -41,59 +41,6 @@ def write_J(fn,grad):
     print(line,file = fid)
     fid.close()
 
-############### Clean objective ######################
-
-def logsumexp(x):
-    mx = np.amax(x)
-    semx = (np.exp(x - mx)).sum()
-    return np.log(semx) + mx
-
-def log_gamma_distrib(a,p):
-    return scipy_special.multigammaln(a,p)
-
-def sqsum(x):
-    return (np.square(x)).sum()
-
-def log_wishart_prior(p,wishart_gamma,wishart_m,sum_qs,Qdiags,ltri):
-    n = p + wishart_m + 1
-    k = icf.shape[0]
-    out = 0
-    for ik in range(k):
-        frobenius = sqsum(Qdiags[ik,:]) + sqsum(ltri[ik,:])
-        out = out + 0.5*wishart_gamma*wishart_gamma*frobenius - wishart_m*sum_qs[ik]
-    C = n*p*(np.log(wishart_gamma)-0.5*np.log(2)) - log_gamma_distrib(0.5*n,p)
-    return out - k*C
-
-def Qtimesx(d,Qdiag,ltri,x):
-    res = np.multiply(Qdiag,x)
-    Lparamidx = 0
-    for i in range(d):
-        for j in range(i+1,d):
-            res[j] = res[j] + ltri[Lparamidx] * x[i]
-            Lparamidx += 1
-    return res
-
-def gmm_objective(alphas,means,icf,x,wishart_gamma,wishart_m):
-    n = x.shape[0]
-    d = x.shape[1]
-    k = alphas.size
-    sum_qs = np.sum(icf[:,:d],axis=1)
-    Qdiags = np.exp(icf[:,:d])
-    slse = 0
-    for ix in range(n):
-        lse = np.empty(k)
-        for ik in range(k):
-            xcentered = x[ix,:] - means[ik,:]
-            # Autograd does not support indexed assignment to arrays A[0,0] = x 
-            # Hence we do implicit Ltimesx instead of creating a matrix first
-            Qxcentered = Qtimesx(d,Qdiags[ik,:],icf[ik,d:],xcentered)
-            sqsum_Lxcentered = sqsum(Qxcentered)
-            lse[ik] = alphas[ik] + sum_qs[ik] - 0.5*sqsum_Lxcentered
-        slse = slse + logsumexp(lse)
-
-    CONSTANT = -n*d*0.5*np.log(2 * np.pi)
-    return CONSTANT + slse - n*logsumexp(alphas) + log_wishart_prior(d,wishart_gamma,wishart_m,sum_qs,Qdiags,icf[:,d:])
-
 ############## Objective in theano ##################
 
 def mkmat(name,rows,cols):
@@ -211,18 +158,16 @@ for task_id in range(ntasks):
 
     start = t.time()
     for i in range(nruns):
-        err = gmm_objective(alphas,means,icf,x,wishart_gamma,wishart_m)
+        err = f(alphas,means,icf,x,wishart_gamma,wishart_m)
     end = t.time()
     tf = (end - start)/nruns
     print("err: %f" % err)
 
     start = t.time()
     for i in range(nruns):
-        err_th = f(alphas,means,icf,x,wishart_gamma,wishart_m)
         J = fgrad(alphas,means,icf,x,wishart_gamma,wishart_m)
     end = t.time()
-    tJ = (end - start)/nruns
-    print("err_th: %f" % err_th)
+    tJ = ((end - start)/nruns) + tf ###!!!!!!!!! adding this because no function value is returned by fgrad
     
     name = "J_Theano"
     write_J(fn + name + ".txt",J)
