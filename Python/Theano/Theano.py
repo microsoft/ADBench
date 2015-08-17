@@ -58,12 +58,12 @@ def mkscalar(name):
     tmp.tag.test_value = 47.
     return tmp
 
-def th_logsumexp(x):
+def logsumexp(x):
     mx = T.max(x,0)
     semx = T.sum(T.exp(x - mx))
     return T.log(semx) + mx
 
-def th_log_gamma_distrib(a,p):
+def log_gamma_distrib(a,p):
     def in_loop(i,prev_res):
         j=i+1
         res = prev_res + T.gammaln(a + 0.5*(1 - j))
@@ -74,23 +74,23 @@ def th_log_gamma_distrib(a,p):
                                sequences=[T.arange(p)])
     return results[-1]
 
-def th_sqsum(x):
+def sqsum(x):
     return T.sum(T.square(x))        
 
-def th_log_wishart_prior(p,gamma,m,sum_qs,Qdiags,icf):
+def log_wishart_prior(p,gamma,m,sum_qs,Qdiags,icf):
     def in_loop(i,prev_res):
-        frobenius = th_sqsum(Qdiags[i,:]) + th_sqsum(icf[i,p:])
+        frobenius = sqsum(Qdiags[i,:]) + sqsum(icf[i,p:])
         res = prev_res + 0.5*gamma*gamma*frobenius
         return res
     n = p + m + 1
     k = sum_qs.shape[0]
-    C = n*p*(T.log(gamma)-0.5*np.log(2.)) - th_log_gamma_distrib(0.5*n,p)
+    C = n*p*(T.log(gamma)-0.5*np.log(2.)) - log_gamma_distrib(0.5*n,p)
     results, updates = th.scan(fn=in_loop,
                                outputs_info=T.zeros_like(icf[0,0]),
                                sequences=[T.arange(k)])
     return results[-1] - m*T.sum(sum_qs) - k*C
 
-def th_Ltimesx(d,ltri,x):
+def Ltimesx(d,ltri,x):
     def inner_term(i,ltri_idx,prev_res):
         j = i + 1
         n_elems = d - j
@@ -101,7 +101,7 @@ def th_Ltimesx(d,ltri,x):
                                sequences=[T.arange(d)])
     return results[-1][-1]
 
-def th_gmm_objective(alphas,means,icf,x,wishart_gamma,wishart_m):
+def gmm_objective(alphas,means,icf,x,wishart_gamma,wishart_m):
     d = means.shape[1]
     k = means.shape[0]
     n = x.shape[0]
@@ -111,15 +111,15 @@ def th_gmm_objective(alphas,means,icf,x,wishart_gamma,wishart_m):
     def inner_loop(ix,prev_slse,ltri_pack):
         def main_term(ik,dummy,curr_x):
             xcentered = curr_x - means[ik,:]
-            Qxcentered = Qdiags[ik,:]*xcentered + th_Ltimesx(d,ltri_pack[ik,:],xcentered)
-            return th_sqsum(Qxcentered)
+            Qxcentered = Qdiags[ik,:]*xcentered + Ltimesx(d,ltri_pack[ik,:],xcentered)
+            return sqsum(Qxcentered)
         k = alphas.shape[0]
         sqsum_Qxcentered, updates = th.scan(fn=main_term,
                                outputs_info=T.zeros_like(x[0,0]),
                                sequences=[T.arange(k)],
                                non_sequences=[x[ix,:]])
 
-        slse = prev_slse + th_logsumexp(alphas + sum_qs - 0.5*sqsum_Qxcentered)
+        slse = prev_slse + logsumexp(alphas + sum_qs - 0.5*sqsum_Qxcentered)
         return slse
     slse_, updates = th.scan(fn=inner_loop,
                              outputs_info=T.zeros_like(alphas[0]),
@@ -127,8 +127,8 @@ def th_gmm_objective(alphas,means,icf,x,wishart_gamma,wishart_m):
                              non_sequences=[icf[:,d:]])
 
     CONSTANT = -n*d*0.5*np.log(2 * np.pi)
-    out = CONSTANT + slse_[-1] - n*th_logsumexp(alphas)
-    return out + th_log_wishart_prior(d,wishart_gamma,wishart_m,sum_qs,Qdiags,icf)
+    out = CONSTANT + slse_[-1] - n*logsumexp(alphas)
+    return out + log_wishart_prior(d,wishart_gamma,wishart_m,sum_qs,Qdiags,icf)
 
 d_ = 3;
 k_ = 5;
@@ -141,10 +141,10 @@ x_ = mkmat('x',n_,d_)
 wishart_gamma_ = mkscalar('wishart_gamma')
 wishart_m_ = mkscalar('wishart_m') 
 
-err_ = th_gmm_objective(alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_)
+err_ = gmm_objective(alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_)
 f = th.function([alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_], err_,mode='FAST_RUN')
-grad = T.grad(err_,[alphas_, means_, icf_])
-fgrad = th.function([alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_],grad,mode='FAST_RUN')
+#grad = T.grad(err_,[alphas_, means_, icf_])
+#fgrad = th.function([alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_],grad,mode='FAST_RUN')
 
 ntasks = (len(sys.argv)-1)//2
 for task_id in range(ntasks):
@@ -163,14 +163,14 @@ for task_id in range(ntasks):
     tf = (end - start)/nruns
     print("err: %f" % err)
 
-    start = t.time()
-    for i in range(nruns):
-        J = fgrad(alphas,means,icf,x,wishart_gamma,wishart_m)
-    end = t.time()
-    tJ = ((end - start)/nruns) + tf ###!!!!!!!!! adding this because no function value is returned by fgrad
+    #start = t.time()
+    #for i in range(nruns):
+    #    J = fgrad(alphas,means,icf,x,wishart_gamma,wishart_m)
+    #end = t.time()
+    #tJ = ((end - start)/nruns) + tf ###!!!!!!!!! adding this because no function value is returned by fgrad
     
-    name = "J_Theano"
-    write_J(fn + name + ".txt",J)
-    write_times(fn + name + "_times.txt",tf,tJ)
+    #name = "J_Theano"
+    #write_J(fn + name + ".txt",J)
+    #write_times(fn + name + "_times.txt",tf,tJ)
 
 
