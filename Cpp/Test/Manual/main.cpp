@@ -4,8 +4,6 @@
 #include <chrono>
 #include <cassert>
 
-//#define COMPILE_EIGEN_VERSION
-
 #include "../utils.h"
 #include "../defs.h"
 #include "gmm.h"
@@ -47,19 +45,21 @@ void test_gmm(const string& fn, int nruns)
   tf = duration_cast<duration<double>>(end - start).count() / nruns;
   cout << "err: " << err << endl;
 
-  start = high_resolution_clock::now();
+  /*start = high_resolution_clock::now();
   for (int i = 0; i < nruns; i++)
   {
     gmm_objective_d(d, k, n, alphas, means,
       icf, x, wishart, &err, J);
   }
   end = high_resolution_clock::now();
-  tJ = duration_cast<duration<double>>(end - start).count() / nruns;
+  tJ = duration_cast<duration<double>>(end - start).count() / nruns;*/
 
   //string name = "J_manual";
-  string name = "J_manual_VS";
- // string name = "J_manual_Intel";
-  write_J(fn + name + ".txt", Jrows, Jcols, J);
+  //string name = "J_manual_VS";
+  //string name = "J_manual_Intel";
+  string name = "J_manual_Eigen5";
+  //string name = "J_manual_Eigen4_VS";
+  //write_J(fn + name + ".txt", Jrows, Jcols, J);
   //write_times(tf, tJ);
   write_times(fn + name + "_times.txt", tf, tJ);
 
