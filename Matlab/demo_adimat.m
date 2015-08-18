@@ -15,8 +15,8 @@ addpath('awful/matlab');
 
 %% create random GMM instance
 d = 2;
-k = 16;
-n = 10;
+k = 3;
+n = 2;
 rng(1);
 gmm.alphas = randn(1,k);
 gmm.means = au_map(@(i) rand(d,1), cell(k,1));
@@ -26,9 +26,9 @@ gmm.inv_cov_factors = [gmm.inv_cov_factors{:}];
 x = randn(d,n);
 hparams = [1 0];
 
-fn = '../gmm';
-% fn = '../gmm_instances/gmm_d2_K50';
-save_gmm_instance([fn '.txt'],gmm,x,hparams);
+% fn = '../gmm';
+fn = '../gmm_instances/gmm_d2_K50';
+% save_gmm_instance([fn '.txt'],gmm,x,hparams);
 [gmm,x,hparams] = load_gmm_instance([fn '.txt']);
 
 num_params = numel(gmm.alphas) + numel(gmm.means) + ...
