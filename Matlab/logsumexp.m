@@ -4,6 +4,6 @@ function out = logsumexp(x)
 %               OUT is 1 x n
 
 mx = max(x);
-emx = exp(bsxfun(@minus, x, mx));
+emx = exp(x - mx);
 semx = sum(emx);
 out = log(semx) + mx;

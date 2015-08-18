@@ -22,8 +22,9 @@
 %  - independents=alphas, means, inv_cov_factors
 %  - inputEncoding=ISO-8859-1
 %
-% Functions in this file: d_gmm_objective, d_log_wishart_prior,
-%  log_wishart_prior, log_gamma_distrib, d_logsumexp_repmat
+% Functions in this file: d_gmm_objective, d_sqnorm,
+%  sqnorm, d_log_wishart_prior, log_wishart_prior,
+%  log_gamma_distrib, d_logsumexp
 %
 
 function [d_err err] = d_gmm_objective(d_alphas, alphas, d_means, means, d_inv_cov_factors, inv_cov_factors, x, hparams)
@@ -45,62 +46,81 @@ function [d_err err] = d_gmm_objective(d_alphas, alphas, d_means, means, d_inv_c
 %      To generate params given covariance C:
 %           L = inv(chol(C,'lower'));
 %           inv_cov_factor = [log(diag(L)); L(au_tril_indices(d,-1))]
-   Lparams = [];
-   d_Lparams = d_zeros(Lparams);
+   icf = [];
+   d_icf = d_zeros(icf);
    logLdiag = [];
    d_logLdiag = d_zeros(logLdiag);
-   L = [];
-   d_L = d_zeros(L);
-   mahal = [];
-   d_mahal = d_zeros(mahal);
+   main_term = [];
+   d_main_term = d_zeros(main_term);
+   Qxcentered = [];
+   d_Qxcentered = d_zeros(Qxcentered);
    d = size(x, 1);
    k = size(alphas, 2);
    n = size(x, 2);
    lower_triangle_indices = tril(ones(d, d), -1) ~= 0;
-   lse = zeros(k, n, 'like', alphas);
-   d_lse = d_zeros(lse);
+   d_sum_qs = adimat_diff_sum2(adimat_opdiff_subsref(d_inv_cov_factors, struct('type', '()', 'subs', {{1 : d ':'}})), inv_cov_factors(1 : d, :), 1);
+   sum_qs = sum(inv_cov_factors(1 : d, :), 1);
+   Qs = cell(1, k);
+   d_Qs = d_zeros(Qs);
+   Qdiags = zeros(d, k);
+   d_Qdiags = d_zeros(Qdiags);
    for ik=1 : k
-      d_Lparams = adimat_opdiff_subsref(d_inv_cov_factors, struct('type', '()', 'subs', {{':' ik}}));
-      Lparams = inv_cov_factors(:, ik);
-      d_logLdiag = adimat_opdiff_subsref(d_Lparams, struct('type', '()', 'subs', {{1 : d}}));
-      logLdiag = Lparams(1 : d);
-      [d_tmpca1 tmpca1] = adimat_diff_exp(d_logLdiag, logLdiag);
-      [d_L L] = adimat_diff_diag(d_tmpca1, tmpca1);
+      d_icf = adimat_opdiff_subsref(d_inv_cov_factors, struct('type', '()', 'subs', {{':' ik}}));
+      icf = inv_cov_factors(:, ik);
+      d_logLdiag = adimat_opdiff_subsref(d_icf, struct('type', '()', 'subs', {{1 : d}}));
+      logLdiag = icf(1 : d);
+      [tmpada1 Qdiags(:, ik)] = adimat_diff_exp(d_logLdiag, logLdiag);
+      d_Qdiags = adimat_opdiff_subsasgn(d_Qdiags, struct('type', {'()'}, 'subs', {{':' ik}}), tmpada1);
+      [tmpada1 Qs{ik}] = adimat_diff_diag(adimat_opdiff_subsref(d_Qdiags, struct('type', '()', 'subs', {{':' ik}})), Qdiags(:, ik));
+      d_Qs = adimat_opdiff_subsasgn(d_Qs, struct('type', {'{}'}, 'subs', {{ik}}), tmpada1);
       tmpda1 = d + 1;
-      d_L = adimat_opdiff_subsasgn(d_L, struct('type', {'()'}, 'subs', {{lower_triangle_indices}}), adimat_opdiff_subsref(d_Lparams, struct('type', '()', 'subs', {{tmpda1 : adimat_end(Lparams, 1, 1)}})));
-      L(lower_triangle_indices) = Lparams(tmpda1 : end);
-      d_tmpca2 = adimat_diff_repmat2(adimat_opdiff_subsref(d_means, struct('type', '()', 'subs', {{':' ik}})), means(:, ik), 1, n);
-      tmpca2 = repmat(means(:, ik), 1, n);
-      d_tmpca1 = adimat_opdiff_sum(-d_tmpca2, d_zeros(x));
-      tmpca1 = x - tmpca2;
-      d_mahal = adimat_opdiff_mult(d_L, L, d_tmpca1, tmpca1);
-      mahal = L * tmpca1;
-      d_tmpca4 = adimat_opdiff_epow_right(d_mahal, mahal, 2);
-      tmpca4 = mahal .^ 2;
-      d_tmpca3 = adimat_diff_sum2(d_tmpca4, tmpca4, 1);
-      tmpca3 = sum(tmpca4, 1);
-      d_tmpca2 = adimat_opdiff_mult_left(0.5, d_tmpca3, tmpca3);
-      tmpca2 = 0.5 * tmpca3;
-      d_tmpca1 = adimat_diff_sum1(d_logLdiag, logLdiag);
-      tmpca1 = sum(logLdiag);
-      d_lse = adimat_opdiff_subsasgn(d_lse, struct('type', {'()'}, 'subs', {{ik ':'}}), adimat_opdiff_sum(adimat_opdiff_subsref(d_alphas, struct('type', '()', 'subs', {{ik}})), d_tmpca1, -d_tmpca2));
-      lse(ik, :) = alphas(ik) + tmpca1 - tmpca2;
+      d_Qs = adimat_opdiff_subsasgn(d_Qs, struct('type', {'{}' '()'}, 'subs', {{ik} {lower_triangle_indices}}), adimat_opdiff_subsref(d_icf, struct('type', '()', 'subs', {{tmpda1 : adimat_end(icf, 1, 1)}})));
+      Qs{ik}(lower_triangle_indices) = icf(tmpda1 : end);
+   end
+   slse = 0;
+   d_slse = d_zeros(slse);
+   for ix=1 : n
+      main_term = zeros(1, k);
+      d_main_term = d_zeros(main_term);
+      for ik=1 : k
+         d_tmpca1 = adimat_opdiff_sum(-adimat_opdiff_subsref(d_means, struct('type', '()', 'subs', {{':' ik}})), d_zeros(x(:, ix)));
+         tmpca1 = x(:, ix) - means(:, ik);
+         d_Qxcentered = adimat_opdiff_mult(d_Qs{ik}, Qs{ik}, d_tmpca1, tmpca1);
+         Qxcentered = Qs{ik} * tmpca1;
+         [d_tmpca1 tmpca1] = d_sqnorm(d_Qxcentered, Qxcentered);
+         d_main_term = adimat_opdiff_subsasgn(d_main_term, struct('type', {'()'}, 'subs', {{ik}}), adimat_opdiff_mult_left(-0.5, d_tmpca1, tmpca1));
+         main_term(ik) = -0.5 * tmpca1;
+      end
+      d_main_term = adimat_opdiff_sum(d_main_term, d_alphas, d_sum_qs);
+      main_term = main_term + alphas + sum_qs;
+      [d_tmpca1 tmpca1] = d_logsumexp(d_main_term, main_term);
+      d_slse = adimat_opdiff_sum(d_slse, d_tmpca1);
+      slse = slse + tmpca1;
    end
    constant = -n * d * 0.5 * log(2 * pi);
-   [d_tmpca4 tmpca4] = d_logsumexp_repmat(d_alphas, alphas);
-   d_tmpca3 = adimat_opdiff_mult_left(n, d_tmpca4, tmpca4);
-   tmpca3 = n * tmpca4;
-   [d_tmpca2 tmpca2] = d_logsumexp_repmat(d_lse, lse);
-   d_tmpca1 = adimat_diff_sum1(d_tmpca2, tmpca2);
-   tmpca1 = sum(tmpca2);
-   d_err = adimat_opdiff_sum(d_tmpca1, -d_tmpca3, d_zeros(constant));
-   err = constant + tmpca1 - tmpca3;
-   [d_tmpca1 tmpca1] = d_log_wishart_prior(hparams, d, d_inv_cov_factors, inv_cov_factors);
+   [d_tmpca2 tmpca2] = d_logsumexp(d_alphas, alphas);
+   d_tmpca1 = adimat_opdiff_mult_left(n, d_tmpca2, tmpca2);
+   tmpca1 = n * tmpca2;
+   d_err = adimat_opdiff_sum(d_slse, -d_tmpca1, d_zeros(constant));
+   err = constant + slse - tmpca1;
+   [d_tmpca1 tmpca1] = d_log_wishart_prior(hparams, d, d_sum_qs, sum_qs, d_Qdiags, Qdiags, d_inv_cov_factors, inv_cov_factors);
    d_err = adimat_opdiff_sum(d_err, d_tmpca1);
    err = err + tmpca1;
 end
 
-function [d_out out] = d_log_wishart_prior(hparams, p, d_inv_cov_factors, inv_cov_factors)
+function [d_out out] = d_sqnorm(d_x, x)
+   d_tmpca1 = adimat_opdiff_epow_right(d_x, x, 2);
+   tmpca1 = x .^ 2;
+   d_out = adimat_diff_sum2(d_tmpca1, tmpca1, 1);
+   out = sum(tmpca1, 1);
+end
+
+function out = sqnorm(x)
+   tmpca1 = x .^ 2;
+   out = sum(tmpca1, 1);
+end
+
+function [d_out out] = d_log_wishart_prior(hparams, p, d_sum_qs, sum_qs, d_Qdiags, Qdiags, d_inv_cov_factors, inv_cov_factors)
 % LOG_WISHART_PRIOR  
 %               HPARAMS = [gamma m]
 %               P data dimension
@@ -111,26 +131,17 @@ function [d_out out] = d_log_wishart_prior(hparams, p, d_inv_cov_factors, inv_co
    gamma = hparams(1);
    m = hparams(2);
    n = p + m + 1;
-   tmpda9 = p + 1;
-   d_tmpca8 = adimat_opdiff_epow_right(adimat_opdiff_subsref(d_inv_cov_factors, struct('type', '()', 'subs', {{tmpda9 : adimat_end(inv_cov_factors, 1, 2) ':'}})), inv_cov_factors(tmpda9 : end, :), 2);
-   tmpca8 = inv_cov_factors(tmpda9 : end, :) .^ 2;
-   d_tmpca7 = adimat_diff_sum2(d_tmpca8, tmpca8, 1);
-   tmpca7 = sum(tmpca8, 1);
-   [d_tmpca6 tmpca6] = adimat_diff_exp(adimat_opdiff_subsref(d_inv_cov_factors, struct('type', '()', 'subs', {{1 : p ':'}})), inv_cov_factors(1 : p, :));
-   d_tmpca5 = adimat_opdiff_epow_right(d_tmpca6, tmpca6, 2);
-   tmpca5 = tmpca6 .^ 2;
-   d_tmpca4 = adimat_diff_sum2(d_tmpca5, tmpca5, 1);
-   tmpca4 = sum(tmpca5, 1);
-   d_tmpca3 = adimat_opdiff_sum(d_tmpca4, d_tmpca7);
-   tmpca3 = tmpca4 + tmpca7;
+   tmpda6 = p + 1;
+   [d_tmpca5 tmpca5] = d_sqnorm(adimat_opdiff_subsref(d_inv_cov_factors, struct('type', '()', 'subs', {{tmpda6 : adimat_end(inv_cov_factors, 1, 2) ':'}})), inv_cov_factors(tmpda6 : end, :));
+   [d_tmpca4 tmpca4] = d_sqnorm(d_Qdiags, Qdiags);
+   d_tmpca3 = adimat_opdiff_sum(d_tmpca4, d_tmpca5);
+   tmpca3 = tmpca4 + tmpca5;
    tmpda2 = gamma ^ 2;
    tmpda1 = 0.5 * tmpda2;
    d_term1 = adimat_opdiff_mult_left(tmpda1, d_tmpca3, tmpca3);
    term1 = tmpda1 * tmpca3;
-   d_tmpca1 = adimat_diff_sum2(adimat_opdiff_subsref(d_inv_cov_factors, struct('type', '()', 'subs', {{1 : p ':'}})), inv_cov_factors(1 : p, :), 1);
-   tmpca1 = sum(inv_cov_factors(1 : p, :), 1);
-   d_term2 = adimat_opdiff_mult_left(m, d_tmpca1, tmpca1);
-   term2 = m * tmpca1;
+   d_term2 = adimat_opdiff_mult_left(m, d_sum_qs, sum_qs);
+   term2 = m * sum_qs;
    C = n*p*(log(gamma) - 0.5*log(2)) - log_gamma_distrib(0.5 * n, p);
    d_tmpca1 = adimat_opdiff_sum(d_term1, -d_term2, d_zeros(-C));
    tmpca1 = term1 - term2 - C;
@@ -138,7 +149,7 @@ function [d_out out] = d_log_wishart_prior(hparams, p, d_inv_cov_factors, inv_co
    out = sum(tmpca1);
 end
 
-function out = log_wishart_prior(hparams, p, inv_cov_factors)
+function out = log_wishart_prior(hparams, p, sum_qs, Qdiags, inv_cov_factors)
 % LOG_WISHART_PRIOR  
 %               HPARAMS = [gamma m]
 %               P data dimension
@@ -149,40 +160,33 @@ function out = log_wishart_prior(hparams, p, inv_cov_factors)
    gamma = hparams(1);
    m = hparams(2);
    n = p + m + 1;
-   tmpda9 = p + 1;
-   tmpca8 = inv_cov_factors(tmpda9 : end, :) .^ 2;
-   tmpca7 = sum(tmpca8, 1);
-   tmpca6 = exp(inv_cov_factors(1 : p, :));
-   tmpca5 = tmpca6 .^ 2;
-   tmpca4 = sum(tmpca5, 1);
-   tmpca3 = tmpca4 + tmpca7;
+   tmpda6 = p + 1;
+   tmpca5 = sqnorm(inv_cov_factors(tmpda6 : end, :));
+   tmpca4 = sqnorm(Qdiags);
+   tmpca3 = tmpca4 + tmpca5;
    tmpda2 = gamma ^ 2;
    tmpda1 = 0.5 * tmpda2;
    term1 = tmpda1 * tmpca3;
-   tmpca1 = sum(inv_cov_factors(1 : p, :), 1);
-   term2 = m * tmpca1;
+   term2 = m * sum_qs;
    C = n*p*(log(gamma) - 0.5*log(2)) - log_gamma_distrib(0.5 * n, p);
    tmpca1 = term1 - term2 - C;
    out = sum(tmpca1);
 end
 
 function out = log_gamma_distrib(a, p)
-   out = log(pi ^ (0.25 * p * (p - 1)));
+   out = 0.25 * p * (p - 1) * log(pi);
    for j=1 : p
       out = out + gammaln(a + 0.5*(1 - j));
    end
 end
 
-function [d_out out] = d_logsumexp_repmat(d_x, x)
+function [d_out out] = d_logsumexp(d_x, x)
 % LOGSUMEXP  Compute log(sum(exp(x))) stably.
 %               X is k x n
 %               OUT is 1 x n
    [d_mx mx] = adimat_diff_max1(d_x, x);
-   tmpda3 = size(x, 1);
-   d_tmpca2 = adimat_diff_repmat2(d_mx, mx, tmpda3, 1);
-   tmpca2 = repmat(mx, tmpda3, 1);
-   d_tmpca1 = adimat_opdiff_sum(d_x, -d_tmpca2);
-   tmpca1 = x - tmpca2;
+   d_tmpca1 = adimat_opdiff_sum(d_x, -d_mx);
+   tmpca1 = x - mx;
    [d_emx emx] = adimat_diff_exp(d_tmpca1, tmpca1);
    d_semx = adimat_diff_sum1(d_emx, emx);
    semx = sum(emx);
