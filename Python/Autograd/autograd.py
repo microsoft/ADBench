@@ -124,21 +124,22 @@ def gmm_objective_wrapper(params,x,wishart_gamma,wishart_m):
 
 alphas,means,icf,x,wishart_gamma,wishart_m = read_gmm_instance(sys.argv[1] + ".txt")
 
-nruns = int(sys.argv[2])
+nruns_f = int(sys.argv[2])
+nruns_J = int(sys.argv[3])
 
 start = t.time()
-for i in range(nruns):
+for i in range(nruns_f):
     err = gmm_objective(alphas,means,icf,x,wishart_gamma,wishart_m)
 end = t.time()
-tf = (end - start)/nruns
+tf = (end - start)/nruns_f
 
 k = alphas.size
 grad_gmm_objective_wrapper = value_and_grad(gmm_objective_wrapper)
 start = t.time()
-for i in range(nruns):
+for i in range(nruns_J):
     grad = grad_gmm_objective_wrapper((alphas,means,icf),x,wishart_gamma,wishart_m)
 end = t.time()
-tJ = (end - start)/nruns
+tJ = (end - start)/nruns_J
 
 name = "J_Autograd"
 write_J(sys.argv[1] + name + ".txt",grad[1])

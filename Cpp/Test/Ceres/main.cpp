@@ -304,11 +304,15 @@ void test_ba(const string& fn, int nruns)
 int main(int argc, char** argv)
 {
   string fn(argv[1]);
-  int nruns = 1;
+  int nruns_f = 1;
+  int nruns_J = 1;
   if (argc >= 3)
-    nruns = std::stoi(string(argv[2]));
+  {
+    nruns_f = std::stoi(string(argv[2]));
+    nruns_J = std::stoi(string(argv[3]));
+  }
   //google::InitGoogleLogging(argv[0]);
-  return test_gmm(fn, nruns);
+  return test_gmm(fn, nruns_f, nruns_J);
   //test_ba(fn, nruns); return 0;
 }
 

@@ -196,17 +196,30 @@ times_est_J(:,adimat_id) = times_est_adimat_J;
 times_est_f(:,adimat_id) = times_est_adimat_f;
 
 %% determine nruns for everyone
-nruns = zeros(ntasks,ntools);
+nruns_J = zeros(ntasks,ntools);
 for i=1:numel(times_est_J)
     if times_est_J(i) < 5
-        nruns(i) = 1000;
+        nruns_J(i) = 1000;
     elseif times_est_J(i) < 30
-        nruns(i) = 100;
+        nruns_J(i) = 100;
     elseif times_est_J(i) < 120
-        nruns(i) = 10;
+        nruns_J(i) = 10;
     elseif ~isinf(times_est_J(i))
 %         nruns(i) = 1; 
-        nruns(i) = 0; % it has already ran once
+        nruns_J(i) = 0; % it has already ran once
+    end
+end
+nruns_f = zeros(ntasks,ntools);
+for i=1:numel(times_est_f)
+    if times_est_f(i) < 5
+        nruns_f(i) = 1000;
+    elseif times_est_f(i) < 30
+        nruns_f(i) = 100;
+    elseif times_est_f(i) < 120
+        nruns_f(i) = 10;
+    elseif ~isinf(times_est_f(i))
+%         nruns(i) = 1; 
+        nruns_f(i) = 0; % it has already ran once
     end
 end
 
@@ -223,22 +236,23 @@ for i=1:ntasks
     k = params{i}(2);
     [paramsGMM,x,hparams] = load_gmm_instance([fns{i} '.txt']);
     
-    nruns_curr = nruns(i,adimat_id);
+    nruns_curr_f = nruns_f(i,adimat_id);
+    nruns_curr_J = nruns_J(i,adimat_id);
     
     tic
-    for j=1:nruns_curr
+    for j=1:nruns_curr_f
         fval = gmm_objective(paramsGMM.alphas,paramsGMM.means,...
             paramsGMM.inv_cov_factors,x,hparams);
     end
-    times_adimat_f(i) = toc/nruns_curr;
+    times_adimat_f(i) = toc/nruns_curr_f;
     
     tic
-    for j=1:nruns_curr
+    for j=1:nruns_curr_J
         do_F_mode = false;
         [J, fvalrev] = gmm_objective_adimat(do_F_mode,paramsGMM.alphas,...
             paramsGMM.means,paramsGMM.inv_cov_factors,x,hparams);
     end
-    times_adimat_J(i) = toc/nruns_curr;
+    times_adimat_J(i) = toc/nruns_curr_J;
     
 %     save('gmm_adimat_times','times_adimat_f','times_adimat_J');
 end
@@ -287,10 +301,11 @@ for i=1:nexe
 %         fprintf(fid,[cmd '\r\n']);
     else
         for j=1:ntasks
-            if nruns(j,i) == 0
+            if nruns_J(j,i) == 0
                 continue
             end
-            fprintf(fid,'START /MIN /WAIT %s %s %i\r\n',executables{i},fns{j},nruns(j,i));
+            fprintf(fid,'START /MIN /WAIT %s %s %i %i\r\n',...
+                executables{i},fns{j},nruns_f(j,i),nruns_J(j,i));
         end
     end
 end

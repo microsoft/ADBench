@@ -13,7 +13,7 @@
     <Name>Theano</Name>
     <RootNamespace>Theano</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>..\..\gmm 1 ..\..\gmm 1 ..\..\gmm 1 ..\..\gmm 1 ..\..\gmm 1 ..\..\gmm 1 ..\..\gmm 1</CommandLineArguments>
+    <CommandLineArguments>..\..\gmm 1 1 ..\..\gmm 1 1 ..\..\gmm 1 1 ..\..\gmm 1 1 ..\..\gmm 1 1 </CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>True</IsWindowsApplication>
   </PropertyGroup>

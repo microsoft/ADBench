@@ -326,7 +326,7 @@ double compute_ba_J(bool doRowCompression,int nruns, int n, int m, int p,
 	return t_J;
 }
 
-void test_gmm(const string& fn, int nruns)
+void test_gmm(const string& fn, int nruns_f, int nruns_J)
 {
   int d, k, n;
   double *alphas, *means, *icf, *x;
@@ -352,17 +352,17 @@ void test_gmm(const string& fn, int nruns)
   double tf, tJ = 0.;
 
   start = high_resolution_clock::now();
-  for (int i = 0; i < nruns; i++)
+  for (int i = 0; i < nruns_f; i++)
   {
     gmm_objective(d, k, n, alphas, means,
       icf, x, wishart, &err);
   }
   end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns;
+  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
   cout << "err: " << err << endl;
 
-  tJ = compute_gmm_J(nruns, d, k, n, alphas, means, icf, x, wishart, err, J);
-  //tJ = compute_gmm_J_split(nruns, d, k, n, alphas, means, icf, x, wishart, err, J);
+  tJ = compute_gmm_J(nruns_J, d, k, n, alphas, means, icf, x, wishart, err, J);
+  //tJ = compute_gmm_J_split(nruns_J, d, k, n, alphas, means, icf, x, wishart, err, J);
 
   string name = "J_ADOLC";
   //string name = "J_ADOLC_split";
@@ -432,9 +432,13 @@ void test_ba(const string& fn, int nruns)
 int main(int argc, char *argv[])
 {
   string fn(argv[1]);
-  int nruns = 1;
+  int nruns_f = 1;
+  int nruns_J = 1;
   if (argc >= 3)
-    nruns = std::stoi(string(argv[2]));
-	test_gmm(fn, nruns);
+  {
+    nruns_f = std::stoi(string(argv[2]));
+    nruns_J = std::stoi(string(argv[3]));
+  }
+	test_gmm(fn, nruns_f, nruns_J);
 	//test_ba(fn, nruns);
 }

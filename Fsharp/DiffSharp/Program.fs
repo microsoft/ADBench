@@ -10,11 +10,11 @@ let write_times (fn:string) (tf:float) (tJ:float) =
     let lines = [|line1; line2|]
     File.WriteAllLines(fn,lines)
 
-let test_gmm fn nruns =
+let test_gmm fn nruns_f nruns_J =
     let alphas, means, icf, x, wishart = gmm.read_gmm_instance (fn + ".txt")
     
     let obj_stop_watch = Stopwatch.StartNew()
-    for i = 1 to nruns do
+    for i = 1 to nruns_f do
         gmm.gmm_objective alphas means icf x wishart
     obj_stop_watch.Stop()
 
@@ -37,7 +37,7 @@ let test_gmm fn nruns =
     
     let grad_stop_watch = Stopwatch.StartNew()
     let parameters = (gmm.vectorize alphas means icf) //|> Array.map D
-    for i = 1 to nruns do
+    for i = 1 to nruns_J do
 //        grad_gmm_objective_split parameters
         grad_gmm_objective parameters
     grad_stop_watch.Stop()
@@ -48,8 +48,8 @@ let test_gmm fn nruns =
 //    let err2,gradient = (grad_gmm_objective parameters)
 //    gmm.write_grad (fn + name + ".txt") gradient   
 
-    let tf = ((float obj_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns)
-    let tJ = ((float grad_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns)
+    let tf = ((float obj_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns_f)
+    let tJ = ((float grad_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns_J)
     write_times (fn + name + "_times.txt") tf tJ
 //    printfn "tf: %f" tf
 //    printfn "tJ: %f" tJ
@@ -101,9 +101,9 @@ let test_gmm fn nruns =
 let main argv = 
     let nruns = 
         if argv.Length >= 2 then
-            Int32.Parse argv.[1]
+            [(Int32.Parse argv.[1]); (Int32.Parse argv.[2])]
         else
-            1
-    test_gmm argv.[0] nruns
+            [1; 1]
+    test_gmm argv.[0] nruns.[0] nruns.[1]
     //test_ba argv.[0] nruns
     0 // return an integer exit code

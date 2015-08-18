@@ -1,10 +1,17 @@
-﻿import numpy as np
+﻿import sys
+import os
+import time as t
+#import logging
+
+import numpy as np
 from numpy.random import rand, randn
 from scipy import special as scipy_special
+
 import theano as th
 import theano.tensor as T
-import time as t
-import sys
+
+#logging.getLogger("theano.gof.cmodule").setLevel(logging.DEBUG)
+
 
 def read_gmm_instance(fn):
     fid = open(fn, "r")
@@ -146,28 +153,29 @@ f = th.function([alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_], err_,mo
 grad = T.grad(err_,[alphas_, means_, icf_])
 fgrad = th.function([alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_],grad,mode='FAST_RUN')
 
-ntasks = (len(sys.argv)-1)//2
+ntasks = (len(sys.argv)-1)//3
 for task_id in range(ntasks):
     print("task_id: %i" % task_id)
 
-    argv_idx = task_id*2 + 1
+    argv_idx = task_id*3 + 1
     fn = sys.argv[argv_idx]
-    nruns = int(sys.argv[argv_idx+1])
+    nruns_f = int(sys.argv[argv_idx+1])
+    nruns_J = int(sys.argv[argv_idx+2])
     
     alphas,means,icf,x,wishart_gamma,wishart_m = read_gmm_instance(fn + ".txt")
 
     start = t.time()
-    for i in range(nruns):
+    for i in range(nruns_f):
         err = f(alphas,means,icf,x,wishart_gamma,wishart_m)
     end = t.time()
-    tf = (end - start)/nruns
+    tf = (end - start)/nruns_f
     print("err: %f" % err)
 
     start = t.time()
-    for i in range(nruns):
+    for i in range(nruns_J):
         J = fgrad(alphas,means,icf,x,wishart_gamma,wishart_m)
     end = t.time()
-    tJ = ((end - start)/nruns) + tf ###!!!!!!!!! adding this because no function value is returned by fgrad
+    tJ = ((end - start)/nruns_J) + tf ###!!!!!!!!! adding this because no function value is returned by fgrad
     
     name = "J_Theano"
     write_J(fn + name + ".txt",J)

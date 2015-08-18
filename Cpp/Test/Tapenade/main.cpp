@@ -42,7 +42,7 @@ void compute_gmm_Jb(int d, int k, int n,
     icf, icfb, x, wishart, &err, &eb);
 }
 
-void test_gmm(const string& fn, int nruns)
+void test_gmm(const string& fn, int nruns_f, int nruns_J)
 {
   int d, k, n;
   double *alphas, *means, *icf, *x;
@@ -57,47 +57,34 @@ void test_gmm(const string& fn, int nruns)
 
   double e1, e3, e4;
   double *Jb = new double[Jsz];
-  double *Jdv = new double[Jsz];
 
   high_resolution_clock::time_point start, end;
   double tf, tb = 0., tdv = 0.;
 
   start = high_resolution_clock::now();
-  for (int i = 0; i < nruns; i++)
+  for (int i = 0; i < nruns_f; i++)
   {
     gmm_objective(d, k, n, alphas, means,
       icf, x, wishart, &e1);
   }
   end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns;
+  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
 
   start = high_resolution_clock::now();
-  for (int i = 0; i < nruns; i++)
+  for (int i = 0; i < nruns_J; i++)
   {
     compute_gmm_Jb(d, k, n, alphas,
       means, icf, x, wishart, e3, Jb);
   }
   end = high_resolution_clock::now();
-  tb = duration_cast<duration<double>>(end - start).count() / nruns;
-
-  /*start = high_resolution_clock::now();
-  for (int i = 0; i < nruns; i++)
-  {
-  compute_gmm_Jdv(d, k, n, alphas,
-  means, icf, x, wishart, e4, Jdv);
-  }
-  end = high_resolution_clock::now();
-  tdv = duration_cast<duration<double>>(end - start).count() / nruns;*/
+  tb = duration_cast<duration<double>>(end - start).count() / nruns_J;
 
   /////////////////// results //////////////////////////
   write_J(fn + "J_Tapenade_b.txt", 1, Jsz, Jb);
-  //write_J(fn + "J_Tapenade_dv.txt", 1, Jsz, Jdv);
   //write_times(tf, tb);
   write_times(fn + "J_Tapenade_b_times.txt", tf, tb);
-  //write_times(tf, tdv);
 
   delete[] Jb;
-  delete[] Jdv;
 
   delete[] alphas;
   delete[] means;
@@ -462,10 +449,14 @@ void test_ba(const string& fn, int nruns)
 int main(int argc, char *argv[])
 {
   string fn(argv[1]);
-  int nruns = 1;
+  int nruns_f = 1;
+  int nruns_J = 1;
   if (argc >= 3)
-    nruns = std::stoi(string(argv[2]));
-  test_gmm(fn, nruns);
+  {
+    nruns_f = std::stoi(string(argv[2]));
+    nruns_J = std::stoi(string(argv[3]));
+  }
+  test_gmm(fn, nruns_f, nruns_J);
   //test_ba(fn, nruns);
 }
 
