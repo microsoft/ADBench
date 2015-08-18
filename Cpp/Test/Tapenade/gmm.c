@@ -127,8 +127,8 @@ void Qtimesx(int d,
   {
     for (j = i + 1; j < d; j++)
     {
-      out[j] += ltri[Lparamsidx] * x[i];
-      Lparamsidx++;
+      out[j] = out[j] + ltri[Lparamsidx] * x[i];
+      Lparamsidx = Lparamsidx + 1;
     }
   }
 }

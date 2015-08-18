@@ -161,30 +161,32 @@ void preprocess_qs_b(int d, int k, double *icf, double *icfb, double *sum_qs,
    Plus diff mem management of: out:in Qdiag:in x:in ltri:in
 */
 void Qtimesx_b(int d, double *Qdiag, double *Qdiagb, double *ltri, double *
-        ltrib, double *x, double *xb, double *out, double *outb) {
-    // strictly lower triangular part
-    int id, i, j, Lparamsidx;
-    int adFrom;
-    Lparamsidx = 0;
-    for (i = 0; i < d; ++i) {
-        adFrom = i + 1;
-        for (j = adFrom; j < d; ++j)
-            Lparamsidx++;
-        pushinteger4(adFrom);
+  ltrib, double *x, double *xb, double *out, double *outb) {
+  // strictly lower triangular part
+  int id, i, j, Lparamsidx;
+  int adFrom;
+  Lparamsidx = 0;
+  for (i = 0; i < d; ++i) {
+    adFrom = i + 1;
+    for (j = adFrom; j < d; ++j) {
+      pushinteger4(Lparamsidx);
+      Lparamsidx = Lparamsidx + 1;
     }
-    for (i = d-1; i > -1; --i) {
-        popinteger4(&adFrom);
-        for (j = d-1; j > adFrom-1; --j) {
-            --Lparamsidx;
-            ltrib[Lparamsidx] = ltrib[Lparamsidx] + x[i]*outb[j];
-            xb[i] = xb[i] + ltri[Lparamsidx]*outb[j];
-        }
+    pushinteger4(adFrom);
+  }
+  for (i = d - 1; i > -1; --i) {
+    popinteger4(&adFrom);
+    for (j = d - 1; j > adFrom - 1; --j) {
+      popinteger4(&Lparamsidx);
+      ltrib[Lparamsidx] = ltrib[Lparamsidx] + x[i] * outb[j];
+      xb[i] = xb[i] + ltri[Lparamsidx] * outb[j];
     }
-    for (id = d-1; id > -1; --id) {
-        Qdiagb[id] = Qdiagb[id] + x[id]*outb[id];
-        xb[id] = xb[id] + Qdiag[id]*outb[id];
-        outb[id] = 0.0;
-    }
+  }
+  for (id = d - 1; id > -1; --id) {
+    Qdiagb[id] = Qdiagb[id] + x[id] * outb[id];
+    xb[id] = xb[id] + Qdiag[id] * outb[id];
+    outb[id] = 0.0;
+  }
 }
 
 /*
@@ -211,89 +213,92 @@ void subtract_b(int d, double *x, double *y, double *yb, double *out, double *
                 *alphas:out
    Plus diff mem management of: err:in means:in icf:in alphas:in
 */
-void gmm_objective_b(int d, int k, int n, double *alphas, double *alphasb, 
-        double *means, double *meansb, double *icf, double *icfb, double *x, 
-        Wishart wishart, double *err, double *errb) {
-    int ik, ix, icf_sz;
-    double *main_term, *sum_qs, *Qdiags, *xcentered, *Qxcentered;
-    double *main_termb, *sum_qsb, *Qdiagsb, *xcenteredb, *Qxcenteredb;
-    double slse, lse_alphas, CONSTANT, log_wish_prior_res;
-    double slseb, lse_alphasb;
-    double result1;
-    double result1b;
-    CONSTANT = -n*d*0.5*log(2 * PI);
-    icf_sz = d*(d + 1) / 2;
+void gmm_objective_b(int d, int k, int n, double *alphas, double *alphasb,
+  double *means, double *meansb, double *icf, double *icfb, double *x,
+  Wishart wishart, double *err, double *errb) {
+  int ik, ix, icf_sz, i;
+  double *main_term, *sum_qs, *Qdiags, *xcentered, *Qxcentered;
+  double *main_termb, *sum_qsb, *Qdiagsb, *xcenteredb, *Qxcenteredb;
+  double slse, lse_alphas, CONSTANT, log_wish_prior_res;
+  double slseb, lse_alphasb;
+  double result1;
+  double result1b;
+  CONSTANT = -n*d*0.5*log(2 * PI);
+  icf_sz = d*(d + 1) / 2;
 
-    main_termb = (double *)malloc(k*sizeof(double));
-    main_term = (double *)malloc(k*sizeof(double));
-    sum_qsb = (double *)malloc(k*sizeof(double));
-    sum_qs = (double *)malloc(k*sizeof(double));
-    Qdiagsb = (double *)malloc(d*k*sizeof(double));
-    Qdiags = (double *)malloc(d*k*sizeof(double));
-    xcenteredb = (double *)malloc(d*sizeof(double));
-    xcentered = (double *)malloc(d*sizeof(double));
-    Qxcenteredb = (double *)malloc(d*sizeof(double));
-    Qxcentered = (double *)malloc(d*sizeof(double));
+  main_termb = (double *)malloc(k*sizeof(double));
+  main_term = (double *)malloc(k*sizeof(double));
+  sum_qsb = (double *)malloc(k*sizeof(double));
+  sum_qs = (double *)malloc(k*sizeof(double));
+  Qdiagsb = (double *)malloc(d*k*sizeof(double));
+  Qdiags = (double *)malloc(d*k*sizeof(double));
+  xcenteredb = (double *)malloc(d*sizeof(double));
+  xcentered = (double *)malloc(d*sizeof(double));
+  Qxcenteredb = (double *)malloc(d*sizeof(double));
+  Qxcentered = (double *)malloc(d*sizeof(double));
 
-    memset(alphasb, 0, k * sizeof(double));
-    memset(meansb, 0, d * k * sizeof(double));
-    memset(icfb, 0, icf_sz * k * sizeof(double));
-    memset(main_termb, 0, k * sizeof(double));
-    memset(sum_qsb, 0, k * sizeof(double));
-    memset(Qdiagsb, 0, d * k * sizeof(double));
-    memset(xcenteredb, 0, d * sizeof(double));
-    memset(Qxcenteredb, 0, d * sizeof(double));
+  memset(alphasb, 0, k * sizeof(double));
+  memset(meansb, 0, d * k * sizeof(double));
+  memset(icfb, 0, icf_sz * k * sizeof(double));
+  memset(sum_qsb, 0, k * sizeof(double));
+  memset(Qdiagsb, 0, d * k * sizeof(double));
+  memset(main_termb, 0, k * sizeof(double));
+  memset(xcenteredb, 0, d * sizeof(double));
+  memset(Qxcenteredb, 0, d * sizeof(double));
 
-    preprocess_qs(d, k, icf, sum_qs, Qdiags);
-    slse = 0.;
-    for (ix = 0; ix < n; ++ix)
-      for (ik = 0; ik < k; ++ik) {
-        pushreal8(*xcentered);
-        subtract(d, &x[ix*d], &means[ik*d], xcentered);
-        pushreal8(*Qxcentered);
-        Qtimesx(d, &Qdiags[ik*d], &icf[ik*icf_sz + d], xcentered,
-          Qxcentered);
-        result1 = sqnorm(d, Qxcentered);
-        pushreal8(main_term[ik]);
-        main_term[ik] = alphas[ik] + sum_qs[ik] - 0.5*result1;
-      }
-    result1b = *errb;
-    log_wish_prior_res = log_wishart_prior_b(d, k, wishart, sum_qs, sum_qsb, Qdiags, Qdiagsb, icf,
-                        icfb, result1b);
-    slseb = *errb;
-    lse_alphasb = -(n*(*errb));
-    *alphasb = 0.0;
-    lse_alphas = logsumexp_b(k, alphas, alphasb, lse_alphasb);
-    for (ix = n-1; ix > -1; --ix) {
-        result1b = slseb;
-        slse = slse + logsumexp_b(k, main_term, main_termb, result1b);
-        for (ik = k-1; ik > -1; --ik) {
-            popreal8(&main_term[ik]);
-            alphasb[ik] = alphasb[ik] + main_termb[ik];
-            sum_qsb[ik] = sum_qsb[ik] + main_termb[ik];
-            result1b = -(0.5*main_termb[ik]);
-            main_termb[ik] = 0.0;
-            sqnorm_b(d, Qxcentered, Qxcenteredb, result1b);
-            popreal8(Qxcentered);
-            Qtimesx_b(d, &Qdiags[ik*d], &Qdiagsb[ik*d], &icf[ik*icf_sz + d], &
-                      icfb[ik*icf_sz + d], xcentered, xcenteredb, Qxcentered, 
-                      Qxcenteredb);
-            popreal8(xcentered);
-            subtract_b(d, &x[ix*d], &means[ik*d], &meansb[ik*d], xcentered, 
-                       xcenteredb);
-        }
+  preprocess_qs(d, k, icf, sum_qs, Qdiags);
+  slse = 0.;
+  for (ix = 0; ix < n; ++ix)
+    for (ik = 0; ik < k; ++ik) {
+      for (i = 0; i < d; i++)
+        pushreal8(xcentered[i]);
+      subtract(d, &x[ix*d], &means[ik*d], xcentered);
+      for (i = 0; i < d; i++)
+        pushreal8(Qxcentered[i]);
+      Qtimesx(d, &Qdiags[ik*d], &icf[ik*icf_sz + d], xcentered,
+        Qxcentered);
+      result1 = sqnorm(d, Qxcentered);
+      pushreal8(main_term[ik]);
+      main_term[ik] = alphas[ik] + sum_qs[ik] - 0.5*result1;
     }
-    preprocess_qs_b(d, k, icf, icfb, sum_qs, sum_qsb, Qdiags, Qdiagsb);
-    free(Qxcentered);
-    free(Qxcenteredb);
-    free(xcentered);
-    free(xcenteredb);
-    free(Qdiags);
-    free(Qdiagsb);
-    free(sum_qs);
-    free(sum_qsb);
-    free(main_term);
-    free(main_termb);
-    *err = CONSTANT + slse - n*lse_alphas + log_wish_prior_res;
-    *errb = 0.0;
+  result1b = *errb;
+  log_wish_prior_res = log_wishart_prior_b(d, k, wishart, sum_qs, sum_qsb, Qdiags, Qdiagsb, icf,
+    icfb, result1b);
+  slseb = *errb;
+  lse_alphasb = -(n*(*errb));
+  lse_alphas = logsumexp_b(k, alphas, alphasb, lse_alphasb);
+  for (ix = n - 1; ix > -1; --ix) {
+    result1b = slseb;
+    slse = slse + logsumexp_b(k, main_term, main_termb, result1b);
+    for (ik = k - 1; ik > -1; --ik) {
+      popreal8(&main_term[ik]);
+      alphasb[ik] = alphasb[ik] + main_termb[ik];
+      sum_qsb[ik] = sum_qsb[ik] + main_termb[ik];
+      result1b = -(0.5*main_termb[ik]);
+      main_termb[ik] = 0.0;
+      sqnorm_b(d, Qxcentered, Qxcenteredb, result1b);
+      for (i = d - 1; i > -1; i--)
+        popreal8(&Qxcentered[i]);
+      Qtimesx_b(d, &Qdiags[ik*d], &Qdiagsb[ik*d], &icf[ik*icf_sz + d], &
+        icfb[ik*icf_sz + d], xcentered, xcenteredb, Qxcentered,
+        Qxcenteredb);
+      for (i = d - 1; i > -1; i--)
+        popreal8(&xcentered[i]);
+      subtract_b(d, &x[ix*d], &means[ik*d], &meansb[ik*d], xcentered,
+        xcenteredb);
+    }
+  }
+  preprocess_qs_b(d, k, icf, icfb, sum_qs, sum_qsb, Qdiags, Qdiagsb);
+  free(Qxcentered);
+  free(Qxcenteredb);
+  free(xcentered);
+  free(xcenteredb);
+  free(Qdiags);
+  free(Qdiagsb);
+  free(sum_qs);
+  free(sum_qsb);
+  free(main_term);
+  free(main_termb);
+  *err = CONSTANT + slse - n*lse_alphas + log_wish_prior_res;
+  *errb = 0.0;
 }
