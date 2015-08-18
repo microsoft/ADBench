@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cmath>
-#include "adolc/adolc.h"
 #include "../defs.h"
 
 ////////////////////////////////////////////////////////////
@@ -55,7 +54,12 @@ T arr_max(int n, const T* const x)
 	T m = x[0];
 	for (int i = 1; i < n; i++)
 	{
+#ifdef ADEPT_COMPILATION
+    if (m < x[i])
+      m = x[i];
+#else
 		m = fmax(m, x[i]);
+#endif
 	}
 	return m;
 }
@@ -82,6 +86,18 @@ double log_gamma_distrib(double a, double p)
 	return out;
 }
 
+template<typename T>
+T sqnorm(int d,
+  const T* const x)
+{
+  T out = 0;
+  for (int i = 0; i < d; i++)
+  {
+    out += x[i] * x[i];
+  }
+  return out;
+}
+
 // p dim
 // k number of components
 // wishart parameters
@@ -89,7 +105,10 @@ double log_gamma_distrib(double a, double p)
 //					square roots of inverse covariances log of diagonal 
 //					is first p params
 template<typename T>
-T log_wishart_prior(int p, int k, Wishart wishart,
+T log_wishart_prior(int p, int k, 
+  Wishart wishart,
+  const T* const sum_qs,
+  const T* const Qdiags,
 	const T* const icf)
 {
 	int n = p + wishart.m + 1;
@@ -100,87 +119,112 @@ T log_wishart_prior(int p, int k, Wishart wishart,
 	T out = 0;
 	for (int ik = 0; ik < k; ik++)
 	{
-		T frobenius = 0;
-		T sum_log_diag = 0;
-		for (int i = 0; i < p; i++)
-		{
-			T tmp = icf[icf_sz*ik + i];
-			sum_log_diag = sum_log_diag + tmp;
-			tmp = exp(tmp);
-			frobenius = frobenius + tmp*tmp;
-		}
-		for (int i = p; i < icf_sz; i++)
-		{
-			T tmp = icf[icf_sz*ik + i];
-			frobenius = frobenius + tmp*tmp;
-		}
+    T frobenius = sqnorm(p, &Qdiags[ik*p]) + sqnorm(icf_sz - p, &icf[ik*icf_sz + p]);
 		out = out + 0.5*wishart.gamma*wishart.gamma*(frobenius)
-			-wishart.m * sum_log_diag;
+			-wishart.m * sum_qs[ik];
 	}
 
 	return out - k*C;
 }
 
 template<typename T>
-void gmm_objective(int d, int k, int n, const T* const alphas, const T* const means,
-	const T* const icf, const double* const x, Wishart wishart, T* err)
+void preprocess_qs(int d, int k,
+  const T* const icf,
+  T* sum_qs,
+  T* Qdiags)
+{
+  int icf_sz = d*(d + 1) / 2;
+  for (int ik = 0; ik < k; ik++)
+  {
+    sum_qs[ik] = 0.;
+    for (int id = 0; id < d; id++)
+    {
+      T q = icf[ik*icf_sz + id];
+      sum_qs[ik] += q;
+      Qdiags[ik*d + id] = exp(q);
+    }
+  }
+}
+
+template<typename T>
+void Qtimesx(int d,
+  const T* const Qdiag,
+  const T* const ltri, // strictly lower triangular part
+  const T* const x,
+  T* out)
+{
+  for (int id = 0; id < d; id++)
+    out[id] = Qdiag[id] * x[id];
+  
+  int Lparamsidx = 0;
+  for (int i = 0; i < d; i++)
+  {
+    for (int j = i + 1; j < d; j++)
+    {
+      out[j] += ltri[Lparamsidx] * x[i];
+      Lparamsidx++;
+    }
+  }
+}
+
+// out = a - b
+template<typename T>
+void subtract(int d,
+  const double* const x,
+  const T* const y,
+  T* out)
+{
+  for (int id = 0; id < d; id++)
+  {
+    out[id] = x[id] - y[id];
+  }
+}
+
+template<typename T>
+void gmm_objective(int d, int k, int n, 
+  const T* const alphas, 
+  const T* const means,
+	const T* const icf, 
+  const double* const x, 
+  Wishart wishart, 
+  T* err)
 {
 	const double CONSTANT = -n*d*0.5*log(2 * PI);
 	int icf_sz = d*(d + 1) / 2;
 
-	T *Ldiag = new T[d];
+  T *sum_qs = new T[k];
+  T *Qdiags = new T[d*k];
 	T *xcentered = new T[d];
-	T *mahal = new T[d];
-	T *lse = new T[k];
+	T *Qxcentered = new T[d];
+	T *main_term = new T[k];
+
+  preprocess_qs(d, k, icf, sum_qs, Qdiags);
 
 	T slse = 0.;
 	for (int ix = 0; ix < n; ix++)
 	{
 		for (int ik = 0; ik < k; ik++)
 		{
-			int icf_off = ik*icf_sz;
-			T sumlog_Ldiag = 0.;
-			for (int id = 0; id < d; id++)
-			{
-				sumlog_Ldiag += icf[icf_off + id];
-				Ldiag[id] = exp(icf[icf_off + id]);
-			}
+      subtract(d, &x[ix*d], &means[ik*d], xcentered);
+      Qtimesx(d, &Qdiags[ik*d], &icf[ik*icf_sz + d], xcentered, Qxcentered);
 
-			for (int id = 0; id < d; id++)
-			{
-				xcentered[id] = x[ix*d + id] - means[ik*d + id];
-				mahal[id] = Ldiag[id] * xcentered[id];
-			}
-			int Lparamsidx = d;
-			for (int i = 0; i < d; i++)
-			{
-				for (int j = i + 1; j < d; j++)
-				{
-					mahal[j] += icf[icf_off + Lparamsidx] * xcentered[i];
-					Lparamsidx++;
-				}
-			}
-			T sqsum_mahal = 0.;
-			for (int id = 0; id < d; id++)
-			{
-				sqsum_mahal += mahal[id] * mahal[id];
-			}
-
-			lse[ik] = alphas[ik] + sumlog_Ldiag - 0.5*sqsum_mahal;
+      main_term[ik] = alphas[ik] + sum_qs[ik] - 0.5*sqnorm(d, Qxcentered);
 		}
-		slse += logsumexp(k, lse);
+		slse += logsumexp(k, main_term);
 	}
 
-	delete[] mahal;
 	delete[] xcentered;
-	delete[] Ldiag;
-	delete[] lse;
+	delete[] Qxcentered;
+	delete[] main_term;
 
 	T lse_alphas = logsumexp(k, alphas);
 
 	*err = CONSTANT + slse - n*lse_alphas;
 
-	*err += log_wishart_prior(d, k, wishart, icf);
+	*err += log_wishart_prior(d, k, wishart, sum_qs, Qdiags, icf);
+
+  delete[] sum_qs;
+  delete[] Qdiags;
 }
 
 template<typename T>
