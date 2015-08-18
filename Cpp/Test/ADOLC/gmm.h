@@ -296,5 +296,10 @@ void gmm_objective_split_other(int d, int k, int n,
 
   T lse_alphas = logsumexp(k, alphas);
 
-  *err = CONSTANT - n*lse_alphas + log_wishart_prior(d, k, wishart, icf);
+  T *sum_qs = new T[k];
+  T *Qdiags = new T[d*k];
+  preprocess_qs(d, k, icf, sum_qs, Qdiags);
+  *err = CONSTANT - n*lse_alphas + log_wishart_prior(d, k, wishart, sum_qs, Qdiags, icf);
+  delete[] sum_qs;
+  delete[] Qdiags;
 }
