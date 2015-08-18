@@ -131,7 +131,6 @@
     <ClCompile Include="ba_dv-all.c" />
     <ClCompile Include="gmm.c" />
     <ClCompile Include="gmm_b-all.c" />
-    <ClCompile Include="gmm_dv-all.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="testMemSizec.c" />
     <ClCompile Include="treeverse.c" />
@@ -146,7 +145,6 @@
     <ClInclude Include="ba_dv.h" />
     <ClInclude Include="gmm.h" />
     <ClInclude Include="gmm_b.h" />
-    <ClInclude Include="gmm_dv.h" />
     <ClInclude Include="treeverse.h" />
   </ItemGroup>
   <ItemGroup>

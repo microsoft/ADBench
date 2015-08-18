@@ -12,7 +12,7 @@ extern "C"
 {
 #include "gmm.h"
 #include "gmm_b.h"
-#include "gmm_dv.h"
+//#include "gmm_dv.h"
 #include "ba.h"
 #include "ba_dv.h"
 #include "ba_bv.h"
@@ -40,47 +40,6 @@ void compute_gmm_Jb(int d, int k, int n,
 
   gmm_objective_b(d, k, n, alphas, alphasb, means, meansb,
     icf, icfb, x, wishart, &err, &eb);
-}
-
-void compute_gmm_Jdv(int d, int k, int n,
-  double* alphas, double* means,
-  double* icf, double* x, Wishart wishart,
-  double& err, double* Jdv)
-{
-  int icf_sz = d*(d + 1) / 2;
-  int nbdirs = k + d*k + icf_sz*k;
-  double(*alphasdv)[NBDirsMax] = (double(*)[NBDirsMax])malloc(k*sizeof(double)*NBDirsMax);
-  double(*meansdv)[NBDirsMax] = (double(*)[NBDirsMax])malloc(d*k*sizeof(double)*NBDirsMax);
-  double(*icfdv)[NBDirsMax] = (double(*)[NBDirsMax])malloc(icf_sz*k*sizeof(double)*NBDirsMax);
-
-  for (int ik = 0; ik < k; ik++)
-  {
-    memset(alphasdv[ik], 0, nbdirs*sizeof(double));
-    alphasdv[ik][ik] = 1.;
-  }
-  int nbdirs_off = k;
-  for (int i = 0; i < d*k; i++)
-  {
-    memset(meansdv[i], 0, nbdirs*sizeof(double));
-    meansdv[i][nbdirs_off + i] = 1.;
-  }
-  nbdirs_off += d*k;
-  for (int i = 0; i < icf_sz*k; i++)
-  {
-    memset(icfdv[i], 0, nbdirs*sizeof(double));
-    icfdv[i][nbdirs_off + i] = 1.;
-  }
-
-  double errdv[NBDirsMax];
-  gmm_objective_dv(d, k, n, alphas, alphasdv, means,
-    meansdv, icf, icfdv,
-    x, wishart, &err, &errdv, nbdirs);
-
-  memcpy(Jdv, errdv, nbdirs * sizeof(double));
-
-  free(alphasdv);
-  free(meansdv);
-  free(icfdv);
 }
 
 void test_gmm(const string& fn, int nruns)
@@ -509,3 +468,45 @@ int main(int argc, char *argv[])
   test_gmm(fn, nruns);
   //test_ba(fn, nruns);
 }
+
+
+/*void compute_gmm_Jdv(int d, int k, int n,
+double* alphas, double* means,
+double* icf, double* x, Wishart wishart,
+double& err, double* Jdv)
+{
+int icf_sz = d*(d + 1) / 2;
+int nbdirs = k + d*k + icf_sz*k;
+double(*alphasdv)[NBDirsMax] = (double(*)[NBDirsMax])malloc(k*sizeof(double)*NBDirsMax);
+double(*meansdv)[NBDirsMax] = (double(*)[NBDirsMax])malloc(d*k*sizeof(double)*NBDirsMax);
+double(*icfdv)[NBDirsMax] = (double(*)[NBDirsMax])malloc(icf_sz*k*sizeof(double)*NBDirsMax);
+
+for (int ik = 0; ik < k; ik++)
+{
+memset(alphasdv[ik], 0, nbdirs*sizeof(double));
+alphasdv[ik][ik] = 1.;
+}
+int nbdirs_off = k;
+for (int i = 0; i < d*k; i++)
+{
+memset(meansdv[i], 0, nbdirs*sizeof(double));
+meansdv[i][nbdirs_off + i] = 1.;
+}
+nbdirs_off += d*k;
+for (int i = 0; i < icf_sz*k; i++)
+{
+memset(icfdv[i], 0, nbdirs*sizeof(double));
+icfdv[i][nbdirs_off + i] = 1.;
+}
+
+double errdv[NBDirsMax];
+gmm_objective_dv(d, k, n, alphas, alphasdv, means,
+meansdv, icf, icfdv,
+x, wishart, &err, &errdv, nbdirs);
+
+memcpy(Jdv, errdv, nbdirs * sizeof(double));
+
+free(alphasdv);
+free(meansdv);
+free(icfdv);
+}*/
