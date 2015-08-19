@@ -14,7 +14,8 @@ let test_gmm fn nruns_f nruns_J =
     let alphas, means, icf, x, wishart = gmm.read_gmm_instance (fn + ".txt")
     
     let obj_stop_watch = Stopwatch.StartNew()
-    for i = 1 to nruns_f do
+    let err = gmm.gmm_objective alphas means icf x wishart
+    for i = 1 to nruns_f-1 do
         gmm.gmm_objective alphas means icf x wishart
     obj_stop_watch.Stop()
 
@@ -28,25 +29,28 @@ let test_gmm fn nruns_f nruns_J =
     
     let grad_gmm_objective2 = grad' gmm_objective_2wrapper_
     let grad_gmm_objective_split (parameters:_[]) =
+        let mutable err, grad = grad_gmm_objective2 parameters
         for i = 0 to n-1 do
             let gmm_objective_1wrapper_ (parameters:_[]) = gmm.gmm_objective_1wrapper d k parameters x.[i]
             let grad_gmm_objective1 = grad' gmm_objective_1wrapper_
-            grad_gmm_objective1 parameters
-        grad_gmm_objective2 parameters
+            let err_curr, grad_curr = grad_gmm_objective1 parameters
+            err <- err + err_curr
+            grad <- Array.map2 (+) grad grad_curr
+        (err, grad)
         
-    
+    let grad_func parameters = grad_gmm_objective_split parameters
+    //let grad_func parameters = grad_gmm_objective parameters
     let grad_stop_watch = Stopwatch.StartNew()
     let parameters = (gmm.vectorize alphas means icf) //|> Array.map D
-    for i = 1 to nruns_J do
-//        grad_gmm_objective_split parameters
-        grad_gmm_objective parameters
+    let err2, gradient = (grad_func parameters)
+    for i = 1 to nruns_J-1 do
+        grad_func parameters
     grad_stop_watch.Stop()
     
 //    let name = "J_diffsharpAD"
 //    let name = "J_diffsharpR"
     let name = "J_diffsharpRsplit"
-//    let err2,gradient = (grad_gmm_objective parameters)
-//    gmm.write_grad (fn + name + ".txt") gradient   
+    gmm.write_grad (fn + name + ".txt") gradient   
 
     let tf = ((float obj_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns_f)
     let tJ = ((float grad_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns_J)

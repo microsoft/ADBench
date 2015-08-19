@@ -8,7 +8,7 @@
     <ProjectGuid>b50bae60-b142-4e9a-a23b-d29fac2bfd4f</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>DiffSharp</RootNamespace>
-    <AssemblyName>DiffSharp</AssemblyName>
+    <AssemblyName>DiffSharpTests</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
@@ -37,6 +37,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Release\DiffSharp.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
+    <StartArguments>..\..\gmm 1 1</StartArguments>
   </PropertyGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
