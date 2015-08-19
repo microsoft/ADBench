@@ -401,7 +401,7 @@ void gmm_objective_no_priors(int d, int k, int n,
     Map<const VectorXd> curr_x(&x[ix*d], d);
     for (int ik = 0; ik < k; ik++)
     {
-      switch (3) // 3 is the fastest
+      switch (3) // 3 is the fastest, (and 2 is slightly faster than 4)
       {
       case 2:
         xcentered = curr_x - mus[ik];
@@ -516,8 +516,8 @@ void gmm_objective_no_priors_d(int d, int k, int n,
     for (int ik = 0; ik < k; ik++)
     {
       xcentered = curr_x - mus[ik];
-      Qxcentered.noalias() = Qs[ik].triangularView<Lower>()*xcentered;
-      curr_means_d.col(ik).noalias() = Qs[ik].triangularView<Lower>().transpose()*Qxcentered;
+      Qxcentered.noalias() = Qs[ik]*xcentered;
+      curr_means_d.col(ik).noalias() = Qs[ik].transpose()*Qxcentered;
       curr_logLdiag_d.col(ik).noalias() =
         (1. - ((Qs[ik].diagonal().cwiseProduct(xcentered)).cwiseProduct(Qxcentered)).array()).matrix();
 
@@ -540,9 +540,9 @@ void gmm_objective_no_priors_d(int d, int k, int n,
     else
       main_term /= normalizer;
     alphas_d += main_term.matrix();
-    means_d += curr_means_d.rowwise() * main_term;
-    icf_d.topRows(d) += curr_logLdiag_d.rowwise() * main_term;
-    icf_d.bottomRows(icf_sz - d) += curr_L_d.rowwise() * main_term;
+    means_d += (curr_means_d.array().rowwise() * main_term.transpose()).matrix();
+    icf_d.topRows(d) += (curr_logLdiag_d.array().rowwise() * main_term.transpose()).matrix();
+    icf_d.bottomRows(icf_sz - d) += (curr_L_d.array().rowwise() * main_term.transpose()).matrix();
   }
 
   double lse_alphas = logsumexp(alphas);

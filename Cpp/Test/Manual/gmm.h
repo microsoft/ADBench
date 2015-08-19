@@ -26,7 +26,7 @@ void gmm_objective(int d, int k, int n,
   Wishart wishart,
   double *err);
 
-/*void gmm_objective_d(int d, int k, int n,
+void gmm_objective_d(int d, int k, int n,
   const double *alphas,
   const double *means,
   const double *icf,
@@ -34,6 +34,6 @@ void gmm_objective(int d, int k, int n,
   Wishart wishart,
   double *err,
   double *J);
-  */
+  
 
 #endif // TEST_MANUAL_GMM

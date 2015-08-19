@@ -45,21 +45,21 @@ void test_gmm(const string& fn, int nruns_f, int nruns_J)
   tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
   cout << "err: " << err << endl;
 
-  /*start = high_resolution_clock::now();
+  start = high_resolution_clock::now();
   for (int i = 0; i < nruns_J; i++)
   {
     gmm_objective_d(d, k, n, alphas, means,
       icf, x, wishart, &err, J);
   }
   end = high_resolution_clock::now();
-  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;*/
+  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
 
-  //string name = "J_manual";
+  string name = "J_manual";
   //string name = "J_manual_VS";
   //string name = "J_manual_Intel";
-  string name = "J_manual_Eigen5";
+  //string name = "J_manual_Eigen5";
   //string name = "J_manual_Eigen4_VS";
-  //write_J(fn + name + ".txt", Jrows, Jcols, J);
+  write_J(fn + name + ".txt", Jrows, Jcols, J);
   //write_times(tf, tJ);
   write_times(fn + name + "_times.txt", tf, tJ);
 
