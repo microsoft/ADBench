@@ -1,22 +1,22 @@
 %%
-exe_dir = 'C:/Users/t-filsra/Workspace/autodiff/Release';
-python_dir = 'C:/Users/t-filsra/Workspace/autodiff/Python';
-data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances';
+exe_dir = 'C:/Users/t-filsra/Workspace/autodiff/Release/';
+python_dir = 'C:/Users/t-filsra/Workspace/autodiff/Python/';
+data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/';
 
 %% tools
 executables = {...
-    fullfile(exe_dir,'Manual_Eigen.exe'),...
-    fullfile(exe_dir,'Manual_VS.exe'),...
-    fullfile(exe_dir,'Tapenade.exe'),...
-    fullfile(exe_dir,'ADOLC_split.exe'),...
-    fullfile(exe_dir,'ADOLC_full.exe'),...
-    fullfile(exe_dir,'ReleaseRSplit/DiffSharp.exe.exe'),...
-    fullfile(exe_dir,'ReleaseR/DiffSharp.exe.exe'),...
-    fullfile(exe_dir,'ReleaseAD/DiffSharp.exe.exe'),...
-    ['python.exe ' fullfile(python_dir,'Autograd/autograd_split.py')],...
-    ['python.exe ' fullfile(python_dir,'Autograd/autograd.py')],...
-    ['python.exe ' fullfile(python_dir,'Theano/Theano.py')],...
-    fullfile(exe_dir,'Adept.exe'),...
+    [exe_dir,'Manual_Eigen.exe'],...
+    [exe_dir,'Manual_VS.exe'],...
+    [exe_dir,'Tapenade.exe'],...
+    [exe_dir,'ADOLC_split.exe'],...
+    [exe_dir,'ADOLC_full.exe'],...
+    [exe_dir,'DiffSharpRSplit/DiffSharpTests.exe'],...
+    [exe_dir,'DiffSharpR/DiffSharpTests.exe'],...
+    [exe_dir,'DiffSharpAD/DiffSharpTests.exe'],...
+    ['python.exe ' python_dir 'Autograd/autograd_split.py'],...
+    ['python.exe ' python_dir 'Autograd/autograd_full.py'],...
+    ['python.exe ' python_dir 'Theano/Theano.py'],...
+    [exe_dir,'Adept.exe'],...
     };
 names = {...
     'J_manual',...
@@ -104,7 +104,7 @@ fns = {};
 for i=1:numel(params)
     d = params{i}(1);
     k = params{i}(2);
-    fns{end+1} = fullfile(data_dir, ['gmm_d' num2str(d) '_K' num2str(k)]);
+    fns{end+1} = [data_dir 'gmm_d' num2str(d) '_K' num2str(k)];
 end
 ntasks = numel(params);
 % save('params_gmm.mat','params');
@@ -135,15 +135,15 @@ fn = 'run_experiments.bat';
 fid = fopen(fn,'w');
 for i=1:nexe
     if strcmp('Theano',tools{i}(1:6))
-%         cmd = ['START /MIN /WAIT ' executables{i}];
-%         for j=1:ntasks
-%             cmd = [cmd ' ' fns{j} ' 1'];
-%         end
-%         fprintf(fid,[cmd '\r\n']);
-    else
+        cmd = ['START /MIN /WAIT ' executables{i}];
         for j=1:ntasks
-            fprintf(fid,'START /MIN /WAIT %s %s 1\r\n',executables{i},fns{j});
+            cmd = [cmd ' ' fns{j} ' 1 1'];
         end
+        fprintf(fid,[cmd '\r\n']);
+    else
+%         for j=1:ntasks
+%             fprintf(fid,'START /MIN /WAIT %s %s 1 1\r\n',executables{i},fns{j});
+%         end
     end
 end
 fclose(fid);
@@ -173,8 +173,9 @@ for i=1:ntasks
     times_est_adimat_f(i) = toc;
     
     tic
-    [Jrev,fvalrev] = admDiffRev(@gmm_objective, 1, paramsGMM.alphas,...
-            paramsGMM.means, paramsGMM.inv_cov_factors, x, hparams, opt);
+    do_F_mode = false;
+    [J, fvalrev] = gmm_objective_adimat(do_F_mode,paramsGMM.alphas,...
+            paramsGMM.means,paramsGMM.inv_cov_factors,x,hparams);
     times_est_adimat_J(i) = toc;
 end
 
@@ -205,8 +206,8 @@ for i=1:numel(times_est_J)
     elseif times_est_J(i) < 120
         nruns_J(i) = 10;
     elseif ~isinf(times_est_J(i))
-%         nruns(i) = 1; 
-        nruns_J(i) = 0; % it has already ran once
+        nruns_J(i) = 1; 
+%         nruns_J(i) = 0; % it has already ran once
     end
 end
 nruns_f = zeros(ntasks,ntools);
@@ -218,8 +219,8 @@ for i=1:numel(times_est_f)
     elseif times_est_f(i) < 120
         nruns_f(i) = 10;
     elseif ~isinf(times_est_f(i))
-%         nruns(i) = 1; 
-        nruns_f(i) = 0; % it has already ran once
+        nruns_f(i) = 1; 
+%         nruns_f(i) = 0; % it has already ran once
     end
 end
 
@@ -254,7 +255,7 @@ for i=1:ntasks
     end
     times_adimat_J(i) = toc/nruns_curr_J;
     
-%     save('gmm_adimat_times','times_adimat_f','times_adimat_J');
+    save('gmm_adimat_times','times_adimat_f','times_adimat_J');
 end
 
 %% run mupad
@@ -295,7 +296,8 @@ for i=1:nexe
 %         cmd = ['START /MIN /WAIT ' executables{i}];
 %         for j=1:ntasks
 %             if nruns(j,i) > 0
-%                 cmd = [cmd ' ' fns{j} ' ' num2str(nruns(j,i))];
+%                 cmd = [cmd ' ' fns{j}...
+%                   ' ' num2str(nruns_f(j,i)) ' ' num2str(nruns_J(j,i))];
 %             end
 %         end
 %         fprintf(fid,[cmd '\r\n']);
@@ -329,7 +331,7 @@ for i=1:ntasks
     d = params{i}(1);
     k = params{i}(2);
     [paramsGMM,x,hparams] = load_gmm_instance([fns{i} '.txt']);
-    [Jrev,fvalrev] = admDiffRev(@gmm_objective, 1, paramsGMM.alphas,...
+    [Jrev,fvalrev] = admDiffRev(@gmm_objective_old, 1, paramsGMM.alphas,...
         paramsGMM.means, paramsGMM.inv_cov_factors, x, hparams, opt);
     
     for j=1:nexe
@@ -390,30 +392,34 @@ set(groot,'defaultAxesColorOrder',...
     'defaultAxesLineStyleOrder', '-|s-|x-')
 lw = 2;
 msz = 7;
-% order = fliplr([2 12 11 1 3 5 4 6 7 8 9 10]);
-order = fliplr([7 5 3 6 8 2 4 1]);
-% order = 1:ntools;
-x=[params{:}]; x=x(3:3:end);
 
-% % Runtime
-% figure
-% loglog(x, times_J(:, order),'linewidth',lw,'markersize',msz);
-% legend({tools{order}}, 'location', 'se');
-% set(gca,'FontSize',14)
-% xlim([min(x) max(x)])
-% title('runtimes (seconds)')
-% xlabel('# parameters')
-% ylabel('runtime [seconds]')
-% 
-% % Relative
-% figure
-% loglog(x, times_relative(:, order),'linewidth',lw,'markersize',msz);
-% legend({tools{order}}, 'location', 'nw');
-% set(gca,'FontSize',14)
-% xlim([min(x) max(x)])
-% title('relative runtimes')
-% xlabel('# parameters')
-% ylabel('relative runtime')
+[tmp,preorder]=sort(times_J,2);
+preorder(isinf(tmp)) = NaN;
+scores=zeros(ntools,1);
+mask=~isnan(preorder);
+tmp=repmat(fliplr(2*(1:ntools)),ntasks,1);
+scores(preorder(mask)) = scores(preorder(mask)) + tmp(mask);
+[~, order] = sort(scores);
+
+% Runtime
+figure
+loglog(x, times_J(:, order),'linewidth',lw,'markersize',msz);
+legend({tools{order}}, 'location', 'se');
+set(gca,'FontSize',14)
+xlim([min(x) max(x)])
+title('runtimes (seconds)')
+xlabel('# parameters')
+ylabel('runtime [seconds]')
+
+% Relative
+figure
+loglog(x, times_relative(:, order),'linewidth',lw,'markersize',msz);
+legend({tools{order}}, 'location', 'nw');
+set(gca,'FontSize',14)
+xlim([min(x) max(x)])
+title('relative runtimes')
+xlabel('# parameters')
+ylabel('relative runtime')
 
 % Objective function
 figure
@@ -426,7 +432,7 @@ xlabel('# parameters')
 ylabel('runtime [seconds]')
 
 %% do 2D plots
-tool_id = 11;
+tool_id = adimat_id-1;
 vals_J = zeros(numel(d_all),numel(k_all));
 vals_relative = vals_J;
 for i=1:ntasks
