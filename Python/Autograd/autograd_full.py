@@ -1,9 +1,10 @@
-﻿#import numpy as np
-import autograd.numpy as np
-from scipy import special as scipy_special
-from autograd import value_and_grad
+﻿import sys
 import time as t
-import sys
+
+from scipy import special as scipy_special
+#import numpy as np
+import autograd.numpy as np
+from autograd import value_and_grad
 
 ######################## IO ##############################
 
@@ -61,14 +62,13 @@ def log_gamma_distrib(a,p):
 def sqsum(x):
     return (np.square(x)).sum()
 
-def log_wishart_prior(p,wishart_gamma,wishart_m,icf):
+def log_wishart_prior(p,wishart_gamma,wishart_m,sum_qs,Qdiags,icf):
     n = p + wishart_m + 1
     k = icf.shape[0]
     out = 0
     for ik in range(k):
-        sumlog_Ldiag = icf[ik,:p].sum()
-        frobenius = sqsum(np.exp(icf[ik,:p])) + sqsum(icf[ik,p:])
-        out = out + 0.5*wishart_gamma*wishart_gamma*frobenius - wishart_m*sumlog_Ldiag
+        frobenius = sqsum(Qdiags[ik,:]) + sqsum(icf[ik,p:])
+        out = out + 0.5*wishart_gamma*wishart_gamma*frobenius - wishart_m*sum_qs[ik]
     C = n*p*(np.log(wishart_gamma)-0.5*np.log(2)) - log_gamma_distrib(0.5*n,p)
     return out - k*C
 
@@ -84,7 +84,7 @@ def constructL(d,icf):
     return np.column_stack(columns)
 
 
-def Ltimesx(Ldiag,L,x):
+def Qtimesx(Qdiag,L,x):
     # We need to use these element wise functions
     # because standard array level functions 
     # did not work with Autograd
@@ -93,23 +93,23 @@ def Ltimesx(Ldiag,L,x):
     def cwise_multiply(a,b):
         return np.asarray([(a[i] * b[i]) for i in range(a.size)])
 
-    res = cwise_multiply(Ldiag,x)
+    res = cwise_multiply(Qdiag,x)
     for i in range(L.shape[0]):
         res = res + scalar_multiply(L[:,i],x[i]) 
     return res
 
 def gmm_objective(alphas,means,icf,x,wishart_gamma,wishart_m):
     def inner_term(ix,ik):
-        sumlog_Ldiag = icf[ik,:d].sum()
         xcentered = x[ix,:] - means[ik,:]
-        Lxcentered = Ltimesx(Ldiags[ik,:],Ls[ik,:,:],xcentered)
+        Lxcentered = Qtimesx(Qdiags[ik,:],Ls[ik,:,:],xcentered)
         sqsum_Lxcentered = sqsum(Lxcentered)
-        return alphas[ik] + sumlog_Ldiag - 0.5*sqsum_Lxcentered
+        return alphas[ik] + sum_qs[ik] - 0.5*sqsum_Lxcentered
 
     n = x.shape[0]
     d = x.shape[1]
     k = alphas.size
-    Ldiags = np.asarray([(np.exp(icf[ik,:d])) for ik in range(k)])
+    Qdiags = np.asarray([(np.exp(icf[ik,:d])) for ik in range(k)])
+    sum_qs = np.asarray([(np.sum(icf[ik,:d])) for ik in range(k)])
     Ls = np.asarray([constructL(d,curr_icf) for curr_icf in icf])
     slse = 0
     for ix in range(n):
@@ -117,7 +117,8 @@ def gmm_objective(alphas,means,icf,x,wishart_gamma,wishart_m):
         slse = slse + logsumexp(lse)
 
     CONSTANT = -n*d*0.5*np.log(2 * np.pi)
-    return CONSTANT + slse - n*logsumexp(alphas) + log_wishart_prior(d,wishart_gamma,wishart_m,icf)
+    return CONSTANT + slse - n*logsumexp(alphas) \
+        + log_wishart_prior(d,wishart_gamma,wishart_m,sum_qs,Qdiags,icf)
 
 def gmm_objective_wrapper(params,x,wishart_gamma,wishart_m):
     return gmm_objective(params[0],params[1],params[2],x,wishart_gamma,wishart_m)

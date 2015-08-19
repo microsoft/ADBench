@@ -6,8 +6,7 @@
     <ProjectGuid>25e5af84-1df1-4561-ac43-7338df8f38c6</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>
-    </StartupFile>
+    <StartupFile>autograd_split.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -30,7 +29,7 @@
   <ItemGroup>
     <Compile Include="gmm_python_objective.py" />
     <Compile Include="autograd_split.py" />
-    <Compile Include="autograd.py" />
+    <Compile Include="autograd_full.py" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
