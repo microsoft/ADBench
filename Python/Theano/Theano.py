@@ -1,7 +1,6 @@
 ﻿import sys
 import os
 import time as t
-#import logging
 
 import numpy as np
 from numpy.random import rand, randn
@@ -9,9 +8,9 @@ from scipy import special as scipy_special
 
 import theano as th
 import theano.tensor as T
-
-#logging.getLogger("theano.gof.cmodule").setLevel(logging.DEBUG)
-
+import theano.ifelse
+import theano.compile
+import theano.compile.mode
 
 def read_gmm_instance(fn):
     fid = open(fn, "r")
@@ -65,10 +64,18 @@ def mkscalar(name):
     tmp.tag.test_value = 47.
     return tmp
 
+def max_arr(x):
+    def max2(elem, prev_max):
+        return th.ifelse.ifelse(T.lt(prev_max, elem), elem, prev_max)
+        #return 0.5*(prev_max + elem + T.abs_(prev_max - elem))
+    results, updates = th.scan(fn=max2,
+                               outputs_info=x[0],
+                               sequences=x[1:])
+    return results[-1]
+
 def logsumexp(x):
-    mx = T.max(x,0)
-    semx = T.sum(T.exp(x - mx))
-    return T.log(semx) + mx
+    mx = max_arr(x)
+    return T.log(T.sum(T.exp(x - mx))) + mx
 
 def log_gamma_distrib(a,p):
     def in_loop(i,prev_res):
@@ -123,20 +130,21 @@ def gmm_objective(alphas,means,icf,x,wishart_gamma,wishart_m):
         k = alphas.shape[0]
         sqsum_Qxcentered, updates = th.scan(fn=main_term,
                                outputs_info=T.zeros_like(x[0,0]),
-                               sequences=[T.arange(k)],
-                               non_sequences=[x[ix,:]])
-
+                               sequences=T.arange(k),
+                               non_sequences=x[ix,:])
+        
         slse = prev_slse + logsumexp(alphas + sum_qs - 0.5*sqsum_Qxcentered)
         return slse
     slse_, updates = th.scan(fn=inner_loop,
                              outputs_info=T.zeros_like(alphas[0]),
-                             sequences=[T.arange(n)],
-                             non_sequences=[icf[:,d:]])
+                             sequences=T.arange(n),
+                             non_sequences=icf[:,d:])
 
     CONSTANT = -n*d*0.5*np.log(2 * np.pi)
     out = CONSTANT + slse_[-1] - n*logsumexp(alphas)
     return out + log_wishart_prior(d,wishart_gamma,wishart_m,sum_qs,Qdiags,icf)
 
+#th.config.compute_test_value = 'warn'
 d_ = 3;
 k_ = 5;
 n_ = 10;
@@ -148,10 +156,46 @@ x_ = mkmat('x',n_,d_)
 wishart_gamma_ = mkscalar('wishart_gamma')
 wishart_m_ = mkscalar('wishart_m') 
 
+#compile_mode = 'FAST_COMPILE'
+compile_mode = 'FAST_RUN'
+#compile_mode = th.compile.mode.Mode(linker='c', optimizer='FAST_RUN')
+th.config.linker='cvm'
+
+#def foo(x):
+#    def max2(elem, prev_max):
+#        #return elem
+#        return th.ifelse.ifelse(T.lt(prev_max, elem), elem, prev_max)
+#    results, updates = th.scan(fn=max2,
+#                               outputs_info=x[0],
+#                               sequences=x[1:])
+#    return results[-1]
+
+#x = T.dvector('x')
+#x_ = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]) # works for 15 elements
+#out = foo(x)
+#f = th.function([x], out, mode=compile_mode)
+#out_ = f(x_)
+#print(out_)
+#grad = T.grad(out, x)
+#fgrad = th.function([x], grad, mode=compile_mode)
+#J = fgrad(x_) # crashes here
+#print(J)
+
+start = t.time()
 err_ = gmm_objective(alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_)
-f = th.function([alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_], err_,mode='FAST_RUN')
+f = th.function([alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_], err_, mode=compile_mode)
+end = t.time()
+tf_compile = (end - start)
+print("tf_compile: %f" % tf_compile)
+
+start = t.time()
 grad = T.grad(err_,[alphas_, means_, icf_])
-fgrad = th.function([alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_],grad,mode='FAST_RUN')
+fgrad = th.function([alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_], grad, mode=compile_mode)
+end = t.time()
+tJ_compile = (end - start)
+print("tJ_compile: %f" % tJ_compile)
+
+
 
 ntasks = (len(sys.argv)-1)//3
 for task_id in range(ntasks):
