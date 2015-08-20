@@ -62,7 +62,7 @@ void compute_gmm_J(int d, int k, int n, double *alphas,
   cost_function->Evaluate(params, &err, J);
 }
 
-int test_gmm(const string& fn, int nruns)
+int test_gmm(const string& fn, int nruns_f, int nruns_J)
 {
   int d, k, n;
   double *alphas, *means, *icf, *x;
@@ -98,22 +98,22 @@ int test_gmm(const string& fn, int nruns)
   double tf, tJ = 0.;
 
   start = high_resolution_clock::now();
-  for (int i = 0; i < nruns; i++)
+  for (int i = 0; i < nruns_f; i++)
   {
     gmm_objective(d, k, n, alphas, means,
       icf, x, wishart, &err);
   }
   end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns;
+  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
 
   start = high_resolution_clock::now();
-  for (int i = 0; i < nruns; i++)
+  for (int i = 0; i < nruns_J; i++)
   {
     compute_gmm_J(d, k, n, alphas,
       means, icf, x, wishart, err, J_ceres);
   }
   end = high_resolution_clock::now();
-  tJ = duration_cast<duration<double>>(end - start).count() / nruns;
+  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
 
   convert_gmm_J(d, k, J_ceres, J);
   write_J(fn + "J_Ceres.txt", Jrows, Jcols, J);
