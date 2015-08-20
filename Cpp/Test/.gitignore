@@ -21,7 +21,6 @@ x64/
 x86/
 build/
 bld/
-[Bb]in/
 [Oo]bj/
 
 # Compiled source #
@@ -30,7 +29,6 @@ bld/
 
 *.com
 *.class
-*.dll
 *.sdf
 *.exe
 *.o
