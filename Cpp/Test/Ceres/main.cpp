@@ -9,8 +9,8 @@
 #include "gmm.h"
 #include "ba.h"
 
-#define GMM_D 10
-#define GMM_K 25
+#define GMM_D 20
+#define GMM_K 50
 #define GMM_ICF_DIM (GMM_D*(GMM_D + 1) / 2)
 
 using ceres::AutoDiffCostFunction;
