@@ -2,6 +2,7 @@
 exe_dir = 'C:/Users/t-filsra/Workspace/autodiff/Release/';
 python_dir = 'C:/Users/t-filsra/Workspace/autodiff/Python/';
 data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/';
+npoints = 1000;
 
 %% tools
 executables = {...
@@ -17,6 +18,7 @@ executables = {...
     ['python.exe ' python_dir 'Autograd/autograd_full.py'],...
     ['python.exe ' python_dir 'Theano/Theano.py'],...
     [exe_dir,'Adept.exe'],...
+    [exe_dir,'Ceres/Ceres'],...
     };
 names = {...
     'J_manual',...
@@ -31,23 +33,8 @@ names = {...
     'J_Autograd',...
     'J_Theano',...
     'J_Adept',...
+    'J_Ceres',...
     };
-% executables = {...
-%     fullfile(exe_dir,'Manual_Eigen.exe'),...
-%     fullfile(exe_dir,'Manual_Eigen2.exe'),...
-%     fullfile(exe_dir,'Manual_Eigen3.exe'),...
-%     fullfile(exe_dir,'Manual_Eigen4.exe'),...
-%     fullfile(exe_dir,'Manual_Eigen5.exe'),...
-%     fullfile(exe_dir,'Manual_VS.exe'),...
-%     };
-% names = {...
-%     'J_manual',...
-%     'J_manual_Eigen2',...
-%     'J_manual_Eigen3',...
-%     'J_manual_Eigen4',...
-%     'J_manual_Eigen5',...
-%     'J_manual_VS',...
-%     };
 nexe = numel(executables);
 tools = {...
     'manual\_Eigen',...
@@ -62,19 +49,10 @@ tools = {...
     'Autograd\_R',...
     'Theano',...
     'Adept\_R',...
+    'Ceres\_F',...
     'AdiMat\_R',...
     'MuPAD'...
     };
-% tools = {...
-%     'manual\_Eigen',...
-%     'manual\_Eigen2',...
-%     'manual\_Eigen3',...
-%     'manual\_Eigen4',...
-%     'manual\_Eigen5',...
-%     'manual\_Cpp',...
-%     'AdiMat\_R',...
-%     'MuPAD'...
-%     };
 ntools = numel(tools);
 adimat_id = ntools-1;
 mupad_id = ntools;
@@ -116,7 +94,6 @@ for i=1:ntasks
     
     d = params{i}(1);
     k = params{i}(2);
-    n = 1000;
     
     rng(1);
     paramsGMM.alphas = randn(1,k);
@@ -124,33 +101,40 @@ for i=1:ntasks
     paramsGMM.means = [paramsGMM.means{:}];
     paramsGMM.inv_cov_factors = au_map(@(i) randn(d*(d+1)/2,1), cell(k,1));
     paramsGMM.inv_cov_factors = [paramsGMM.inv_cov_factors{:}];
-    x = randn(d,n);
+    x = randn(d,npoints);
     hparams = [1 0];
     
     save_gmm_instance([fns{end} '.txt'], paramsGMM, x, hparams);
 end
 
 %% write script for running AD tools once
-fn = 'run_experiments.bat';
-fid = fopen(fn,'w');
+fnFrom = 'run_experiments.bat';
+fid = fopen(fnFrom,'w');
 for i=1:nexe
-    if strcmp('Theano',tools{i}(1:6))
+    if strcmp('Theano',tools{i})
         cmd = ['START /MIN /WAIT ' executables{i}];
         for j=1:ntasks
             cmd = [cmd ' ' fns{j} ' 1 1'];
         end
         fprintf(fid,[cmd '\r\n']);
     else
-%         for j=1:ntasks
-%             fprintf(fid,'START /MIN /WAIT %s %s 1 1\r\n',executables{i},fns{j});
-%         end
+        for j=1:ntasks
+            if strcmp('Ceres\_F',tools{i})
+                d = params{j}(1);
+                k = params{j}(2);
+                fprintf(fid,'START /MIN /WAIT %sd%ik%i.exe %s 1 1\r\n',...
+                    executables{i},d,k,fns{j});
+            else
+                fprintf(fid,'START /MIN /WAIT %s %s 1 1\r\n',executables{i},fns{j});
+            end
+        end
     end
 end
 fclose(fid);
 
 %% run experiments for time estimates
 tic
-system(fn);
+system(fnFrom);
 toc
 
 %% adimat time estimate
@@ -184,9 +168,9 @@ times_est_J = Inf(ntasks,ntools);
 times_est_f = Inf(ntasks,ntools);
 for i=1:ntasks
     for j=1:nexe
-        fn = [fns{i} names{j} '_times.txt'];
-        if exist(fn,'file')
-            fid = fopen(fn);
+        fnFrom = [fns{i} names{j} '_times.txt'];
+        if exist(fnFrom,'file')
+            fid = fopen(fnFrom);
             times_est_f(i,j) = fscanf(fid,'%lf',1);
             times_est_J(i,j) = fscanf(fid,'%lf',1);
             fclose(fid);
@@ -289,25 +273,32 @@ for i=1:ntasks
 end
 
 %% generate script for others
-fn = 'run_experiments_final.bat';
-fid = fopen(fn,'w');
+fnFrom = 'run_experiments_final.bat';
+fid = fopen(fnFrom,'w');
 for i=1:nexe
     if strcmp('Theano',tools{i}(1:6))
-%         cmd = ['START /MIN /WAIT ' executables{i}];
-%         for j=1:ntasks
-%             if nruns(j,i) > 0
-%                 cmd = [cmd ' ' fns{j}...
-%                   ' ' num2str(nruns_f(j,i)) ' ' num2str(nruns_J(j,i))];
-%             end
-%         end
-%         fprintf(fid,[cmd '\r\n']);
+        cmd = ['START /MIN /WAIT ' executables{i}];
+        for j=1:ntasks
+            if nruns_f(j,i)+nruns_J(j,i) > 0
+                cmd = [cmd ' ' fns{j}...
+                  ' ' num2str(nruns_f(j,i)) ' ' num2str(nruns_J(j,i))];
+            end
+        end
+        fprintf(fid,[cmd '\r\n']);
     else
         for j=1:ntasks
-            if nruns_J(j,i) == 0
+            if nruns_f(j,i)+nruns_J(j,i) == 0
                 continue
             end
-            fprintf(fid,'START /MIN /WAIT %s %s %i %i\r\n',...
-                executables{i},fns{j},nruns_f(j,i),nruns_J(j,i));
+            if strcmp('Ceres\_F',tools{i})
+                d = params{j}(1);
+                k = params{j}(2);
+                fprintf(fid,'START /MIN /WAIT %sd%ik%i.exe %s %i %i\r\n',...
+                    executables{i},d,k,fns{j},nruns_f(j,i),nruns_J(j,i));
+            else
+                fprintf(fid,'START /MIN /WAIT %s %s %i %i\r\n',...
+                    executables{i},fns{j},nruns_f(j,i),nruns_J(j,i));
+            end
         end
     end
 end
@@ -315,7 +306,7 @@ fclose(fid);
 
 %% run others
 tic
-system(fn);
+system(fnFrom);
 toc
 
 %% verify results
@@ -335,15 +326,15 @@ for i=1:ntasks
         paramsGMM.means, paramsGMM.inv_cov_factors, x, hparams, opt);
     
     for j=1:nexe
-        fn = [fns{i} names{j} '.txt'];
-        if exist(fn,'file')
-            Jexternal = load_J(fn);
+        fnFrom = [fns{i} names{j} '.txt'];
+        if exist(fnFrom,'file')
+            Jexternal = load_J(fnFrom);
             tmp = norm(Jrev(:) - Jexternal(:)) / norm(Jrev(:));
 %             disp([names{j} ': ' num2str(tmp)]);
             if tmp < 1e-5
                 num_ok = num_ok + 1;
             else
-                bad{end+1} = {fn, tmp};
+                bad{end+1} = {fnFrom, tmp};
             end
         else
             disp([names{j} ': not computed']);
@@ -363,9 +354,9 @@ times_f = Inf(ntasks,nexe+1);
 times_J = Inf(ntasks,nexe+1);
 for i=1:ntasks
     for j=1:nexe
-        fn = [fns{i} names{j} '_times.txt'];
-        if exist(fn,'file')
-            fid = fopen(fn);
+        fnFrom = [fns{i} names{j} '_times.txt'];
+        if exist(fnFrom,'file')
+            fid = fopen(fnFrom);
             times_f(i,j) = fscanf(fid,'%lf',1);
             times_J(i,j) = fscanf(fid,'%lf',1);
             fclose(fid);
@@ -392,12 +383,14 @@ set(groot,'defaultAxesColorOrder',...
     'defaultAxesLineStyleOrder', '-|s-|x-')
 lw = 2;
 msz = 7;
+x=[params{:}]; x=x(3:3:end);
 
+% ordering
 [tmp,preorder]=sort(times_J,2);
 preorder(isinf(tmp)) = NaN;
 scores=zeros(ntools,1);
 mask=~isnan(preorder);
-tmp=repmat(fliplr(2*(1:ntools)),ntasks,1);
+tmp=repmat(fliplr((1:ntools)),ntasks,1);
 scores(preorder(mask)) = scores(preorder(mask)) + tmp(mask);
 [~, order] = sort(scores);
 
@@ -493,3 +486,24 @@ xlim([x(1) xmax])
 xlabel('# parameters')
 ylabel('compile time [hours]')
 title('Compile time (hours): MuPAD')
+
+%% Transport objective runtimes
+fromID = 5;
+toID = 4;
+for i=1:ntasks
+    fnFrom = [fns{i} names{fromID} '_times.txt'];
+    fnTo = [fns{i} names{toID} '_times.txt'];
+    if exist(fnFrom,'file') && exist(fnTo,'file')
+        fid = fopen(fnFrom);
+        time_f_from = fscanf(fid,'%lf',1);
+        fclose(fid);
+        fid = fopen(fnTo,'r');
+        time_f_to = fscanf(fid,'%lf',1);
+        time_J_to = fscanf(fid,'%lf',1);
+        fclose(fid);
+        fid = fopen(fnTo,'w');
+        fprintf(fid,'%f %f %f\n',time_f_from,time_J_to,time_J_to/time_f_from);
+        fprintf(fid,'tf tJ tJ/tf');
+        fclose(fid);
+    end
+end
