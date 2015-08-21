@@ -26,8 +26,8 @@ gmm.inv_cov_factors = [gmm.inv_cov_factors{:}];
 x = randn(d,n);
 hparams = [1 0];
 
-% fn = '../gmm';
-fn = '../gmm_instances/gmm_d2_K50';
+fn = '../gmm';
+% fn = '../gmm_instances/gmm_d2_K25';
 % save_gmm_instance([fn '.txt'],gmm,x,hparams);
 [gmm,x,hparams] = load_gmm_instance([fn '.txt']);
 
@@ -47,14 +47,18 @@ opt = admOptions('independents', [1 2 3],  'functionResults', {1});
 
 %% external result for comparison
 
+% Jexternal = load_J([fn 'J_Adept.txt']);
+% Jexternal = load_J([fn 'J_Autograd.txt']);
 % Jexternal = load_J([fn 'J_Autograd_split.txt']);
+% Jexternal = load_J([fn 'J_diffsharpR.txt']);
+Jexternal = load_J([fn 'J_diffsharpRsplit.txt']);
 % Jexternal = load_J([fn 'J_Tapenade_b.txt']);
 % Jexternal = load_J([fn 'J_Tapenade_dv.txt']);
 % Jexternal = load_J([fn 'J_ADOLC_split.txt']);
 % Jexternal = load_J([fn 'J_Ceres.txt']);
 % Jexternal = load_J([fn 'J_manual.txt']);
-Jexternal = load_J([fn 'J_Theano.txt']);
-[Jrev,fvalrev] = admDiffRev(@gmm_objective, 1, gmm.alphas,...
+% Jexternal = load_J([fn 'J_Theano.txt']);
+[Jrev,fvalrev] = admDiffRev(@gmm_objective_old, 1, gmm.alphas,...
     gmm.means, gmm.inv_cov_factors, x, hparams, opt);
 
 norm(Jrev(:) - Jexternal(:)) / norm(Jrev(:))

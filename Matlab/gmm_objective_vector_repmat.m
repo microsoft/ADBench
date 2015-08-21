@@ -1,4 +1,4 @@
-function err = gmm_objective_old(alphas,means,inv_cov_factors,x,hparams)
+function err = gmm_objective_vector_repmat(alphas,means,inv_cov_factors,x,hparams)
 % GMM_OBJECTIVE  Evaluate GMM negative log likelihood for one point
 %             ALPHAS 
 %                1 x k vector of logs of mixture weights (unnormalized), so
@@ -30,11 +30,11 @@ for ik=1:k
     Lparams = inv_cov_factors(:,ik);
     % Set L's diagonal
     logLdiag = Lparams(1:d);
-    L = diag(exp(logLdiag));
+    Q = diag(exp(logLdiag));
     % And set lower triangle
-    L(lower_triangle_indices) = Lparams(d+1:end);
+    Q(lower_triangle_indices) = Lparams(d+1:end);
     
-    mahal = L*(x - repmat(means(:,ik),1,n));
+    mahal = Q*(x - repmat(means(:,ik),1,n));
 %     mahal = L*bsxfun(@minus,means(:,ik),x); % bsxfun does not work with AdiMat
     
     lse(ik,:) = alphas(ik) + sum(logLdiag) - 0.5 * sum(mahal.^2,1);

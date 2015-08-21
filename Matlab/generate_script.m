@@ -2,6 +2,7 @@
 exe_dir = 'C:/Users/t-filsra/Workspace/autodiff/Release/';
 python_dir = 'C:/Users/t-filsra/Workspace/autodiff/Python/';
 data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/';
+% data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/10k/';
 npoints = 1000;
 
 %% tools
@@ -37,24 +38,26 @@ names = {...
     };
 nexe = numel(executables);
 tools = {...
-    'manual\_Eigen',...
-    'manual\_Cpp',...
-    'Tapenade\_R',...
-    'ADOLC\_R\_split',...
-    'ADOLC\_R',...
-    'DiffSharp\_R\_split',...
-    'DiffSharp\_R',...
+    'manual, Eigen',...
+    'manual, C++',...
+    'Tapenade,R',...
+    'ADOLC, R (split)',...
+    'ADOLC, R',...
+    'DiffSharp, R (split)',...
+    'DiffSharp, R',...
     'DiffSharp',...
-    'Autograd\_R\_split',...
-    'Autograd\_R',...
+    'Autograd, R (split)',...
+    'Autograd, R',...
     'Theano',...
-    'Adept\_R',...
-    'Ceres\_F',...
-    'AdiMat\_R',...
+    'Adept, R',...
+    'Ceres, F',...
+    'AdiMat, R',...
+    'AdiMat, R (vector)',...
     'MuPAD'...
     };
 ntools = numel(tools);
-adimat_id = ntools-1;
+adimat_id = ntools-2;
+adimat_vector_id = ntools-1;
 mupad_id = ntools;
 
 %% generate parameters and order them
@@ -88,7 +91,7 @@ ntasks = numel(params);
 % save('params_gmm.mat','params');
 
 %% write instances into files
-fns = {};
+addpath('awful/matlab')
 for i=1:ntasks
     disp(['runnning gmm: ' num2str(i) '; params: ' num2str(params{i})]);
     
@@ -104,7 +107,7 @@ for i=1:ntasks
     x = randn(d,npoints);
     hparams = [1 0];
     
-    save_gmm_instance([fns{end} '.txt'], paramsGMM, x, hparams);
+    save_gmm_instance([fns{i} '.txt'], paramsGMM, x, hparams);
 end
 
 %% write script for running AD tools once
@@ -119,7 +122,7 @@ for i=1:nexe
         fprintf(fid,[cmd '\r\n']);
     else
         for j=1:ntasks
-            if strcmp('Ceres\_F',tools{i})
+            if strcmp('Ceres, F',tools{i})
                 d = params{j}(1);
                 k = params{j}(2);
                 fprintf(fid,'START /MIN /WAIT %sd%ik%i.exe %s 1 1\r\n',...
@@ -142,25 +145,43 @@ addpath('adimat-0.6.0-4971');
 start_adimat
 addpath('awful\matlab');
 opt = admOptions('independents', [1 2 3],  'functionResults', {1});
-times_est_adimat_f = Inf(1,ntasks);
-times_est_adimat_J = Inf(1,ntasks);
+times_est_adimat_f = Inf(2,ntasks);
+times_est_adimat_J = Inf(2,ntasks);
 admTransform(@gmm_objective, admOptions('m', 'r','independents', [1 2 3]));
+admTransform(@gmm_objective_vector_repmat, admOptions('m', 'r','independents', [1 2 3]));
 for i=1:ntasks
     disp(['runnning gmm: ' num2str(i) '; params: ' num2str(params{i})]);
     d = params{i}(1);
     k = params{i}(2);
     [paramsGMM,x,hparams] = load_gmm_instance([fns{i} '.txt']);
     
+    % "looped" objective
     tic
     fval = gmm_objective(paramsGMM.alphas,paramsGMM.means,...
         paramsGMM.inv_cov_factors,x,hparams);
-    times_est_adimat_f(i) = toc;
+    times_est_adimat_f(1,i) = toc;
     
     tic
     do_F_mode = false;
-    [J, fvalrev] = gmm_objective_adimat(do_F_mode,paramsGMM.alphas,...
-            paramsGMM.means,paramsGMM.inv_cov_factors,x,hparams);
-    times_est_adimat_J(i) = toc;
+    do_adimat_vector=false;
+    [J, fvalrev] = gmm_objective_adimat(do_F_mode,do_adimat_vector,...
+        paramsGMM.alphas,paramsGMM.means,paramsGMM.inv_cov_factors,...
+        x,hparams);
+    times_est_adimat_J(1,i) = toc;
+    
+    % "vectorized" objective
+    tic
+    fval = gmm_objective_vector_repmat(paramsGMM.alphas,paramsGMM.means,...
+        paramsGMM.inv_cov_factors,x,hparams);
+    times_est_adimat_f(2,i) = toc;
+    
+    tic
+    do_F_mode = false;
+    do_adimat_vector=true;
+    [J, fvalrev] = gmm_objective_adimat(do_F_mode,do_adimat_vector,...
+        paramsGMM.alphas,paramsGMM.means,paramsGMM.inv_cov_factors,...
+        x,hparams);
+    times_est_adimat_J(2,i) = toc;    
 end
 
 %% read time estimates
@@ -177,8 +198,10 @@ for i=1:ntasks
         end
     end
 end
-times_est_J(:,adimat_id) = times_est_adimat_J;
-times_est_f(:,adimat_id) = times_est_adimat_f;
+times_est_J(:,adimat_id) = times_est_adimat_J(1,:);
+times_est_f(:,adimat_id) = times_est_adimat_f(1,:);
+times_est_J(:,adimat_vector_id) = times_est_adimat_J(2,:);
+times_est_f(:,adimat_vector_id) = times_est_adimat_f(2,:);
 
 %% determine nruns for everyone
 nruns_J = zeros(ntasks,ntools);
@@ -212,34 +235,55 @@ end
 addpath('adimat-0.6.0-4971');
 start_adimat
 addpath('awful\matlab');
-times_adimat_f = Inf(1,ntasks);
-times_adimat_J = Inf(1,ntasks);
-times_adimat_J___ = Inf(1,ntasks);
+times_adimat_f = Inf(2,ntasks);
+times_adimat_J = Inf(2,ntasks);
 for i=1:ntasks
     disp(['runnning gmm: ' num2str(i) '; params: ' num2str(params{i})]);
     d = params{i}(1);
     k = params{i}(2);
     [paramsGMM,x,hparams] = load_gmm_instance([fns{i} '.txt']);
     
+    % "looped" objective
     nruns_curr_f = nruns_f(i,adimat_id);
     nruns_curr_J = nruns_J(i,adimat_id);
-    
     tic
     for j=1:nruns_curr_f
         fval = gmm_objective(paramsGMM.alphas,paramsGMM.means,...
             paramsGMM.inv_cov_factors,x,hparams);
     end
-    times_adimat_f(i) = toc/nruns_curr_f;
+    times_adimat_f(1,i) = toc/nruns_curr_f;
     
     tic
     for j=1:nruns_curr_J
         do_F_mode = false;
-        [J, fvalrev] = gmm_objective_adimat(do_F_mode,paramsGMM.alphas,...
-            paramsGMM.means,paramsGMM.inv_cov_factors,x,hparams);
+        do_adimat_vector = false;
+        [J, fvalrev] = gmm_objective_adimat(do_F_mode,do_adimat_vector,...
+            paramsGMM.alphas,paramsGMM.means,paramsGMM.inv_cov_factors,...
+            x,hparams);
     end
-    times_adimat_J(i) = toc/nruns_curr_J;
+    times_adimat_J(1,i) = toc/nruns_curr_J;
     
-    save('gmm_adimat_times','times_adimat_f','times_adimat_J');
+    % "vectorized" objective
+    nruns_curr_f = nruns_f(i,adimat_vector_id);
+    nruns_curr_J = nruns_J(i,adimat_vector_id);
+    tic
+    for j=1:nruns_curr_f
+        fval = gmm_objective_vector_repmat(paramsGMM.alphas,paramsGMM.means,...
+            paramsGMM.inv_cov_factors,x,hparams);
+    end
+    times_adimat_f(2,i) = toc/nruns_curr_f;
+    
+    tic
+    for j=1:nruns_curr_J
+        do_F_mode = false;
+        do_adimat_vector = true;
+        [J, fvalrev] = gmm_objective_adimat(do_F_mode,do_adimat_vector,...
+            paramsGMM.alphas,paramsGMM.means,paramsGMM.inv_cov_factors,...
+            x,hparams);
+    end
+    times_adimat_J(2,i) = toc/nruns_curr_J;
+    
+%     save('gmm_adimat_times','times_adimat_f','times_adimat_J');
 end
 
 %% run mupad
@@ -290,7 +334,7 @@ for i=1:nexe
             if nruns_f(j,i)+nruns_J(j,i) == 0
                 continue
             end
-            if strcmp('Ceres\_F',tools{i})
+            if strcmp('Ceres, F',tools{i})
                 d = params{j}(1);
                 k = params{j}(2);
                 fprintf(fid,'START /MIN /WAIT %sd%ik%i.exe %s %i %i\r\n',...
@@ -322,7 +366,7 @@ for i=1:ntasks
     d = params{i}(1);
     k = params{i}(2);
     [paramsGMM,x,hparams] = load_gmm_instance([fns{i} '.txt']);
-    [Jrev,fvalrev] = admDiffRev(@gmm_objective_old, 1, paramsGMM.alphas,...
+    [Jrev,fvalrev] = admDiffRev(@gmm_objective_vector_repmat, 1, paramsGMM.alphas,...
         paramsGMM.means, paramsGMM.inv_cov_factors, x, hparams, opt);
     
     for j=1:nexe
@@ -364,8 +408,10 @@ for i=1:ntasks
     end
 end
 ld = load('gmm_adimat_times');
-times_f(:,adimat_id) = ld.times_adimat_f;
-times_J(:,adimat_id) = ld.times_adimat_J;
+times_f(:,adimat_id) = ld.times_adimat_f(1,:);
+times_J(:,adimat_id) = ld.times_adimat_J(1,:);
+times_f(:,adimat_vector_id) = ld.times_adimat_f(2,:);
+times_J(:,adimat_vector_id) = ld.times_adimat_J(2,:);
 ld = load('gmm_mupad_times');
 times_f(:,mupad_id) = ld.times_mupad_f;
 times_J(:,mupad_id) = ld.times_mupad_J;
@@ -380,7 +426,7 @@ save(['times_' date],'times_f','times_J','times_relative','params','tools');
 %% plot times
 set(groot,'defaultAxesColorOrder',...
     [.8 .1 0;0 .7 0;.2 .2 1; 0 0 0; .8 .8 0],...
-    'defaultAxesLineStyleOrder', '-|s-|x-')
+    'defaultAxesLineStyleOrder', '-|s-|x-|^-')
 lw = 2;
 msz = 7;
 x=[params{:}]; x=x(3:3:end);
@@ -397,7 +443,7 @@ scores(preorder(mask)) = scores(preorder(mask)) + tmp(mask);
 % Runtime
 figure
 loglog(x, times_J(:, order),'linewidth',lw,'markersize',msz);
-legend({tools{order}}, 'location', 'se');
+legend({tools{order}}, 'location', 'nw');
 set(gca,'FontSize',14)
 xlim([min(x) max(x)])
 title('runtimes (seconds)')
@@ -417,7 +463,7 @@ ylabel('relative runtime')
 % Objective function
 figure
 loglog(x, times_f(:, order),'linewidth',lw,'markersize',msz);
-legend({tools{order}}, 'location', 'se');
+legend({tools{order}}, 'location', 'nw');
 set(gca,'FontSize',14)
 xlim([min(x) max(x)])
 title('objective runtimes (seconds)')
@@ -488,8 +534,8 @@ ylabel('compile time [hours]')
 title('Compile time (hours): MuPAD')
 
 %% Transport objective runtimes
-fromID = 5;
-toID = 4;
+fromID = 10;
+toID = 9;
 for i=1:ntasks
     fnFrom = [fns{i} names{fromID} '_times.txt'];
     fnTo = [fns{i} names{toID} '_times.txt'];
