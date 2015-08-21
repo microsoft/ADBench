@@ -6,7 +6,7 @@ from scipy import special as scipy_special
 import autograd.numpy as np
 from autograd import value_and_grad
 
-import autograd_full as ag_full
+import gmm_objective as gmm
 
 ######################## IO ##############################
 
@@ -148,7 +148,7 @@ nruns_J = int(sys.argv[3])
 
 start = t.time()
 for i in range(nruns_f):
-    err = ag_full.gmm_objective(alphas,means,icf,x,wishart_gamma,wishart_m)
+    err = gmm.gmm_objective(alphas,means,icf,x,wishart_gamma,wishart_m)
 end = t.time()
 tf = (end - start)/nruns_f
 
@@ -161,8 +161,10 @@ for i in range(nruns_J):
     for ix in range(x.shape[0]):
         grad = add_grad(grad,grad_gmm_objective_split_inner_wrapper((alphas,means,icf),x[ix,:]))
 end = t.time()
-tJ = (end - start)/nruns_J
 
-name = "J_Autograd_split"
-write_J(sys.argv[1] + name + ".txt",grad[1])
+tJ = 0
+name = "J_Autograd_split_mock"
+if nruns_J>0:
+    write_J(sys.argv[1] + name + ".txt",grad[1])
+    tJ = (end - start)/nruns_J
 write_times(sys.argv[1] + name + "_times.txt",tf,tJ)

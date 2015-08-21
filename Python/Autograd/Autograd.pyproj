@@ -27,6 +27,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="gmm_objective.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="gmm_python_objective.py" />
     <Compile Include="autograd_split.py" />
     <Compile Include="autograd_full.py" />

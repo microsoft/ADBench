@@ -37,20 +37,22 @@ let test_gmm fn nruns_f nruns_J =
             err <- err + err_curr
             grad <- Array.map2 (+) grad grad_curr
         (err, grad)
-        
-    let grad_func parameters = grad_gmm_objective_split parameters
-    //let grad_func parameters = grad_gmm_objective parameters
-    let grad_stop_watch = Stopwatch.StartNew()
-    let parameters = (gmm.vectorize alphas means icf) //|> Array.map D
-    let err2, gradient = (grad_func parameters)
-    for i = 1 to nruns_J-1 do
-        grad_func parameters
-    grad_stop_watch.Stop()
     
-//    let name = "J_diffsharpAD"
-//    let name = "J_diffsharpR"
-    let name = "J_diffsharpRsplit"
-    gmm.write_grad (fn + name + ".txt") gradient   
+//  let name = "J_diffsharpAD"
+    let name = "J_diffsharpRmock"
+//    let name = "J_diffsharpRsplit"
+
+    //let grad_func parameters = grad_gmm_objective_split parameters
+    let grad_func parameters = grad_gmm_objective parameters
+    let grad_stop_watch = Stopwatch.StartNew()
+    if nruns_J>0 then   
+        let parameters = (gmm.vectorize alphas means icf) //|> Array.map D
+        let err2, gradient = (grad_func parameters)
+        for i = 1 to nruns_J-1 do
+            grad_func parameters
+        grad_stop_watch.Stop()
+    
+        gmm.write_grad (fn + name + ".txt") gradient   
 
     let tf = ((float obj_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns_f)
     let tJ = ((float grad_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns_J)
