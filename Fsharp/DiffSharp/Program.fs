@@ -39,7 +39,7 @@ let test_gmm fn nruns_f nruns_J =
         (err, grad)
     
 //  let name = "J_diffsharpAD"
-    let name = "J_diffsharpRmock"
+    let name = "J_diffsharpR"
 //    let name = "J_diffsharpRsplit"
 
     //let grad_func parameters = grad_gmm_objective_split parameters

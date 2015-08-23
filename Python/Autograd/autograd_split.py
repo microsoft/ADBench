@@ -163,7 +163,7 @@ for i in range(nruns_J):
 end = t.time()
 
 tJ = 0
-name = "J_Autograd_split_mock"
+name = "J_Autograd_split"
 if nruns_J>0:
     write_J(sys.argv[1] + name + ".txt",grad[1])
     tJ = (end - start)/nruns_J
