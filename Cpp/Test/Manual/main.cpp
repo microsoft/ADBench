@@ -54,10 +54,10 @@ void test_gmm(const string& fn, int nruns_f, int nruns_J)
   end = high_resolution_clock::now();
   tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
 
-  string name = "J_manual";
+  //string name = "J_manual";
   //string name = "J_manual_VS";
   //string name = "J_manual_Intel";
-  //string name = "J_manual_Eigen5";
+  string name = "J_manual_Eigen5";
   //string name = "J_manual_Eigen4_VS";
   write_J(fn + name + ".txt", Jrows, Jcols, J);
   //write_times(tf, tJ);
