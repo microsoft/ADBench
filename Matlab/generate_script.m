@@ -3,7 +3,7 @@ exe_dir = 'C:/Users/t-filsra/Workspace/autodiff/Release/';
 python_dir = 'C:/Users/t-filsra/Workspace/autodiff/Python/';
 data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/';
 % data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/10k/';
-npoints = 1000;
+% npoints = 10000;
 
 %% tools
 executables = {...
@@ -168,6 +168,7 @@ for i=1:ntasks
         paramsGMM.alphas,paramsGMM.means,paramsGMM.inv_cov_factors,...
         x,hparams);
     times_est_adimat_J(1,i) = toc;
+    disp(times_est_adimat_J(1,i))
     
     % "vectorized" objective
     tic
@@ -182,6 +183,7 @@ for i=1:ntasks
         paramsGMM.alphas,paramsGMM.means,paramsGMM.inv_cov_factors,...
         x,hparams);
     times_est_adimat_J(2,i) = toc;    
+    disp(times_est_adimat_J(2,i))
 end
 
 %% read time estimates
@@ -213,8 +215,8 @@ for i=1:numel(times_est_J)
     elseif times_est_J(i) < 120
         nruns_J(i) = 10;
     elseif ~isinf(times_est_J(i))
-        nruns_J(i) = 1; 
-%         nruns_J(i) = 0; % it has already ran once
+%         nruns_J(i) = 1; 
+        nruns_J(i) = 0; % it has already ran once
     end
 end
 nruns_f = zeros(ntasks,ntools);
@@ -226,8 +228,8 @@ for i=1:numel(times_est_f)
     elseif times_est_f(i) < 120
         nruns_f(i) = 10;
     elseif ~isinf(times_est_f(i))
-        nruns_f(i) = 1; 
-%         nruns_f(i) = 0; % it has already ran once
+%         nruns_f(i) = 1; 
+        nruns_f(i) = 0; % it has already ran once
     end
 end
 
@@ -283,7 +285,7 @@ for i=1:ntasks
     end
     times_adimat_J(2,i) = toc/nruns_curr_J;
     
-%     save('gmm_adimat_times','times_adimat_f','times_adimat_J');
+%     save([data_dir 'gmm_adimat_times.mat'],'times_adimat_f','times_adimat_J');
 end
 
 %% run mupad
@@ -313,7 +315,7 @@ for i=1:ntasks
         times_mupad_J(i) = toc/nruns_curr;
     end
     
-%     save('gmm_mupad_times','times_mupad_f','times_mupad_J');
+%     save([data_dir 'gmm_mupad_times.mat'],'times_mupad_f','times_mupad_J');
 end
 
 %% generate script for others
@@ -394,8 +396,8 @@ for i=1:numel(bad)
 end
 
 %% read final times
-times_f = Inf(ntasks,nexe+1);
-times_J = Inf(ntasks,nexe+1);
+times_f = Inf(ntasks,nexe+3);
+times_J = Inf(ntasks,nexe+3);
 for i=1:ntasks
     for j=1:nexe
         fnFrom = [fns{i} names{j} '_times.txt'];
@@ -407,21 +409,21 @@ for i=1:ntasks
         end
     end
 end
-ld = load('gmm_adimat_times');
+ld = load([data_dir 'gmm_adimat_times.mat']);
 times_f(:,adimat_id) = ld.times_adimat_f(1,:);
 times_J(:,adimat_id) = ld.times_adimat_J(1,:);
 times_f(:,adimat_vector_id) = ld.times_adimat_f(2,:);
 times_J(:,adimat_vector_id) = ld.times_adimat_J(2,:);
-ld = load('gmm_mupad_times');
-times_f(:,mupad_id) = ld.times_mupad_f;
-times_J(:,mupad_id) = ld.times_mupad_J;
+% ld = load([data_dir 'gmm_mupad_times.mat']);
+% times_f(:,mupad_id) = ld.times_mupad_f;
+% times_J(:,mupad_id) = ld.times_mupad_J;
 
 times_relative = times_J./times_f;
 times_relative(isnan(times_relative)) = Inf;
 times_relative(times_relative==0) = Inf;
 
 %% output results
-save(['times_' date],'times_f','times_J','times_relative','params','tools');
+save([data_dir 'times_' date],'times_f','times_J','times_relative','params','tools');
 
 %% plot times
 set(groot,'defaultAxesColorOrder',...
