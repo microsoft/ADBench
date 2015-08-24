@@ -345,8 +345,6 @@ double logsumexp(const ArrayXd& x)
   return log(semx) + mx;
 }
 
-#endif
-
 // p dim
 // k number of components
 // wishart parameters
@@ -416,6 +414,8 @@ double log_wishart_prior_d(int p, int k,
 
   return log_wishart_prior(p, k, wishart, sum_qs, Qs, icf);
 }
+
+#endif
 
 #if defined COMPILE_EIGEN_VERSION1
 
