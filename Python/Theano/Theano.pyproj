@@ -28,8 +28,6 @@
   <ItemGroup>
     <Compile Include="Theano_vector.py" />
     <Compile Include="Theano_experimenting.py" />
-    <Compile Include="Theano_backup2.py" />
-    <Compile Include="Theano_orig.py" />
     <Compile Include="Theano.py" />
   </ItemGroup>
   <PropertyGroup>
