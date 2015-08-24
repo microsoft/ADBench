@@ -65,9 +65,9 @@ def mkscalar(name):
     return tmp
 
 def max_arr(x):
-    def max2(elem, prev_max):
+    def max2(elems, prev_max):
         #return th.ifelse.ifelse(T.lt(prev_max, elem), elem, prev_max)
-        return 0.5*(prev_max + elem + T.abs_(prev_max - elem))
+        return 0.5*(prev_max + elems + T.abs_(prev_max - elems))
     results, updates = th.scan(fn=max2,
                                outputs_info=x[0],
                                sequences=x[1:])
@@ -101,8 +101,8 @@ def log_wishart_prior(p,gamma,m,sum_qs,Qdiags,icf):
     k = sum_qs.shape[0]
     C = n*p*(T.log(gamma)-0.5*np.log(2.)) - log_gamma_distrib(0.5*n,p)
     results,_ = th.scan(fn=in_loop,
-                         outputs_info=T.zeros_like(icf[0,0]),
-                         sequences=[Qdiags,icf])
+                               outputs_info=T.zeros_like(icf[0,0]),
+                               sequences=[Qdiags,icf])
     return results[-1] - m*T.sum(sum_qs) - k*C
 
 def constructLs(d,ltri):
@@ -125,25 +125,18 @@ def gmm_objective(alphas,means,icf,x,wishart_gamma,wishart_m):
     Qdiags = T.exp(icf[:,:d])
     Ls = constructLs(d,icf[:,d:])
 
-    def inner_loop(curr_x,prev_slse):
-        def main_term(mean,Qdiag,sum_qs,L):
-            xcentered = curr_x - mean
-            Qxcentered = Qdiag*xcentered + T.dot(xcentered,T.transpose(L))
-            return sqnorm(Qxcentered)
-
-        sqsum_Qxcentered,_ = th.scan(fn=main_term,
-                               outputs_info=None,
-                               sequences=[means,Qdiags,sum_qs,Ls])
-        
-        slse = prev_slse + logsumexp(alphas + sum_qs - 0.5*sqsum_Qxcentered)
-        return slse
-
-    slse_,_ = th.scan(fn=inner_loop,
-                             outputs_info=T.zeros_like(alphas[0]),
-                             sequences=x)
+    def inner_term(alpha,mean,Qdiag,L,sum_qs,x):
+        xcentered = x - mean
+        Qxcentered = xcentered*Qdiag + T.dot(xcentered,T.transpose(L))
+        return alpha + sum_qs - 0.5*sqnorm(Qxcentered,axis=1)
+    main_term,_ = th.scan(fn=inner_term,
+                             sequences=[alphas,means,Qdiags,Ls,sum_qs],
+                             outputs_info=None,
+                             non_sequences=x)
+    slse = T.sum(logsumexp(main_term))
 
     CONSTANT = -n*d*0.5*np.log(2 * np.pi)
-    out = CONSTANT + slse_[-1] - n*logsumexp(alphas)
+    out = CONSTANT + slse - n*logsumexp(alphas)
     return out + log_wishart_prior(d,wishart_gamma,wishart_m,sum_qs,Qdiags,icf)
 
 #th.config.compute_test_value = 'warn'
@@ -222,7 +215,7 @@ for task_id in range(ntasks):
     end = t.time()
     tJ = ((end - start)/nruns_J) + tf ###!!!!!!!!! adding this because no function value is returned by fgrad
     
-    name = "J_Theano"
+    name = "J_Theano_vector"
     write_J(fn + name + ".txt",J)
     write_times(fn + name + "_times.txt",tf,tJ)
 

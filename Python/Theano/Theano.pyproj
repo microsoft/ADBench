@@ -13,7 +13,7 @@
     <Name>Theano</Name>
     <RootNamespace>Theano</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d2_K5 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d2_K10 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d2_K25 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d2_K50 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d10_K5 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d2_K100 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d10_K10 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d20_K5 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d2_K200 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d10_K25 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d20_K10 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d32_K5 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d10_K50 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d32_K10 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d20_K25 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d10_K100 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d64_K5 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d20_K50 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d10_K200 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d32_K25 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d64_K10 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d20_K100 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d32_K50 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d20_K200 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d64_K25 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d32_K100 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d64_K50 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d32_K200 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d64_K100 1 1 C:/Users/t-filsra/Workspace/autodiff/gmm_instances/gmm_d64_K200 1 1</CommandLineArguments>
+    <CommandLineArguments>..\..\gmm 1 1 ..\..\gmm 1 1 ..\..\gmm 1 1 ..\..\gmm 1 1 ..\..\gmm 1 1 ..\..\gmm 1 1</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>True</IsWindowsApplication>
   </PropertyGroup>
@@ -26,6 +26,10 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Theano_vector.py" />
+    <Compile Include="Theano_experimenting.py" />
+    <Compile Include="Theano_backup2.py" />
+    <Compile Include="Theano_orig.py" />
     <Compile Include="Theano.py" />
   </ItemGroup>
   <PropertyGroup>

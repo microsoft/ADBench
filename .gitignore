@@ -12,11 +12,13 @@ Plot.ipynb
 *J_diffsharpRsplit.txt
 *J_diffsharp.txt
 *J_manual.txt
+*J_manual_Eigen5.txt
 *J_manual_VS.txt
 *J_Tapenade_b.txt
 *J_Tapenade_bv.txt
 *J_Tapenade_dv.txt
 *J_Theano.txt
+*J_Theano_vector.txt
 *_times.txt
 old
 packages
