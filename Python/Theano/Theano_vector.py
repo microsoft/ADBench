@@ -75,8 +75,8 @@ def max_arr(x):
 
 def logsumexp(x):
     mx = max_arr(x)
-    #mx = T.max(x,axis=0) #this crashes
-    return T.log(T.sum(T.exp(x - mx))) + mx
+    #mx = T.max(x,axis=0) #this crashes (sometimes)
+    return T.log(T.sum(T.exp(x - mx),axis=0)) + mx
 
 def log_gamma_distrib(a,p):
     def in_loop(i,prev_res):
