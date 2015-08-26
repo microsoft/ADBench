@@ -1,8 +1,8 @@
 %% get tools
 exe_dir = 'C:/Users/t-filsra/Workspace/autodiff/Release/';
 python_dir = 'C:/Users/t-filsra/Workspace/autodiff/Python/';
-data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/';
-% data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/10k/';
+% data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/';
+data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/10k/';
 % npoints = 10000;
 
 tools = get_tools(exe_dir,python_dir);
@@ -283,16 +283,16 @@ msz = 7;
 x=[params{:}]; x=x(3:3:end);
 
 plot_log_runtimes(params,tools,times_J,...
-    'Jacobian runtimes','runtime [seconds]');
+    'Jacobian runtimes','runtime [seconds]',true);
 
 plot_log_runtimes(params,tools,times_J_relative,...
-    'Jacobian runtimes relative to Manual, C++','runtime');
+    'Jacobian runtimes relative to Manual, C++','runtime',false);
 
 plot_log_runtimes(params,tools,times_f,...
-    'objective runtimes','runtime [seconds]');
+    'objective runtimes','runtime [seconds]',true);
 
 plot_log_runtimes(params,tools,times_f_relative,...
-    'objective runtimes relative to Manual, C++','runtime');
+    'objective runtimes relative to Manual, C++','runtime',false);
 
 %% do 2D plots
 tool_id = adimat_id-1;
