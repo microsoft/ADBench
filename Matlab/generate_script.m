@@ -1,70 +1,13 @@
-%%
+%% get tools
 exe_dir = 'C:/Users/t-filsra/Workspace/autodiff/Release/';
 python_dir = 'C:/Users/t-filsra/Workspace/autodiff/Python/';
 data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/';
 % data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/10k/';
 % npoints = 10000;
 
-%% tools
-executables = {...
-    [exe_dir,'Manual_Eigen.exe'],...
-    [exe_dir,'Manual_Eigen5.exe'],...
-    [exe_dir,'Manual_VS.exe'],...
-    [exe_dir,'Tapenade.exe'],...
-    [exe_dir,'ADOLC_split.exe'],...
-    [exe_dir,'ADOLC_full.exe'],...
-    [exe_dir,'DiffSharpRSplit/DiffSharpTests.exe'],...
-    [exe_dir,'DiffSharpR/DiffSharpTests.exe'],...
-    [exe_dir,'DiffSharpAD/DiffSharpTests.exe'],...
-    ['python.exe ' python_dir 'Autograd/autograd_split.py'],...
-    ['python.exe ' python_dir 'Autograd/autograd_full.py'],...
-    ['python.exe ' python_dir 'Theano/Theano.py'],...
-    ['python.exe ' python_dir 'Theano/Theano_vector.py'],...
-    [exe_dir,'Adept.exe'],...
-    [exe_dir,'Ceres/Ceres'],...
-    };
-names = {...
-    'J_manual',...
-    'J_manual_Eigen5',...
-    'J_manual_VS',...
-    'J_Tapenade_b',...
-    'J_ADOLC_split',...
-    'J_ADOLC',...
-    'J_diffsharpRsplit',...
-    'J_diffsharpR',...
-    'J_diffsharpAD',...
-    'J_Autograd_split',...
-    'J_Autograd',...
-    'J_Theano',...
-    'J_Theano_vector',...
-    'J_Adept',...
-    'J_Ceres',...
-    };
-nexe = numel(executables);
-tools = {...
-    'manual, Eigen',...
-    'manual, Eigen5',...
-    'manual, C++',...
-    'Tapenade,R',...
-    'ADOLC, R (split)',...
-    'ADOLC, R',...
-    'DiffSharp, R (split)',...
-    'DiffSharp, R',...
-    'DiffSharp',...
-    'Autograd, R (split)',...
-    'Autograd, R',...
-    'Theano',...
-    'Theano (vector)',...
-    'Adept, R',...
-    'Ceres, F',...
-    'AdiMat, R',...
-    'AdiMat, R (vector)',...
-    'MuPAD'...
-    };
+tools = get_tools(exe_dir,python_dir);
+manual_cpp_id = 1;
 ntools = numel(tools);
-adimat_id = ntools-2;
-adimat_vector_id = ntools-1;
-mupad_id = ntools;
 
 %% generate parameters and order them
 d_all = [2 10 20 32 64];
@@ -116,252 +59,149 @@ for i=1:ntasks
     save_gmm_instance([fns{i} '.txt'], paramsGMM, x, hparams);
 end
 
-%% write script for running AD tools once
-fnFrom = 'run_experiments.bat';
-fid = fopen(fnFrom,'w');
-for i=1:nexe
-    if strcmp('Theano',tools{i})
-        cmd = ['START /MIN /WAIT ' executables{i}];
-        for j=1:ntasks
-            cmd = [cmd ' ' fns{j} ' 1 1'];
-        end
-        fprintf(fid,[cmd '\r\n']);
-    else
-        for j=1:ntasks
-            if strcmp('Ceres, F',tools{i})
-                d = params{j}(1);
-                k = params{j}(2);
-                fprintf(fid,'START /MIN /WAIT %sd%ik%i.exe %s 1 1\r\n',...
-                    executables{i},d,k,fns{j});
-            else
-                fprintf(fid,'START /MIN /WAIT %s %s 1 1\r\n',executables{i},fns{j});
+%% write script for running tools once
+fn_run_once = 'run_tools_once.bat';
+fid = fopen(fn_run_once,'w');
+for i=1:ntools
+    if tools(i).call_type < 3
+        if tools(i).call_type == 1 % theano
+            cmd = ['START /MIN /WAIT ' tools(i).run_cmd];
+            for j=1:ntasks
+                cmd = [cmd ' ' fns{j} ' 1 1'];
             end
-        end
+            fprintf(fid,[cmd '\r\n']);
+        else
+            for j=1:ntasks
+                if tools(i).call_type == 0 % standard run
+                    fprintf(fid,'START /MIN /WAIT %s %s 1 1\r\n',tools(i).run_cmd,fns{j});
+                elseif tools(i).call_type == 2 % ceres
+                    d = params{j}(1);
+                    k = params{j}(2);
+                    fprintf(fid,'START /MIN /WAIT %sd%ik%i.exe %s 1 1\r\n',...
+                        tools(i).run_cmd,d,k,fns{j});
+                end
+            end
+        end            
     end
 end
 fclose(fid);
 
-%% run experiments for time estimates
-tic
-system(fnFrom);
-toc
+%% run all tools once - runtimes estimates
+% tic
+% system(fn_run_once);
+% toc
 
-%% adimat time estimate
-addpath('adimat-0.6.0-4971');
-start_adimat
-addpath('awful\matlab');
-opt = admOptions('independents', [1 2 3],  'functionResults', {1});
-times_est_adimat_f = Inf(2,ntasks);
-times_est_adimat_J = Inf(2,ntasks);
-admTransform(@gmm_objective, admOptions('m', 'r','independents', [1 2 3]));
-admTransform(@gmm_objective_vector_repmat, admOptions('m', 'r','independents', [1 2 3]));
-for i=1:ntasks
-    disp(['runnning gmm: ' num2str(i) '; params: ' num2str(params{i})]);
-    d = params{i}(1);
-    k = params{i}(2);
-    [paramsGMM,x,hparams] = load_gmm_instance([fns{i} '.txt']);
-    
-    % "looped" objective
-    tic
-    fval = gmm_objective(paramsGMM.alphas,paramsGMM.means,...
-        paramsGMM.inv_cov_factors,x,hparams);
-    times_est_adimat_f(1,i) = toc;
-    
-    tic
-    do_F_mode = false;
-    do_adimat_vector=false;
-    [J, fvalrev] = gmm_objective_adimat(do_F_mode,do_adimat_vector,...
-        paramsGMM.alphas,paramsGMM.means,paramsGMM.inv_cov_factors,...
-        x,hparams);
-    times_est_adimat_J(1,i) = toc;
-    disp(times_est_adimat_J(1,i))
-    
-    % "vectorized" objective
-    tic
-    fval = gmm_objective_vector_repmat(paramsGMM.alphas,paramsGMM.means,...
-        paramsGMM.inv_cov_factors,x,hparams);
-    times_est_adimat_f(2,i) = toc;
-    
-    tic
-    do_F_mode = false;
-    do_adimat_vector=true;
-    [J, fvalrev] = gmm_objective_adimat(do_F_mode,do_adimat_vector,...
-        paramsGMM.alphas,paramsGMM.means,paramsGMM.inv_cov_factors,...
-        x,hparams);
-    times_est_adimat_J(2,i) = toc;    
-    disp(times_est_adimat_J(2,i))
+% tools ran from matlab
+nruns = ones(1,ntasks);
+for i=1:ntools
+   J_file = [data_dir 'J_' tools(i).ext '.mat'];
+   times_file = [data_dir 'times_est_' tools(i).ext '.mat'];
+   if tools(i).call_type == 3 % adimat
+       do_adimat_vector = false;
+       adimat_run_gmm_tests(do_adimat_vector,params,fns,...
+           nruns,nruns,J_file,times_file);
+   elseif tools(i).call_type == 4 % adimat vector
+       do_adimat_vector = true;
+       adimat_run_gmm_tests(do_adimat_vector,params,fns,...
+           nruns,nruns,J_file,times_file);
+   elseif tools(i).call_type == 5 % mupad
+       mupad_run_gmm_tests(params,fns,...
+           nruns,nruns,times_file);
+   end    
 end
 
-%% read time estimates
+%% read time estimates & determine nruns for everyone
 times_est_J = Inf(ntasks,ntools);
 times_est_f = Inf(ntasks,ntools);
-for i=1:ntasks
-    for j=1:nexe
-        fnFrom = [fns{i} names{j} '_times.txt'];
-        if exist(fnFrom,'file')
-            fid = fopen(fnFrom);
-            times_est_f(i,j) = fscanf(fid,'%lf',1);
-            times_est_J(i,j) = fscanf(fid,'%lf',1);
-            fclose(fid);
-        end
-    end
-end
-times_est_J(:,adimat_id) = times_est_adimat_J(1,:);
-times_est_f(:,adimat_id) = times_est_adimat_f(1,:);
-times_est_J(:,adimat_vector_id) = times_est_adimat_J(2,:);
-times_est_f(:,adimat_vector_id) = times_est_adimat_f(2,:);
-
-%% determine nruns for everyone
-nruns_J = zeros(ntasks,ntools);
-for i=1:numel(times_est_J)
-    if times_est_J(i) < 5
-        nruns_J(i) = 1000;
-    elseif times_est_J(i) < 30
-        nruns_J(i) = 100;
-    elseif times_est_J(i) < 120
-        nruns_J(i) = 10;
-    elseif ~isinf(times_est_J(i))
-%         nruns_J(i) = 1; 
-        nruns_J(i) = 0; % it has already ran once
-    end
-end
-nruns_f = zeros(ntasks,ntools);
-for i=1:numel(times_est_f)
-    if times_est_f(i) < 5
-        nruns_f(i) = 1000;
-    elseif times_est_f(i) < 30
-        nruns_f(i) = 100;
-    elseif times_est_f(i) < 120
-        nruns_f(i) = 10;
-    elseif ~isinf(times_est_f(i))
-%         nruns_f(i) = 1; 
-        nruns_f(i) = 0; % it has already ran once
-    end
-end
-
-%% run adimat all
-addpath('adimat-0.6.0-4971');
-start_adimat
-addpath('awful\matlab');
-times_adimat_f = Inf(2,ntasks);
-times_adimat_J = Inf(2,ntasks);
-for i=1:ntasks
-    disp(['runnning gmm: ' num2str(i) '; params: ' num2str(params{i})]);
-    d = params{i}(1);
-    k = params{i}(2);
-    [paramsGMM,x,hparams] = load_gmm_instance([fns{i} '.txt']);
-    
-    % "looped" objective
-    nruns_curr_f = nruns_f(i,adimat_id);
-    nruns_curr_J = nruns_J(i,adimat_id);
-    tic
-    for j=1:nruns_curr_f
-        fval = gmm_objective(paramsGMM.alphas,paramsGMM.means,...
-            paramsGMM.inv_cov_factors,x,hparams);
-    end
-    times_adimat_f(1,i) = toc/nruns_curr_f;
-    
-    tic
-    for j=1:nruns_curr_J
-        do_F_mode = false;
-        do_adimat_vector = false;
-        [J, fvalrev] = gmm_objective_adimat(do_F_mode,do_adimat_vector,...
-            paramsGMM.alphas,paramsGMM.means,paramsGMM.inv_cov_factors,...
-            x,hparams);
-    end
-    times_adimat_J(1,i) = toc/nruns_curr_J;
-    
-    % "vectorized" objective
-    nruns_curr_f = nruns_f(i,adimat_vector_id);
-    nruns_curr_J = nruns_J(i,adimat_vector_id);
-    tic
-    for j=1:nruns_curr_f
-        fval = gmm_objective_vector_repmat(paramsGMM.alphas,paramsGMM.means,...
-            paramsGMM.inv_cov_factors,x,hparams);
-    end
-    times_adimat_f(2,i) = toc/nruns_curr_f;
-    
-    tic
-    for j=1:nruns_curr_J
-        do_F_mode = false;
-        do_adimat_vector = true;
-        [J, fvalrev] = gmm_objective_adimat(do_F_mode,do_adimat_vector,...
-            paramsGMM.alphas,paramsGMM.means,paramsGMM.inv_cov_factors,...
-            x,hparams);
-    end
-    times_adimat_J(2,i) = toc/nruns_curr_J;
-    
-%     save([data_dir 'gmm_adimat_times.mat'],'times_adimat_f','times_adimat_J');
-end
-
-%% run mupad
-addpath('awful\matlab');
-times_mupad_f = Inf(1,ntasks);
-times_mupad_J = Inf(1,ntasks);
-for i=1:ntasks
-    disp(['runnning gmm: ' num2str(i) '; params: ' num2str(params{i})]);
-    d = params{i}(1);
-    k = params{i}(2);
-    [paramsGMM,x,hparams] = load_gmm_instance([fns{i} '.txt']);
-    
-    nruns_curr = 1000;
-    
-    tic
-    [ J, err ] = gmm_objective_d_symbolic(nruns_curr, paramsGMM, x, ...
-        hparams, false);
-    if ~isempty(J)
-        times_mupad_f(i) = toc/nruns_curr;
-    end
-    
-    tic
-    [ J, err ] = gmm_objective_d_symbolic(nruns_curr, paramsGMM, x,...
-        hparams, true);
-    
-    if ~isempty(J)
-        times_mupad_J(i) = toc/nruns_curr;
-    end
-    
-%     save([data_dir 'gmm_mupad_times.mat'],'times_mupad_f','times_mupad_J');
-end
-
-%% generate script for others
-fnFrom = 'run_experiments_final.bat';
-fid = fopen(fnFrom,'w');
-for i=1:nexe
-    if strcmp('Theano',tools{i}(1:6))
-        cmd = ['START /MIN /WAIT ' executables{i}];
+up_to_date_mask = false(ntasks,ntools);
+for i=1:ntools
+    if tools(i).call_type < 3
         for j=1:ntasks
-            if nruns_f(j,i)+nruns_J(j,i) > 0
-                cmd = [cmd ' ' fns{j}...
-                  ' ' num2str(nruns_f(j,i)) ' ' num2str(nruns_J(j,i))];
+            fn = [fns{j} tools(i).ext '_times.txt'];
+            if exist(fn,'file')
+                fid = fopen(fn);
+                times_est_f(j,i) = fscanf(fid,'%lf',1);
+                times_est_J(j,i) = fscanf(fid,'%lf',1);
+                fclose(fid);
             end
+            up_to_date_mask(j,i) = is_up_to_date(fn,tools(i).exe);
         end
-        fprintf(fid,[cmd '\r\n']);
-    else
-        for j=1:ntasks
-            if nruns_f(j,i)+nruns_J(j,i) == 0
-                continue
-            end
-            if strcmp('Ceres, F',tools{i})
-                d = params{j}(1);
-                k = params{j}(2);
-                fprintf(fid,'START /MIN /WAIT %sd%ik%i.exe %s %i %i\r\n',...
-                    executables{i},d,k,fns{j},nruns_f(j,i),nruns_J(j,i));
-            else
-                fprintf(fid,'START /MIN /WAIT %s %s %i %i\r\n',...
-                    executables{i},fns{j},nruns_f(j,i),nruns_J(j,i));
-            end
+    elseif tools(i).call_type >= 3
+        fn = [data_dir 'times_' tools(i).ext '.mat'];
+        if ~exist(fn,'file')
+            fn = [data_dir 'times_est_' tools(i).ext '.mat'];
         end
+        if exist(fn,'file')
+            ld=load(fn);
+            times_est_f(:,i) = ld.times_f;
+            times_est_J(:,i) = ld.times_J;
+        end
+        up_to_date_mask(:,i) = is_up_to_date(fn,tools(i).exe);
+    end
+end
+
+nruns_f = determine_n_runs(times_est_f) .* ~up_to_date_mask;
+nruns_J = determine_n_runs(times_est_J) .* ~up_to_date_mask;
+
+%% write script for running tools
+fn_run_experiments = 'run_experiments.bat';
+fid = fopen(fn_run_experiments,'w');
+for i=1:ntools
+    if tools(i).call_type < 3
+        if tools(i).call_type == 1 && sum(nruns_f(:,i) + nruns_J(:,i))>0% theano
+            cmd = ['START /MIN /WAIT ' tools(i).run_cmd];
+            for j=1:ntasks
+                if nruns_f(j,i)+nruns_J(j,i) > 0
+                    cmd = [cmd ' ' fns{j} ' '...
+                        num2str(nruns_f(j,i)) ' ' num2str(nruns_J(j,i))];
+                end
+            end
+            fprintf(fid,[cmd '\r\n']);
+        else
+            for j=1:ntasks
+                if nruns_f(j,i)+nruns_J(j,i) > 0
+                    if tools(i).call_type == 0 % standard run
+                        fprintf(fid,'START /MIN /WAIT %s %s %i %i\r\n',...
+                            tools(i).run_cmd,fns{j},...
+                            nruns_f(j,i),nruns_J(j,i));
+                    elseif tools(i).call_type == 2 % ceres
+                        d = params{j}(1);
+                        k = params{j}(2);
+                        fprintf(fid,'START /MIN /WAIT %sd%ik%i.exe %s %i %i\r\n',...
+                            tools(i).run_cmd,d,k,fns{j},...
+                            nruns_f(j,i),nruns_J(j,i));
+                    end
+                end
+            end
+        end            
     end
 end
 fclose(fid);
 
-%% run others
+%% run all experiments
 tic
-system(fnFrom);
+system(fn_run_experiments);
 toc
 
-%% verify results
+% tools ran from matlab
+for i=1:ntools
+   J_file = [data_dir 'J_' tools(i).ext '.mat'];
+   times_file = [data_dir 'times_' tools(i).ext '.mat'];
+   if tools(i).call_type == 3 % adimat
+       do_adimat_vector = false;
+       adimat_run_gmm_tests(do_adimat_vector,params,fns,...
+           nruns_f(:,i),nruns_J(:,i),J_file,times_file);
+   elseif tools(i).call_type == 4 % adimat vector
+       do_adimat_vector = true;
+       adimat_run_gmm_tests(do_adimat_vector,params,fns,...
+           nruns_f(:,i),nruns_J(:,i),J_file,times_file);
+   elseif tools(i).call_type == 5 % mupad
+       mupad_run_gmm_tests(params,fns,...
+           nruns_f(:,i),nruns_J(:,i),times_file);
+   end    
+end
+
+%% verify results (except mupad and adimats)
 addpath('adimat-0.6.0-4971');
 start_adimat
 addpath('awful\matlab');
@@ -377,20 +217,21 @@ for i=1:ntasks
     [Jrev,fvalrev] = admDiffRev(@gmm_objective_vector_repmat, 1, paramsGMM.alphas,...
         paramsGMM.means, paramsGMM.inv_cov_factors, x, hparams, opt);
     
-    for j=1:nexe
-        fnFrom = [fns{i} names{j} '.txt'];
-        if exist(fnFrom,'file')
-            Jexternal = load_J(fnFrom);
-            tmp = norm(Jrev(:) - Jexternal(:)) / norm(Jrev(:));
-%             disp([names{j} ': ' num2str(tmp)]);
-            if tmp < 1e-5
-                num_ok = num_ok + 1;
+    for j=1:ntools
+        if tools(j).call_type < 3
+            fn = [fns{i} names{j} '.txt'];
+            if exist(fn,'file')
+                Jexternal = load_J(fn);
+                tmp = norm(Jrev(:) - Jexternal(:)) / norm(Jrev(:));
+                if tmp < 1e-5
+                    num_ok = num_ok + 1;
+                else
+                    bad{end+1} = {fn, tmp};
+                end
             else
-                bad{end+1} = {fnFrom, tmp};
+                disp([names{j} ': not computed']);
+                num_not_comp = num_not_comp + 1;
             end
-        else
-            disp([names{j} ': not computed']);
-            num_not_comp = num_not_comp + 1;
         end
     end
 end
@@ -402,81 +243,56 @@ for i=1:numel(bad)
 end
 
 %% read final times
-times_f = Inf(ntasks,nexe+3);
-times_J = Inf(ntasks,nexe+3);
-for i=1:ntasks
-    for j=1:nexe
-        fnFrom = [fns{i} names{j} '_times.txt'];
-        if exist(fnFrom,'file')
-            fid = fopen(fnFrom);
-            times_f(i,j) = fscanf(fid,'%lf',1);
-            times_J(i,j) = fscanf(fid,'%lf',1);
-            fclose(fid);
+times_f = Inf(ntasks,ntools);
+times_J = Inf(ntasks,ntools);
+for i=1:ntools
+    if tools(i).call_type < 3
+        for j=1:ntasks
+            fn = [fns{j} tools(i).ext '_times.txt'];
+            if exist(fn,'file') && is_up_to_date(fn,tools(i).exe)
+                fid = fopen(fn);
+                times_f(j,i) = fscanf(fid,'%lf',1);
+                times_J(j,i) = fscanf(fid,'%lf',1);
+                fclose(fid);
+            end
+        end
+    elseif tools(i).call_type >= 3
+        fn = [data_dir 'times_' tools(i).ext '.mat'];
+        if exist(fn,'file') && is_up_to_date(fn,tools(i).exe)
+            ld=load(fn);
+            times_f(:,i) = ld.times_f;
+            times_J(:,i) = ld.times_J;
         end
     end
 end
-ld = load([data_dir 'gmm_adimat_times.mat']);
-times_f(:,adimat_id) = ld.times_adimat_f(1,:);
-times_J(:,adimat_id) = ld.times_adimat_J(1,:);
-times_f(:,adimat_vector_id) = ld.times_adimat_f(2,:);
-times_J(:,adimat_vector_id) = ld.times_adimat_J(2,:);
-% ld = load([data_dir 'gmm_mupad_times.mat']);
-% times_f(:,mupad_id) = ld.times_mupad_f;
-% times_J(:,mupad_id) = ld.times_mupad_J;
 
-times_relative = times_J./times_f;
-times_relative(isnan(times_relative)) = Inf;
-times_relative(times_relative==0) = Inf;
+times_f_relative = bsxfun(@rdivide,times_f,times_f(:,manual_cpp_id));
+times_f_relative(isnan(times_f_relative)) = Inf;
+times_f_relative(times_f_relative==0) = Inf;
+% times_relative = times_J./times_f;
+times_J_relative = bsxfun(@rdivide,times_J,times_J(:,manual_cpp_id));
+times_J_relative(isnan(times_J_relative)) = Inf;
+times_J_relative(times_J_relative==0) = Inf;
 
 %% output results
-save([data_dir 'times_' date],'times_f','times_J','times_relative','params','tools');
+save([data_dir 'times_' date],'times_f','times_J','params','tools');
 
 %% plot times
-set(groot,'defaultAxesColorOrder',...
-    [.8 .1 0;0 .7 0;.2 .2 1; 0 0 0; .8 .8 0],...
-    'defaultAxesLineStyleOrder', '-|s-|x-|^-')
 lw = 2;
 msz = 7;
 x=[params{:}]; x=x(3:3:end);
 
-% ordering
-[tmp,preorder]=sort(times_J,2);
-preorder(isinf(tmp)) = NaN;
-scores=zeros(ntools,1);
-mask=~isnan(preorder);
-tmp=repmat(fliplr((1:ntools)),ntasks,1);
-scores(preorder(mask)) = scores(preorder(mask)) + tmp(mask);
-[~, order] = sort(scores);
+plot_log_runtimes(params,tools,times_J,...
+    'Jacobian runtimes','runtime [seconds]');
 
-% Runtime
-figure
-loglog(x, times_J(:, order),'linewidth',lw,'markersize',msz);
-legend({tools{order}}, 'location', 'nw');
-set(gca,'FontSize',14)
-xlim([min(x) max(x)])
-title('runtimes (seconds)')
-xlabel('# parameters')
-ylabel('runtime [seconds]')
+plot_log_runtimes(params,tools,times_J_relative,...
+    'Jacobian runtimes relative to Manual, C++','runtime');
 
-% Relative
-figure
-loglog(x, times_relative(:, order),'linewidth',lw,'markersize',msz);
-legend({tools{order}}, 'location', 'nw');
-set(gca,'FontSize',14)
-xlim([min(x) max(x)])
-title('relative runtimes')
-xlabel('# parameters')
-ylabel('relative runtime')
+plot_log_runtimes(params,tools,times_f,...
+    'objective runtimes','runtime [seconds]');
 
-% Objective function
-figure
-loglog(x, times_f(:, order),'linewidth',lw,'markersize',msz);
-legend({tools{order}}, 'location', 'nw');
-set(gca,'FontSize',14)
-xlim([min(x) max(x)])
-title('objective runtimes (seconds)')
-xlabel('# parameters')
-ylabel('runtime [seconds]')
+plot_log_runtimes(params,tools,times_f_relative,...
+    'objective runtimes relative to Manual, C++','runtime');
 
 %% do 2D plots
 tool_id = adimat_id-1;
@@ -541,23 +357,23 @@ xlabel('# parameters')
 ylabel('compile time [hours]')
 title('Compile time (hours): MuPAD')
 
-%% Transport objective runtimes
-fromID = 10;
-toID = 9;
-for i=1:ntasks
-    fnFrom = [fns{i} names{fromID} '_times.txt'];
-    fnTo = [fns{i} names{toID} '_times.txt'];
-    if exist(fnFrom,'file') && exist(fnTo,'file')
-        fid = fopen(fnFrom);
-        time_f_from = fscanf(fid,'%lf',1);
-        fclose(fid);
-        fid = fopen(fnTo,'r');
-        time_f_to = fscanf(fid,'%lf',1);
-        time_J_to = fscanf(fid,'%lf',1);
-        fclose(fid);
-        fid = fopen(fnTo,'w');
-        fprintf(fid,'%f %f %f\n',time_f_from,time_J_to,time_J_to/time_f_from);
-        fprintf(fid,'tf tJ tJ/tf');
-        fclose(fid);
-    end
-end
+% %% Transport objective runtimes
+% fromID = 10;
+% toID = 9;
+% for i=1:ntasks
+%     fnFrom = [fns{i} names{fromID} '_times.txt'];
+%     fnTo = [fns{i} names{toID} '_times.txt'];
+%     if exist(fnFrom,'file') && exist(fnTo,'file')
+%         fid = fopen(fnFrom);
+%         time_f_from = fscanf(fid,'%lf',1);
+%         fclose(fid);
+%         fid = fopen(fnTo,'r');
+%         time_f_to = fscanf(fid,'%lf',1);
+%         time_J_to = fscanf(fid,'%lf',1);
+%         fclose(fid);
+%         fid = fopen(fnTo,'w');
+%         fprintf(fid,'%f %f %f\n',time_f_from,time_J_to,time_J_to/time_f_from);
+%         fprintf(fid,'tf tJ tJ/tf');
+%         fclose(fid);
+%     end
+% end

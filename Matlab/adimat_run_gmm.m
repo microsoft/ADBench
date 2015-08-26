@@ -1,6 +1,6 @@
-function [J, fval] = gmm_objective_adimat(do_F_mode,do_adimat_vector,...
+function [J, fval] = adimat_run_gmm(do_F_mode,do_adimat_vector,...
     alphas,means,inv_cov_factors,x,hparams)
-%GMM_OBJECTIVE_ADIMAT Call already translated function 
+%adimat_run_gmm Call already translated function 
 %                   and create our gradient
 
 if do_adimat_vector
