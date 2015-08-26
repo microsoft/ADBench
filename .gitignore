@@ -2,6 +2,7 @@
 *.mexw64
 Plot.ipynb
 *J_Adept.txt
+*J_Adept_split.txt
 *J_ADOLC.txt
 *J_ADOLC_split.txt
 *J_Autograd.txt
