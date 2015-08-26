@@ -8,7 +8,7 @@
 #include <vector>
 #include <fstream>
 
-#include "defs.h"
+#include "../defs.h"
 
 using std::cin;
 using std::cout;
