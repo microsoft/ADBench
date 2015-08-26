@@ -3,20 +3,18 @@
 
 #pragma warning (disable : 4996) // fopen
 
-#include <cstring>
 #include <iostream>
 #include <string>
 #include <vector>
 #include <fstream>
 
-#include "../defs.h"
+#include "defs.h"
 
 using std::cin;
 using std::cout;
 using std::endl;
 using std::string;
 using std::vector;
-using namespace std::chrono;
 
 // rows is nrows+1 vector containing
 // indices to cols and vals. 
