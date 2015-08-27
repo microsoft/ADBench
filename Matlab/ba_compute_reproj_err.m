@@ -17,18 +17,22 @@ err = w*(proj - feat);
 end
 
 function rotatedPt = rodrigues_rotate_point(rot,pt)
-theta = norm(rot,2);
-costheta = cos(theta);
-sintheta = sin(theta);
-theta_inverse = 1. / theta;
-
-w = rot * theta_inverse;
-
-w_cross_pt = cross(w,pt);
-
-tmp = (1. - costheta) * (dot(w,pt));
-
-rotatedPt = costheta*pt + sintheta*w_cross_pt + tmp*w;
+sqtheta = sum(rot.^2);
+if sqtheta == 0
+    theta = sqrt(sqtheta);
+    costheta = cos(theta);
+    sintheta = sin(theta);
+    theta_inverse = 1. / theta;
+    
+    w = rot * theta_inverse;
+    w_cross_pt = cross(w,pt);
+    tmp = (1. - costheta) * (dot(w,pt));
+    
+    rotatedPt = costheta*pt + sintheta*w_cross_pt + tmp*w;
+else
+    w_cross_pt = cross(rot,pt);
+    rotatedPt = pt + w_cross_pt;
+end
 end
 
 function x = radial_distort(x,kappa) 
