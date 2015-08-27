@@ -1,6 +1,6 @@
-function [ J, err ] = gmm_objective_d_symbolic( nruns, params,...
+function [ J, err ] = mupad_gmm_objective( nruns, params,...
     x,hparams,do_jacobian)
-%GMM_OBJECTIVE_D_SYMBOLIC Use mexed files
+%mupad_gmm_objective Use mexed files
 
 d = size(x,1);
 k = size(params.alphas,2);

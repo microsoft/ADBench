@@ -4,6 +4,7 @@ function [times_f, times_J] = ...
 %mupad_run_gmm_tests
 %   compute derivative of gmm
 
+addpath('mupad');
 addpath('awful\matlab');
 
 ntasks = numel(task_fns);
@@ -23,7 +24,7 @@ for i=1:ntasks
     
     if nruns_curr_f > 0
         tic
-        [ J, err ] = gmm_objective_d_symbolic(nruns_curr_f, paramsGMM, x, ...
+        [ J, err ] = mupad_gmm_objective(nruns_curr_f, paramsGMM, x, ...
             hparams, false);
         if ~isempty(J)
             times_f(i) = toc/nruns_curr_f;
@@ -32,7 +33,7 @@ for i=1:ntasks
     
     if nruns_curr_J > 0
         tic
-        [ J, err ] = gmm_objective_d_symbolic(nruns_curr_J, paramsGMM, x,...
+        [ J, err ] = mupad_gmm_objective(nruns_curr_J, paramsGMM, x,...
             hparams, true);
         if ~isempty(J)
             times_J(i) = toc/nruns_curr_J;
