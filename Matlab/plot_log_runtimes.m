@@ -18,10 +18,11 @@ lw = 2;
 msz = 7;
 x=[params{:}]; x=x(3:3:end);
 
-figure; hold on;
+figure; 
 for i=1:numel(tools)
     loglog(x, times(:, i),'linewidth',lw,'markersize',msz,...
         'color',tools(i).col,'marker',tools(i).marker);
+    hold on
 end
 
 % if do_plot_linear_quadratic_complexity

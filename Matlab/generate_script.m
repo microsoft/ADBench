@@ -166,7 +166,7 @@ for i=1:ntasks
     
     for j=1:ntools
         if tools(j).call_type < 3
-            fn = [fns{i} names{j} '.txt'];
+            fn = [fns{i} tools(j).ext '.txt'];
             if exist(fn,'file')
                 Jexternal = load_J(fn);
                 tmp = norm(Jrev(:) - Jexternal(:)) / norm(Jrev(:));
@@ -176,7 +176,7 @@ for i=1:ntasks
                     bad{end+1} = {fn, tmp};
                 end
             else
-                disp([names{j} ': not computed']);
+                disp([tools(j).name ': not computed']);
                 num_not_comp = num_not_comp + 1;
             end
         end
