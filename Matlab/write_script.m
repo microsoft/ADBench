@@ -33,7 +33,7 @@ for i=1:numel(tools)
                             nruns_f(j,i),nruns_J(j,i));
                         
                     elseif tools(i).call_type == 2 % ceres
-                        cmd = sprintf('%s%s.exe %s %i %i\r\n',...
+                        cmd = sprintf('%s%s.exe %s %i %i',...
                             tools(i).run_cmd,curr_dk,tasks_fns{j},...
                             nruns_f(j,i),nruns_J(j,i));
                     end
@@ -53,23 +53,23 @@ fprintf(fid,'all:');
 for i=1:numel(targets)
     fprintf(fid,' %s',targets(i).name);
 end
-fprintf('\r\n\r\n');
+fprintf(fid,'\r\n\r\n');
 
 for i=1:numel(targets)
     fprintf(fid,'%s:',targets(i).name);
     for j=1:numel(targets(i).targets)
         fprintf(fid,' %s',targets(i).targets(j).name);
     end
-    fprintf('\r\n');
+    fprintf(fid,'\r\n\r\n');
 end
-fprintf('\r\n');
+fprintf(fid,'\r\n');
 
 for i=1:numel(targets)
     for j=1:numel(targets(i).targets)
-        fprintf(fid,'%s: %s',targets(i).targets(j).name,...
+        fprintf(fid,'%s:\r\n\t%s',targets(i).targets(j).name,...
             targets(i).targets(j).cmd);
+        fprintf(fid,'\r\n');
     end
-    fprintf('\r\n');
 end
 
 fclose(fid);
