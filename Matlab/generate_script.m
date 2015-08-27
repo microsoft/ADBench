@@ -60,31 +60,9 @@ for i=1:ntasks
 end
 
 %% write script for running tools once
-fn_run_once = 'run_tools_once.bat';
-fid = fopen(fn_run_once,'w');
-for i=1:ntools
-    if tools(i).call_type < 3
-        if tools(i).call_type == 1 % theano
-            cmd = ['START /MIN /WAIT ' tools(i).run_cmd];
-            for j=1:ntasks
-                cmd = [cmd ' ' fns{j} ' 1 1'];
-            end
-            fprintf(fid,[cmd '\r\n']);
-        else
-            for j=1:ntasks
-                if tools(i).call_type == 0 % standard run
-                    fprintf(fid,'START /MIN /WAIT %s %s 1 1\r\n',tools(i).run_cmd,fns{j});
-                elseif tools(i).call_type == 2 % ceres
-                    d = params{j}(1);
-                    k = params{j}(2);
-                    fprintf(fid,'START /MIN /WAIT %sd%ik%i.exe %s 1 1\r\n',...
-                        tools(i).run_cmd,d,k,fns{j});
-                end
-            end
-        end            
-    end
-end
-fclose(fid);
+fn_run_once = 'run_tools_once.mk';
+nruns=ones(ntasks,ntools);
+write_script(fn_run_once,params,fns,tools,nruns,nruns);
 
 %% run all tools once - runtimes estimates
 % tic
@@ -144,44 +122,13 @@ nruns_f = determine_n_runs(times_est_f) .* ~up_to_date_mask;
 nruns_J = determine_n_runs(times_est_J) .* ~up_to_date_mask;
 
 %% write script for running tools
-fn_run_experiments = 'run_experiments.bat';
-fid = fopen(fn_run_experiments,'w');
-for i=1:ntools
-    if tools(i).call_type < 3
-        if tools(i).call_type == 1 && sum(nruns_f(:,i) + nruns_J(:,i))>0% theano
-            cmd = ['START /MIN /WAIT ' tools(i).run_cmd];
-            for j=1:ntasks
-                if nruns_f(j,i)+nruns_J(j,i) > 0
-                    cmd = [cmd ' ' fns{j} ' '...
-                        num2str(nruns_f(j,i)) ' ' num2str(nruns_J(j,i))];
-                end
-            end
-            fprintf(fid,[cmd '\r\n']);
-        else
-            for j=1:ntasks
-                if nruns_f(j,i)+nruns_J(j,i) > 0
-                    if tools(i).call_type == 0 % standard run
-                        fprintf(fid,'START /MIN /WAIT %s %s %i %i\r\n',...
-                            tools(i).run_cmd,fns{j},...
-                            nruns_f(j,i),nruns_J(j,i));
-                    elseif tools(i).call_type == 2 % ceres
-                        d = params{j}(1);
-                        k = params{j}(2);
-                        fprintf(fid,'START /MIN /WAIT %sd%ik%i.exe %s %i %i\r\n',...
-                            tools(i).run_cmd,d,k,fns{j},...
-                            nruns_f(j,i),nruns_J(j,i));
-                    end
-                end
-            end
-        end            
-    end
-end
-fclose(fid);
+fn_run_experiments = 'run_experiments.mk';
+write_script(fn_run_experiments,params,fns,tools,nruns_f,nruns_J);
 
 %% run all experiments
-tic
-system(fn_run_experiments);
-toc
+% tic
+% system(fn_run_experiments);
+% toc
 
 % tools ran from matlab
 for i=1:ntools

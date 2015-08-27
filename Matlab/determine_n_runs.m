@@ -9,10 +9,10 @@ for i=1:numel(times_est)
     elseif times_est(i) < 120
         nruns(i) = 10;
     elseif ~isinf(times_est(i))
-%         nruns_J(i) = 1; 
+        nruns_J(i) = 1; 
         % it has already ran once - don't forget to move
         % that result from time_est
-        nruns(i) = 0; 
+%         nruns(i) = 0; 
     end
 end
 
