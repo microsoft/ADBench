@@ -1,5 +1,4 @@
-function [reproj_err, f_prior_err, w_error] = ...
-    ba_objective( cams, X, w, obs )
+function [reproj_err, w_error] = ba_objective( cams, X, w, obs )
 %BA_OBJECTIVE Bundle adjustment objective function
 %         CAMERAS c x n 
 %               matrix containing parameters of n cameras
@@ -20,8 +19,8 @@ function [reproj_err, f_prior_err, w_error] = ...
 %               where [x y]' is a measurement (a feature)   
 %         REPROJ_ERR 2 x p 
 %               reprojection errors
-%         F_PRIOR_ERR 1 x n-2 
-%               temporal prior on focals
+% %         F_PRIOR_ERR 1 x n-2 
+% %               temporal prior on focals
 %         W_ERR 1 x p 
 %               1-w^2 
 %
@@ -34,33 +33,15 @@ n = size(cams,2);
 m = size(X,2);
 p = size(obs,2);
 
-R = cell(1,n);
-for i=1:n
-    R{i} = au_rodrigues(cams(1:3,i));
-end
-C = cams(4:6,:);
-f = cams(7,:);
-princ_pt = cams(8:9,:);
-rad_params = cams(10:11,:);
-
-reproj_err = zeros(2,p);
+reproj_err = zeros(2,p,'like',cams);
 for i=1:p
     camIdx = obs(1,i);
-    Xcam = R{camIdx} * (X(:,obs(2,i)) - C(:,camIdx));
-    Xcam_e = Xcam(1:end-1)/Xcam(end);
-    distorted = radial_distort(Xcam_e,rad_params(:,camIdx));
-    proj = distorted * f(camIdx) + princ_pt(:,camIdx);
-    reproj_err(1,i) = w(i)*(proj(1) - obs(3,i));
-    reproj_err(2,i) = w(i)*(proj(2) - obs(4,i));
+    ptIdx = obs(2,i);
+    
+    reproj_err(:,i) = ba_compute_reproj_err(cams(:,camIdx),...
+        X(:,ptIdx),w(i),obs(3:4,i));
 end
 
-f_prior_err = f(1:(n-2)) - 2*f(2:(n-1)) + f(3:n);
 w_error = 1 - w.^2;
 
-end
-
-function x = radial_distort(x,kappa) 
-    r2 = x(2)*x(2) + x(1)*x(1);
-    L = 1 + kappa(1)*r2 + kappa(2)*r2*r2;
-    x = x * L;
 end
