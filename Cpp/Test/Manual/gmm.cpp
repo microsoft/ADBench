@@ -15,7 +15,7 @@ double log_gamma_distrib(double a, double p)
   return out;
 }
 
-#ifdef COMPILE_CLEAN_CPP_VERSION
+#ifdef DO_CPP
 
 double arr_max(int n, const double* const x, int *max_elem_idx)
 {
@@ -324,10 +324,9 @@ void gmm_objective_d(int d, int k, int n,
   *err = CONSTANT + slse - n*lse_alphas;
   *err += log_wishart_prior(d, k, wishart, sum_qs.data(), Qdiags.data(), icf);
 }
-
 #endif
 
-#if defined COMPILE_EIGEN_VERSION1 || defined COMPILE_EIGEN_VERSION2
+#if defined DO_EIGEN || defined DO_EIGEN_VECTOR
 
 #include "Eigen\Dense"
 
@@ -417,7 +416,7 @@ double log_wishart_prior_d(int p, int k,
 
 #endif
 
-#if defined COMPILE_EIGEN_VERSION1
+#if defined DO_EIGEN
 
 void gmm_objective_no_priors(int d, int k, int n,
   Map<const ArrayXd> const& alphas,
@@ -515,30 +514,6 @@ void gmm_objective(int d, int k, int n,
   *err += log_wishart_prior(d, k, wishart, sum_qs, Qs, icf);
 }
 
-double log_wishart_prior_d(int p, int k,
-  Wishart wishart,
-  const ArrayXd& sum_qs,
-  const vector<MatrixXd>& Qs,
-  const double *icf,
-  double *J)
-{
-  int n = p + wishart.m + 1;
-  int icf_sz = p*(p + 1) / 2;
-  Map<MatrixXd> icf_d(&J[k + p*k], icf_sz, k);
-
-  for (int ik = 0; ik < k; ik++)
-  {
-    icf_d.block(0, ik, p, 1) +=
-      (wishart.gamma*wishart.gamma*(Qs[ik].diagonal().array().square()) - wishart.m).matrix();
-
-    icf_d.block(p, ik, icf_sz - p, 1) +=
-      wishart.gamma*wishart.gamma*
-      Map<const VectorXd>(&icf[ik*icf_sz + p], icf_sz - p);
-  }
-
-  return log_wishart_prior(p, k, wishart, sum_qs, Qs, icf);
-}
-
 void gmm_objective_no_priors_d(int d, int k, int n,
   Map<const ArrayXd> const& alphas,
   vector<Map<const VectorXd>> const& mus,
@@ -622,7 +597,7 @@ void gmm_objective_d(int d, int k, int n,
   *err += log_wishart_prior_d(d, k, wishart, sum_qs, Qs, icf, J);
 }
 
-#elif COMPILE_EIGEN_VERSION2
+#elif DO_EIGEN_VECTOR
 
 // logsumexp of cols
 void logsumexp(const MatrixXd& X, ArrayXd& out)

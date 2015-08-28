@@ -1,6 +1,6 @@
 function [times_f, times_J] = ...
-    mupad_run_gmm_tests(params,task_fns,...
-    nruns_f,nruns_J,out_file)
+    mupad_run_gmm_tests(params,data_dir,task_fns,...
+    nruns_f,nruns_J,out_file,replicate_point)
 %mupad_run_gmm_tests
 %   compute derivative of gmm
 
@@ -17,7 +17,8 @@ end
 
 for i=1:ntasks
     disp(['runnning gmm: ' num2str(i) '; params: ' num2str(params{i})]);
-    [paramsGMM,x,hparams] = load_gmm_instance([task_fns{i} '.txt']);
+    [paramsGMM,x,hparams] = load_gmm_instance(...
+        [data_dir task_fns{i} '.txt'],replicate_point);
     
     nruns_curr_f = nruns_f(i);
     nruns_curr_J = nruns_J(i);

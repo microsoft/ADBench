@@ -7,18 +7,28 @@
 #include "adolc/adolc_sparse.h"
 #include "../utils.h"
 #include "../defs.h"
+
+//#define DO_GMM_FULL
+#define DO_GMM_SPLIT
+//#define DO_BA
+
+#if defined DO_GMM_FULL || defined DO_GMM_SPLIT
 #include "gmm.h"
+#elif defined DO_BA
 #include "ba.h"
+#endif
 
 using std::cout;
 using std::endl;
 using std::string;
 using namespace std::chrono;
 
+#ifdef DO_GMM_FULL
+
 double compute_gmm_J(int nruns,
 	int d, int k, int n, double *alphas, 
 	double *means, double *icf, double *x, 
-	Wishart wishart, double& err, double **J)
+	Wishart wishart, double& err, double *J)
 {
 	int tapeTag = 1;
 	int icf_sz = d*(d + 1) / 2;
@@ -34,13 +44,11 @@ double compute_gmm_J(int nruns,
 	{
 		aalphas[i] <<= alphas[i];
 	}
-
 	ameans = new adouble[d*k];
 	for (int i = 0; i < d*k; i++)
 	{
 		ameans[i] <<= means[i];
 	}
-
 	aicf = new adouble[icf_sz*k];
 	for (int i = 0; i < icf_sz*k; i++)
 	{
@@ -72,7 +80,7 @@ double compute_gmm_J(int nruns,
 
 	for (int i = 0; i < nruns; i++)
 	{
-		gradient(tapeTag, Jcols, in, J[0]);
+		gradient(tapeTag, Jcols, in, J);
 
 		//int keepValues = 1;
 		//double errd = 1;
@@ -87,10 +95,12 @@ double compute_gmm_J(int nruns,
   return duration_cast<duration<double>>(end - start).count() / nruns;
 }
 
+#elif defined DO_GMM_SPLIT
+
 double compute_gmm_J_split(int nruns,
   int d, int k, int n, double *alphas,
   double *means, double *icf, double *x,
-  Wishart wishart, double& err, double **J)
+  Wishart wishart, double& err, double *J)
 {
   int innerTapeTag = 1;
   int otherTapeTag = 0;
@@ -133,7 +143,7 @@ double compute_gmm_J_split(int nruns,
   double *Jtmp = new double[Jcols];
   for (int i = 0; i < nruns; i++)
   {
-    gradient(otherTapeTag, Jcols, in, J[0]);
+    gradient(otherTapeTag, Jcols, in, J);
     for (int i = 0; i < n; i++)
     {
       // Record on a tape
@@ -157,7 +167,7 @@ double compute_gmm_J_split(int nruns,
       gradient(innerTapeTag, Jcols, in, Jtmp);
       for (int i = 0; i < Jcols; i++)
       {
-        J[0][i] += Jtmp[i];
+        J[i] += Jtmp[i];
       }
     }
 
@@ -177,6 +187,60 @@ double compute_gmm_J_split(int nruns,
 
   return duration_cast<duration<double>>(end - start).count() / nruns;
 }
+
+#endif
+#if defined DO_GMM_FULL || defined DO_GMM_SPLIT
+
+void test_gmm(const string& fn_in, const string& fn_out,
+  int nruns_f, int nruns_J, bool replicate_point)
+{
+  int d, k, n;
+  vector<double> alphas, means, icf, x;
+  double err;
+  Wishart wishart;
+
+  // Read instance
+  read_gmm_instance(fn_in + ".txt", &d, &k, &n,
+    alphas, means, icf, x, wishart, replicate_point);
+
+  int icf_sz = d*(d + 1) / 2;
+  int Jrows = 1;
+  int Jcols = (k*(d + 1)*(d + 2)) / 2;
+
+  vector<double> J(Jcols);
+
+  // Test
+  high_resolution_clock::time_point start, end;
+  double tf, tJ = 0.;
+
+  start = high_resolution_clock::now();
+  for (int i = 0; i < nruns_f; i++)
+  {
+    gmm_objective(d, k, n, alphas.data(), means.data(),
+      icf.data(), x.data(), wishart, &err);
+  }
+  end = high_resolution_clock::now();
+  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
+  cout << "err: " << err << endl;
+
+#ifdef DO_GMM_FULL
+  string name = "ADOLC";
+  tJ = compute_gmm_J(nruns_J, d, k, n, alphas.data(), means.data(), icf.data(), 
+    x.data(), wishart, err, J.data());
+#elif defined DO_GMM_SPLIT
+  string name = "ADOLC_split";
+  tJ = compute_gmm_J_split(nruns_J, d, k, n, alphas.data(), means.data(), icf.data(),
+    x.data(), wishart, err, J.data());
+#endif
+  cout << "err: " << err << endl;
+
+  write_J(fn_out + "_J_" + name + ".txt", Jrows, Jcols, J.data());
+  //write_times(tf, tJ);
+  write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
+
+}
+
+#elif defined DO_BA
 
 void convert_J(int nnz, unsigned int *ridxs, unsigned int *cidxs,
 	double *nzvals, SparseMat *J)
@@ -326,61 +390,6 @@ double compute_ba_J(bool doRowCompression,int nruns, int n, int m, int p,
 	return t_J;
 }
 
-void test_gmm(const string& fn, int nruns_f, int nruns_J)
-{
-  int d, k, n;
-  double *alphas, *means, *icf, *x;
-  double err;
-  Wishart wishart;
-
-  // Read instance
-  read_gmm_instance(fn + ".txt", d, k, n,
-    alphas, means, icf, x, wishart);
-
-  int icf_sz = d*(d + 1) / 2;
-  int Jrows = 1;
-  int Jcols = (k*(d + 1)*(d + 2)) / 2;
-
-  double **J = new double*[Jrows];
-  for (int i = 0; i < Jrows; i++)
-  {
-    J[i] = new double[Jcols];
-  }
-
-  // Test
-  high_resolution_clock::time_point start, end;
-  double tf, tJ = 0.;
-
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_f; i++)
-  {
-    gmm_objective(d, k, n, alphas, means,
-      icf, x, wishart, &err);
-  }
-  end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
-  cout << "err: " << err << endl;
-
-  tJ = compute_gmm_J(nruns_J, d, k, n, alphas, means, icf, x, wishart, err, J);
-  //tJ = compute_gmm_J_split(nruns_J, d, k, n, alphas, means, icf, x, wishart, err, J);
-
-  string name = "J_ADOLC";
-  //string name = "J_ADOLC_split";
-  write_J(fn + name + ".txt", Jrows, Jcols, J);
-  //write_times(tf, tJ);
-  write_times(fn + name + "_times.txt", tf, tJ);
-
-  for (int i = 0; i < Jrows; i++)
-  {
-    delete[] J[i];
-  }
-  delete[] J;
-  delete[] alphas;
-  delete[] means;
-  delete[] x;
-  delete[] icf;
-}
-
 void test_ba(const string& fn, int nruns)
 {
 	int n, m, p;
@@ -429,16 +438,22 @@ void test_ba(const string& fn, int nruns)
 	delete[] feats;
 }
 
+#endif
+
 int main(int argc, char *argv[])
 {
-  string fn(argv[1]);
-  int nruns_f = 1;
-  int nruns_J = 1;
-  if (argc >= 3)
-  {
-    nruns_f = std::stoi(string(argv[2]));
-    nruns_J = std::stoi(string(argv[3]));
-  }
-	test_gmm(fn, nruns_f, nruns_J);
-	//test_ba(fn, nruns);
+  string dir_in(argv[1]);
+  string dir_out(argv[2]);
+  string fn(argv[3]);
+  int nruns_f = std::stoi(string(argv[4]));
+  int nruns_J = std::stoi(string(argv[5]));
+
+  // read only 1 point and replicate it?
+  bool replicate_point = (argc >= 7 && string(argv[6]).compare("-rep") == 0);
+  
+#if defined DO_GMM_FULL || defined DO_GMM_SPLIT
+  test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
+#elif defined DO_BA
+	test_ba(fn, nruns);
+#endif
 }

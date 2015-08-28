@@ -1,26 +1,10 @@
+# experiments
+*_J_*
+*_times_*
+
 .ipynb_checkpoints/*
 *.mexw64
 Plot.ipynb
-*J_Adept.txt
-*J_Adept_split.txt
-*J_ADOLC.txt
-*J_ADOLC_split.txt
-*J_Autograd.txt
-*J_Autograd_split.txt
-*J_Ceres.txt
-*J_diffsharpAD.txt
-*J_diffsharpR.txt
-*J_diffsharpRsplit.txt
-*J_diffsharp.txt
-*J_manual.txt
-*J_manual_Eigen5.txt
-*J_manual_VS.txt
-*J_Tapenade_b.txt
-*J_Tapenade_bv.txt
-*J_Tapenade_dv.txt
-*J_Theano.txt
-*J_Theano_vector.txt
-*_times.txt
 old
 packages
 

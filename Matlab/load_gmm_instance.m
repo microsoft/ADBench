@@ -1,4 +1,4 @@
-function [params, x, hparams] = load_gmm_instance( fn )
+function [params, x, hparams] = load_gmm_instance( fn, replicate_point )
 %LOAD_GMM_INSTANCE 
 %       format:
 %           d k n
@@ -17,6 +17,10 @@ function [params, x, hparams] = load_gmm_instance( fn )
 %           xn (in row)
 %           hparams1 hparams2
 
+if ~exist('replicate_point','var')
+    replicate_point = false;
+end
+
 fid = fopen(fn,'r');
 
 d = fscanf(fid,'%i',1);
@@ -28,7 +32,12 @@ params = [];
 params.alphas = fscanf(fid,'%lf',[1 k]);
 params.means = fscanf(fid,'%lf',[d k]);
 params.inv_cov_factors = fscanf(fid,'%lf',[icf_sz k]);
-x = fscanf(fid,'%lf',[d n]);
+if replicate_point
+    x_ = fscanf(fid,'%lf',[d 1]);
+    x = repmat(x_,1,n);
+else
+    x = fscanf(fid,'%lf',[d n]);
+end
 
 hparams = [0 0]; 
 hparams(1) = fscanf(fid,'%lf',1);

@@ -14,7 +14,7 @@
     <Name>Autograd</Name>
     <RootNamespace>PythonTests</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>..\..\gmm 1 1</CommandLineArguments>
+    <CommandLineArguments>..\..\ ..\..\ gmm 1 1 -rep</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>

@@ -4,14 +4,21 @@
 #include <chrono>
 #include <vector>
 
+#define DO_GMM
+#define DO_BA
+
 #include "ceres/ceres.h"
 #include "../utils.h"
-#include "gmm.h"
-#include "ba.h"
 
-#define GMM_D 20
-#define GMM_K 50
+#ifdef DO_GMM
+#include "gmm.h"
+#define GMM_D 64
+#define GMM_K 5
 #define GMM_ICF_DIM (GMM_D*(GMM_D + 1) / 2)
+
+#elif DO_BA
+#include "ba.h"
+#endif
 
 using ceres::AutoDiffCostFunction;
 using ceres::CostFunction;
@@ -25,8 +32,7 @@ using std::string;
 using std::vector;
 using namespace std::chrono;
 
-void write_J_sparse(const string& fn, ceres::CRSMatrix& J);
-void convert_gmm_J(int d, int k, double **J_ceres, double **J);
+#ifdef DO_GMM
 
 struct GMMCostFunctor {
   GMMCostFunctor(int n,
@@ -62,32 +68,38 @@ void compute_gmm_J(int d, int k, int n, double *alphas,
   cost_function->Evaluate(params, &err, J);
 }
 
-int test_gmm(const string& fn, int nruns_f, int nruns_J)
+void convert_gmm_J(int d, int k, double **J_ceres, double *J)
+{
+  int icf_sz = d*(d + 1) / 2;
+  memcpy(J, J_ceres[0], k*sizeof(double));
+  int J_off = k;
+  memcpy(J + J_off, J_ceres[1], d*k*sizeof(double));
+  J_off += d*k;
+  memcpy(J + J_off, J_ceres[2], icf_sz*k*sizeof(double));
+}
+
+void test_gmm(const string& fn_in, const string& fn_out,
+  int nruns_f, int nruns_J, bool replicate_point)
 {
   int d, k, n;
-  double *alphas, *means, *icf, *x;
+  vector<double> alphas, means, icf, x;
   Wishart wishart;
   double err;
 
   // Read instance
-  read_gmm_instance(fn + ".txt", d, k, n,
-    alphas, means, icf, x, wishart);
+  read_gmm_instance(fn_in + ".txt", &d, &k, &n,
+    alphas, means, icf, x, wishart, replicate_point);
 
   if (d != GMM_D || k != GMM_K)
   {
     cout << "test_gmm: error: d and K in the specified file do not match with defines GMM_D and GMM_K"
       << endl;
-    return -1;
+    return;
   }
 
   int Jrows = 1;
   int Jcols = (k*(d + 1)*(d + 2)) / 2;
 
-  double **J = new double*[Jrows];
-  for (int i = 0; i < Jrows; i++)
-  {
-    J[i] = new double[Jcols];
-  }
   double **J_ceres = new double*[3];
   J_ceres[0] = new double[k];
   J_ceres[1] = new double[d*k];
@@ -100,8 +112,8 @@ int test_gmm(const string& fn, int nruns_f, int nruns_J)
   start = high_resolution_clock::now();
   for (int i = 0; i < nruns_f; i++)
   {
-    gmm_objective(d, k, n, alphas, means,
-      icf, x, wishart, &err);
+    gmm_objective(d, k, n, alphas.data(), means.data(),
+      icf.data(), x.data(), wishart, &err);
   }
   end = high_resolution_clock::now();
   tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
@@ -109,32 +121,27 @@ int test_gmm(const string& fn, int nruns_f, int nruns_J)
   start = high_resolution_clock::now();
   for (int i = 0; i < nruns_J; i++)
   {
-    compute_gmm_J(d, k, n, alphas,
-      means, icf, x, wishart, err, J_ceres);
+    compute_gmm_J(d, k, n, alphas.data(),
+      means.data(), icf.data(), x.data(), wishart, err, J_ceres);
   }
   end = high_resolution_clock::now();
   tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
 
-  convert_gmm_J(d, k, J_ceres, J);
-  write_J(fn + "J_Ceres.txt", Jrows, Jcols, J);
+  string name("Ceres");
+  vector<double> J(Jcols);
+  convert_gmm_J(d, k, J_ceres, J.data());
+  write_J(fn_out + "_J_" + name + ".txt", Jrows, Jcols, J.data());
   //write_times(tf, tJ);
-  write_times(fn + "J_Ceres_times.txt", tf, tJ);
+  write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
 
   for (int i = 0; i < 3; i++)
   {
     delete[] J_ceres[i];
   }
   delete[] J_ceres;
-  for (int i = 0; i < Jrows; i++)
-  {
-    delete[] J[i];
-  }
-  delete[] J;
-  delete[] alphas;
-  delete[] means;
-  delete[] icf;
-  return 0;
 }
+
+#elif DO_BA
 
 struct ReprojectionError {
   ReprojectionError(double feat_x, double feat_y)
@@ -249,6 +256,17 @@ void compute_ba_J(int n, int m, int p, double *cams,
   problem.Evaluate(opt, nullptr, &residuals, nullptr, &J);
 }
 
+void write_J_sparse(const string& fn, ceres::CRSMatrix& J)
+{
+  SparseMat Jnew;
+  Jnew.nrows = J.num_rows;
+  Jnew.ncols = J.num_cols;
+  Jnew.rows = J.rows;
+  Jnew.cols = J.cols;
+  Jnew.vals = J.values;
+  write_J_sparse(fn, Jnew);
+}
+
 void test_ba(const string& fn, int nruns)
 {
   int n, m, p;
@@ -301,38 +319,22 @@ void test_ba(const string& fn, int nruns)
   delete[] feats;
 }
 
+#endif
+
 int main(int argc, char** argv)
 {
-  string fn(argv[1]);
-  int nruns_f = 1;
-  int nruns_J = 1;
-  if (argc >= 3)
-  {
-    nruns_f = std::stoi(string(argv[2]));
-    nruns_J = std::stoi(string(argv[3]));
-  }
-  //google::InitGoogleLogging(argv[0]);
-  return test_gmm(fn, nruns_f, nruns_J);
-  //test_ba(fn, nruns); return 0;
-}
+  string dir_in(argv[1]);
+  string dir_out(argv[2]);
+  string fn(argv[3]);
+  int nruns_f = std::stoi(string(argv[4]));
+  int nruns_J = std::stoi(string(argv[5]));
 
-void write_J_sparse(const string& fn, ceres::CRSMatrix& J)
-{
-  SparseMat Jnew;
-  Jnew.nrows = J.num_rows;
-  Jnew.ncols = J.num_cols;
-  Jnew.rows = J.rows;
-  Jnew.cols = J.cols;
-  Jnew.vals = J.values;
-  write_J_sparse(fn, Jnew);
-}
+  // read only 1 point and replicate it?
+  bool replicate_point = (argc >= 7 && string(argv[6]).compare("-rep") == 0);
 
-void convert_gmm_J(int d, int k, double **J_ceres, double **J)
-{
-  int icf_sz = d*(d + 1) / 2;
-  memcpy(J[0], J_ceres[0], k*sizeof(double));
-  int J_off = k;
-  memcpy(J[0] + J_off, J_ceres[1], d*k*sizeof(double));
-  J_off += d*k;
-  memcpy(J[0] + J_off, J_ceres[2], icf_sz*k*sizeof(double));
+#ifdef DO_GMM
+  test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
+#elif defined DO_BA
+  test_ba(fn, nruns);
+#endif
 }

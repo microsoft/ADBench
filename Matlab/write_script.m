@@ -1,6 +1,7 @@
-function write_script(script_fn,params,tasks_fns,tools,nruns_f,nruns_J)
+function write_script(script_fn,params,dir_in,dir_out,...
+    fns,tools,nruns_f,nruns_J,replicate_point)
 
-ntasks = numel(tasks_fns);
+ntasks = numel(fns);
 
 targets = {};
 for i=1:numel(tools)
@@ -12,8 +13,12 @@ for i=1:numel(tools)
             cmd = tools(i).run_cmd;
             for j=1:ntasks
                 if nruns_f(j,i)+nruns_J(j,i) > 0
-                    cmd = [cmd ' ' sprintf('%s %i %i',...
-                        tasks_fns{j},nruns_f(j,i),nruns_J(j,i))];
+                    cmd = [cmd ' ' sprintf('%s %s %s %i %i',...
+                        dir_in,...
+                        dir_out,...
+                        fns{j},...
+                        nruns_f(j,i),...
+                        nruns_J(j,i))];
                 end
             end
             targets(end).targets(end+1).name = [targets(end).name '_all'];
@@ -26,16 +31,20 @@ for i=1:numel(tools)
                     d = params{j}(1);
                     k = params{j}(2);
                     curr_dk = sprintf('d%ik%i',d,k);
+                    args = sprintf('%s %s %s %i %i',...
+                        dir_in,...
+                        dir_out,...
+                        fns{j},...
+                        nruns_f(j,i),...
+                        nruns_J(j,i));
                     
                     if tools(i).call_type == 0 % standard run
-                        cmd = sprintf('%s %s %i %i',...
-                            tools(i).run_cmd,tasks_fns{j},...
-                            nruns_f(j,i),nruns_J(j,i));
+                        cmd = sprintf('%s %s',...
+                            tools(i).run_cmd,args);
                         
                     elseif tools(i).call_type == 2 % ceres
-                        cmd = sprintf('%s%s.exe %s %i %i',...
-                            tools(i).run_cmd,curr_dk,tasks_fns{j},...
-                            nruns_f(j,i),nruns_J(j,i));
+                        cmd = sprintf('%s%s.exe %s',...
+                            tools(i).run_cmd,curr_dk,args);
                     end
                     
                     targets(end).targets(end+1).name = ...
@@ -66,8 +75,12 @@ fprintf(fid,'\r\n');
 
 for i=1:numel(targets)
     for j=1:numel(targets(i).targets)
-        fprintf(fid,'%s:\r\n\t%s',targets(i).targets(j).name,...
-            targets(i).targets(j).cmd);
+        if replicate_point
+            cmd = [targets(i).targets(j).cmd ' -rep'];
+        else
+            cmd = targets(i).targets(j).cmd;
+        end
+        fprintf(fid,'%s:\r\n\t%s',targets(i).targets(j).name,cmd);
         fprintf(fid,'\r\n');
     end
 end

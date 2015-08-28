@@ -1,4 +1,4 @@
-import sys
+﻿import sys
 import time as t
 
 from scipy import special as scipy_special
@@ -79,3 +79,44 @@ def gmm_objective(alphas,means,icf,x,wishart_gamma,wishart_m):
     CONSTANT = -n*d*0.5*np.log(2 * np.pi)
     return CONSTANT + slse - n*logsumexp(alphas) \
         + log_wishart_prior(d,wishart_gamma,wishart_m,sum_qs,Qdiags,icf)
+
+######################## IO ##############################
+
+def read_gmm_instance(fn,replicate_point):
+    fid = open(fn, "r")
+    line = fid.readline()
+    line = line.split()
+    d = int(line[0])
+    k = int(line[1])
+    n = int(line[2])
+    alphas = np.array([float(fid.readline()) for i in range(k)])
+    def parse_arr(arr):
+        return [float(x) for x in arr]   
+    means = np.array([parse_arr(fid.readline().split()) for i in range(k)]) 
+    icf = np.array([parse_arr(fid.readline().split()) for i in range(k)]) 
+    if replicate_point:
+        x_ = parse_arr(fid.readline().split())
+        x = np.array([x_ for i in range(n)])
+    else:
+        x = np.array([parse_arr(fid.readline().split()) for i in range(n)]) 
+    line = fid.readline().split()
+    wishart_gamma = float(line[0])
+    wishart_m = int(line[1])
+    fid.close()
+    return alphas,means,icf,x,wishart_gamma,wishart_m
+
+def write_times(fn,tf,tJ):
+    fid = open(fn, "w")
+    print("%f %f" % (tf,tJ) , file = fid)
+    print("tf tJ" , file = fid)
+    fid.close()
+    
+def write_J(fn,grad):
+    fid = open(fn, "w")
+    J = np.concatenate((grad[0],grad[1].flatten(),grad[2].flatten()))
+    print("%i %i" % (1,J.size) , file = fid)
+    line = ""
+    for elem in J:
+        line = line + ("%f " % elem)
+    print(line,file = fid)
+    fid.close()

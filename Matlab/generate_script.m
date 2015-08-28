@@ -1,9 +1,13 @@
 %% get tools
-exe_dir = 'C:/Users/t-filsra/Workspace/autodiff/Release/';
+exe_dir = 'C:/Users/t-filsra/Workspace/autodiff/Release/gmm/';
 python_dir = 'C:/Users/t-filsra/Workspace/autodiff/Python/';
-% data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/';
-data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/10k/';
-% npoints = 10000;
+% data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/1k/';
+% data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/10k/';
+data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/2.5M/';
+data_dir_est = [data_dir 'est/'];
+npoints = 2.5e6;
+% replicate_point = true;
+% replicate_point = false;
 
 tools = get_tools(exe_dir,python_dir);
 manual_cpp_id = 1;
@@ -34,7 +38,7 @@ fns = {};
 for i=1:numel(params)
     d = params{i}(1);
     k = params{i}(2);
-    fns{end+1} = [data_dir 'gmm_d' num2str(d) '_K' num2str(k)];
+    fns{end+1} = ['gmm_d' num2str(d) '_K' num2str(k)];
 end
 ntasks = numel(params);
 % save('params_gmm.mat','params');
@@ -53,16 +57,21 @@ for i=1:ntasks
     paramsGMM.means = [paramsGMM.means{:}];
     paramsGMM.inv_cov_factors = au_map(@(i) randn(d*(d+1)/2,1), cell(k,1));
     paramsGMM.inv_cov_factors = [paramsGMM.inv_cov_factors{:}];
-    x = randn(d,npoints);
+    if replicate_point
+        x = randn(d,1);
+    else
+        x = randn(d,npoints);
+    end
     hparams = [1 0];
     
-    save_gmm_instance([fns{i} '.txt'], paramsGMM, x, hparams);
+    save_gmm_instance([data_dir fns{i} '.txt'], paramsGMM, x, hparams, npoints);
 end
 
 %% write script for running tools once
 fn_run_once = 'run_tools_once.mk';
 nruns=ones(ntasks,ntools);
-write_script(fn_run_once,params,fns,tools,nruns,nruns);
+write_script(fn_run_once,params,data_dir,data_dir_est,fns,tools,...
+    nruns,nruns,replicate_point);
 
 %% run all tools once - runtimes estimates
 % tic
@@ -72,49 +81,55 @@ write_script(fn_run_once,params,fns,tools,nruns,nruns);
 % tools ran from matlab
 nruns = ones(1,ntasks);
 for i=1:ntools
-   J_file = [data_dir 'J_' tools(i).ext '.mat'];
-   times_file = [data_dir 'times_est_' tools(i).ext '.mat'];
+   J_file = [data_dir_est 'gmm_J_' tools(i).ext '.mat'];
+   times_file = [data_dir_est 'gmm_times_' tools(i).ext '.mat'];
    if tools(i).call_type == 3 % adimat
        do_adimat_vector = false;
-       adimat_run_gmm_tests(do_adimat_vector,params,fns,...
-           nruns,nruns,J_file,times_file);
+       adimat_run_gmm_tests(do_adimat_vector,params,data_dir,fns,...
+           nruns,nruns,J_file,times_file,replicate_point);
    elseif tools(i).call_type == 4 % adimat vector
        do_adimat_vector = true;
-       adimat_run_gmm_tests(do_adimat_vector,params,fns,...
-           nruns,nruns,J_file,times_file);
+       adimat_run_gmm_tests(do_adimat_vector,params,data_dir,fns,...
+           nruns,nruns,J_file,times_file,replicate_point);
    elseif tools(i).call_type == 5 % mupad
-       mupad_run_gmm_tests(params,fns,...
-           nruns,nruns,times_file);
+       mupad_run_gmm_tests(params,data_dir,fns,...
+           nruns,nruns,times_file,replicate_point);
    end    
 end
 
 %% read time estimates & determine nruns for everyone
-times_est_J = Inf(ntasks,ntools);
 times_est_f = Inf(ntasks,ntools);
+times_est_J = Inf(ntasks,ntools);
 up_to_date_mask = false(ntasks,ntools);
 for i=1:ntools
+    postfix = ['_times_' tools(i).ext];
     if tools(i).call_type < 3
+        postfix = [postfix '.txt'];
         for j=1:ntasks
-            fn = [fns{j} tools(i).ext '_times.txt'];
+            fn = [data_dir fns{j} postfix];
+            up_to_date_mask(j,i) = is_up_to_date(fn,tools(i).exe);
+            if ~exist(fn,'file')
+                fn = [data_dir_est fns{j} postfix];
+            end
             if exist(fn,'file')
                 fid = fopen(fn);
                 times_est_f(j,i) = fscanf(fid,'%lf',1);
                 times_est_J(j,i) = fscanf(fid,'%lf',1);
                 fclose(fid);
             end
-            up_to_date_mask(j,i) = is_up_to_date(fn,tools(i).exe);
         end
     elseif tools(i).call_type >= 3
-        fn = [data_dir 'times_' tools(i).ext '.mat'];
+        postfix = ['gmm' postfix '.mat'];
+        fn = [data_dir postfix];
+        up_to_date_mask(:,i) = is_up_to_date(fn,tools(i).exe);
         if ~exist(fn,'file')
-            fn = [data_dir 'times_est_' tools(i).ext '.mat'];
+            fn = [data_dir_est postfix];
         end
         if exist(fn,'file')
             ld=load(fn);
             times_est_f(:,i) = ld.times_f;
             times_est_J(:,i) = ld.times_J;
         end
-        up_to_date_mask(:,i) = is_up_to_date(fn,tools(i).exe);
     end
 end
 
@@ -123,7 +138,8 @@ nruns_J = determine_n_runs(times_est_J) .* ~up_to_date_mask;
 
 %% write script for running tools
 fn_run_experiments = 'run_experiments.mk';
-write_script(fn_run_experiments,params,fns,tools,nruns_f,nruns_J);
+write_script(fn_run_experiments,params,data_dir,data_dir_est,...
+    fns,tools,nruns_f,nruns_J,replicate_point);
 
 %% run all experiments
 % tic
@@ -132,19 +148,19 @@ write_script(fn_run_experiments,params,fns,tools,nruns_f,nruns_J);
 
 % tools ran from matlab
 for i=1:ntools
-   J_file = [data_dir 'J_' tools(i).ext '.mat'];
-   times_file = [data_dir 'times_' tools(i).ext '.mat'];
+   J_file = [data_dir 'gmm_J_' tools(i).ext '.mat'];
+   times_file = [data_dir 'gmm_times_' tools(i).ext '.mat'];
    if tools(i).call_type == 3 % adimat
        do_adimat_vector = false;
-       adimat_run_gmm_tests(do_adimat_vector,params,fns,...
-           nruns_f(:,i),nruns_J(:,i),J_file,times_file);
+       adimat_run_gmm_tests(do_adimat_vector,params,data_dir,fns,...
+           nruns_f(:,i),nruns_J(:,i),J_file,times_file,replicate_point);
    elseif tools(i).call_type == 4 % adimat vector
        do_adimat_vector = true;
-       adimat_run_gmm_tests(do_adimat_vector,params,fns,...
-           nruns_f(:,i),nruns_J(:,i),J_file,times_file);
+       adimat_run_gmm_tests(do_adimat_vector,params,data_dir,fns,...
+           nruns_f(:,i),nruns_J(:,i),J_file,times_file,replicate_point);
    elseif tools(i).call_type == 5 % mupad
-       mupad_run_gmm_tests(params,fns,...
-           nruns_f(:,i),nruns_J(:,i),times_file);
+       mupad_run_gmm_tests(params,data_dir,fns,...
+           nruns_f(:,i),nruns_J(:,i),times_file,replicate_point);
    end    
 end
 
@@ -160,13 +176,14 @@ for i=1:ntasks
     disp(['comparing to adimat: gmm: ' num2str(i) '; params: ' num2str(params{i})]);
     d = params{i}(1);
     k = params{i}(2);
-    [paramsGMM,x,hparams] = load_gmm_instance([fns{i} '.txt']);
+    [paramsGMM,x,hparams] = load_gmm_instance(...
+        [data_dir fns{i} '.txt'],replicate_point);
     [Jrev,fvalrev] = admDiffRev(@gmm_objective_vector_repmat, 1, paramsGMM.alphas,...
         paramsGMM.means, paramsGMM.inv_cov_factors, x, hparams, opt);
     
     for j=1:ntools
         if tools(j).call_type < 3
-            fn = [fns{i} tools(j).ext '.txt'];
+            fn = [data_dir fns{i} '_J_' tools(j).ext '.txt'];
             if exist(fn,'file')
                 Jexternal = load_J(fn);
                 tmp = norm(Jrev(:) - Jexternal(:)) / norm(Jrev(:));
@@ -195,7 +212,7 @@ times_J = Inf(ntasks,ntools);
 for i=1:ntools
     if tools(i).call_type < 3
         for j=1:ntasks
-            fn = [fns{j} tools(i).ext '_times.txt'];
+            fn = [data_dir fns{j} '_times_' tools(i).ext '.txt'];
             if exist(fn,'file') && is_up_to_date(fn,tools(i).exe)
                 fid = fopen(fn);
                 times_f(j,i) = fscanf(fid,'%lf',1);
@@ -204,7 +221,7 @@ for i=1:ntools
             end
         end
     elseif tools(i).call_type >= 3
-        fn = [data_dir 'times_' tools(i).ext '.mat'];
+        fn = [data_dir 'gmm_times_' tools(i).ext '.mat'];
         if exist(fn,'file') && is_up_to_date(fn,tools(i).exe)
             ld=load(fn);
             times_f(:,i) = ld.times_f;
@@ -304,7 +321,8 @@ xlabel('# parameters')
 ylabel('compile time [hours]')
 title('Compile time (hours): MuPAD')
 
-% %% Transport objective runtimes
+%% Transport objective runtimes
+
 % fromID = 10;
 % toID = 9;
 % for i=1:ntasks

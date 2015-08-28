@@ -1,4 +1,4 @@
-function save_gmm_instance( fn, params, x, hparams)
+function save_gmm_instance(fn, params, x, hparams, n)
 %SAVE_GMM_INSTANCE 
 %       format:
 %           d k n
@@ -16,13 +16,19 @@ function save_gmm_instance( fn, params, x, hparams)
 %           .
 %           xn (in row)
 %           hparams1 hparams2
+%
+%       if n ~= num points then only one is written
 
 alphas = params.alphas;
 means = params.means;
 icf = params.inv_cov_factors;
 d = size(x,1);
 k = size(alphas,2);
-n = size(x,2);
+n_ = size(x,2);
+
+if ~exist('n','var')
+    n = n_;
+end
 
 fid = fopen(fn,'w');
 
@@ -46,9 +52,16 @@ for i=1:k
     fprintf(fid,'\r\n');
 end
 
-for i=1:n
+if n_ == n
+    for i=1:n
+        for j=1:d
+            fprintf(fid,'%f ',x(j,i));
+        end
+        fprintf(fid,'\r\n');
+    end
+else % write just one
     for j=1:d
-        fprintf(fid,'%f ',x(j,i));
+        fprintf(fid,'%f ',x(j,1));
     end
     fprintf(fid,'\r\n');
 end

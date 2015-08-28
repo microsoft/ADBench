@@ -12,40 +12,7 @@ import theano.ifelse
 import theano.compile
 import theano.compile.mode
 
-def read_gmm_instance(fn):
-    fid = open(fn, "r")
-    line = fid.readline()
-    line = line.split()
-    d = int(line[0])
-    k = int(line[1])
-    n = int(line[2])
-    alphas = np.array([float(fid.readline()) for i in range(k)])
-    def parse_arr(arr):
-        return [float(x) for x in arr]   
-    means = np.array([parse_arr(fid.readline().split()) for i in range(k)]) 
-    icf = np.array([parse_arr(fid.readline().split()) for i in range(k)]) 
-    x = np.array([parse_arr(fid.readline().split()) for i in range(n)]) 
-    line = fid.readline().split()
-    wishart_gamma = float(line[0])
-    wishart_m = int(line[1])
-    fid.close()
-    return alphas,means,icf,x,wishart_gamma,wishart_m
-
-def write_times(fn,tf,tJ):
-    fid = open(fn, "w")
-    print("%f %f" % (tf,tJ) , file = fid)
-    print("tf tJ" , file = fid)
-    fid.close()
-    
-def write_J(fn,grad):
-    fid = open(fn, "w")
-    J = np.concatenate((grad[0],grad[1].flatten(),grad[2].flatten()))
-    print("%i %i" % (1,J.size) , file = fid)
-    line = ""
-    for elem in J:
-        line = line + ("%f " % elem)
-    print(line,file = fid)
-    fid.close()
+import gmm_io
 
 ############## Objective in theano ##################
 
@@ -153,28 +120,7 @@ wishart_m_ = mkscalar('wishart_m')
 
 #compile_mode = 'FAST_COMPILE'
 compile_mode = 'FAST_RUN'
-#compile_mode = 'DebugMode'
 th.config.linker='cvm'
-
-#def foo(A):
-#    def inner(col):
-#        results,_ = th.scan(fn=(lambda elem : elem),sequences=col)
-#        return results[-1]
-#    results,_ = th.scan(fn=inner,sequences=A)
-#    return results[-1]
-
-#A = T.dmatrix('A')
-##x_ = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]) # works for 15 elements
-#A_ = np.array([[1, 2],[3, 4]]) # works for 15 elements
-
-#out = foo(A)
-#f = th.function([A], out, mode=compile_mode)
-#out_ = f(A_)
-#print(out_)
-#grad = T.grad(out, A)
-#fgrad = th.function([A], grad, mode=compile_mode)
-#J = fgrad(A_) # crashes here
-#print(J)
 
 start = t.time()
 err_ = gmm_objective(alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_)
@@ -190,16 +136,23 @@ end = t.time()
 tJ_compile = (end - start)
 print("tJ_compile: %f" % tJ_compile)
 
-ntasks = (len(sys.argv)-1)//3
+ntasks = (len(sys.argv)-1)//5
+replicate_point = (len(sys.argv) >= (ntasks*5+2) and sys.argv[-1] == "-rep")
+
 for task_id in range(ntasks):
     print("task_id: %i" % task_id)
 
     argv_idx = task_id*3 + 1
-    fn = sys.argv[argv_idx]
-    nruns_f = int(sys.argv[argv_idx+1])
-    nruns_J = int(sys.argv[argv_idx+2])
+    dir_in = sys.argv[argv_idx]
+    dir_out = sys.argv[argv_idx+1]
+    fn = sys.argv[argv_idx+2]
+    nruns_f = int(sys.argv[argv_idx+3])
+    nruns_J = int(sys.argv[argv_idx+4])
+
+    fn_in = dir_in + fn;
+    fn_out = dir_out + fn;
     
-    alphas,means,icf,x,wishart_gamma,wishart_m = read_gmm_instance(fn + ".txt")
+    alphas,means,icf,x,wishart_gamma,wishart_m = gmm_io.read_gmm_instance(fn_in + ".txt", replicate_point)
 
     start = t.time()
     for i in range(nruns_f):
@@ -208,15 +161,18 @@ for task_id in range(ntasks):
     tf = (end - start)/nruns_f
     print("err:")
     print(err)
-
-    start = t.time()
-    for i in range(nruns_J):
-        J = fgrad(alphas,means,icf,x,wishart_gamma,wishart_m)
-    end = t.time()
-    tJ = ((end - start)/nruns_J) + tf ###!!!!!!!!! adding this because no function value is returned by fgrad
     
-    name = "J_Theano_vector"
-    write_J(fn + name + ".txt",J)
-    write_times(fn + name + "_times.txt",tf,tJ)
+    name = "Theano_vector"
+
+    tJ = 0
+    if nruns_J > 0:
+        start = t.time()
+        for i in range(nruns_J):
+            J = fgrad(alphas,means,icf,x,wishart_gamma,wishart_m)
+        end = t.time()
+        tJ = ((end - start)/nruns_J) + tf ###!!!!!!!!! adding this because no function value is returned by fgrad
+        gmm_io.write_J(fn_out + "_J_" + name + ".txt",J)    
+    
+    gmm_io.write_times(fn_out + "_times_" + name + ".txt",tf,tJ)
 
 

@@ -14,22 +14,23 @@ addpath('awful/matlab');
 % JforV - dy
 
 %% create random GMM instance
-d = 10;
-k = 10;
+d = 2;
+k = 3;
 n = 100;
+n_ = 1;
 rng(1);
 gmm.alphas = randn(1,k);
 gmm.means = au_map(@(i) rand(d,1), cell(k,1));
 gmm.means = [gmm.means{:}];
 gmm.inv_cov_factors = au_map(@(i) randn(d*(d+1)/2,1), cell(k,1));
 gmm.inv_cov_factors = [gmm.inv_cov_factors{:}];
-x = randn(d,n);
+x = randn(d,n_);
 hparams = [1 0];
 
 fn = '../gmm';
 % fn = '../gmm_instances/gmm_d2_K25';
-save_gmm_instance([fn '.txt'],gmm,x,hparams);
-[gmm,x,hparams] = load_gmm_instance([fn '.txt']);
+% save_gmm_instance([fn '.txt'],gmm,x,hparams,n);
+[gmm,x,hparams] = load_gmm_instance([fn '.txt'],n~=n_);
 
 num_params = numel(gmm.alphas) + numel(gmm.means) + ...
     numel(gmm.inv_cov_factors)
@@ -47,21 +48,22 @@ opt = admOptions('independents', [1 2 3],  'functionResults', {1});
 
 %% external result for comparison
 
-% Jexternal = load_J([fn 'J_Adept.txt']);
-% Jexternal = load_J([fn 'J_Adept_split.txt']);
-% Jexternal = load_J([fn 'J_Autograd.txt']);
-% Jexternal = load_J([fn 'J_Autograd_split.txt']);
-% Jexternal = load_J([fn 'J_diffsharpR.txt']);
-% Jexternal = load_J([fn 'J_diffsharpRsplit.txt']);
-% Jexternal = load_J([fn 'J_Tapenade_b.txt']);
-% Jexternal = load_J([fn 'J_Tapenade_dv.txt']);
-% Jexternal = load_J([fn 'J_ADOLC_split.txt']);
-% Jexternal = load_J([fn 'J_Ceres.txt']);
-% Jexternal = load_J([fn 'J_manual.txt']);
-% Jexternal = load_J([fn 'J_manual_VS.txt']);
-% Jexternal = load_J([fn 'J_manual_Eigen5.txt']);
-% Jexternal = load_J([fn 'J_Theano.txt']);
-Jexternal = load_J([fn 'J_Theano_vector.txt']);
+% Jexternal = load_J([fn '_J_manual_cpp.txt']);
+% Jexternal = load_J([fn '_J_manual_eigen.txt']);
+% Jexternal = load_J([fn '_J_manual_eigen_vector.txt']);
+% Jexternal = load_J([fn '_J_Tapenade.txt']);
+% Jexternal = load_J([fn '_J_ADOLC_split.txt']);
+% Jexternal = load_J([fn '_J_ADOLC.txt']);
+% Jexternal = load_J([fn '_J_Adept.txt']);
+% Jexternal = load_J([fn '_J_Adept_split.txt']);
+% Jexternal = load_J([fn '_J_Ceres.txt']);
+% Jexternal = load_J([fn '_J_DiffSharp.txt']);
+% Jexternal = load_J([fn '_J_DiffSharp_R.txt']);
+% Jexternal = load_J([fn '_J_DiffSharp_R_split.txt']);
+% Jexternal = load_J([fn '_J_Autograd.txt']);
+% Jexternal = load_J([fn '_J_Autograd_split.txt']);
+Jexternal = load_J([fn '_J_Theano.txt']);
+% Jexternal = load_J([fn '_J_Theano_vector.txt']);
 [Jrev,fvalrev] = admDiffRev(@gmm_objective_vector_repmat, 1, gmm.alphas,...
     gmm.means, gmm.inv_cov_factors, x, hparams, opt);
 
@@ -143,7 +145,7 @@ rng(1);
 num_in = numel(cams) + numel(X) + numel(w)
 num_out = 2*p + n-2 + p
 
-fn = 'Z:/ba';
+fn = '../ba';
 % save_ba_instance( [fn '.txt'], cams, X, w, obs )
 [cams, X, w, obs] = load_ba_instance( [fn '.txt']);
 

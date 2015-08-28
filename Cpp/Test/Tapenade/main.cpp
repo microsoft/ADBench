@@ -8,14 +8,19 @@
 #include "../defs.h"
 #include "../utils.h"
 
+#define DO_GMM
+//#define DO_BA
+
 extern "C"
 {
+#ifdef DO_GMM
 #include "gmm.h"
 #include "gmm_b.h"
-//#include "gmm_dv.h"
+#elif defined DO_BA
 #include "ba.h"
 #include "ba_dv.h"
 #include "ba_bv.h"
+#endif
 }
 
 using std::cin;
@@ -23,6 +28,8 @@ using std::cout;
 using std::endl;
 using std::string;
 using namespace std::chrono;
+
+#ifdef DO_GMM
 
 void compute_gmm_Jb(int d, int k, int n,
   double* alphas, double* means,
@@ -42,21 +49,22 @@ void compute_gmm_Jb(int d, int k, int n,
     icf, icfb, x, wishart, &err, &eb);
 }
 
-void test_gmm(const string& fn, int nruns_f, int nruns_J)
+void test_gmm(const string& fn_in, const string& fn_out, 
+  int nruns_f, int nruns_J, bool replicate_point)
 {
   int d, k, n;
-  double *alphas, *means, *icf, *x;
+  vector<double> alphas, means, icf, x;
   Wishart wishart;
 
   //read instance
-  read_gmm_instance(fn + ".txt", d, k, n,
-    alphas, means, icf, x, wishart);
+  read_gmm_instance(fn_in + ".txt", &d, &k, &n,
+    alphas, means, icf, x, wishart, replicate_point);
 
   int icf_sz = d*(d + 1) / 2;
   int Jsz = (k*(d + 1)*(d + 2)) / 2;
 
-  double e1, e3, e4;
-  double *Jb = new double[Jsz];
+  double e1, e2;
+  vector<double> J(Jsz);
 
   high_resolution_clock::time_point start, end;
   double tf, tb = 0., tdv = 0.;
@@ -64,68 +72,31 @@ void test_gmm(const string& fn, int nruns_f, int nruns_J)
   start = high_resolution_clock::now();
   for (int i = 0; i < nruns_f; i++)
   {
-    gmm_objective(d, k, n, alphas, means,
-      icf, x, wishart, &e1);
+    gmm_objective(d, k, n, alphas.data(), means.data(),
+      icf.data(), x.data(), wishart, &e1);
   }
   end = high_resolution_clock::now();
   tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
+  cout << "err: " << e1 << endl;
 
   start = high_resolution_clock::now();
   for (int i = 0; i < nruns_J; i++)
   {
-    compute_gmm_Jb(d, k, n, alphas,
-      means, icf, x, wishart, e3, Jb);
+    compute_gmm_Jb(d, k, n, alphas.data(),
+      means.data(), icf.data(), x.data(), wishart, e2, J.data());
   }
   end = high_resolution_clock::now();
   tb = duration_cast<duration<double>>(end - start).count() / nruns_J;
+  cout << "err: " << e2 << endl;
 
   /////////////////// results //////////////////////////
-  write_J(fn + "J_Tapenade_b.txt", 1, Jsz, Jb);
+  string name("Tapenade");
+  write_J(fn_out + "_J_" + name + ".txt", 1, Jsz, J.data());
   //write_times(tf, tb);
-  write_times(fn + "J_Tapenade_b_times.txt", tf, tb);
-
-  delete[] Jb;
-
-  delete[] alphas;
-  delete[] means;
-  delete[] icf;
-  delete[] x;
-}
-/*
-// Jb in column major
-void compute_ba_Jb(int n, int m, int p, double *cams, double *X,
-int *obs, double *feats, double *Jb)
-{
-int nCamParams = 11;
-double *camsb = new double[nCamParams*n];
-double *Xb = new double[3 * m];
-double *err = new double[p];
-double *errb = new double[p];
-
-for (int i = 0; i < p; i++)
-{
-memset(camsb, 0, nCamParams*n*sizeof(double));
-memset(Xb, 0, 3 * m*sizeof(double));
-memset(errb, 0, p*sizeof(double));
-errb[i] = 1.;
-ba_b(n, m, p, cams, camsb, X, Xb, obs, feats, err, errb);
-for (int j = 0; j < nCamParams*n; j++)
-{
-Jb[j*p + i] = camsb[j];
-}
-int Jb_off = nCamParams*n*p;
-for (int j = 0; j < 3*m; j++)
-{
-Jb[Jb_off + j*p + i] = Xb[j];
-}
+  write_times(fn_out + "_times_" + name + ".txt", tf, tb);
 }
 
-delete[] camsb;
-delete[] Xb;
-delete[] err;
-delete[] errb;
-}
-*/
+#elif defined DO_BA
 
 void compute_reproj_error_Jdv_block(int n, int m, int obsIdx,
   int camIdx, int ptIdx, double *cam, double *X, double w,
@@ -446,58 +417,22 @@ void test_ba(const string& fn, int nruns)
   delete[] feats;
 }
 
+#endif
+
 int main(int argc, char *argv[])
 {
-  string fn(argv[1]);
-  int nruns_f = 1;
-  int nruns_J = 1;
-  if (argc >= 3)
-  {
-    nruns_f = std::stoi(string(argv[2]));
-    nruns_J = std::stoi(string(argv[3]));
-  }
-  test_gmm(fn, nruns_f, nruns_J);
+  string dir_in(argv[1]);
+  string dir_out(argv[2]);
+  string fn(argv[3]);
+  int nruns_f = std::stoi(string(argv[4]));
+  int nruns_J = std::stoi(string(argv[5]));
+  
+  // read only 1 point and replicate it?
+  bool replicate_point = (argc >= 7 && string(argv[6]).compare("-rep") == 0);
+
+#ifdef DO_GMM
+  test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
+#elif defined DO_BA
   //test_ba(fn, nruns);
+#endif
 }
-
-
-/*void compute_gmm_Jdv(int d, int k, int n,
-double* alphas, double* means,
-double* icf, double* x, Wishart wishart,
-double& err, double* Jdv)
-{
-int icf_sz = d*(d + 1) / 2;
-int nbdirs = k + d*k + icf_sz*k;
-double(*alphasdv)[NBDirsMax] = (double(*)[NBDirsMax])malloc(k*sizeof(double)*NBDirsMax);
-double(*meansdv)[NBDirsMax] = (double(*)[NBDirsMax])malloc(d*k*sizeof(double)*NBDirsMax);
-double(*icfdv)[NBDirsMax] = (double(*)[NBDirsMax])malloc(icf_sz*k*sizeof(double)*NBDirsMax);
-
-for (int ik = 0; ik < k; ik++)
-{
-memset(alphasdv[ik], 0, nbdirs*sizeof(double));
-alphasdv[ik][ik] = 1.;
-}
-int nbdirs_off = k;
-for (int i = 0; i < d*k; i++)
-{
-memset(meansdv[i], 0, nbdirs*sizeof(double));
-meansdv[i][nbdirs_off + i] = 1.;
-}
-nbdirs_off += d*k;
-for (int i = 0; i < icf_sz*k; i++)
-{
-memset(icfdv[i], 0, nbdirs*sizeof(double));
-icfdv[i][nbdirs_off + i] = 1.;
-}
-
-double errdv[NBDirsMax];
-gmm_objective_dv(d, k, n, alphas, alphasdv, means,
-meansdv, icf, icfdv,
-x, wishart, &err, &errdv, nbdirs);
-
-memcpy(Jdv, errdv, nbdirs * sizeof(double));
-
-free(alphasdv);
-free(meansdv);
-free(icfdv);
-}*/

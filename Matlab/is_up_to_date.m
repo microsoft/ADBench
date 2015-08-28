@@ -1,5 +1,10 @@
 function out = is_up_to_date(results_fn,tool_fn)
 
+if ~exist(results_fn,'file')
+    out = true;
+    return
+end
+
 a = dir(results_fn);
 results_age = datetime(a.date);
 

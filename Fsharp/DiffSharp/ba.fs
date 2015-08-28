@@ -4,8 +4,12 @@ let abc = printfn "abc"
 open System
 open System.Diagnostics
 open System.IO
+
+#if MODE_AD && (DO_GMM || DO_GMM_SPLIT)
+open DiffSharp.AD
+#else
 open DiffSharp.AD.Specialized.Reverse1
-//open DiffSharp.AD
+#endif
 
 ////// IO //////
 

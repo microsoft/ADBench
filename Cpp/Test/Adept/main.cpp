@@ -3,17 +3,25 @@
 #include <chrono>
 #include <set>
 
+#define DO_GMM_FULL
+//#define DO_GMM_SPLIT
+
 #include "adept.h"
 #include "../utils.h"
 #include "../defs.h"
+
+#if defined DO_GMM_FULL || defined DO_GMM_SPLIT
 #define ADEPT_COMPILATION
 #include "../ADOLC/gmm.h"
+#endif
 
 using adept::adouble;
 using std::cout;
 using std::endl;
 using std::string;
 using namespace std::chrono;
+
+#ifdef DO_GMM_FULL
 
 double compute_gmm_J(int nruns,
   int d, int k, int n, double *alphas,
@@ -57,6 +65,8 @@ double compute_gmm_J(int nruns,
 
   return duration_cast<duration<double>>(end - start).count() / nruns;
 }
+
+#elif defined DO_GMM_SPLIT
 
 double compute_gmm_J_split(int nruns,
   int d, int k, int n, double *alphas,
@@ -127,22 +137,26 @@ double compute_gmm_J_split(int nruns,
   return duration_cast<duration<double>>(end - start).count() / nruns;
 }
 
-void test_gmm(const string& fn, int nruns_f, int nruns_J)
+#endif
+#if defined DO_GMM_FULL || defined DO_GMM_SPLIT
+
+void test_gmm(const string& fn_in, const string& fn_out,
+  int nruns_f, int nruns_J, bool replicate_point)
 {
   int d, k, n;
-  double *alphas, *means, *icf, *x;
+  vector<double> alphas, means, icf, x;
   double err;
   Wishart wishart;
 
   // Read instance
-  read_gmm_instance(fn + ".txt", d, k, n,
-    alphas, means, icf, x, wishart);
+  read_gmm_instance(fn_in + ".txt", &d, &k, &n,
+    alphas, means, icf, x, wishart, replicate_point);
 
   int icf_sz = d*(d + 1) / 2;
   int Jrows = 1;
   int Jcols = (k*(d + 1)*(d + 2)) / 2;
 
-  double *J = new double[Jcols];
+  vector<double> J(Jcols);
 
   // Test
   high_resolution_clock::time_point start, end;
@@ -151,38 +165,42 @@ void test_gmm(const string& fn, int nruns_f, int nruns_J)
   start = high_resolution_clock::now();
   for (int i = 0; i < nruns_f; i++)
   {
-    gmm_objective(d, k, n, alphas, means,
-      icf, x, wishart, &err);
+    gmm_objective(d, k, n, alphas.data(), means.data(),
+      icf.data(), x.data(), wishart, &err);
   }
   end = high_resolution_clock::now();
   tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
   cout << "err: " << err << endl;
 
-  //tJ = compute_gmm_J(nruns_J, d, k, n, alphas, means, icf, x, wishart, err, J);
-  //tJ = compute_gmm_J_split(nruns_J, d, k, n, alphas, means, icf, x, wishart, err, J);
+#ifdef DO_GMM_FULL
+  string name = "Adept";
+  tJ = compute_gmm_J(nruns_J, d, k, n, alphas.data(), means.data(),
+    icf.data(), x.data(), wishart, err, J.data());
+#elif defined DO_GMM_SPLIT
+  string name = "Adept_split";
+  tJ = compute_gmm_J_split(nruns_J, d, k, n, alphas.data(), means.data(), 
+    icf.data(), x.data(), wishart, err, J.data());
+#endif
 
-  //string name = "J_Adept";
-  //string name = "J_Adept_split";
-  write_J(fn + name + ".txt", Jrows, Jcols, J);
+  write_J(fn_out + "_J_" + name + ".txt", Jrows, Jcols, J.data());
   //write_times(tf, tJ);
-  write_times(fn + name + "_times.txt", tf, tJ);
-
-  delete[] J;
-  delete[] alphas;
-  delete[] means;
-  delete[] x;
-  delete[] icf;
+  write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
 }
+
+#endif
 
 int main(int argc, char *argv[])
 {
-  string fn(argv[1]);
-  int nruns_f = 1;
-  int nruns_J = 1;
-  if (argc >= 3)
-  {
-    nruns_f = std::stoi(string(argv[2]));
-    nruns_J = std::stoi(string(argv[3]));
-  }
-  test_gmm(fn, nruns_f, nruns_J);
+  string dir_in(argv[1]);
+  string dir_out(argv[2]);
+  string fn(argv[3]);
+  int nruns_f = std::stoi(string(argv[4]));
+  int nruns_J = std::stoi(string(argv[5]));
+
+  // read only 1 point and replicate it?
+  bool replicate_point = (argc >= 7 && string(argv[6]).compare("-rep") == 0);
+
+#if defined DO_GMM_FULL || defined DO_GMM_SPLIT
+  test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
+#endif
 }

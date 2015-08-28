@@ -1,6 +1,6 @@
 function [times_f, times_J] = ...
-    adimat_run_gmm_tests(do_adimat_vector,params,task_fns,...
-    nruns_f,nruns_J,J_file,times_file)
+    adimat_run_gmm_tests(do_adimat_vector,params,data_dir,task_fns,...
+    nruns_f,nruns_J,J_file,times_file,replicate_point)
 %adimat_run_gmm_tests
 %   compute derivative of gmm
 
@@ -30,7 +30,8 @@ end
 
 for i=1:ntasks
     disp(['runnning gmm: ' num2str(i) '; params: ' num2str(params{i})]);
-    [paramsGMM,x,hparams] = load_gmm_instance([task_fns{i} '.txt']);
+    [paramsGMM,x,hparams] = load_gmm_instance(...
+        [data_dir task_fns{i} '.txt'],replicate_point);
     
     nruns_curr_f = nruns_f(i);
     nruns_curr_J = nruns_J(i);

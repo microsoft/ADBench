@@ -30,34 +30,40 @@ typedef struct
 } SparseMat;
 
 void read_gmm_instance(const string& fn,
-  int& d, int& k, int& n, double*& alphas,
-  double*& means, double*& icf,
-  double*& x, Wishart& wishart)
+  int *d, int *k, int *n, 
+  vector<double>& alphas,
+  vector<double>& means,
+  vector<double>& icf,
+  vector<double>& x,
+  Wishart& wishart,
+  bool replicate_point)
 {
   FILE *fid = fopen(fn.c_str(), "r");
 
-  fscanf(fid, "%i %i %i", &d, &k, &n);
+  fscanf(fid, "%i %i %i", d, k, n);
 
-  int icf_sz = d*(d + 1) / 2;
-  alphas = new double[k];
-  means = new double[d * k];
-  icf = new double[icf_sz * k];
-  x = new double[d*n];
+  int d_ = *d, k_ = *k, n_ = *n;
 
-  for (int i = 0; i < k; i++)
+  int icf_sz = d_*(d_ + 1) / 2;
+  alphas.resize(k_);
+  means.resize(d_*k_);
+  icf.resize(icf_sz*k_);
+  x.resize(d_*n_);
+
+  for (int i = 0; i < k_; i++)
   {
     fscanf(fid, "%lf", &alphas[i]);
   }
 
-  for (int i = 0; i < k; i++)
+  for (int i = 0; i < k_; i++)
   {
-    for (int j = 0; j < d; j++)
+    for (int j = 0; j < d_; j++)
     {
-      fscanf(fid, "%lf", &means[i*d + j]);
+      fscanf(fid, "%lf", &means[i*d_ + j]);
     }
   }
 
-  for (int i = 0; i < k; i++)
+  for (int i = 0; i < k_; i++)
   {
     for (int j = 0; j < icf_sz; j++)
     {
@@ -65,11 +71,25 @@ void read_gmm_instance(const string& fn,
     }
   }
 
-  for (int i = 0; i < n; i++)
+  if (replicate_point)
   {
-    for (int j = 0; j < d; j++)
+    for (int j = 0; j < d_; j++)
     {
-      fscanf(fid, "%lf", &x[i*d + j]);
+      fscanf(fid, "%lf", &x[j]);
+    }
+    for (int i = 0; i < n_; i++)
+    {
+      memcpy(&x[i*d_], &x[0], d_ * sizeof(double));
+    }
+  }
+  else
+  {
+    for (int i = 0; i < n_; i++)
+    {
+      for (int j = 0; j < d_; j++)
+      {
+        fscanf(fid, "%lf", &x[i*d_ + j]);
+      }
     }
   }
 

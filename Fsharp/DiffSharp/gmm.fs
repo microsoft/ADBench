@@ -4,14 +4,18 @@ open System
 open System.Diagnostics
 open System.IO
 open MathNet.Numerics
+
+#if MODE_AD && (DO_GMM_FULL || DO_GMM_SPLIT)
+open DiffSharp.AD
+#else
 open DiffSharp.AD.Specialized.Reverse1
-//open DiffSharp.AD
+#endif
 
 type Wishart = {gamma:Double; m:Int32}
 
 ////// IO //////
 
-let read_gmm_instance (fn:string) =
+let read_gmm_instance (fn:string) replicate_point =
     let read_in_elements (fn:string) =
         let string_lines = File.ReadLines(fn)
         let separators = [|' '|]
@@ -39,16 +43,31 @@ let read_gmm_instance (fn:string) =
     let icf = parse_double data.[offset..(offset+k-1)]
 
     offset <- offset + k
-    let x = parse_double data.[offset..(offset+n-1)]
-
-    offset <- offset + n
+    let x =
+        if replicate_point then
+            let x_ = parse_double data.[offset..offset]
+            [|for i=1 to n do yield x_.[0]|]
+        else
+            parse_double data.[offset..(offset+n-1)]
+          
+    offset <- 
+        if replicate_point then
+            offset + 1
+        else
+            offset + n
+    
     let gamma = Double.Parse data.[offset].[0]
     let m = Int32.Parse data.[offset].[1]
     let wishart = {gamma=gamma; m=m}
    
     alphas, means, icf, x, wishart
 
+#if MODE_AD
+let write_grad (fn:string) (gradient:D[]) =
+#endif
+#if MODE_R
 let write_grad (fn:string) (gradient:float[]) =
+#endif
     let line1 = sprintf "1 %i\n" gradient.Length
     let mutable line2 = ""
     for elem in gradient do
@@ -136,6 +155,14 @@ let log_wishart_prior_ p (wishart:Wishart) (Qdiags:D[][]) (sum_qs:D[]) (icf:D[][
     let out = [for ik = 0 to k-1 do yield (main_term ik)] |> List.sum
     out - (float k)*C
 
+let vectorize alphas means icf =
+    Array.append (Array.append alphas [|for mean in means do for elem in mean do yield elem|])
+            [|for curr_icf in icf do for elem in curr_icf do yield elem|]
+
+let reshape inner_dim outer_dim (arr:_[]) =
+    [|for i = 0 to outer_dim-1 do yield arr.[(i*inner_dim)..((i+1)*inner_dim-1)]|]
+
+#if DO_GMM_FULL
 let gmm_objective_ (alphas:D[]) (means:D[][]) (icf:D[][]) (x:float[][]) (wishart:Wishart)  =
     let k = alphas.Length
     let d = means.[0].Length
@@ -170,13 +197,6 @@ let gmm_objective_ (alphas:D[]) (means:D[][]) (icf:D[][]) (x:float[][]) (wishart
 
     slse + (float n) * ((log CONSTANT) - (logsumexp alphas)) + (log_wishart_prior_ d wishart Qdiags sum_qs icf)
 
-let vectorize alphas means icf =
-    Array.append (Array.append alphas [|for mean in means do for elem in mean do yield elem|])
-            [|for curr_icf in icf do for elem in curr_icf do yield elem|]
-
-let reshape inner_dim outer_dim (arr:_[]) =
-    [|for i = 0 to outer_dim-1 do yield arr.[(i*inner_dim)..((i+1)*inner_dim-1)]|]
-
 let gmm_objective_wrapper d k (parameters:_[]) (x:float[][]) (wishart:Wishart) =
     let means_off = k
     let icf_sz = d*(d + 1) / 2
@@ -184,7 +204,9 @@ let gmm_objective_wrapper d k (parameters:_[]) (x:float[][]) (wishart:Wishart) =
     let means = (reshape d k parameters.[means_off..(means_off+d*k-1)])
     let icf = (reshape icf_sz k parameters.[icf_off..(icf_off+icf_sz*k-1)])
     gmm_objective_ parameters.[..(k-1)] means icf x wishart
+#endif
 
+#if DO_GMM_SPLIT
 /////// Derivative extras extras - fixing stack overflow ////////
 let gmm_objective_1 (alphas:D[]) (means:D[][]) (icf:D[][]) (x:float[])  =
     let k = alphas.Length
@@ -227,3 +249,4 @@ let gmm_objective_2wrapper d k n (parameters:_[]) (wishart:Wishart) =
     let icf_sz = d*(d + 1) / 2
     let icf_off = means_off + d*k
     gmm_objective_2 d n parameters.[..(k-1)] (reshape icf_sz k parameters.[icf_off..(icf_off+icf_sz*k-1)]) wishart
+#endif

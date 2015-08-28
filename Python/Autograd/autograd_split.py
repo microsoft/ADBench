@@ -7,43 +7,6 @@ import autograd.numpy as np
 from autograd import value_and_grad
 
 import gmm_objective as gmm
-
-######################## IO ##############################
-
-def read_gmm_instance(fn):
-    fid = open(fn, "r")
-    line = fid.readline()
-    line = line.split()
-    d = int(line[0])
-    k = int(line[1])
-    n = int(line[2])
-    alphas = np.array([float(fid.readline()) for i in range(k)])
-    def parse_arr(arr):
-        return [float(x) for x in arr]   
-    means = np.array([parse_arr(fid.readline().split()) for i in range(k)]) 
-    icf = np.array([parse_arr(fid.readline().split()) for i in range(k)]) 
-    x = np.array([parse_arr(fid.readline().split()) for i in range(n)]) 
-    line = fid.readline().split()
-    wishart_gamma = float(line[0])
-    wishart_m = int(line[1])
-    fid.close()
-    return alphas,means,icf,x,wishart_gamma,wishart_m
-
-def write_times(fn,tf,tJ):
-    fid = open(fn, "w")
-    print("%f %f" % (tf,tJ) , file = fid)
-    print("tf tJ" , file = fid)
-    fid.close()
-    
-def write_J(fn,grad):
-    fid = open(fn, "w")
-    J = np.concatenate((grad[0],grad[1].flatten(),grad[2].flatten()))
-    print("%i %i" % (1,J.size) , file = fid)
-    line = ""
-    for elem in J:
-        line = line + ("%f " % elem)
-    print(line,file = fid)
-    fid.close()
     
 ######################## Objective ##############################
 
@@ -141,10 +104,17 @@ def gmm_objective_wrapper(params,x,wishart_gamma,wishart_m):
 def add_grad(g1,g2):
     return (g1[0]+g2[0],[g1[1][0]+g2[1][0],g1[1][1]+g2[1][1],g1[1][2]+g2[1][2]])
 
-alphas,means,icf,x,wishart_gamma,wishart_m = read_gmm_instance(sys.argv[1] + ".txt")
+dir_in = sys.argv[1]
+dir_out = sys.argv[2]
+fn = sys.argv[3]
+nruns_f = int(sys.argv[4])
+nruns_J = int(sys.argv[5])
+replicate_point = (len(sys.argv) >= 7 and sys.argv[6] == "-rep")
 
-nruns_f = int(sys.argv[2])
-nruns_J = int(sys.argv[3])
+fn_in = dir_in + fn
+fn_out = dir_out + fn
+
+alphas,means,icf,x,wishart_gamma,wishart_m = gmm.read_gmm_instance(fn_in + ".txt", replicate_point)
 
 start = t.time()
 for i in range(nruns_f):
@@ -163,8 +133,9 @@ for i in range(nruns_J):
 end = t.time()
 
 tJ = 0
-name = "J_Autograd_split"
+name = "Autograd_split"
 if nruns_J>0:
-    write_J(sys.argv[1] + name + ".txt",grad[1])
     tJ = (end - start)/nruns_J
-write_times(sys.argv[1] + name + "_times.txt",tf,tJ)
+    gmm.write_J(fn_out + "_J_" + name + ".txt",grad[1])
+    
+gmm.write_times(fn_out + "_times_" + name + ".txt",tf,tJ)
