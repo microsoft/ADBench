@@ -149,7 +149,7 @@ replicate_point = (len(sys.argv) >= (ntasks*5+2) and sys.argv[-1] == "-rep")
 for task_id in range(ntasks):
     print("task_id: %i" % task_id)
     
-    argv_idx = task_id*3 + 1
+    argv_idx = task_id*5 + 1
     dir_in = sys.argv[argv_idx]
     dir_out = sys.argv[argv_idx+1]
     fn = sys.argv[argv_idx+2]
