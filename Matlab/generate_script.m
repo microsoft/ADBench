@@ -1,15 +1,16 @@
 %% get tools
 exe_dir = 'C:/Users/t-filsra/Workspace/autodiff/Release/gmm/';
 python_dir = 'C:/Users/t-filsra/Workspace/autodiff/Python/';
-% data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/1k/';
+julia_dir = 'C:/Users/t-filsra/Workspace/autodiff/Julia/';
+data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/1k/';
 % data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/10k/';
-data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/2.5M/';
+% data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/2.5M/';
 data_dir_est = [data_dir 'est/'];
 npoints = 2.5e6;
 % replicate_point = true;
-% replicate_point = false;
+replicate_point = false;
 
-tools = get_tools(exe_dir,python_dir);
+tools = get_tools(exe_dir,python_dir,julia_dir);
 manual_cpp_id = 1;
 ntools = numel(tools);
 
@@ -98,43 +99,15 @@ for i=1:ntools
 end
 
 %% read time estimates & determine nruns for everyone
-times_est_f = Inf(ntasks,ntools);
-times_est_J = Inf(ntasks,ntools);
-up_to_date_mask = false(ntasks,ntools);
-for i=1:ntools
-    postfix = ['_times_' tools(i).ext];
-    if tools(i).call_type < 3
-        postfix = [postfix '.txt'];
-        for j=1:ntasks
-            fn = [data_dir fns{j} postfix];
-            up_to_date_mask(j,i) = is_up_to_date(fn,tools(i).exe);
-            if ~exist(fn,'file')
-                fn = [data_dir_est fns{j} postfix];
-            end
-            if exist(fn,'file')
-                fid = fopen(fn);
-                times_est_f(j,i) = fscanf(fid,'%lf',1);
-                times_est_J(j,i) = fscanf(fid,'%lf',1);
-                fclose(fid);
-            end
-        end
-    elseif tools(i).call_type >= 3
-        postfix = ['gmm' postfix '.mat'];
-        fn = [data_dir postfix];
-        up_to_date_mask(:,i) = is_up_to_date(fn,tools(i).exe);
-        if ~exist(fn,'file')
-            fn = [data_dir_est postfix];
-        end
-        if exist(fn,'file')
-            ld=load(fn);
-            times_est_f(:,i) = ld.times_f;
-            times_est_J(:,i) = ld.times_J;
-        end
-    end
-end
 
-nruns_f = determine_n_runs(times_est_f) .* ~up_to_date_mask;
-nruns_J = determine_n_runs(times_est_J) .* ~up_to_date_mask;
+[times_est_f,times_est_J,up_to_date_mask] = ...
+    read_times(data_dir,data_dir_est,fns,tools);
+
+nruns_f = determine_n_runs(times_est_f);
+nruns_J = determine_n_runs(times_est_J);
+save([data_dir_est 'gmm_estimates_backup.mat'],'nruns_f','nruns_J');
+nruns_f = nruns_f .* ~up_to_date_mask;
+nruns_J = nruns_J .* ~up_to_date_mask;
 
 %% write script for running tools
 fn_run_experiments = 'run_experiments.mk';
@@ -207,28 +180,12 @@ for i=1:numel(bad)
 end
 
 %% read final times
-times_f = Inf(ntasks,ntools);
-times_J = Inf(ntasks,ntools);
-for i=1:ntools
-    if tools(i).call_type < 3
-        for j=1:ntasks
-            fn = [data_dir fns{j} '_times_' tools(i).ext '.txt'];
-            if exist(fn,'file') && is_up_to_date(fn,tools(i).exe)
-                fid = fopen(fn);
-                times_f(j,i) = fscanf(fid,'%lf',1);
-                times_J(j,i) = fscanf(fid,'%lf',1);
-                fclose(fid);
-            end
-        end
-    elseif tools(i).call_type >= 3
-        fn = [data_dir 'gmm_times_' tools(i).ext '.mat'];
-        if exist(fn,'file') && is_up_to_date(fn,tools(i).exe)
-            ld=load(fn);
-            times_f(:,i) = ld.times_f;
-            times_J(:,i) = ld.times_J;
-        end
-    end
-end
+[times_f,times_J,up_to_date_mask] = ...
+    read_times(data_dir,data_dir_est,fns,tools);
+
+% ld = load([data_dir_est 'gmm_estimates_backup.mat']);
+% times_f(ld.nruns_f==0) = ld.times_est_f(ld.nruns_f==0);
+% times_J(ld.nruns_J==0) = ld.times_est_J(ld.nruns_J==0);
 
 times_f_relative = bsxfun(@rdivide,times_f,times_f(:,manual_cpp_id));
 times_f_relative(isnan(times_f_relative)) = Inf;

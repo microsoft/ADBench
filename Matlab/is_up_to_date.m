@@ -1,7 +1,7 @@
 function out = is_up_to_date(results_fn,tool_fn)
 
 if ~exist(results_fn,'file')
-    out = true;
+    out = false;
     return
 end
 
