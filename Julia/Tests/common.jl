@@ -1,11 +1,6 @@
-#Pkg.add("ForwardDiff")
-#Pkg.update()
-#Pkg.status()
-using ForwardDiff
-
-function logsumexp(x)
-  mx = maximum(x)
-  log(sum(exp(x - mx))) + mx
+type Wishart
+  gamma::Float64
+  m::Int
 end
 
 function ltri_unpack(D, LT)
@@ -35,21 +30,42 @@ function unpack(d,k,packed)
   (alphas,means,icf)
 end
 
+function log_gamma_distrib(a, p)
+  out = 0.25 * p * (p - 1) * log(pi)
+	for j in 1:p
+    out += lgamma(a + 0.5*(1 - j))
+  end
+	out
+end
+
+function log_wishart_prior(wishart::Wishart, sum_qs, Qs, icf)
+  p = size(Qs[1],1)
+  n = p + wishart.m + 1
+  C = n*p*(log(wishart.gamma) - 0.5*log(2)) - log_gamma_distrib(0.5*n, p)
+
+  frobenius = 0.
+  for Q in Qs
+    frobenius += sumabs2(diag(Q))
+  end
+  frobenius += sumabs2(icf[d+1:end,:])
+	0.5*wishart.gamma^2 * frobenius - wishart.m*sum(sum_qs) - k*C
+end
+
 # IO
 function read_gmm_instance(fn,replicate_point)
   fid = open(fn)
   lines = readlines(fid)
   close(fid)
   line=split(lines[1]," ")
-  d = int(line[1])
-  k = int(line[2])
-  n = int(line[3])
+  d = parse(Int,line[1])
+  k = parse(Int,line[2])
+  n = parse(Int,line[3])
   icf_sz = div(d*(d + 1),2)
   off = 1
 
   alphas = zeros(Float64,1,k)
   for i in 1:k
-    alphas[i] = float64(lines[i+off])
+    alphas[i] = parse(Float64,lines[i+off])
   end
   off += k
 
@@ -57,7 +73,7 @@ function read_gmm_instance(fn,replicate_point)
   for ik in 1:k
     line=split(lines[ik+off]," ")
     for id in 1:d
-      means[id,ik] = float64(line[id])
+      means[id,ik] = parse(Float64,line[id])
     end
   end
   off += k
@@ -66,7 +82,7 @@ function read_gmm_instance(fn,replicate_point)
   for ik in 1:k
     line=split(lines[ik+off]," ")
     for i in 1:icf_sz
-      icf[i,ik] = float64(line[i])
+      icf[i,ik] = parse(Float64,line[i])
     end
   end
   off += k
@@ -75,7 +91,7 @@ function read_gmm_instance(fn,replicate_point)
     x_ = zeros(Float64,d,1)
     line=split(lines[1+off]," ")
     for id in 1:d
-      x_[id] = float64(line[id])
+      x_[id] = parse(Float64,line[id])
     end
     x = repmat(x_,1,n)
     off += 1
@@ -84,10 +100,31 @@ function read_gmm_instance(fn,replicate_point)
     for ix in 1:n
       line=split(lines[ix+off]," ")
       for id in 1:d
-        x[id,ix] = float64(line[id])
+        x[id,ix] = parse(Float64,line[id])
       end
     end
     off += n
   end
-  (alphas,means,icf,x)
+  line = split(lines[1+off]," ")
+  wishart = Wishart(parse(Float64,line[1]),parse(Int,line[2]))
+  (alphas,means,icf,x,wishart)
+end
+
+function write_J(fn,J)
+  fid = open(fn,"w")
+  @printf fid "%i %i\n" size(J,1) size(J,2)
+  for i in 1:size(J,1)
+    for j in 1:size(J,2)
+      @printf fid "%f " J[i,j]
+    end
+    @printf fid "\n"
+  end
+  close(fid)
+end
+
+function write_times(fn,tf,tJ)
+  fid = open(fn,"w")
+  @printf fid "%f %f\r\n" tf tJ
+  @printf fid "tf tJ\r\n"
+  close(fid)
 end
