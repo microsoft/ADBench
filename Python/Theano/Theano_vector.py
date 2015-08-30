@@ -122,60 +122,57 @@ wishart_m_ = mkscalar('wishart_m')
 compile_mode = 'FAST_RUN'
 th.config.linker='cvm'
 
-#start = t.time()
-#err_ = gmm_objective(alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_)
-#f = th.function([alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_], err_, mode=compile_mode)
-#end = t.time()
-#tf_compile = (end - start)
-#print("tf_compile: %f" % tf_compile)
+start = t.time()
+err_ = gmm_objective(alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_)
+f = th.function([alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_], err_, mode=compile_mode)
+end = t.time()
+tf_compile = (end - start)
+print("tf_compile: %f" % tf_compile)
 
-#start = t.time()
-#grad = T.grad(err_,[alphas_, means_, icf_])
-#fgrad = th.function([alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_], grad, mode=compile_mode)
-#end = t.time()
-#tJ_compile = (end - start)
-#print("tJ_compile: %f" % tJ_compile)
+start = t.time()
+grad = T.grad(err_,[alphas_, means_, icf_])
+fgrad = th.function([alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_], grad, mode=compile_mode)
+end = t.time()
+tJ_compile = (end - start)
+print("tJ_compile: %f" % tJ_compile)
 
 ntasks = (len(sys.argv)-1)//5
-#replicate_point = (len(sys.argv) >= (ntasks*5+2) and sys.argv[-1] == "-rep")
+replicate_point = (len(sys.argv) >= (ntasks*5+2) and sys.argv[-1] == "-rep")
 
 for task_id in range(ntasks):
     print("task_id: %i" % task_id)
 
     argv_idx = task_id*5 + 1
-    #dir_in = sys.argv[argv_idx]
-    #dir_out = sys.argv[argv_idx+1]
-    #fn = sys.argv[argv_idx+2]
-    #nruns_f = int(sys.argv[argv_idx+3])
-    #nruns_J = int(sys.argv[argv_idx+4])
+    dir_in = sys.argv[argv_idx]
+    dir_out = sys.argv[argv_idx+1]
+    fn = sys.argv[argv_idx+2]
+    nruns_f = int(sys.argv[argv_idx+3])
+    nruns_J = int(sys.argv[argv_idx+4])
 
-    for i in range(0,5):
-        print(sys.argv[argv_idx+i])
-
-    #fn_in = dir_in + fn;
-    #fn_out = dir_out + fn;
+    fn_in = dir_in + fn;
+    fn_out = dir_out + fn;
     
-    #alphas,means,icf,x,wishart_gamma,wishart_m = gmm_io.read_gmm_instance(fn_in + ".txt", replicate_point)
+    alphas,means,icf,x,wishart_gamma,wishart_m = gmm_io.read_gmm_instance(fn_in + ".txt", replicate_point)
 
-    #start = t.time()
-    #for i in range(nruns_f):
-    #    err = f(alphas,means,icf,x,wishart_gamma,wishart_m)
-    #end = t.time()
-    #tf = (end - start)/nruns_f
-    #print("err:")
-    #print(err)
+    start = t.time()
+    for i in range(nruns_f):
+        err = f(alphas,means,icf,x,wishart_gamma,wishart_m)
+    end = t.time()
+    tf = (end - start)/nruns_f
+    print("err:")
+    print(err)
     
-    #name = "Theano_vector"
+    name = "Theano_vector"
 
-    #tJ = 0
-    #if nruns_J > 0:
-    #    start = t.time()
-    #    for i in range(nruns_J):
-    #        J = fgrad(alphas,means,icf,x,wishart_gamma,wishart_m)
-    #    end = t.time()
-    #    tJ = ((end - start)/nruns_J) + tf ###!!!!!!!!! adding this because no function value is returned by fgrad
-    #    gmm_io.write_J(fn_out + "_J_" + name + ".txt",J)    
+    tJ = 0
+    if nruns_J > 0:
+        start = t.time()
+        for i in range(nruns_J):
+            J = fgrad(alphas,means,icf,x,wishart_gamma,wishart_m)
+        end = t.time()
+        tJ = ((end - start)/nruns_J) + tf ###!!!!!!!!! adding this because no function value is returned by fgrad
+        gmm_io.write_J(fn_out + "_J_" + name + ".txt",J)    
     
-    #gmm_io.write_times(fn_out + "_times_" + name + ".txt",tf,tJ)
+    gmm_io.write_times(fn_out + "_times_" + name + ".txt",tf,tJ)
 
 
