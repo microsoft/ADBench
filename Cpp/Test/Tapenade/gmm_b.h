@@ -25,4 +25,25 @@ void gmm_objective(int d, int k, int n, double *alphas, double *means, double
 void gmm_objective_b(int d, int k, int n, double *alphas, double *alphasb, 
     double *means, double *meansb, double *icf, double *icfb, double *x, 
     Wishart wishart, double *err, double *errb);
+
+
+void gmm_objective_split_inner_b(int d, int k,
+  double *alphas,
+  double *alphasb,
+  double *means,
+  double *meansb,
+  double *icf,
+  double *icfb,
+  double *x,
+  double *err,
+  double *errb);
+void gmm_objective_split_other_b(int d, int k, int n,
+  double *alphas,
+  double *alphasb,
+  double *icf,
+  double *icfb,
+  Wishart wishart,
+  double *err,
+  double *errb);
+
 #endif

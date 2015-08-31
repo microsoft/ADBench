@@ -196,3 +196,68 @@ void gmm_objective(int d, int k, int n,
   *err = *err + ((means[0] - means[0]) +
     (icf[0] - icf[0]));
 }
+
+void gmm_objective_split_inner(int d, int k,
+  double* alphas,
+  double* means,
+  double* icf,
+  double *x,
+  double *err)
+{
+  int ik, ix, icf_sz;
+  double *main_term, *sum_qs, *Qdiags, *xcentered, *Qxcentered;
+  icf_sz = d*(d + 1) / 2;
+
+  main_term = (double *)malloc(k*sizeof(double));
+  sum_qs = (double *)malloc(k*sizeof(double));
+  Qdiags = (double *)malloc(d*k*sizeof(double));
+  xcentered = (double *)malloc(d*sizeof(double));
+  Qxcentered = (double *)malloc(d*sizeof(double));
+
+  preprocess_qs(d, k, icf, sum_qs, Qdiags);
+
+  for (ik = 0; ik < k; ik++)
+  {
+    subtract(d, x, &means[ik*d], xcentered);
+    Qtimesx(d, &Qdiags[ik*d], &icf[ik*icf_sz + d], xcentered, Qxcentered);
+    
+    main_term[ik] = alphas[ik] + sum_qs[ik] - 0.5*sqnorm(d, Qxcentered);
+  }
+  *err = logsumexp(k, main_term);
+  free(main_term);
+  free(xcentered);
+  free(Qxcentered);
+  free(sum_qs);
+  free(Qdiags);
+
+  // this is here so that tapenade would recognize that means and inv_cov_factors are variables
+  *err = *err + ((means[0] - means[0]) +
+    (icf[0] - icf[0]));
+}
+
+void gmm_objective_split_other(int d, int k, int n,
+  double* alphas,
+  double* icf,
+  Wishart wishart,
+  double *err)
+{
+  double *sum_qs, *Qdiags;
+  double lse_alphas, CONSTANT;
+  CONSTANT = -n*d*0.5*log(2 * PI);
+
+  sum_qs = (double *)malloc(k*sizeof(double));
+  Qdiags = (double *)malloc(d*k*sizeof(double));
+
+  preprocess_qs(d, k, icf, sum_qs, Qdiags);
+
+  lse_alphas = logsumexp(k, alphas);
+  *err = CONSTANT - n*lse_alphas;
+
+  *err = *err + log_wishart_prior(d, k, wishart, sum_qs, Qdiags, icf);
+
+  free(sum_qs);
+  free(Qdiags);
+
+  // this is here so that tapenade would recognize that means and inv_cov_factors are variables
+  *err = *err + ((alphas[0] - alphas[0]) + (icf[0] - icf[0]));
+}

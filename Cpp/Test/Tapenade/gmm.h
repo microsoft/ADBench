@@ -3,6 +3,7 @@
 #define TEST_TAPENADE_GMM
 
 #include "../defs.h"
+//#include "defs.h"
 
 double arr_max(int n, double* x);
 
@@ -61,6 +62,18 @@ void gmm_objective(int d, int k, int n,
   double* means,
   double* icf,
   double *x,
+  Wishart wishart,
+  double *err);
+
+void gmm_objective_split_inner(int d, int k,
+  double* alphas,
+  double* means,
+  double* icf,
+  double *x,
+  double *err);
+void gmm_objective_split_other(int d, int k, int n,
+  double* alphas,
+  double* icf,
   Wishart wishart,
   double *err);
 

@@ -302,3 +302,143 @@ void gmm_objective_b(int d, int k, int n, double *alphas, double *alphasb,
   *err = CONSTANT + slse - n*lse_alphas + log_wish_prior_res;
   *errb = 0.0;
 }
+
+/*
+Differentiation of gmm_objective_split_inner in reverse (adjoint) mode:
+gradient     of useful results: *err
+with respect to varying inputs: *err *means *icf *alphas
+RW status of diff variables: *err:in-zero *means:out *icf:out
+*alphas:out
+Plus diff mem management of: err:in means:in icf:in alphas:in
+*/
+void gmm_objective_split_inner_b(int d, int k, 
+  double *alphas, 
+  double *alphasb, 
+  double *means, 
+  double *meansb, 
+  double *icf, 
+  double *icfb, 
+  double *x,
+  double *err, 
+  double *errb) 
+{
+  int ik, icf_sz, i;
+  double *main_term, *sum_qs, *Qdiags, *xcentered, *Qxcentered;
+  double *main_termb, *sum_qsb, *Qdiagsb, *xcenteredb, *Qxcenteredb;
+  double result1;
+  double result1b;
+  main_termb = (double *)malloc(k*sizeof(double));
+  main_term = (double *)malloc(k*sizeof(double));
+  sum_qsb = (double *)malloc(k*sizeof(double));
+  sum_qs = (double *)malloc(k*sizeof(double));
+  Qdiagsb = (double *)malloc(d*k*sizeof(double));
+  Qdiags = (double *)malloc(d*k*sizeof(double));
+  xcenteredb = (double *)malloc(d*sizeof(double));
+  xcentered = (double *)malloc(d*sizeof(double));
+  Qxcenteredb = (double *)malloc(d*sizeof(double));
+  Qxcentered = (double *)malloc(d*sizeof(double));
+  icf_sz = d*(d + 1) / 2;
+
+  memset(alphasb, 0, k * sizeof(double));
+  memset(meansb, 0, d * k * sizeof(double));
+  memset(icfb, 0, icf_sz * k * sizeof(double));
+  memset(sum_qsb, 0, k * sizeof(double));
+  memset(Qdiagsb, 0, d * k * sizeof(double));
+  memset(main_termb, 0, k * sizeof(double));
+  memset(xcenteredb, 0, d * sizeof(double));
+  memset(Qxcenteredb, 0, d * sizeof(double));
+
+  preprocess_qs(d, k, icf, sum_qs, Qdiags);
+  for (ik = 0; ik < k; ++ik) {
+    for (i = 0; i < d; i++)
+      pushreal8(xcentered[i]);
+    subtract(d, x, &means[ik*d], xcentered);
+    for (i = 0; i < d; i++)
+      pushreal8(Qxcentered[i]);
+    Qtimesx(d, &Qdiags[ik*d], &icf[ik*icf_sz + d], xcentered, Qxcentered);
+    result1 = sqnorm(d, Qxcentered);
+    main_term[ik] = alphas[ik] + sum_qs[ik] - 0.5*result1;
+  }
+  *err = logsumexp_b(k, main_term, main_termb, *errb);
+  *errb = 0.0;
+  *alphasb = 0.0;
+  for (ik = k - 1; ik > -1; --ik) {
+    alphasb[ik] = alphasb[ik] + main_termb[ik];
+    sum_qsb[ik] = sum_qsb[ik] + main_termb[ik];
+    result1b = -(0.5*main_termb[ik]);
+    main_termb[ik] = 0.0;
+    sqnorm_b(d, Qxcentered, Qxcenteredb, result1b);
+    for (i = d - 1; i > -1; i--)
+      popreal8(&Qxcentered[i]);
+    Qtimesx_b(d, &Qdiags[ik*d], &Qdiagsb[ik*d], &icf[ik*icf_sz + d], &icfb
+      [ik*icf_sz + d], xcentered, xcenteredb, Qxcentered,
+      Qxcenteredb);
+    for (i = d - 1; i > -1; i--)
+      popreal8(&xcentered[i]);
+    subtract_b(d, x, &means[ik*d], &meansb[ik*d], xcentered, xcenteredb);
+  }
+  preprocess_qs_b(d, k, icf, icfb, sum_qs, sum_qsb, Qdiags, Qdiagsb);
+  free(Qxcentered);
+  free(Qxcenteredb);
+  free(xcentered);
+  free(xcenteredb);
+  free(Qdiags);
+  free(Qdiagsb);
+  free(sum_qs);
+  free(sum_qsb);
+  free(main_term);
+  free(main_termb);
+  *errb = 0.0;
+}
+
+/*
+Differentiation of gmm_objective_split_other in reverse (adjoint) mode:
+gradient     of useful results: *err
+with respect to varying inputs: *err *icf *alphas
+RW status of diff variables: *err:in-zero *icf:out *alphas:out
+Plus diff mem management of: err:in icf:in alphas:in
+*/
+void gmm_objective_split_other_b(int d, int k, int n, 
+  double *alphas, 
+  double *alphasb, 
+  double *icf, 
+  double *icfb, 
+  Wishart wishart, 
+  double *err,
+  double *errb) 
+{
+  int icf_sz;
+  double *sum_qs, *Qdiags;
+  double *sum_qsb, *Qdiagsb;
+  double lse_alphas, CONSTANT;
+  double lse_alphasb;
+  double result1;
+  double result1b, log_wish_prior_res;
+  icf_sz = d*(d + 1) / 2;
+  CONSTANT = -n*d*0.5*log(2 * PI);
+
+  sum_qsb = (double *)malloc(k*sizeof(double));
+  sum_qs = (double *)malloc(k*sizeof(double));
+  Qdiagsb = (double *)malloc(d*k*sizeof(double));
+  Qdiags = (double *)malloc(d*k*sizeof(double));
+
+  memset(alphasb, 0, k * sizeof(double));
+  memset(icfb, 0, icf_sz * k * sizeof(double));
+  memset(sum_qsb, 0, k * sizeof(double));
+  memset(Qdiagsb, 0, d * k * sizeof(double));
+
+  preprocess_qs(d, k, icf, sum_qs, Qdiags);
+  // this is here so that tapenade would recognize that means and inv_cov_factors are variables
+  result1b = *errb;
+  log_wish_prior_res = log_wishart_prior_b(d, k, wishart, sum_qs, sum_qsb, Qdiags, Qdiagsb, icf,
+    icfb, result1b);
+  lse_alphasb = -(n*(*errb));
+  lse_alphas = logsumexp_b(k, alphas, alphasb, lse_alphasb);
+  preprocess_qs_b(d, k, icf, icfb, sum_qs, sum_qsb, Qdiags, Qdiagsb);
+  free(Qdiags);
+  free(Qdiagsb);
+  free(sum_qs);
+  free(sum_qsb);
+  *errb = 0.0;
+  *err = CONSTANT - n*lse_alphas + log_wish_prior_res;
+}

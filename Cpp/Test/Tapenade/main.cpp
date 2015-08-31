@@ -8,12 +8,13 @@
 #include "../defs.h"
 #include "../utils.h"
 
-#define DO_GMM
+//#define DO_GMM_FULL
+#define DO_GMM_SPLIT
 //#define DO_BA
 
 extern "C"
 {
-#ifdef DO_GMM
+#if defined DO_GMM_FULL || defined DO_GMM_SPLIT
 #include "gmm.h"
 #include "gmm_b.h"
 #elif defined DO_BA
@@ -29,8 +30,7 @@ using std::endl;
 using std::string;
 using namespace std::chrono;
 
-#ifdef DO_GMM
-
+#if defined DO_GMM_FULL
 void compute_gmm_Jb(int d, int k, int n,
   double* alphas, double* means,
   double* icf, double* x, Wishart wishart,
@@ -49,6 +49,46 @@ void compute_gmm_Jb(int d, int k, int n,
     icf, icfb, x, wishart, &err, &eb);
 }
 
+#elif defined DO_GMM_SPLIT
+void compute_gmm_Jb(int d, int k, int n,
+  double* alphas, double* means,
+  double* icf, double* x, Wishart wishart,
+  double& err, double* Jb)
+{
+  int Jsz = (k*(d + 1)*(d + 2)) / 2;
+
+  double eb = 1.;
+  memset(Jb, 0, Jsz*sizeof(double));
+
+  double *alphasb = &Jb[0];
+  double *meansb = &Jb[k];
+  double *icfb = &Jb[k + d*k];
+
+  gmm_objective_split_other_b(d, k, n, alphas, alphasb,
+    icf, icfb, wishart, &err, &eb);
+
+  vector<double> Jtmp(Jsz);
+  double *alphasb_tmp = &Jtmp[0];
+  double *meansb_tmp = &Jtmp[k];
+  double *icfb_tmp = &Jtmp[k + d*k];
+  for (int i = 0; i < n; i++)
+  {
+    double err_tmp;
+    eb = 1.;
+    memset(Jtmp.data(), 0, Jsz*sizeof(double));
+    gmm_objective_split_inner_b(d, k, alphas, alphasb_tmp, means, meansb_tmp,
+      icf, icfb_tmp, &x[i*d], &err_tmp, &eb);
+
+    err += err_tmp;
+    for (int j = 0; j < Jsz; j++)
+    {
+      Jb[j] += Jtmp[j];
+    }
+  }
+}
+#endif
+
+#if defined DO_GMM_FULL || defined DO_GMM_SPLIT
 void test_gmm(const string& fn_in, const string& fn_out, 
   int nruns_f, int nruns_J, bool replicate_point)
 {
@@ -90,7 +130,11 @@ void test_gmm(const string& fn_in, const string& fn_out,
   cout << "err: " << e2 << endl;
 
   /////////////////// results //////////////////////////
+#if defined DO_GMM_FULL
   string name("Tapenade");
+#elif defined DO_GMM_SPLIT
+  string name("Tapenade_split");
+#endif
   write_J(fn_out + "_J_" + name + ".txt", 1, Jsz, J.data());
   //write_times(tf, tb);
   write_times(fn_out + "_times_" + name + ".txt", tf, tb);
@@ -430,7 +474,7 @@ int main(int argc, char *argv[])
   // read only 1 point and replicate it?
   bool replicate_point = (argc >= 7 && string(argv[6]).compare("-rep") == 0);
 
-#ifdef DO_GMM
+#if defined DO_GMM_FULL || defined DO_GMM_SPLIT
   test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
 #elif defined DO_BA
   //test_ba(fn, nruns);
