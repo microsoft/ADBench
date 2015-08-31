@@ -30,8 +30,7 @@ if sqtheta == 0
     
     rotatedPt = costheta*pt + sintheta*w_cross_pt + tmp*w;
 else
-    w_cross_pt = cross(rot,pt);
-    rotatedPt = pt + w_cross_pt;
+    rotatedPt = pt + cross(rot,pt);
 end
 end
 
