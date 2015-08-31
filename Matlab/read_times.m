@@ -13,7 +13,9 @@ for i=1:ntools
         postfix = [postfix '.txt'];
         for j=1:ntasks
             fn = [data_dir fns{j} postfix];
-            up_to_date_mask(j,i) = is_up_to_date(fn,tools(i).exe);
+            if nargout >= 3
+                up_to_date_mask(j,i) = is_up_to_date(fn,tools(i).exe);
+            end
             if ~exist(fn,'file')
                 fn = [data_dir_est fns{j} postfix];
             end
@@ -27,7 +29,9 @@ for i=1:ntools
     elseif tools(i).call_type >= 3
         postfix = ['gmm' postfix '.mat'];
         fn = [data_dir postfix];
-        up_to_date_mask(:,i) = is_up_to_date(fn,tools(i).exe);
+        if nargout >= 3
+            up_to_date_mask(:,i) = is_up_to_date(fn,tools(i).exe);
+        end
         if ~exist(fn,'file')
             fn = [data_dir_est postfix];
         end

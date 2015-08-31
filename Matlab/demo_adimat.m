@@ -16,8 +16,8 @@ addpath('awful/matlab');
 %% create random GMM instance
 d = 2;
 k = 3;
-n = 100;
-n_ = 1;
+n = 2;
+n_ = 2;
 rng(1);
 gmm.alphas = randn(1,k);
 gmm.means = au_map(@(i) rand(d,1), cell(k,1));
@@ -52,6 +52,7 @@ opt = admOptions('independents', [1 2 3],  'functionResults', {1});
 % Jexternal = load_J([fn '_J_manual_eigen.txt']);
 % Jexternal = load_J([fn '_J_manual_eigen_vector.txt']);
 % Jexternal = load_J([fn '_J_Tapenade.txt']);
+Jexternal = load_J([fn '_J_Tapenade_split.txt']);
 % Jexternal = load_J([fn '_J_ADOLC_split.txt']);
 % Jexternal = load_J([fn '_J_ADOLC.txt']);
 % Jexternal = load_J([fn '_J_Adept.txt']);
@@ -62,8 +63,10 @@ opt = admOptions('independents', [1 2 3],  'functionResults', {1});
 % Jexternal = load_J([fn '_J_DiffSharp_R_split.txt']);
 % Jexternal = load_J([fn '_J_Autograd.txt']);
 % Jexternal = load_J([fn '_J_Autograd_split.txt']);
-Jexternal = load_J([fn '_J_Theano.txt']);
+% Jexternal = load_J([fn '_J_Theano.txt']);
 % Jexternal = load_J([fn '_J_Theano_vector.txt']);
+% Jexternal = load_J([fn '_J_Julia_F.txt']);
+% Jexternal = load_J([fn '_J_Julia_F_vector.txt']);
 [Jrev,fvalrev] = admDiffRev(@gmm_objective_vector_repmat, 1, gmm.alphas,...
     gmm.means, gmm.inv_cov_factors, x, hparams, opt);
 
@@ -73,7 +76,7 @@ norm(Jrev(:) - Jexternal(:)) / norm(Jrev(:))
 
 tic
 for i = 1:nruns
-    fval = gmm_objective(gmm.alphas,gmm.means,gmm.inv_cov_factors,x,hparams);
+    fval = gmm_objective_vector_repmat(gmm.alphas,gmm.means,gmm.inv_cov_factors,x,hparams);
 end
 teval = toc;
 teval=teval/nruns
