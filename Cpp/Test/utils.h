@@ -21,13 +21,57 @@ using std::vector;
 // rows[i] ... rows[i+1]-1 are elements of i-th row
 // i.e. cols[row[i]] is the column of the first
 // element in the row. Similarly for values.
-typedef struct
+class BASparseMat
 {
+public:
+  int n, m, p; // number of cams, points and observations
   int nrows, ncols;
   vector<int> rows;
   vector<int> cols;
   vector<double> vals;
-} SparseMat;
+
+  BASparseMat(int n_, int m_, int p_) : n(n_), m(m_), p(p_)
+  {
+    nrows = 2 * p + p;
+    ncols = BA_NCAMPARAMS*n + 3 * m + p;
+    rows.push_back(0);
+  }
+
+  void insert_reproj_err_block(int obsIdx, 
+    int camIdx,int ptIdx,const double* const J)
+  {
+    int n_new_cols = BA_NCAMPARAMS + 3 + 1;
+    rows.push_back(rows.back() + n_new_cols);
+    rows.push_back(rows.back() + n_new_cols);
+
+    for (int i_row = 0; i_row < 2; i_row++)
+    {
+      for (int i = 0; i < BA_NCAMPARAMS; i++)
+      {
+        cols.push_back(BA_NCAMPARAMS*camIdx + i);
+        vals.push_back(J[2 * i + i_row]);
+      }
+      int col_offset = BA_NCAMPARAMS*n;
+      int val_offset = BA_NCAMPARAMS * 2;
+      for (int i = 0; i < 3; i++)
+      {
+        cols.push_back(col_offset + 3 * ptIdx + i);
+        vals.push_back(J[val_offset + 2 * i + i_row]);
+      }
+      col_offset += 3 * m;
+      val_offset += 3 * 2;
+      cols.push_back(col_offset + obsIdx);
+      vals.push_back(J[val_offset + i_row]);
+    }
+  }
+
+  void insert_w_err_block(int wIdx, double w_d)
+  {
+    rows.push_back(rows.back() + 1);
+    cols.push_back(BA_NCAMPARAMS*n + 3 * m + wIdx);
+    vals.push_back(w_d);
+  }
+};
 
 void read_gmm_instance(const string& fn,
   int *d, int *k, int *n, 
@@ -98,55 +142,58 @@ void read_gmm_instance(const string& fn,
   fclose(fid);
 }
 
-void read_ba_instance(const string& fn, int& n, int& m, int& p,
-  double*& cams, double*& X, double*& w, int*& obs, double*& feats)
+void read_ba_instance(const string& fn, 
+  int& n, int& m, int& p,
+  vector<double>& cams, 
+  vector<double>& X, 
+  vector<double>& w, 
+  vector<int>& obs, 
+  vector<double>& feats)
 {
   FILE *fid = fopen(fn.c_str(), "r");
 
   fscanf(fid, "%i %i %i", &n, &m, &p);
   int nCamParams = 11;
 
-  cams = new double[nCamParams * n];
-  X = new double[3 * m];
-  w = new double[p];
-  obs = new int[2 * p];
-  feats = new double[2 * p];
+  cams.resize(nCamParams*n);
+  X.resize(3*m);
+  w.resize(p);
+  obs.resize(2*p);
+  feats.resize(2*p);
 
-  for (int i = 0; i < n; i++)
-  {
-    for (int j = 0; j < nCamParams; j++)
-    {
-      fscanf(fid, "%lf", &cams[i * nCamParams + j]);
-    }
-  }
+  for (int j = 0; j < nCamParams; j++)
+    fscanf(fid, "%lf", &cams[j]);
+  for (int i = 1; i < n; i++)
+    memcpy(&cams[i*nCamParams], &cams[0], nCamParams*sizeof(double));
 
-  for (int i = 0; i < m; i++)
-  {
-    for (int j = 0; j < 3; j++)
-    {
-      fscanf(fid, "%lf", &X[i * 3 + j]);
-    }
-  }
+  for (int j = 0; j < 3; j++)
+    fscanf(fid, "%lf", &X[j]);
+  for (int i = 1; i < m; i++)
+    memcpy(&X[i*3], &X[0], 3*sizeof(double));
 
+  fscanf(fid, "%lf", &w[0]);
+  for (int i = 1; i < p; i++)
+    w[i] = w[0];
+
+  int camIdx = 0;
+  int ptIdx = 0;
   for (int i = 0; i < p; i++)
   {
-    fscanf(fid, "%lf", &w[i]);
+    obs[i * 2 + 0] = (camIdx++ % n);
+    obs[i * 2 + 1] = (ptIdx++ % m);
   }
 
-  for (int i = 0; i < p; i++)
+  fscanf(fid, "%lf %lf", &feats[0], &feats[1]);
+  for (int i = 1; i < p; i++)
   {
-    fscanf(fid, "%i %i", &obs[i * 2 + 0], &obs[i * 2 + 1]);
-  }
-
-  for (int i = 0; i < p; i++)
-  {
-    fscanf(fid, "%lf %lf", &feats[i * 2 + 0], &feats[i * 2 + 1]);
+    feats[i * 2 + 0] = feats[0];
+    feats[i * 2 + 1] = feats[1];
   }
 
   fclose(fid);
 }
 
-void write_J_sparse(const string& fn, SparseMat& J)
+void write_J_sparse(const string& fn, const BASparseMat& J)
 {
   std::ofstream out(fn);
   out << J.nrows << " " << J.ncols << endl;
