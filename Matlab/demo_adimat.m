@@ -145,8 +145,8 @@ p = 10;
 rng(1);
 [cams,X,w,obs] = generate_random_ba_instance(n,m,p);
 
-num_in = numel(cams) + numel(X) + numel(w)
-num_out = 2*p + n-2 + p
+% num_in = numel(cams) + numel(X) + numel(w)
+% num_out = 2*p + n-2 + p
 
 fn = '../ba';
 % save_ba_instance( [fn '.txt'], cams, X, w, obs )
@@ -158,19 +158,15 @@ non_zero_pattern = create_nonzero_pattern(n,m,obs);
 % differentiate only with respect to the first 2 parameters
 % also set the shape of function results
 opt = admOptions('independents', [1 2 3],  'functionResults', ...
-    {zeros(2,p) zeros(1,n-2) zeros(1,p)},...
+    {zeros(2,p) zeros(1,p)},...
     'JPattern',non_zero_pattern);
 opt2 = admOptions('independents', [1 2 3],  'functionResults', ...
-    {zeros(2,p) zeros(1,n-2) zeros(1,p)});
+    {zeros(2,p) zeros(1,p)});
 
 %%
 
-% Jexternal = load_J_sparse([fn 'J_Tapenade_bv.txt']);
-% Jexternal = load_J_sparse([fn 'J_Tapenade_dv.txt']);
-Jexternal = load_J_sparse([fn 'J_ADOLC.txt']);
-% Jexternal = load_J_sparse([fn 'J_Ceres.txt']);
-% Jexternal = load_J_sparse([fn 'J_manual.txt']);
-[JforV, fvalforV1, fvalforV2, fvalforV3] = ...
+Jexternal = load_J_sparse([fn '_J_manual_eigen.txt']);
+[JforV, fvalforV1, fvalforV2] = ...
     admDiffVFor(@ba_objective, 1, cams, X, w, obs, opt);
 
 norm(JforV(:) - Jexternal(:)) / norm(JforV(:))
@@ -185,7 +181,7 @@ norm(JforV(:) - Jexternal(:)) / norm(JforV(:))
 %% run object function
 tic
 for i = 1:nruns
-    [fval1, fval2, fval3] = ba_objective(cams,X,w,obs);
+    [fval1, fval2] = ba_objective(cams,X,w,obs);
 end
 teval = toc;
 teval = teval/nruns

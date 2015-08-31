@@ -18,7 +18,7 @@ end
 
 function rotatedPt = rodrigues_rotate_point(rot,pt)
 sqtheta = sum(rot.^2);
-if sqtheta == 0
+if sqtheta ~= 0
     theta = sqrt(sqtheta);
     costheta = cos(theta);
     sintheta = sin(theta);
@@ -26,15 +26,16 @@ if sqtheta == 0
     
     w = rot * theta_inverse;
     w_cross_pt = cross(w,pt);
-    tmp = (1. - costheta) * (dot(w,pt));
+    tmp = (1. - costheta) * (w'*pt);
     
     rotatedPt = costheta*pt + sintheta*w_cross_pt + tmp*w;
 else
-    rotatedPt = pt + cross(rot,pt);
+    rot_cross_pt = cross(rot,pt);
+    rotatedPt = pt + rot_cross_pt;
 end
 end
 
-function x = radial_distort(x,kappa) 
+function x = radial_distort(kappa,x) 
     sqr = sum(x.^2);
     L = 1 + kappa(1)*sqr + kappa(2)*sqr*sqr;
     x = x * L;

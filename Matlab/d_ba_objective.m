@@ -18,15 +18,16 @@
 % WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 %
 % Parameters:
-%  - dependents=reproj_err, f_prior_err, w_error
+%  - dependents=reproj_err, w_error
 %  - independents=cams, X, w
 %  - inputEncoding=ISO-8859-1
 %
-% Functions in this file: d_ba_objective, d_radial_distort,
-%  radial_distort, d_au_rodrigues, d_au_cross_matrix
+% Functions in this file: d_ba_objective, d_ba_compute_reproj_err,
+%  d_rodrigues_rotate_point, rodrigues_rotate_point, d_radial_distort,
+%  radial_distort
 %
 
-function [d_reproj_err reproj_err d_f_prior_err f_prior_err d_w_error w_error] = d_ba_objective(d_cams, cams, d_X, X, d_w, w, obs)
+function [d_reproj_err reproj_err d_w_error w_error] = d_ba_objective(d_cams, cams, d_X, X, d_w, w, obs)
 %BA_OBJECTIVE Bundle adjustment objective function
 %         CAMERAS c x n 
 %               matrix containing parameters of n cameras
@@ -47,8 +48,8 @@ function [d_reproj_err reproj_err d_f_prior_err f_prior_err d_w_error w_error] =
 %               where [x y]' is a measurement (a feature)   
 %         REPROJ_ERR 2 x p 
 %               reprojection errors
-%         F_PRIOR_ERR 1 x n-2 
-%               temporal prior on focals
+% %         F_PRIOR_ERR 1 x n-2 
+% %               temporal prior on focals
 %         W_ERR 1 x p 
 %               1-w^2 
 %
@@ -57,153 +58,154 @@ function [d_reproj_err reproj_err d_f_prior_err f_prior_err d_w_error w_error] =
 %  proj = distorted * f + principal_point
 %  err = sqsum(proj - measurement)
    camIdx = [];
-   Xcam = [];
-   d_Xcam = d_zeros(Xcam);
-   Xcam_e = [];
-   d_Xcam_e = d_zeros(Xcam_e);
-   distorted = [];
-   d_distorted = d_zeros(distorted);
-   proj = [];
-   d_proj = d_zeros(proj);
+   ptIdx = [];
    n = size(cams, 2);
    m = size(X, 2);
    p = size(obs, 2);
-   R = cell(1, n);
-   d_R = d_zeros(R);
-   for i=1 : n
-      [tmpada1 R{i}] = d_au_rodrigues(adimat_opdiff_subsref(d_cams, struct('type', '()', 'subs', {{1 : 3 i}})), cams(1 : 3, i));
-      d_R = adimat_opdiff_subsasgn(d_R, struct('type', {'{}'}, 'subs', {{i}}), tmpada1);
-   end
-   d_C = adimat_opdiff_subsref(d_cams, struct('type', '()', 'subs', {{4 : 6 ':'}}));
-   C = cams(4 : 6, :);
-   d_f = adimat_opdiff_subsref(d_cams, struct('type', '()', 'subs', {{7 ':'}}));
-   f = cams(7, :);
-   d_princ_pt = adimat_opdiff_subsref(d_cams, struct('type', '()', 'subs', {{8 : 9 ':'}}));
-   princ_pt = cams(8 : 9, :);
-   d_rad_params = adimat_opdiff_subsref(d_cams, struct('type', '()', 'subs', {{10 : 11 ':'}}));
-   rad_params = cams(10 : 11, :);
-   reproj_err = zeros(2, p);
+   reproj_err = zeros(2, p, 'like', cams);
    d_reproj_err = d_zeros(reproj_err);
    for i=1 : p
       camIdx = obs(1, i);
-      d_tmpca1 = adimat_opdiff_sum(adimat_opdiff_subsref(d_X, struct('type', '()', 'subs', {{':' obs(2, i)}})), -adimat_opdiff_subsref(d_C, struct('type', '()', 'subs', {{':' camIdx}})));
-      tmpca1 = X(:, obs(2, i)) - C(:, camIdx);
-      d_Xcam = adimat_opdiff_mult(d_R{camIdx}, R{camIdx}, d_tmpca1, tmpca1);
-      Xcam = R{camIdx} * tmpca1;
-      d_Xcam_e = adimat_opdiff_div(adimat_opdiff_subsref(d_Xcam, struct('type', '()', 'subs', {{1 : adimat_end(Xcam, 1, 1)-1}})), Xcam(1 : end-1), adimat_opdiff_subsref(d_Xcam, struct('type', '()', 'subs', {{adimat_end(Xcam, 1, 1)}})), Xcam(end));
-      Xcam_e = Xcam(1 : end-1) / Xcam(end);
-      [d_distorted distorted] = d_radial_distort(d_Xcam_e, Xcam_e, adimat_opdiff_subsref(d_rad_params, struct('type', '()', 'subs', {{':' camIdx}})), rad_params(:, camIdx));
-      d_tmpca1 = adimat_opdiff_mult(d_distorted, distorted, adimat_opdiff_subsref(d_f, struct('type', '()', 'subs', {{camIdx}})), f(camIdx));
-      tmpca1 = distorted * f(camIdx);
-      d_proj = adimat_opdiff_sum(d_tmpca1, adimat_opdiff_subsref(d_princ_pt, struct('type', '()', 'subs', {{':' camIdx}})));
-      proj = tmpca1 + princ_pt(:, camIdx);
-      d_tmpca1 = adimat_opdiff_sum(adimat_opdiff_subsref(d_proj, struct('type', '()', 'subs', {{1}})), d_zeros(-obs(3, i)));
-      tmpca1 = proj(1) - obs(3, i);
-      d_reproj_err = adimat_opdiff_subsasgn(d_reproj_err, struct('type', {'()'}, 'subs', {{1 i}}), adimat_opdiff_mult(adimat_opdiff_subsref(d_w, struct('type', '()', 'subs', {{i}})), w(i), d_tmpca1, tmpca1));
-      reproj_err(1, i) = w(i) * tmpca1;
-      d_tmpca1 = adimat_opdiff_sum(adimat_opdiff_subsref(d_proj, struct('type', '()', 'subs', {{2}})), d_zeros(-obs(4, i)));
-      tmpca1 = proj(2) - obs(4, i);
-      d_reproj_err = adimat_opdiff_subsasgn(d_reproj_err, struct('type', {'()'}, 'subs', {{2 i}}), adimat_opdiff_mult(adimat_opdiff_subsref(d_w, struct('type', '()', 'subs', {{i}})), w(i), d_tmpca1, tmpca1));
-      reproj_err(2, i) = w(i) * tmpca1;
+      ptIdx = obs(2, i);
+      [tmpada1 reproj_err(:, i)] = d_ba_compute_reproj_err(adimat_opdiff_subsref(d_cams, struct('type', '()', 'subs', {{':' camIdx}})), cams(:, camIdx), adimat_opdiff_subsref(d_X, struct('type', '()', 'subs', {{':' ptIdx}})), X(:, ptIdx), adimat_opdiff_subsref(d_w, struct('type', '()', 'subs', {{i}})), w(i), obs(3 : 4, i));
+      d_reproj_err = adimat_opdiff_subsasgn(d_reproj_err, struct('type', {'()'}, 'subs', {{':' i}}), tmpada1);
    end
-   tmpda3 = n - 1;
-   d_tmpca2 = adimat_opdiff_mult_left(2, adimat_opdiff_subsref(d_f, struct('type', '()', 'subs', {{2 : tmpda3}})), f(2 : tmpda3));
-   tmpca2 = 2 * f(2 : tmpda3);
-   tmpda1 = n - 2;
-   d_f_prior_err = adimat_opdiff_sum(adimat_opdiff_subsref(d_f, struct('type', '()', 'subs', {{1 : tmpda1}})), -d_tmpca2, adimat_opdiff_subsref(d_f, struct('type', '()', 'subs', {{3 : n}})));
-   f_prior_err = f(1 : tmpda1) - tmpca2 + f(3 : n);
    d_tmpca1 = adimat_opdiff_epow_right(d_w, w, 2);
    tmpca1 = w .^ 2;
    d_w_error = adimat_opdiff_sum(-d_tmpca1, d_zeros(1));
    w_error = 1 - tmpca1;
 end
 
-function [d_x x] = d_radial_distort(d_x, x, d_kappa, kappa)
-   d_tmpca2 = adimat_opdiff_mult(adimat_opdiff_subsref(d_x, struct('type', '()', 'subs', {{1}})), x(1), adimat_opdiff_subsref(d_x, struct('type', '()', 'subs', {{1}})), x(1));
-   tmpca2 = x(1) * x(1);
-   d_tmpca1 = adimat_opdiff_mult(adimat_opdiff_subsref(d_x, struct('type', '()', 'subs', {{2}})), x(2), adimat_opdiff_subsref(d_x, struct('type', '()', 'subs', {{2}})), x(2));
-   tmpca1 = x(2) * x(2);
-   d_r2 = adimat_opdiff_sum(d_tmpca1, d_tmpca2);
-   r2 = tmpca1 + tmpca2;
-   d_tmpca3 = adimat_opdiff_mult(adimat_opdiff_subsref(d_kappa, struct('type', '()', 'subs', {{2}})), kappa(2), d_r2, r2);
-   tmpca3 = kappa(2) * r2;
-   d_tmpca2 = adimat_opdiff_mult(d_tmpca3, tmpca3, d_r2, r2);
-   tmpca2 = tmpca3 * r2;
-   d_tmpca1 = adimat_opdiff_mult(adimat_opdiff_subsref(d_kappa, struct('type', '()', 'subs', {{1}})), kappa(1), d_r2, r2);
-   tmpca1 = kappa(1) * r2;
+function [d_err err] = d_ba_compute_reproj_err(d_cam, cam, d_X, X, d_w, w, feat)
+   i_rot = 1 : 3;
+   i_C = 4 : 6;
+   i_f = 7;
+   i_princ_pt = 8 : 9;
+   i_rad_params = 10 : 11;
+   d_Xo = adimat_opdiff_sum(d_X, -adimat_opdiff_subsref(d_cam, struct('type', '()', 'subs', {{i_C}})));
+   Xo = X - cam(i_C);
+   [d_Xcam Xcam] = d_rodrigues_rotate_point(adimat_opdiff_subsref(d_cam, struct('type', '()', 'subs', {{i_rot}})), cam(i_rot), d_Xo, Xo);
+   d_Xcam_e = adimat_opdiff_div(adimat_opdiff_subsref(d_Xcam, struct('type', '()', 'subs', {{1 : adimat_end(Xcam, 1, 1)-1}})), Xcam(1 : end-1), adimat_opdiff_subsref(d_Xcam, struct('type', '()', 'subs', {{adimat_end(Xcam, 1, 1)}})), Xcam(end));
+   Xcam_e = Xcam(1 : end-1) / Xcam(end);
+   [d_distorted distorted] = d_radial_distort(adimat_opdiff_subsref(d_cam, struct('type', '()', 'subs', {{i_rad_params}})), cam(i_rad_params), d_Xcam_e, Xcam_e);
+   d_tmpca1 = adimat_opdiff_mult(d_distorted, distorted, adimat_opdiff_subsref(d_cam, struct('type', '()', 'subs', {{i_f}})), cam(i_f));
+   tmpca1 = distorted * cam(i_f);
+   d_proj = adimat_opdiff_sum(d_tmpca1, adimat_opdiff_subsref(d_cam, struct('type', '()', 'subs', {{i_princ_pt}})));
+   proj = tmpca1 + cam(i_princ_pt);
+   d_tmpca1 = adimat_opdiff_sum(d_proj, d_zeros(-feat));
+   tmpca1 = proj - feat;
+   d_err = adimat_opdiff_mult(d_w, w, d_tmpca1, tmpca1);
+   err = w * tmpca1;
+end
+
+function [d_rotatedPt rotatedPt] = d_rodrigues_rotate_point(d_rot, rot, d_pt, pt)
+   rotatedPt = [];
+   d_rotatedPt = d_zeros(rotatedPt);
+   theta = [];
+   d_theta = d_zeros(theta);
+   costheta = [];
+   d_costheta = d_zeros(costheta);
+   sintheta = [];
+   d_sintheta = d_zeros(sintheta);
+   theta_inverse = [];
+   d_theta_inverse = d_zeros(theta_inverse);
+   w = [];
+   d_w = d_zeros(w);
+   w_cross_pt = [];
+   d_w_cross_pt = d_zeros(w_cross_pt);
+   tmp = [];
+   d_tmp = d_zeros(tmp);
+   rot_cross_pt = [];
+   d_rot_cross_pt = d_zeros(rot_cross_pt);
+   d_tmpca1 = adimat_opdiff_epow_right(d_rot, rot, 2);
+   tmpca1 = rot .^ 2;
+   d_sqtheta = adimat_diff_sum1(d_tmpca1, tmpca1);
+   sqtheta = sum(tmpca1);
+   if sqtheta ~= 0
+      [d_theta theta] = adimat_diff_sqrt(d_sqtheta, sqtheta);
+      [d_costheta costheta] = adimat_diff_cos(d_theta, theta);
+      [d_sintheta sintheta] = adimat_diff_sin(d_theta, theta);
+      d_theta_inverse = adimat_opdiff_div_left(1., d_theta, theta);
+      theta_inverse = 1. / theta;
+      d_w = adimat_opdiff_mult(d_rot, rot, d_theta_inverse, theta_inverse);
+      w = rot * theta_inverse;
+      [d_w_cross_pt w_cross_pt] = adimat_diff_cross1(d_w, w, d_pt, pt);
+      d_tmpca2 = adimat_opdiff_mult(adimat_opdiff_trans(d_w, w), w', d_pt, pt);
+      tmpca2 = w' * pt;
+      d_tmpca1 = adimat_opdiff_sum(-d_costheta, d_zeros(1.));
+      tmpca1 = 1. - costheta;
+      d_tmp = adimat_opdiff_mult(d_tmpca1, tmpca1, d_tmpca2, tmpca2);
+      tmp = tmpca1 * tmpca2;
+      d_tmpca3 = adimat_opdiff_mult(d_tmp, tmp, d_w, w);
+      tmpca3 = tmp * w;
+      d_tmpca2 = adimat_opdiff_mult(d_sintheta, sintheta, d_w_cross_pt, w_cross_pt);
+      tmpca2 = sintheta * w_cross_pt;
+      d_tmpca1 = adimat_opdiff_mult(d_costheta, costheta, d_pt, pt);
+      tmpca1 = costheta * pt;
+      d_rotatedPt = adimat_opdiff_sum(d_tmpca1, d_tmpca2, d_tmpca3);
+      rotatedPt = tmpca1 + tmpca2 + tmpca3;
+   else
+      [d_rot_cross_pt rot_cross_pt] = adimat_diff_cross1(d_rot, rot, d_pt, pt);
+      d_rotatedPt = adimat_opdiff_sum(d_pt, d_rot_cross_pt);
+      rotatedPt = pt + rot_cross_pt;
+   end
+end
+
+function rotatedPt = rodrigues_rotate_point(rot, pt)
+   rotatedPt = [];
+   theta = [];
+   costheta = [];
+   sintheta = [];
+   theta_inverse = [];
+   w = [];
+   w_cross_pt = [];
+   tmp = [];
+   rot_cross_pt = [];
+   tmpca1 = rot .^ 2;
+   sqtheta = sum(tmpca1);
+   if sqtheta ~= 0
+      theta = sqrt(sqtheta);
+      costheta = cos(theta);
+      sintheta = sin(theta);
+      theta_inverse = 1. / theta;
+      w = rot * theta_inverse;
+      w_cross_pt = cross(w, pt);
+      tmpca2 = w' * pt;
+      tmpca1 = 1. - costheta;
+      tmp = tmpca1 * tmpca2;
+      tmpca3 = tmp * w;
+      tmpca2 = sintheta * w_cross_pt;
+      tmpca1 = costheta * pt;
+      rotatedPt = tmpca1 + tmpca2 + tmpca3;
+   else
+      rot_cross_pt = cross(rot, pt);
+      rotatedPt = pt + rot_cross_pt;
+   end
+end
+
+function [d_x x] = d_radial_distort(d_kappa, kappa, d_x, x)
+   d_tmpca1 = adimat_opdiff_epow_right(d_x, x, 2);
+   tmpca1 = x .^ 2;
+   d_sqr = adimat_diff_sum1(d_tmpca1, tmpca1);
+   sqr = sum(tmpca1);
+   d_tmpca3 = adimat_opdiff_mult(adimat_opdiff_subsref(d_kappa, struct('type', '()', 'subs', {{2}})), kappa(2), d_sqr, sqr);
+   tmpca3 = kappa(2) * sqr;
+   d_tmpca2 = adimat_opdiff_mult(d_tmpca3, tmpca3, d_sqr, sqr);
+   tmpca2 = tmpca3 * sqr;
+   d_tmpca1 = adimat_opdiff_mult(adimat_opdiff_subsref(d_kappa, struct('type', '()', 'subs', {{1}})), kappa(1), d_sqr, sqr);
+   tmpca1 = kappa(1) * sqr;
    d_L = adimat_opdiff_sum(d_tmpca1, d_tmpca2, d_zeros(1));
    L = 1 + tmpca1 + tmpca2;
    d_x = adimat_opdiff_mult(d_x, x, d_L, L);
    x = x * L;
 end
 
-function x = radial_distort(x, kappa)
-   tmpca2 = x(1) * x(1);
-   tmpca1 = x(2) * x(2);
-   r2 = tmpca1 + tmpca2;
-   tmpca3 = kappa(2) * r2;
-   tmpca2 = tmpca3 * r2;
-   tmpca1 = kappa(1) * r2;
+function x = radial_distort(kappa, x)
+   tmpca1 = x .^ 2;
+   sqr = sum(tmpca1);
+   tmpca3 = kappa(2) * sqr;
+   tmpca2 = tmpca3 * sqr;
+   tmpca1 = kappa(1) * sqr;
    L = 1 + tmpca1 + tmpca2;
    x = x * L;
-end
-
-function [d_R R] = d_au_rodrigues(d_axis, axis, angle)
-% AU_RODRIGUES  Convert axis/angle representation to rotation
-%               R = AU_RODRIGUES(AXIS*ANGLE)
-%               R = AU_RODRIGUES(AXIS, ANGLE)
-%               This is deigned to be fast primarily if used with au_autodiff
-% awf, apr07
-% a lot of code removed (filip srajer jul15)
-   narginwrapper = [0 1 2];
-   w = [];
-   d_w = d_zeros(w);
-   if narginwrapper(nargin) >= 2
-      d_w = adimat_opdiff_mult_right(d_axis, axis, angle);
-      w = axis * angle;
-   else
-      d_w = d_axis;
-      w = axis;
-   end
-   d_tmpca2 = adimat_opdiff_epow_right(d_w, w, 2);
-   tmpca2 = w .^ 2;
-   d_tmpca1 = adimat_diff_sum1(d_tmpca2, tmpca2);
-   tmpca1 = sum(tmpca2);
-   [d_theta theta] = adimat_diff_sqrt(d_tmpca1, tmpca1);
-   d_n = adimat_opdiff_div(d_w, w, d_theta, theta);
-   n = w / theta;
-   [d_n_x n_x] = d_au_cross_matrix(d_n, n);
-   [d_tmpca7 tmpca7] = adimat_diff_cos(d_theta, theta);
-   d_tmpca6 = adimat_opdiff_sum(-d_tmpca7, d_zeros(1));
-   tmpca6 = 1 - tmpca7;
-   d_tmpca5 = adimat_opdiff_mult(d_n_x, n_x, d_n_x, n_x);
-   tmpca5 = n_x * n_x;
-   d_tmpca4 = adimat_opdiff_mult(d_tmpca5, tmpca5, d_tmpca6, tmpca6);
-   tmpca4 = tmpca5 * tmpca6;
-   [d_tmpca3 tmpca3] = adimat_diff_sin(d_theta, theta);
-   d_tmpca2 = adimat_opdiff_mult(d_n_x, n_x, d_tmpca3, tmpca3);
-   tmpca2 = n_x * tmpca3;
-   tmpda1 = eye(3);
-   d_R = adimat_opdiff_sum(d_tmpca2, d_tmpca4, d_zeros(tmpda1));
-   R = tmpda1 + tmpca2 + tmpca4;
-end
-
-function [d_M M] = d_au_cross_matrix(d_w, w)
-% AU_CROSS_MATRIX Cross-product matrix of a vector
-%              M = AU_CROSS_MATRIX(W) Creates the matrix
-%                [  0 -w3  w2 ]
-%                [ w3   0 -w1 ]
-%                [-w2  w1   0 ]
-% awf, 7/4/07
-% if nargin == 0
-%   % unit test
-%   a = randn(3,1);
-%   b = randn(3,1);
-%   au_test_equal cross_matrix(a)*b cross(a,b)
-%   return
-% end
-   d_M = adimat_fdiff_cat(2, adimat_fdiff_cat(3, d_zeros(0), -adimat_opdiff_subsref(d_w, struct('type', '()', 'subs', {{3}})), adimat_opdiff_subsref(d_w, struct('type', '()', 'subs', {{2}}))), adimat_fdiff_cat(3, adimat_opdiff_subsref(d_w, struct('type', '()', 'subs', {{3}})), d_zeros(0), -adimat_opdiff_subsref(d_w, struct('type', '()', 'subs', {{1}}))), adimat_fdiff_cat(3, -adimat_opdiff_subsref(d_w, struct('type', '()', 'subs', {{2}})), adimat_opdiff_subsref(d_w, struct('type', '()', 'subs', {{1}})), d_zeros(0)));
-   M = [0 -w(3) w(2)
-         w(3) 0 -w(1)
-         -w(2) w(1) 0];
 end

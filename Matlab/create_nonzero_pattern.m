@@ -20,7 +20,8 @@ function P = create_nonzero_pattern( ncams, npts, obs )
 %         P p x (11*ncams+3*npts) pattern
 
 p = size(obs,2);
-P = sparse(2*p + ncams-2 + p,11*ncams+3*npts);
+% P = sparse(2*p + ncams-2 + p,11*ncams+3*npts);
+P = sparse(2*p + p,11*ncams+3*npts);
 
 for i=1:p
     camIdx = obs(1,i);
@@ -37,13 +38,13 @@ for i=1:p
     P([idx idx+1],col_off+i) = true;
 end
 
-row_off = 2*p;
-f_idx = 7;
-for i=1:(ncams-2)
-    for j=1:3
-        P(row_off+i, (i-1+j-1)*11 + f_idx) = true;
-    end
-end
+% row_off = 2*p;
+% f_idx = 7;
+% for i=1:(ncams-2)
+%     for j=1:3
+%         P(row_off+i, (i-1+j-1)*11 + f_idx) = true;
+%     end
+% end
 
 row_off = 2*p + ncams-2;
 col_off = ncams*11 + npts*3;
