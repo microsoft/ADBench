@@ -105,7 +105,8 @@ end
 
 nruns_f = determine_n_runs(times_est_f);
 nruns_J = determine_n_runs(times_est_J);
-save([data_dir_est 'gmm_estimates_backup.mat'],'nruns_f','nruns_J');
+save([data_dir_est 'gmm_estimates_backup.mat'],'nruns_f','nruns_J',...
+    'times_est_f','times_est_J');
 nruns_f = nruns_f .* ~up_to_date_mask;
 nruns_J = nruns_J .* ~up_to_date_mask;
 
@@ -183,9 +184,9 @@ end
 [times_f,times_J,up_to_date_mask] = ...
     read_times(data_dir,data_dir_est,fns,tools);
 
-% ld = load([data_dir_est 'gmm_estimates_backup.mat']);
-% times_f(ld.nruns_f==0) = ld.times_est_f(ld.nruns_f==0);
-% times_J(ld.nruns_J==0) = ld.times_est_J(ld.nruns_J==0);
+ld = load([data_dir_est 'gmm_estimates_backup.mat']);
+times_f(ld.nruns_f==0) = ld.times_est_f(ld.nruns_f==0);
+times_J(ld.nruns_J==0) = ld.times_est_J(ld.nruns_J==0);
 
 times_f_relative = bsxfun(@rdivide,times_f,times_f(:,manual_cpp_id));
 times_f_relative(isnan(times_f_relative)) = Inf;
