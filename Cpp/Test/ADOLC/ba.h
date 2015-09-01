@@ -51,6 +51,26 @@ void ba_objective(int n, int m, int p,
 //////////////////// Definitions ///////////////////////////
 ////////////////////////////////////////////////////////////
 
+template<typename T>
+T sqsum(int n, const T* const x)
+{
+  T res = 0;
+  for (int i = 0; i < n; i++)
+    res = res + x[i] * x[i];
+  return res;
+}
+
+template<typename T>
+void cross(
+  const T* const a, 
+  const T* const b, 
+  T* out)
+{
+  out[0] = a[1] * b[2] - a[2] * b[1];
+  out[1] = a[2] * b[0] - a[0] * b[2];
+  out[2] = a[0] * b[1] - a[1] * b[0];
+}
+
 // rot 3 rotation parameters
 // pt 3 point to be rotated
 // rotatedPt 3 rotated point
@@ -67,35 +87,36 @@ void rodrigues_rotate_point(
   const T* const pt,
   T *rotatedPt)
 {
-  T theta, costheta, sintheta, theta_inverse,
-    w[3], w_cross_pt[3], tmp;
-
-  // norm of rot
-  theta = 0.;
-  for (int i = 0; i < 3; i++)
+  T sqtheta = sqsum(3, rot);
+  if (sqtheta != 0)
   {
-    theta = theta + rot[i] * rot[i];
+    T theta, costheta, sintheta, theta_inverse,
+      w[3], w_cross_pt[3], tmp;
+
+    theta = sqrt(sqtheta);
+    costheta = cos(theta);
+    sintheta = sin(theta);
+    theta_inverse = 1.0 / theta;
+
+    for (int i = 0; i < 3; i++)
+      w[i] = rot[i] * theta_inverse;
+
+    cross(w, pt, w_cross_pt);
+
+    tmp = (w[0] * pt[0] + w[1] * pt[1] + w[2] * pt[2]) *
+      (1. - costheta);
+
+    for (int i = 0; i < 3; i++)
+      rotatedPt[i] = pt[i] * costheta + w_cross_pt[i] * sintheta + w[i] * tmp;
   }
-  theta = sqrt(theta);
+  else
+  {
+    T rot_cross_pt[3];
+    cross(rot, pt, rot_cross_pt);
 
-  costheta = cos(theta);
-  sintheta = sin(theta);
-  theta_inverse = 1.0 / theta;
-
-  w[0] = rot[0] * theta_inverse;
-  w[1] = rot[1] * theta_inverse;
-  w[2] = rot[2] * theta_inverse;
-
-  w_cross_pt[0] = w[1] * pt[2] - w[2] * pt[1];
-  w_cross_pt[1] = w[2] * pt[0] - w[0] * pt[2];
-  w_cross_pt[2] = w[0] * pt[1] - w[1] * pt[0];
-
-  tmp = (w[0] * pt[0] + w[1] * pt[1] + w[2] * pt[2]) *
-    (1. - costheta);
-
-  rotatedPt[0] = pt[0] * costheta + w_cross_pt[0] * sintheta + w[0] * tmp;
-  rotatedPt[1] = pt[1] * costheta + w_cross_pt[1] * sintheta + w[1] * tmp;
-  rotatedPt[2] = pt[2] * costheta + w_cross_pt[2] * sintheta + w[2] * tmp;
+    for (int i = 0; i < 3; i++)
+      rotatedPt[i] = pt[i] + rot_cross_pt[i];
+  }  
 }
 
 // rad_params 2 radial distortion parameters
@@ -106,7 +127,7 @@ void radial_distort(
   T *proj)
 {
   T rsq, L;
-  rsq = proj[0] * proj[0] + proj[1] * proj[1];
+  rsq = sqsum(2,proj);
   L = 1. + rad_params[0] * rsq + rad_params[1] * rsq * rsq;
   proj[0] = proj[0] * L;
   proj[1] = proj[1] * L;
