@@ -242,6 +242,50 @@ void test_gmm(const string& fn_in, const string& fn_out,
 }
 
 #elif defined DO_BA_BLOCK
+void compute_reproj_error_J_block(int tapeTag,double* cam, double* X,
+  double w, double *feat, double *err, double *J)
+{
+  adouble acam[BA_NCAMPARAMS],
+    aX[3], aw, areproj_err[2], aw_err;
+
+  int keepValues = 1;
+  trace_on(tapeTag, keepValues);
+  for (int i = 0; i < BA_NCAMPARAMS; i++)
+    acam[i] <<= cam[i];
+  for (int i = 0; i < 3; i++)
+    aX[i] <<= X[i];
+  aw <<= w;
+  computeReprojError(acam, aX, &aw, feat, areproj_err);
+  areproj_err[0] >>= err[0];
+  areproj_err[1] >>= err[1];
+  trace_off();
+
+  int n_new_cols = BA_NCAMPARAMS + 3 + 1;
+  double **eye; eye = new double*[2];
+  double **Jtmp = new double*[2];
+  for (int i = 0; i < 2; i++)
+  {
+    eye[i] = new double[2];
+    Jtmp[i] = new double[n_new_cols];
+  }
+  
+  eye[0][0] = 1; eye[0][1] = 0;
+  eye[1][0] = 0; eye[1][1] = 1;
+  fov_reverse(tapeTag, 2, n_new_cols, 2, eye, Jtmp);
+
+  for (int i = 0; i < 2; i++)
+    for (int j = 0; j < n_new_cols; j++)
+      J[j * 2 + i] = Jtmp[i][j];
+    
+  for (int i = 0; i < 2; i++)
+  {
+    delete[] eye[i];
+    delete[] Jtmp[i];
+  }
+  delete[] eye;
+  delete[] Jtmp;
+}
+
 double compute_ba_J(int nruns, int n, int m, int p,
   double *cams, double *X, double *w, int *obs, double *feats,
   double *reproj_err, double *w_err, BASparseMat *J)
@@ -249,96 +293,55 @@ double compute_ba_J(int nruns, int n, int m, int p,
   if (nruns == 0)
     return 0.;
 
-  bool doRowCompression = false;
   high_resolution_clock::time_point start, end;
-
-  int tapeTag = 1;
-
   start = high_resolution_clock::now();
 
-  adouble *acams, *aX, *aw, *areproj_err,
-    *af_prior_err, *aw_err;
+  int tapeTagReprojErr = 1; 
+  int tapeTagWeightErr = 2;
+  *J = BASparseMat(n, m, p);
 
-  areproj_err = new adouble[2 * p];
-  af_prior_err = new adouble[n - 2];
-  aw_err = new adouble[p];
+  double eye[2][2];
+  eye[0][0] = 1; eye[0][1] = 0;
+  eye[1][0] = 0; eye[1][1] = 1;
 
-  // Record on a tape
-  trace_on(tapeTag);
-
-  acams = new adouble[BA_NCAMPARAMS*n];
-  for (int i = 0; i < BA_NCAMPARAMS*n; i++)
-    acams[i] <<= cams[i];
-  aX = new adouble[3 * m];
-  for (int i = 0; i < 3 * m; i++)
-    aX[i] <<= X[i];
-  aw = new adouble[p];
+  int n_new_cols = BA_NCAMPARAMS + 3 + 1;
+  vector<double> reproj_err_d(2 * n_new_cols);
   for (int i = 0; i < p; i++)
-    aw[i] <<= w[i];
-
-  ba_objective(n, m, p, acams, aX, aw, obs, feats,
-    areproj_err, aw_err);
-
-  for (int i = 0; i < 2 * p; i++)
-    areproj_err[i] >>= reproj_err[i];
-
-  for (int i = 0; i < p; i++)
-    aw_err[i] >>= w_err[i];
-
-  trace_off();
-
-  delete[] acams;
-  delete[] aX;
-  delete[] aw;
-  delete[] areproj_err;
-  delete[] af_prior_err;
-  delete[] aw_err;
-
-  end = high_resolution_clock::now();
-  double t_tape = duration_cast<duration<double>>(end - start).count() / nruns;
-
-  //////// Compute J and compute sparsity always again and again
-  vector<double> in(J->ncols);
-  memcpy(&in[0], cams, BA_NCAMPARAMS*n*sizeof(double));
-  int off = BA_NCAMPARAMS*n;
-  memcpy(&in[off], X, 3 * m*sizeof(double));
-  off += 3 * m;
-  memcpy(&in[off], w, p*sizeof(double));
-
-  int opt[4];
-  opt[0] = 0; // default
-  opt[1] = 0; // default
-  opt[2] = 0; // 0=auto 1=F 2=R
-  opt[3] = doRowCompression ? 1 : 0;
-  int nnz;
-  unsigned int *ridxs = nullptr, *cidxs = nullptr;
-  double *nzvals = nullptr;
-
-  int samePattern = 0;
-  start = high_resolution_clock::now();
-  sparse_jac(tapeTag, J->nrows, J->ncols, samePattern,
-    in.data(), &nnz, &ridxs, &cidxs, &nzvals, opt);
-  end = high_resolution_clock::now();
-  double t_J_sparsity = duration_cast<duration<double>>(end - start).count() / nruns;
-
-  samePattern = 1;
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns; i++)
   {
-    sparse_jac(tapeTag, J->nrows, J->ncols, samePattern,
-      in.data(), &nnz, &ridxs, &cidxs, &nzvals, opt);
+    memset(reproj_err_d.data(), 0, 2 * n_new_cols*sizeof(double));
+
+    int camIdx = obs[2 * i + 0];
+    int ptIdx = obs[2 * i + 1];
+    compute_reproj_error_J_block(tapeTagReprojErr,
+      &cams[BA_NCAMPARAMS*camIdx],
+      &X[ptIdx * 3],
+      w[i],
+      &feats[2 * i],
+      &reproj_err[2 * i],
+      reproj_err_d.data());
+
+    J->insert_reproj_err_block(i, camIdx, ptIdx, reproj_err_d.data());
   }
+
+  adouble aw, aw_err;
+  trace_on(tapeTagWeightErr);
+  aw <<= w[0];
+  computeZachWeightError(&aw, &aw_err);
+  aw_err >>= w_err[0];
+  trace_off();
+  int keepValues = 0;
+
+  for (int i = 0; i < p; i++)
+  {
+    double err_d = 0.;
+    double w_d = 1.;
+    fos_forward(tapeTagWeightErr, 1, 1, keepValues, &w[i], &w_d, &w_err[i], &err_d);
+
+    J->insert_w_err_block(i, err_d);
+  }
+
   end = high_resolution_clock::now();
   double t_J = duration_cast<duration<double>>(end - start).count() / nruns;
-
-  convert_J(nnz, ridxs, cidxs, nzvals, J);
-
-  delete[] ridxs;
-  delete[] cidxs;
-  delete[] nzvals;
-
-  cout << "t_tape: " << t_tape << endl;
-  cout << "t_sparsity: " << t_J_sparsity - t_J << endl;
   cout << "t_J:" << t_J << endl;
 
   return t_J;
@@ -504,22 +507,17 @@ void test_ba(const string& fn_in, const string& fn_out,
 
 #if defined DO_BA_BLOCK
   string name("ADOLC");
-  tJ = compute_ba_J(nruns_J, n, m, p, cams, X, w,
-    obs, feats, reproj_err, w_err, &J);
+  tJ = compute_ba_J(nruns_J, n, m, p, cams.data(), X.data(), w.data(),
+    obs.data(), feats.data(), reproj_err.data(), w_err.data(), &J);
 #elif defined DO_BA_SPARSE
   string name("ADOLC_sparse");
   tJ = compute_ba_J(nruns_J, n, m, p, cams.data(), X.data(), w.data(),
     obs.data(), feats.data(), reproj_err.data(), w_err.data(), &J);
 #endif
 
-  write_J_sparse(fn_in + "_J_" + name + ".txt", J);
+  //write_J_sparse(fn_in + "_J_" + name + ".txt", J);
   write_times(fn_in + "_times_" + name + ".txt", tf, tJ);
 }
-#endif
-
-#if 0
-
-
 #endif
 
 int main(int argc, char *argv[])
