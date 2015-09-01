@@ -9,12 +9,13 @@
 #include "../defs.h"
 
 //#define DO_GMM_FULL
-#define DO_GMM_SPLIT
-//#define DO_BA
+//#define DO_GMM_SPLIT
+#define DO_BA_BLOCK
+//#define DO_BA_SPARSE
 
 #if defined DO_GMM_FULL || defined DO_GMM_SPLIT
 #include "gmm.h"
-#elif defined DO_BA
+#elif defined DO_BA_BLOCK || defined DO_BA_SPARSE
 #include "ba.h"
 #endif
 
@@ -240,203 +241,284 @@ void test_gmm(const string& fn_in, const string& fn_out,
 
 }
 
-#elif defined DO_BA
+#elif defined DO_BA_BLOCK
+double compute_ba_J(int nruns, int n, int m, int p,
+  double *cams, double *X, double *w, int *obs, double *feats,
+  double *reproj_err, double *w_err, BASparseMat *J)
+{
+  if (nruns == 0)
+    return 0.;
 
+  bool doRowCompression = false;
+  high_resolution_clock::time_point start, end;
+
+  int tapeTag = 1;
+
+  start = high_resolution_clock::now();
+
+  adouble *acams, *aX, *aw, *areproj_err,
+    *af_prior_err, *aw_err;
+
+  areproj_err = new adouble[2 * p];
+  af_prior_err = new adouble[n - 2];
+  aw_err = new adouble[p];
+
+  // Record on a tape
+  trace_on(tapeTag);
+
+  acams = new adouble[BA_NCAMPARAMS*n];
+  for (int i = 0; i < BA_NCAMPARAMS*n; i++)
+    acams[i] <<= cams[i];
+  aX = new adouble[3 * m];
+  for (int i = 0; i < 3 * m; i++)
+    aX[i] <<= X[i];
+  aw = new adouble[p];
+  for (int i = 0; i < p; i++)
+    aw[i] <<= w[i];
+
+  ba_objective(n, m, p, acams, aX, aw, obs, feats,
+    areproj_err, aw_err);
+
+  for (int i = 0; i < 2 * p; i++)
+    areproj_err[i] >>= reproj_err[i];
+
+  for (int i = 0; i < p; i++)
+    aw_err[i] >>= w_err[i];
+
+  trace_off();
+
+  delete[] acams;
+  delete[] aX;
+  delete[] aw;
+  delete[] areproj_err;
+  delete[] af_prior_err;
+  delete[] aw_err;
+
+  end = high_resolution_clock::now();
+  double t_tape = duration_cast<duration<double>>(end - start).count() / nruns;
+
+  //////// Compute J and compute sparsity always again and again
+  vector<double> in(J->ncols);
+  memcpy(&in[0], cams, BA_NCAMPARAMS*n*sizeof(double));
+  int off = BA_NCAMPARAMS*n;
+  memcpy(&in[off], X, 3 * m*sizeof(double));
+  off += 3 * m;
+  memcpy(&in[off], w, p*sizeof(double));
+
+  int opt[4];
+  opt[0] = 0; // default
+  opt[1] = 0; // default
+  opt[2] = 0; // 0=auto 1=F 2=R
+  opt[3] = doRowCompression ? 1 : 0;
+  int nnz;
+  unsigned int *ridxs = nullptr, *cidxs = nullptr;
+  double *nzvals = nullptr;
+
+  int samePattern = 0;
+  start = high_resolution_clock::now();
+  sparse_jac(tapeTag, J->nrows, J->ncols, samePattern,
+    in.data(), &nnz, &ridxs, &cidxs, &nzvals, opt);
+  end = high_resolution_clock::now();
+  double t_J_sparsity = duration_cast<duration<double>>(end - start).count() / nruns;
+
+  samePattern = 1;
+  start = high_resolution_clock::now();
+  for (int i = 0; i < nruns; i++)
+  {
+    sparse_jac(tapeTag, J->nrows, J->ncols, samePattern,
+      in.data(), &nnz, &ridxs, &cidxs, &nzvals, opt);
+  }
+  end = high_resolution_clock::now();
+  double t_J = duration_cast<duration<double>>(end - start).count() / nruns;
+
+  convert_J(nnz, ridxs, cidxs, nzvals, J);
+
+  delete[] ridxs;
+  delete[] cidxs;
+  delete[] nzvals;
+
+  cout << "t_tape: " << t_tape << endl;
+  cout << "t_sparsity: " << t_J_sparsity - t_J << endl;
+  cout << "t_J:" << t_J << endl;
+
+  return t_J;
+}
+
+#elif defined DO_BA_SPARSE
 void convert_J(int nnz, unsigned int *ridxs, unsigned int *cidxs,
-	double *nzvals, SparseMat *J)
+  double *nzvals, BASparseMat *J)
 {
-	std::vector<std::set<int>> rows;
-	rows.resize(J->nrows);
-	for (int i = 0; i < nnz; i++)
-	{
-		rows[ridxs[i]].insert(i);
-	}
+  std::vector<std::set<int>> rows;
+  rows.resize(J->nrows);
+  for (int i = 0; i < nnz; i++)
+  {
+    rows[ridxs[i]].insert(i);
+  }
 
-	J->rows.resize(J->nrows + 1, 0);
-	J->cols.resize(nnz);
-	J->vals.resize(nnz);
-	int cols_idx = 0;
-	for (int i = 0; i < J->nrows; i++)
-	{
-		for (auto j : rows[i])
-		{
-			J->cols[cols_idx] = cidxs[j];
-			J->vals[cols_idx] = nzvals[j];
-			cols_idx++;
-		}
-		J->rows[i + 1] = cols_idx;
-	}
+  J->rows.resize(J->nrows + 1, 0);
+  J->cols.resize(nnz);
+  J->vals.resize(nnz);
+  int cols_idx = 0;
+  for (int i = 0; i < J->nrows; i++)
+  {
+    for (auto j : rows[i])
+    {
+      J->cols[cols_idx] = cidxs[j];
+      J->vals[cols_idx] = nzvals[j];
+      cols_idx++;
+    }
+    J->rows[i + 1] = cols_idx;
+  }
 }
 
-double compute_ba_J(bool doRowCompression,int nruns, int n, int m, int p, 
-	double *cams, double *X, double *w, int *obs, double *feats, 
-	double *reproj_err, double *f_prior_err, double *w_err, SparseMat *J)
+double compute_ba_J(int nruns, int n, int m, int p,
+  double *cams, double *X, double *w, int *obs, double *feats,
+  double *reproj_err, double *w_err, BASparseMat *J)
 {
-	high_resolution_clock::time_point start, end;
+  if (nruns == 0)
+    return 0.;
 
-	int tapeTag = 1;
+  bool doRowCompression = false;
+  high_resolution_clock::time_point start, end;
 
-	start = high_resolution_clock::now();
-	for (int i = 0; i < 1; i++)
-	{
-		adouble *acams, *aX, *aw, *areproj_err,
-			*af_prior_err, *aw_err;
+  int tapeTag = 1;
 
-		areproj_err = new adouble[2 * p];
-		af_prior_err = new adouble[n - 2];
-		aw_err = new adouble[p];
+  start = high_resolution_clock::now();
 
-		// Record on a tape
-		trace_on(tapeTag);
+  adouble *acams, *aX, *aw, *areproj_err,
+    *af_prior_err, *aw_err;
 
-		acams = new adouble[BA_NCAMPARAMS*n];
-		for (int i = 0; i < BA_NCAMPARAMS*n; i++)
-		{
-			acams[i] <<= cams[i];
-		}
+  areproj_err = new adouble[2 * p];
+  af_prior_err = new adouble[n - 2];
+  aw_err = new adouble[p];
 
-		aX = new adouble[3 * m];
-		for (int i = 0; i < 3 * m; i++)
-		{
-			aX[i] <<= X[i];
-		}
+  // Record on a tape
+  trace_on(tapeTag);
 
-		aw = new adouble[p];
-		for (int i = 0; i < p; i++)
-		{
-			aw[i] <<= w[i];
-		}
+  acams = new adouble[BA_NCAMPARAMS*n];
+  for (int i = 0; i < BA_NCAMPARAMS*n; i++)
+    acams[i] <<= cams[i];
+  aX = new adouble[3 * m];
+  for (int i = 0; i < 3 * m; i++)
+    aX[i] <<= X[i];
+  aw = new adouble[p];
+  for (int i = 0; i < p; i++)
+    aw[i] <<= w[i];
 
-		ba_objective(n, m, p, acams, aX, aw, obs, feats, areproj_err,
-			af_prior_err, aw_err);
+  ba_objective(n, m, p, acams, aX, aw, obs, feats,
+    areproj_err, aw_err);
 
-		for (int i = 0; i < 2 * p; i++)
-		{
-			areproj_err[i] >>= reproj_err[i];
-		}
+  for (int i = 0; i < 2 * p; i++)
+    areproj_err[i] >>= reproj_err[i];
 
-		for (int i = 0; i < n - 2; i++)
-		{
-			af_prior_err[i] >>= f_prior_err[i];
-		}
+  for (int i = 0; i < p; i++)
+    aw_err[i] >>= w_err[i];
 
-		for (int i = 0; i < p; i++)
-		{
-			aw_err[i] >>= w_err[i];
-		}
+  trace_off();
 
-		trace_off();
+  delete[] acams;
+  delete[] aX;
+  delete[] aw;
+  delete[] areproj_err;
+  delete[] af_prior_err;
+  delete[] aw_err;
 
-		delete[] acams;
-		delete[] aX;
-		delete[] aw;
-		delete[] areproj_err;
-		delete[] af_prior_err;
-		delete[] aw_err;
-	}
-	end = high_resolution_clock::now();
-	double t_tape = duration_cast<duration<double>>(end - start).count() / nruns;
+  end = high_resolution_clock::now();
+  double t_tape = duration_cast<duration<double>>(end - start).count() / nruns;
 
-	//////// Compute J and compute sparsity always again and again
-	double *in = new double[J->ncols];
-	memcpy(in, cams, BA_NCAMPARAMS*n*sizeof(double));
-	int off = BA_NCAMPARAMS*n;
-	memcpy(in + off, X, 3 * m*sizeof(double));
-	off += 3*m;
-	memcpy(in + off, w, p*sizeof(double));
+  //////// Compute J and compute sparsity always again and again
+  vector<double> in(J->ncols);
+  memcpy(&in[0], cams, BA_NCAMPARAMS*n*sizeof(double));
+  int off = BA_NCAMPARAMS*n;
+  memcpy(&in[off], X, 3 * m*sizeof(double));
+  off += 3 * m;
+  memcpy(&in[off], w, p*sizeof(double));
 
-	int opt[4];
-	opt[0] = 0; // default
-	opt[1] = 0; // default
-	opt[2] = 0; // 0=auto 1=F 2=R
-	opt[3] = doRowCompression ? 1 : 0;
-	int nnz;
-	unsigned int *ridxs = nullptr, *cidxs = nullptr;
-	double *nzvals = nullptr;
+  int opt[4];
+  opt[0] = 0; // default
+  opt[1] = 0; // default
+  opt[2] = 0; // 0=auto 1=F 2=R
+  opt[3] = doRowCompression ? 1 : 0;
+  int nnz;
+  unsigned int *ridxs = nullptr, *cidxs = nullptr;
+  double *nzvals = nullptr;
 
-	int samePattern = 0;
-	start = high_resolution_clock::now();
-	for (int i = 0; i < 1; i++)
-	{
-		delete[] ridxs; ridxs = nullptr;
-		delete[] cidxs; cidxs = nullptr;
-		delete[] nzvals; nzvals = nullptr;
-		sparse_jac(tapeTag, J->nrows, J->ncols, samePattern,
-			in, &nnz, &ridxs, &cidxs, &nzvals, opt);
-	}
-	end = high_resolution_clock::now();
-	double t_J_sparsity = duration_cast<duration<double>>(end - start).count() / nruns;
+  int samePattern = 0;
+  start = high_resolution_clock::now();
+  sparse_jac(tapeTag, J->nrows, J->ncols, samePattern,
+    in.data(), &nnz, &ridxs, &cidxs, &nzvals, opt);
+  end = high_resolution_clock::now();
+  double t_J_sparsity = duration_cast<duration<double>>(end - start).count() / nruns;
 
-	samePattern = 1;
-	start = high_resolution_clock::now();
-	for (int i = 0; i < nruns; i++)
-	{
-		sparse_jac(tapeTag, J->nrows, J->ncols, samePattern,
-			in, &nnz, &ridxs, &cidxs, &nzvals, opt);
-	}
-	end = high_resolution_clock::now();
-	double t_J = duration_cast<duration<double>>(end - start).count() / nruns;
+  samePattern = 1;
+  start = high_resolution_clock::now();
+  for (int i = 0; i < nruns; i++)
+  {
+    sparse_jac(tapeTag, J->nrows, J->ncols, samePattern,
+      in.data(), &nnz, &ridxs, &cidxs, &nzvals, opt);
+  }
+  end = high_resolution_clock::now();
+  double t_J = duration_cast<duration<double>>(end - start).count() / nruns;
 
-	convert_J(nnz, ridxs, cidxs, nzvals, J);
+  convert_J(nnz, ridxs, cidxs, nzvals, J);
 
-	delete[] ridxs;
-	delete[] cidxs;
-	delete[] nzvals;
+  delete[] ridxs;
+  delete[] cidxs;
+  delete[] nzvals;
 
-	cout << "t_tape: " << t_tape << endl;
-	cout << "t_sparsity: " << t_J_sparsity - t_J << endl;
-	cout << "t_J:" << t_J << endl;
+  cout << "t_tape: " << t_tape << endl;
+  cout << "t_sparsity: " << t_J_sparsity - t_J << endl;
+  cout << "t_J:" << t_J << endl;
 
-	return t_J;
+  return t_J;
 }
+#endif
 
-void test_ba(const string& fn, int nruns)
+#if defined DO_BA_BLOCK || defined DO_BA_SPARSE
+void test_ba(const string& fn_in, const string& fn_out,
+  int nruns_f, int nruns_J)
 {
-	int n, m, p;
-	double *cams, *X, *w, *feats;
-	int *obs;
+  int n, m, p;
+  vector<double> cams, X, w, feats;
+  vector<int> obs;
 
-	//read instance
-	read_ba_instance(fn + ".txt", n, m, p, 
-		cams, X, w, obs, feats);
+  read_ba_instance(fn_in + ".txt", n, m, p,
+    cams, X, w, obs, feats);
 
-	SparseMat J;
-	J.ncols = BA_NCAMPARAMS * n + 3 * m + p;
-	J.nrows = 2 * p + n - 2 + p;
+  vector<double> reproj_err(2 * p);
+  vector<double> w_err(p);
+  BASparseMat J(n, m, p);
 
-	double *reproj_err = new double[2 * p];
-	double *f_prior_err = new double[n-2];
-	double *w_err = new double[p];
+  high_resolution_clock::time_point start, end;
+  double tf = 0., tJ = 0;
 
-	high_resolution_clock::time_point start, end;
-	double tf, tJ = 0;
+  start = high_resolution_clock::now();
+  for (int i = 0; i < nruns_f; i++)
+  {
+    ba_objective(n, m, p, cams.data(), X.data(), 
+      w.data(), obs.data(), feats.data(),
+      reproj_err.data(), w_err.data());
+  }
+  end = high_resolution_clock::now();
+  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
 
-	start = high_resolution_clock::now();
-	for (int i = 0; i < nruns; i++)
-	{
-		ba_objective(n, m, p, cams, X, w, obs, feats, 
-			reproj_err, f_prior_err, w_err);
-	}
-	end = high_resolution_clock::now();
-	tf = duration_cast<duration<double>>(end - start).count() / nruns;
+#if defined DO_BA_BLOCK
+  string name("ADOLC");
+  tJ = compute_ba_J(nruns_J, n, m, p, cams, X, w,
+    obs, feats, reproj_err, w_err, &J);
+#elif defined DO_BA_SPARSE
+  string name("ADOLC_sparse");
+  tJ = compute_ba_J(nruns_J, n, m, p, cams.data(), X.data(), w.data(),
+    obs.data(), feats.data(), reproj_err.data(), w_err.data(), &J);
+#endif
 
-	bool doRowCompression = false;
-	tJ = compute_ba_J(doRowCompression, nruns, n, m, p, cams, X, w, 
-		obs, feats, reproj_err, f_prior_err, w_err, &J);
-
-	write_J_sparse(fn + "J_ADOLC.txt", J);
-	write_times(tf, tJ);
-
-	delete[] reproj_err;
-	delete[] f_prior_err;
-	delete[] w_err;
-
-	delete[] cams;
-	delete[] X;
-	delete[] w;
-	delete[] obs;
-	delete[] feats;
+  write_J_sparse(fn_in + "_J_" + name + ".txt", J);
+  write_times(fn_in + "_times_" + name + ".txt", tf, tJ);
 }
+#endif
+
+#if 0
+
 
 #endif
 
@@ -453,7 +535,7 @@ int main(int argc, char *argv[])
   
 #if defined DO_GMM_FULL || defined DO_GMM_SPLIT
   test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
-#elif defined DO_BA
-	test_ba(fn, nruns);
+#elif defined DO_BA_BLOCK || defined DO_BA_SPARSE
+  test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
 #endif
 }
