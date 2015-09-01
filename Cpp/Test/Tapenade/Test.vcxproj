@@ -128,8 +128,9 @@
     <ClCompile Include="adStack.c" />
     <ClCompile Include="ba.c" />
     <ClCompile Include="ba_bv-all.c" />
-    <ClCompile Include="ba_dv-all.c" />
-    <ClCompile Include="gmm.c" />
+    <ClCompile Include="gmm.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="gmm_b-all.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="testMemSizec.c" />
@@ -142,8 +143,9 @@
     <ClInclude Include="adStack.h" />
     <ClInclude Include="ba.h" />
     <ClInclude Include="ba_bv.h" />
-    <ClInclude Include="ba_dv.h" />
-    <ClInclude Include="gmm.h" />
+    <ClInclude Include="gmm.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="gmm_b.h" />
     <ClInclude Include="treeverse.h" />
   </ItemGroup>

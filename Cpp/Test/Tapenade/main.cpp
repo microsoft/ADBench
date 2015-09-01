@@ -9,8 +9,8 @@
 #include "../utils.h"
 
 //#define DO_GMM_FULL
-#define DO_GMM_SPLIT
-//#define DO_BA
+//#define DO_GMM_SPLIT
+#define DO_BA
 
 extern "C"
 {
@@ -19,7 +19,6 @@ extern "C"
 #include "gmm_b.h"
 #elif defined DO_BA
 #include "ba.h"
-#include "ba_dv.h"
 #include "ba_bv.h"
 #endif
 }
@@ -142,146 +141,8 @@ void test_gmm(const string& fn_in, const string& fn_out,
 
 #elif defined DO_BA
 
-void compute_reproj_error_Jdv_block(int n, int m, int obsIdx,
-  int camIdx, int ptIdx, double *cam, double *X, double w,
-  double *feat, double *reproj_err, SparseMat& J)
-{
-  double camd[BA_NCAMPARAMS][NB_DIRS_REPROJ_DV];
-  double Xd[3][NB_DIRS_REPROJ_DV];
-  double wd[NB_DIRS_REPROJ_DV];
-  for (int i = 0; i < BA_NCAMPARAMS; i++)
-  {
-    memset(camd[i], 0, NB_DIRS_REPROJ_DV*sizeof(double));
-    camd[i][i] = 1.;
-  }
-  int offset = BA_NCAMPARAMS;
-  for (int i = 0; i < 3; i++)
-  {
-    memset(Xd[i], 0, NB_DIRS_REPROJ_DV * sizeof(double));
-    Xd[i][offset + i] = 1.;
-  }
-  offset += 3;
-  memset(wd, 0, NB_DIRS_REPROJ_DV*sizeof(double));
-  wd[offset] = 1.;
-
-  double errd[2][NB_DIRS_REPROJ_DV];
-  for (int i = 0; i < 2; i++)
-    memset(errd[i], 0, NB_DIRS_REPROJ_DV*sizeof(double));
-
-  computeReprojError_dv(cam, camd, X, Xd, &w, &wd,
-    feat[0], feat[1], reproj_err, errd, NB_DIRS_REPROJ_DV);
-
-  J.rows.push_back(J.rows.back() + NB_DIRS_REPROJ_DV);
-  J.rows.push_back(J.rows.back() + NB_DIRS_REPROJ_DV);
-
-  for (int i_row = 0; i_row < 2; i_row++)
-  {
-    for (int i = 0; i < BA_NCAMPARAMS; i++)
-    {
-      J.cols.push_back(BA_NCAMPARAMS*camIdx + i);
-      J.vals.push_back(errd[i_row][i]);
-    }
-    int col_offset = BA_NCAMPARAMS*n;
-    int val_offset = BA_NCAMPARAMS;
-    for (int i = 0; i < 3; i++)
-    {
-      J.cols.push_back(col_offset + 3 * ptIdx + i);
-      J.vals.push_back(errd[i_row][val_offset + i]);
-    }
-    col_offset += 3 * m;
-    val_offset += 3;
-    J.cols.push_back(col_offset + obsIdx);
-    J.vals.push_back(errd[i_row][val_offset]);
-  }
-}
-
-void compute_f_prior_error_Jdv_block(int cam1_idx,
-  double *cam1, double *cam2, double *cam3,
-  double *f_prior_err, SparseMat& J)
-{
-
-  double camsd[3][BA_NCAMPARAMS][NB_DIRS_F_PRIOR_DV];
-  for (int i = 0; i < 3; i++)
-  {
-    int offset = i * BA_NCAMPARAMS;
-    for (int j = 0; j < BA_NCAMPARAMS; j++)
-    {
-      memset(camsd[i][j], 0, NB_DIRS_F_PRIOR_DV*sizeof(double));
-      camsd[i][j][offset + j] = 1.;
-    }
-  }
-
-  double errd[NB_DIRS_F_PRIOR_DV];
-  memset(errd, 0, NB_DIRS_F_PRIOR_DV*sizeof(double));
-
-  computeFocalPriorError_dv(cam1, camsd[0], cam2, camsd[1],
-    cam3, camsd[2], f_prior_err, &errd, NB_DIRS_F_PRIOR_DV);
-
-  J.rows.push_back(J.rows.back() + NB_DIRS_F_PRIOR_DV);
-
-  int nbdir_idx = 0;
-  for (int i = 0; i < 3; i++)
-  {
-    int col_offset = (cam1_idx + i)* BA_NCAMPARAMS;
-    for (int j = 0; j < BA_NCAMPARAMS; j++)
-    {
-      J.cols.push_back(col_offset + j);
-      J.vals.push_back(errd[nbdir_idx]);
-      nbdir_idx++;
-    }
-  }
-}
-
-void compute_w_error_Jdv_block(int n,
-  int m, int wIdx, double w,
-  double *w_err, SparseMat& J)
-{
-  double wd = 1.;
-  double errd = 0.;
-
-  computeZachWeightError_dv(&w, &wd, w_err, &errd);
-
-  J.rows.push_back(J.rows.back() + 1);
-  J.cols.push_back(BA_NCAMPARAMS*n + 3 * m + wIdx);
-  J.vals.push_back(errd);
-}
-
-void compute_ba_Jdv(int n, int m, int p, double *cams, double *X,
-  double *w, int *obs, double *feats, double *reproj_err,
-  double *f_prior_err, double *w_err, SparseMat& J)
-{
-  J.nrows = 2 * p + n - 2 + p;
-  J.ncols = BA_NCAMPARAMS*n + 3 * m + p;
-  J.rows.push_back(0);
-
-  for (int i = 0; i < p; i++)
-  {
-    int camIdx = obs[2 * i + 0];
-    int ptIdx = obs[2 * i + 1];
-    compute_reproj_error_Jdv_block(n, m, i, camIdx, ptIdx,
-      &cams[BA_NCAMPARAMS*camIdx], &X[ptIdx * 3],
-      w[i], &feats[2 * i], &reproj_err[2 * i], J);
-  }
-
-  for (int i = 0; i < n - 2; i++)
-  {
-    int idx1 = BA_NCAMPARAMS * i;
-    int idx2 = BA_NCAMPARAMS * (i + 1);
-    int idx3 = BA_NCAMPARAMS * (i + 2);
-    compute_f_prior_error_Jdv_block(i,
-      &cams[idx1], &cams[idx2], &cams[idx3],
-      &f_prior_err[i], J);
-  }
-
-  for (int i = 0; i < p; i++)
-  {
-    compute_w_error_Jdv_block(n, m, i, w[i], &w_err[i], J);
-  }
-}
-
-void compute_reproj_error_Jbv_block(int n, int m, int obsIdx,
-  int camIdx, int ptIdx, double *cam, double *X, double w,
-  double *feat, double *reproj_err, SparseMat& J)
+void compute_reproj_error_Jbv_block(double* cam, double* X,
+  double w, double *feat, double *err, double *J)
 {
   double camb[BA_NCAMPARAMS][NB_DIRS_REPROJ_BV];
   double Xb[3][NB_DIRS_REPROJ_BV];
@@ -299,166 +160,97 @@ void compute_reproj_error_Jbv_block(int n, int m, int obsIdx,
   errb[1][1] = 1.;
 
   computeReprojError_bv(cam, camb, X, Xb, &w, &wb,
-    feat[0], feat[1], reproj_err, errb, NB_DIRS_REPROJ_BV);
+    feat[0], feat[1], err, errb, NB_DIRS_REPROJ_BV);
 
-  int n_new_cols = NB_DIRS_REPROJ_DV;
-  J.rows.push_back(J.rows.back() + n_new_cols);
-  J.rows.push_back(J.rows.back() + n_new_cols);
-
-  for (int i_row = 0; i_row < 2; i_row++)
+  for (int i = 0; i < 2; i++)
   {
-    for (int i = 0; i < BA_NCAMPARAMS; i++)
-    {
-      J.cols.push_back(BA_NCAMPARAMS*camIdx + i);
-      J.vals.push_back(camb[i][i_row]);
-    }
-    int col_offset = BA_NCAMPARAMS*n;
-    int val_offset = BA_NCAMPARAMS;
-    for (int i = 0; i < 3; i++)
-    {
-      J.cols.push_back(col_offset + 3 * ptIdx + i);
-      J.vals.push_back(Xb[i][i_row]);
-    }
-    col_offset += 3 * m;
-    val_offset += 3;
-    J.cols.push_back(col_offset + obsIdx);
-    J.vals.push_back(wb[i_row]);
-  }
-}
-
-void compute_f_prior_error_Jb_block(int cam1_idx,
-  double *cam1, double *cam2, double *cam3,
-  double *f_prior_err, SparseMat& J)
-{
-  double camsb[3][BA_NCAMPARAMS];
-  for (int i = 0; i < 3; i++)
-    memset(camsb[i], 0, BA_NCAMPARAMS*sizeof(double));
-
-  double errb = 1.;
-
-  computeFocalPriorError_b(cam1, camsb[0], cam2, camsb[1],
-    cam3, camsb[2], f_prior_err, &errb);
-
-  int n_new_cols = NB_DIRS_F_PRIOR_DV;
-  J.rows.push_back(J.rows.back() + n_new_cols);
-
-  for (int i = 0; i < 3; i++)
-  {
-    int col_offset = (cam1_idx + i)* BA_NCAMPARAMS;
     for (int j = 0; j < BA_NCAMPARAMS; j++)
-    {
-      J.cols.push_back(col_offset + j);
-      J.vals.push_back(camsb[i][j]);
-    }
+      J[j * 2 + i] = camb[j][i];
+
+    int off = BA_NCAMPARAMS * 2;
+    for (int j = 0; j < 3; j++)
+      J[j * 2 + i + off] = Xb[j][i];
+
+    off += 3 * 2;
+    J[i + off] = wb[i];
   }
-}
-
-void compute_w_error_Jb_block(int n,
-  int m, int wIdx, double w,
-  double *w_err, SparseMat& J)
-{
-  double wb = 0.;
-  double errb = 1.;
-
-  computeZachWeightError_b(&w, &wb, w_err, &errb);
-
-  J.rows.push_back(J.rows.back() + 1);
-  J.cols.push_back(BA_NCAMPARAMS*n + 3 * m + wIdx);
-  J.vals.push_back(wb);
 }
 
 void compute_ba_Jbv(int n, int m, int p, double *cams, double *X,
   double *w, int *obs, double *feats, double *reproj_err,
-  double *f_prior_err, double *w_err, SparseMat& J)
+  double *w_err, BASparseMat& J)
 {
-  J.nrows = 2 * p + n - 2 + p;
-  J.ncols = BA_NCAMPARAMS*n + 3 * m + p;
-  J.rows.push_back(0);
+  J = BASparseMat(n, m, p);
 
+  int n_new_cols = BA_NCAMPARAMS + 3 + 1;
+  vector<double> reproj_err_d(2 * n_new_cols);
   for (int i = 0; i < p; i++)
   {
+    memset(reproj_err_d.data(), 0, 2 * n_new_cols*sizeof(double));
+
     int camIdx = obs[2 * i + 0];
     int ptIdx = obs[2 * i + 1];
-    compute_reproj_error_Jbv_block(n, m, i, camIdx, ptIdx,
-      &cams[BA_NCAMPARAMS*camIdx], &X[ptIdx * 3],
-      w[i], &feats[2 * i], &reproj_err[2 * i], J);
-  }
+    compute_reproj_error_Jbv_block(
+      &cams[BA_NCAMPARAMS*camIdx],
+      &X[ptIdx * 3],
+      w[i],
+      &feats[2 * i],
+      &reproj_err[2 * i],
+      reproj_err_d.data());
 
-  for (int i = 0; i < n - 2; i++)
-  {
-    int idx1 = BA_NCAMPARAMS * i;
-    int idx2 = BA_NCAMPARAMS * (i + 1);
-    int idx3 = BA_NCAMPARAMS * (i + 2);
-    compute_f_prior_error_Jb_block(i,
-      &cams[idx1], &cams[idx2], &cams[idx3],
-      &f_prior_err[i], J);
+    J.insert_reproj_err_block(i, camIdx, ptIdx, reproj_err_d.data());
   }
 
   for (int i = 0; i < p; i++)
   {
-    compute_w_error_Jb_block(n, m, i, w[i], &w_err[i], J);
+    double err_b = 1.;
+    double w_b = 0.;
+    computeZachWeightError_b(&w[i], &w_b, &w_err[i], &err_b);
+
+    J.insert_w_err_block(i, w_b);
   }
 }
 
-void test_ba(const string& fn, int nruns)
+void test_ba(const string& fn_in, const string& fn_out,
+  int nruns_f, int nruns_J)
 {
   int n, m, p;
-  double *cams, *X, *w, *feats;
-  int *obs;
+  vector<double> cams, X, w, feats;
+  vector<int> obs;
 
   //read instance
-  read_ba_instance(fn + ".txt", n, m, p,
+  read_ba_instance(fn_in + ".txt", n, m, p,
     cams, X, w, obs, feats);
 
-  double *reproj_err = new double[2 * p];
-  double *f_prior_err = new double[n - 2];
-  double *w_err = new double[p];
-  SparseMat J;
+  vector<double> reproj_err(2 * p);
+  vector<double> w_err(p);
+  BASparseMat J(n,m,p);
 
   high_resolution_clock::time_point start, end;
-  double tf, tJ;
+  double tf = 0., tJ = 0.;
 
   start = high_resolution_clock::now();
-  for (int i = 0; i < nruns; i++)
+  for (int i = 0; i < nruns_f; i++)
   {
-    ba_objective(n, m, p, cams, X, w,
-      obs, feats, reproj_err, f_prior_err, w_err);
+    ba_objective(n, m, p, cams.data(), X.data(), w.data(),
+      obs.data(), feats.data(), reproj_err.data(), w_err.data());
   }
   end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns;
-
-  /*start = high_resolution_clock::now();
-  for (int i = 0; i < nruns; i++)
-  {
-  J = SparseMat();
-  compute_ba_Jdv(n, m, p, cams, X, w, obs, feats,
-  reproj_err, f_prior_err, w_err, J);
-  }
-  end = high_resolution_clock::now();
-  tJ = duration_cast<duration<double>>(end - start).count() / nruns;*/
+  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
 
   start = high_resolution_clock::now();
-  for (int i = 0; i < nruns; i++)
+  for (int i = 0; i < nruns_J; i++)
   {
-    J = SparseMat();
-    compute_ba_Jbv(n, m, p, cams, X, w, obs, feats,
-      reproj_err, f_prior_err, w_err, J);
+    compute_ba_Jbv(n, m, p, cams.data(), X.data(), w.data(), 
+      obs.data(), feats.data(), reproj_err.data(), w_err.data(), J);
   }
   end = high_resolution_clock::now();
-  tJ = duration_cast<duration<double>>(end - start).count() / nruns;
+  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
 
-  //write_J_sparse(fn + "J_Tapenade_dv.txt", J);
-  write_J_sparse(fn + "J_Tapenade_bv.txt", J);
-  write_times(tf, tJ);
+  string name = "Tapenade";
 
-  delete[] reproj_err;
-  delete[] f_prior_err;
-  delete[] w_err;
-
-  delete[] cams;
-  delete[] X;
-  delete[] obs;
-  delete[] feats;
+  write_J_sparse(fn_out + "_J_" + name + ".txt", J);
+  write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
 }
 
 #endif
@@ -477,6 +269,6 @@ int main(int argc, char *argv[])
 #if defined DO_GMM_FULL || defined DO_GMM_SPLIT
   test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
 #elif defined DO_BA
-  //test_ba(fn, nruns);
+  test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
 #endif
 }

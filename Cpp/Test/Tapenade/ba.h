@@ -1,10 +1,11 @@
 #ifndef TEST_TAPENADE_BA
 #define TEST_TAPENADE_BA
 
-//#include "adStack.h"
+#include "../defs.h"
+//#include "defs.h"
 
-#define BA_NCAMPARAMS 11
-#define FOCAL_IDX 6
+double sqnorm(int n, double *x);
+void cross(double *a, double *b, double *out);
 
 // rot 3 rotation parameters
 // pt 3 point to be rotated
@@ -37,13 +38,13 @@ void radial_distort(double *rad_params, double *proj);
 // err = sqsum(proj - measurement)
 void project(double *cam, double *X, double *proj);
 
-void computeReprojError(double *cam,
-  double *X, double *w, double feat_x, double feat_y,
+void computeReprojError(
+  double *cam,
+  double *X,
+  double *w,
+  double feat_x,
+  double feat_y,
   double *err);
-
-// temporal prior
-void computeFocalPriorError(double *cam1,
-  double *cam2, double *cam3, double *err);
 
 void computeZachWeightError(double *w, double *err);
 
@@ -67,8 +68,13 @@ void computeZachWeightError(double *w, double *err);
 // distorted = radial_distort(projective2euclidean(Xcam), radial_parameters)
 // proj = distorted * f + principal_point
 // err = sqsum(proj - measurement)
-void ba_objective(int n, int m, int p, double *cams, double *X,
-  double *w, int *obs, double *feats,
-  double *reproj_err, double *f_prior_err, double *w_err);
+void ba_objective(int n, int m, int p,
+  double *cams,
+  double *X,
+  double *w,
+  int *obs,
+  double *feats,
+  double *reproj_err,
+  double *w_err);
 
 #endif //TEST_TAPENADE_BA

@@ -3,44 +3,60 @@
 #include <math.h>
 #include <float.h>
 
+double sqsum(int n, double *x)
+{
+  int i;
+  double res;
+  res = 0;
+  for (i = 0; i < n; i++)
+    res = res + x[i] * x[i];
+  return res;
+}
+
+void cross(double *a, double *b, double *out)
+{
+  out[0] = a[1] * b[2] - a[2] * b[1];
+  out[1] = a[2] * b[0] - a[0] * b[2];
+  out[2] = a[0] * b[1] - a[1] * b[0];
+}
+
 void rodrigues_rotate_point(double *rot, double *pt, double *rotatedPt)
 {
   int i;
-  double theta, costheta, sintheta, theta_inverse,
-    w[3], w_cross_pt[3], tmp;
+  double sqtheta, theta, costheta, sintheta, theta_inverse,
+    w[3], cross_[3], tmp;
 
-  // norm of rot
-  theta = 0.;
-  for (i = 0; i < 3; i++)
+  sqtheta = sqsum(3, rot);
+  if (sqtheta != 0.)
   {
-    theta = theta + rot[i] * rot[i];
+    theta = sqrt(sqtheta);
+    costheta = cos(theta);
+    sintheta = sin(theta);
+    theta_inverse = 1.0 / theta;
+
+    for (i = 0; i < 3; i++)
+      w[i] = rot[i] * theta_inverse;
+
+    cross(w, pt, cross_);
+
+    tmp = (w[0] * pt[0] + w[1] * pt[1] + w[2] * pt[2]) *
+      (1. - costheta);
+
+    for (i = 0; i < 3; i++)
+      rotatedPt[i] = pt[i] * costheta + cross_[i] * sintheta + w[i] * tmp;
+  }else
+  {
+    cross(rot, pt, cross_);
+    
+    for (i = 0; i < 3; i++)
+      rotatedPt[i] = pt[i] + cross_[i];
   }
-  theta = sqrt(theta);
-
-  costheta = cos(theta);
-  sintheta = sin(theta);
-  theta_inverse = 1.0 / theta;
-
-  w[0] = rot[0] * theta_inverse;
-  w[1] = rot[1] * theta_inverse;
-  w[2] = rot[2] * theta_inverse;
-
-  w_cross_pt[0] = w[1] * pt[2] - w[2] * pt[1];
-  w_cross_pt[1] = w[2] * pt[0] - w[0] * pt[2];
-  w_cross_pt[2] = w[0] * pt[1] - w[1] * pt[0];
-
-  tmp = (w[0] * pt[0] + w[1] * pt[1] + w[2] * pt[2]) *
-    (1. - costheta);
-
-  rotatedPt[0] = pt[0] * costheta + w_cross_pt[0] * sintheta + w[0] * tmp;
-  rotatedPt[1] = pt[1] * costheta + w_cross_pt[1] * sintheta + w[1] * tmp;
-  rotatedPt[2] = pt[2] * costheta + w_cross_pt[2] * sintheta + w[2] * tmp;
 }
 
 void radial_distort(double *rad_params, double *proj)
 {
   double rsq, L;
-  rsq = proj[0] * proj[0] + proj[1] * proj[1];
+  rsq = sqsum(2, proj);
   L = 1 + rad_params[0] * rsq + rad_params[1] * rsq * rsq;
   proj[0] = proj[0] * L;
   proj[1] = proj[1] * L;
@@ -48,27 +64,31 @@ void radial_distort(double *rad_params, double *proj)
 
 void project(double *cam, double *X, double *proj)
 {
+  int i;
   double *C;
   double Xo[3], Xcam[3];
-  C = &cam[3];
+  C = &cam[BA_C_IDX];
 
-  Xo[0] = X[0] - C[0];
-  Xo[1] = X[1] - C[1];
-  Xo[2] = X[2] - C[2];
+  for (i = 0; i < 3; i++)
+    Xo[i] = X[i] - C[i];
 
-  rodrigues_rotate_point(&cam[0], Xo, Xcam);
+  rodrigues_rotate_point(&cam[BA_ROT_IDX], Xo, Xcam);
 
   proj[0] = Xcam[0] / Xcam[2];
   proj[1] = Xcam[1] / Xcam[2];
 
-  radial_distort(&cam[9], proj);
+  radial_distort(&cam[BA_RAD_IDX], proj);
 
-  proj[0] = proj[0] * cam[6] + cam[7];
-  proj[1] = proj[1] * cam[6] + cam[8];
+  for (i = 0; i < 2; i++)
+    proj[i] = proj[i] * cam[BA_F_IDX] + cam[BA_X0_IDX + i];
 }
 
-void computeReprojError(double *cam,
-  double *X, double *w, double feat_x, double feat_y,
+void computeReprojError(
+  double *cam,
+  double *X, 
+  double *w, 
+  double feat_x, 
+  double feat_y,
   double *err)
 {
   double proj[2];
@@ -76,14 +96,10 @@ void computeReprojError(double *cam,
 
   err[0] = (*w)*(proj[0] - feat_x);
   err[1] = (*w)*(proj[1] - feat_y);
-}
 
-// temporal prior
-void computeFocalPriorError(double *cam1,
-  double *cam2, double *cam3, double *err)
-{
-  *err = cam1[FOCAL_IDX] - 2 * cam2[FOCAL_IDX]
-    + cam3[FOCAL_IDX];
+  // This term is here so that tapenade correctly 
+  // recognizes inputs to be the inputs
+  err[0] = err[0] + (cam[0] - cam[0]) + (X[0] - X[0]);
 }
 
 void computeZachWeightError(double *w, double *err)
@@ -91,11 +107,16 @@ void computeZachWeightError(double *w, double *err)
   *err = 1 - (*w)*(*w);
 }
 
-void ba_objective(int n, int m, int p, double *cams, double *X,
-  double *w, int *obs, double *feats,
-  double *reproj_err, double *f_prior_err, double *w_err)
+void ba_objective(int n, int m, int p, 
+  double *cams, 
+  double *X,
+  double *w, 
+  int *obs, 
+  double *feats,
+  double *reproj_err, 
+  double *w_err)
 {
-  int i, camIdx, ptIdx, idx1, idx2, idx3;
+  int i, camIdx, ptIdx;
 
   for (i = 0; i < p; i++)
   {
@@ -105,15 +126,6 @@ void ba_objective(int n, int m, int p, double *cams, double *X,
       &w[i], feats[i * 2 + 0], feats[i * 2 + 1], &reproj_err[2 * i]);
   }
 
-  for (i = 0; i < n - 2; i++)
-  {
-    idx1 = BA_NCAMPARAMS * i;
-    idx2 = BA_NCAMPARAMS * (i + 1);
-    idx3 = BA_NCAMPARAMS * (i + 2);
-    computeFocalPriorError(&cams[idx1], &cams[idx2], &cams[idx3],
-      &f_prior_err[i]);
-  }
-
   for (i = 0; i < p; i++)
   {
     computeZachWeightError(&w[i], &w_err[i]);
@@ -121,6 +133,6 @@ void ba_objective(int n, int m, int p, double *cams, double *X,
 
   // This term is here so that tapenade correctly 
   // recognizes inputs to be the inputs
-  reproj_err[0] = reproj_err[0] + ((cams[0] - cams[0]) +
-    (X[0] - X[0]) + (w[0] - w[0]));
+  //reproj_err[0] = reproj_err[0] + ((cams[0] - cams[0]) +
+  //  (X[0] - X[0]) + (w[0] - w[0]));
 }
