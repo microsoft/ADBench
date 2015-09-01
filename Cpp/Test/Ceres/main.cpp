@@ -4,7 +4,7 @@
 #include <chrono>
 #include <vector>
 
-#define DO_GMM
+//#define DO_GMM
 #define DO_BA
 
 #include "ceres/ceres.h"
@@ -16,7 +16,7 @@
 #define GMM_K 5
 #define GMM_ICF_DIM (GMM_D*(GMM_D + 1) / 2)
 
-#elif DO_BA
+#elif defined DO_BA
 #include "ba.h"
 #endif
 
@@ -141,49 +141,31 @@ void test_gmm(const string& fn_in, const string& fn_out,
   delete[] J_ceres;
 }
 
-#elif DO_BA
+#elif defined DO_BA
 
 struct ReprojectionError {
-  ReprojectionError(double feat_x, double feat_y)
-    : feat_x_(feat_x), feat_y_(feat_y) {}
+  ReprojectionError(const double* const feat)
+    : feat_(feat) {}
 
   template <typename T>
-  bool operator()(const T* const camera,
-    const T* const point, const T* const w,
+  bool operator()(
+    const T* const camera,
+    const T* const point, 
+    const T* const w,
     T* residuals) const
   {
     computeReprojError(camera, point, w,
-      feat_x_, feat_y_, residuals);
+      feat_, residuals);
     return true;
   }
 
-  static ceres::CostFunction* create(const double feat_x,
-    const double feat_y) {
+  static ceres::CostFunction* create(const double* const feat) {
     return (new ceres::AutoDiffCostFunction
       <ReprojectionError, 2, BA_NCAMPARAMS, 3, 1>(
-        new ReprojectionError(feat_x, feat_y)));
+        new ReprojectionError(feat)));
   }
 
-  double feat_x_;
-  double feat_y_;
-};
-
-struct FocalPriorError {
-  template <typename T>
-  bool operator()(const T* const cam1,
-    const T* const cam2, const T* const cam3,
-    T* err) const
-  {
-    computeFocalPriorError(cam1, cam2, cam3, err);
-    return true;
-  }
-
-  static ceres::CostFunction* create() {
-    return (new ceres::AutoDiffCostFunction
-      <FocalPriorError, 1, BA_NCAMPARAMS,
-      BA_NCAMPARAMS, BA_NCAMPARAMS>(
-        new FocalPriorError));
-  }
+  const double* const feat_;
 };
 
 struct ZachWeightError {
@@ -203,8 +185,7 @@ struct ZachWeightError {
 
 void compute_ba_J(int n, int m, int p, double *cams,
   double *X, double *w, int *obs, double *feats,
-  double *reproj_err, double *f_prior_err,
-  double *w_err, ceres::CRSMatrix& J)
+  double *reproj_err, double *w_err, ceres::CRSMatrix& J)
 {
   Problem problem;
 
@@ -227,23 +208,11 @@ void compute_ba_J(int n, int m, int p, double *cams,
     int ptIdx = obs[2 * i + 1];
     problem.AddResidualBlock(
       ReprojectionError::create(
-        feats[2 * i + 0],
-        feats[2 * i + 1]),
+        &feats[2 * i]),
       nullptr,
       &cams[BA_NCAMPARAMS*camIdx],
       &X[3 * ptIdx],
       &w[i]);
-  }
-  for (int i = 0; i < n - 2; i++)
-  {
-    int idx1 = BA_NCAMPARAMS * i;
-    int idx2 = BA_NCAMPARAMS * (i + 1);
-    int idx3 = BA_NCAMPARAMS * (i + 2);
-    problem.AddResidualBlock(FocalPriorError::create(),
-      nullptr,
-      &cams[idx1],
-      &cams[idx2],
-      &cams[idx3]);
   }
   for (int i = 0; i < p; i++)
   {
@@ -258,7 +227,7 @@ void compute_ba_J(int n, int m, int p, double *cams,
 
 void write_J_sparse(const string& fn, ceres::CRSMatrix& J)
 {
-  SparseMat Jnew;
+  BASparseMat Jnew;
   Jnew.nrows = J.num_rows;
   Jnew.ncols = J.num_cols;
   Jnew.rows = J.rows;
@@ -267,56 +236,45 @@ void write_J_sparse(const string& fn, ceres::CRSMatrix& J)
   write_J_sparse(fn, Jnew);
 }
 
-void test_ba(const string& fn, int nruns)
+void test_ba(const string& fn_in, const string& fn_out,
+  int nruns_f, int nruns_J)
 {
   int n, m, p;
-  double *cams, *X, *w, *feats;
-  int *obs;
+  vector<double> cams, X, w, feats;
+  vector<int> obs;
 
-  //read instance
-  read_ba_instance(fn + ".txt", n, m, p,
+  read_ba_instance(fn_in + ".txt", n, m, p,
     cams, X, w, obs, feats);
 
   ceres::CRSMatrix J;
-  double *reproj_err = new double[2 * p];
-  double *f_prior_err = new double[n - 2];
-  double *w_err = new double[p];
+  vector<double> reproj_err(2 * p);
+  vector<double> w_err(p);
 
   high_resolution_clock::time_point start, end;
   double tf, tJ;
 
   start = high_resolution_clock::now();
-  for (int i = 0; i < nruns; i++)
+  for (int i = 0; i < nruns_f; i++)
   {
-    ba_objective(n, m, p, cams, X, w, obs,
-      feats, reproj_err, f_prior_err, w_err);
+    ba_objective(n, m, p, cams.data(), X.data(),
+      w.data(), obs.data(), feats.data(),
+      reproj_err.data(), w_err.data());
   }
   end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns;
+  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
 
   start = high_resolution_clock::now();
-  for (int i = 0; i < nruns; i++)
+  for (int i = 0; i < nruns_J; i++)
   {
-    compute_ba_J(n, m, p, cams, X, w, obs, feats,
-      reproj_err, f_prior_err, w_err, J);
+    compute_ba_J(n, m, p, cams.data(), X.data(), w.data(), 
+      obs.data(), feats.data(), reproj_err.data(), w_err.data(), J);
   }
   end = high_resolution_clock::now();
-  tJ = duration_cast<duration<double>>(end - start).count() / nruns;
+  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
 
-  write_J_sparse(fn + "J_Ceres.txt", J);
-
-  write_times(tf, tJ);
-
-
-  delete[] reproj_err;
-  delete[] f_prior_err;
-  delete[] w_err;
-
-  delete[] cams;
-  delete[] X;
-  delete[] w;
-  delete[] obs;
-  delete[] feats;
+  string name = "Ceres";
+  //write_J_sparse(fn_in + "_J_" + name + ".txt", J);
+  write_times(fn_in + "_times_" + name + ".txt", tf, tJ);
 }
 
 #endif
@@ -335,6 +293,6 @@ int main(int argc, char** argv)
 #ifdef DO_GMM
   test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
 #elif defined DO_BA
-  test_ba(fn, nruns);
+  test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
 #endif
 }

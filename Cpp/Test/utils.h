@@ -30,6 +30,7 @@ public:
   vector<int> cols;
   vector<double> vals;
 
+  BASparseMat() {}
   BASparseMat(int n_, int m_, int p_) : n(n_), m(m_), p(p_)
   {
     nrows = 2 * p + p;
