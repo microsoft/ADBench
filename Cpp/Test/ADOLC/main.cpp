@@ -286,16 +286,10 @@ void compute_reproj_error_J_block(int tapeTag,double* cam, double* X,
   delete[] Jtmp;
 }
 
-double compute_ba_J(int nruns, int n, int m, int p,
+void compute_ba_J(int n, int m, int p,
   double *cams, double *X, double *w, int *obs, double *feats,
   double *reproj_err, double *w_err, BASparseMat *J)
 {
-  if (nruns == 0)
-    return 0.;
-
-  high_resolution_clock::time_point start, end;
-  start = high_resolution_clock::now();
-
   int tapeTagReprojErr = 1; 
   int tapeTagWeightErr = 2;
   *J = BASparseMat(n, m, p);
@@ -339,12 +333,6 @@ double compute_ba_J(int nruns, int n, int m, int p,
 
     J->insert_w_err_block(i, err_d);
   }
-
-  end = high_resolution_clock::now();
-  double t_J = duration_cast<duration<double>>(end - start).count() / nruns;
-  cout << "t_J:" << t_J << endl;
-
-  return t_J;
 }
 
 #elif defined DO_BA_SPARSE
@@ -427,7 +415,7 @@ double compute_ba_J(int nruns, int n, int m, int p,
   delete[] aw_err;
 
   end = high_resolution_clock::now();
-  double t_tape = duration_cast<duration<double>>(end - start).count() / nruns;
+  double t_tape = duration_cast<duration<double>>(end - start).count();
 
   //////// Compute J and compute sparsity always again and again
   vector<double> in(J->ncols);
@@ -451,7 +439,7 @@ double compute_ba_J(int nruns, int n, int m, int p,
   sparse_jac(tapeTag, J->nrows, J->ncols, samePattern,
     in.data(), &nnz, &ridxs, &cidxs, &nzvals, opt);
   end = high_resolution_clock::now();
-  double t_J_sparsity = duration_cast<duration<double>>(end - start).count() / nruns;
+  double t_J_sparsity = duration_cast<duration<double>>(end - start).count();
 
   samePattern = 1;
   start = high_resolution_clock::now();
@@ -507,8 +495,14 @@ void test_ba(const string& fn_in, const string& fn_out,
 
 #if defined DO_BA_BLOCK
   string name("ADOLC");
-  tJ = compute_ba_J(nruns_J, n, m, p, cams.data(), X.data(), w.data(),
-    obs.data(), feats.data(), reproj_err.data(), w_err.data(), &J);
+  start = high_resolution_clock::now();
+  for (int i = 0; i < nruns_J; i++)
+  {
+    compute_ba_J(n, m, p, cams.data(), X.data(), w.data(),
+      obs.data(), feats.data(), reproj_err.data(), w_err.data(), &J);
+}
+  end = high_resolution_clock::now();
+  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
 #elif defined DO_BA_SPARSE
   string name("ADOLC_sparse");
   tJ = compute_ba_J(nruns_J, n, m, p, cams.data(), X.data(), w.data(),
