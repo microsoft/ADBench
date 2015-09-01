@@ -5,7 +5,7 @@ open System.Diagnostics
 open System.IO
 open MathNet.Numerics
 
-#if MODE_AD && (DO_GMM_FULL || DO_GMM_SPLIT)
+#if MODE_AD
 open DiffSharp.AD
 #else
 open DiffSharp.AD.Specialized.Reverse1

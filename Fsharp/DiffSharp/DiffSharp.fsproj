@@ -13,31 +13,32 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
     <Name>DiffSharp</Name>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <Tailcalls>false</Tailcalls>
-    <OutputPath>..\..\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;MODE_R;DO_GMM_FULL</DefineConstants>
+    <OutputPath>..\..\Debug\DiffSharp\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;MODE_AD;DO_BA</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Debug\DiffSharp.XML</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
-    <StartArguments>..\..\ ..\..\ gmm 1 1</StartArguments>
+    <StartArguments>..\..\ ..\..\ ba 1 1</StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
     <OutputPath>..\..\Release\DiffSharp\</OutputPath>
-    <DefineConstants>TRACE;MODE_R;DO_GMM_SPLIT</DefineConstants>
+    <DefineConstants>TRACE;MODE_AD;DO_BA</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Release\DiffSharp.XML</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
-    <StartArguments>..\..\ ..\..\ gmm 1 1 -rep</StartArguments>
+    <StartArguments>..\..\ ..\..\ ba 1 1</StartArguments>
   </PropertyGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
