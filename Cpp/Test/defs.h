@@ -5,6 +5,8 @@
 #define NBDirsMax 1650
 #endif
 
+#define NBDirsMaxReproj_BV 2
+
 #ifndef PI
 #define PI 3.14159265359
 #endif
