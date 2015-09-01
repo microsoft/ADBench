@@ -165,7 +165,12 @@ opt2 = admOptions('independents', [1 2 3],  'functionResults', ...
 
 %%
 
-Jexternal = load_J_sparse([fn '_J_manual_eigen.txt']);
+% Jexternal = load_J_sparse([fn '_J_manual_eigen.txt']);
+% Jexternal = load_J_sparse([fn '_J_Tapenade.txt']);
+% Jexternal = load_J_sparse([fn '_J_ADOLC.txt']);
+% Jexternal = load_J_sparse([fn '_J_ADOLC_sparse.txt']);
+% Jexternal = load_J_sparse([fn '_J_Adept.txt']);
+Jexternal = load_J_sparse([fn '_J_Ceres.txt']);
 [JforV, fvalforV1, fvalforV2] = ...
     admDiffVFor(@ba_objective, 1, cams, X, w, obs, opt);
 

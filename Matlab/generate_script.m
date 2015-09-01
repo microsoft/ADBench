@@ -99,20 +99,19 @@ for i=1:ntools
 end
 
 %% read time estimates & determine nruns for everyone
-
 [times_est_f,times_est_J,up_to_date_mask] = ...
     read_times(data_dir,data_dir_est,fns,tools);
 
 nruns_f = determine_n_runs(times_est_f);
 nruns_J = determine_n_runs(times_est_J);
 save([data_dir_est 'gmm_estimates_backup.mat'],'nruns_f','nruns_J',...
-    'times_est_f','times_est_J');
+    'times_est_f','times_est_J','up_to_date_mask');
 nruns_f = nruns_f .* ~up_to_date_mask;
 nruns_J = nruns_J .* ~up_to_date_mask;
 
 %% write script for running tools
 fn_run_experiments = 'run_experiments.mk';
-write_script(fn_run_experiments,params,data_dir,data_dir_est,...
+write_script(fn_run_experiments,params,data_dir,data_dir,...
     fns,tools,nruns_f,nruns_J,replicate_point);
 
 %% run all experiments
