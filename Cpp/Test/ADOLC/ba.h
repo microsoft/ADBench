@@ -43,7 +43,7 @@ void ba_objective(int n, int m, int p,
   const T* const X,
   const T* const w,
   const int* const obs,
-  const double* feats,
+  const double* const feats,
   T* reproj_err,
   T* w_err);
 
@@ -196,7 +196,7 @@ void ba_objective(int n, int m, int p,
   const T* const X,
   const T* const w,
   const int* const obs,
-  const double* feats,
+  const double* const feats,
   T* reproj_err,
   T* w_err)
 {
