@@ -1,0 +1,902 @@
+cd /home/t-filsra/adic2/ADIC/Rose2xaif && ./autogen.sh
+configure.ac:59: warning: AC_REQUIRE: `BOOST_REQUIRE' was expanded before it was required
+configure.ac:59: http://www.gnu.org/software/autoconf/manual/autoconf.html#Expanded-Before-Required
+config/boost.m4:288: BOOST_FIND_LIB is expanded from...
+config/boost.m4:529: BOOST_DATE_TIME is expanded from...
+config/boost.m4:923: BOOST_WAVE is expanded from...
+config/rose2xaif-boost.m4:1: ROSE2XAIF_BOOST is expanded from...
+configure.ac:59: the top level
+configure.ac:59: warning: AC_REQUIRE: `BOOST_REQUIRE' was expanded before it was required
+configure.ac:59: http://www.gnu.org/software/autoconf/manual/autoconf.html#Expanded-Before-Required
+config/boost.m4:288: BOOST_FIND_LIB is expanded from...
+config/boost.m4:529: BOOST_DATE_TIME is expanded from...
+config/boost.m4:923: BOOST_WAVE is expanded from...
+config/rose2xaif-boost.m4:1: ROSE2XAIF_BOOST is expanded from...
+configure.ac:59: the top level
+configure.ac:59: warning: AC_REQUIRE: `BOOST_REQUIRE' was expanded before it was required
+configure.ac:59: http://www.gnu.org/software/autoconf/manual/autoconf.html#Expanded-Before-Required
+config/boost.m4:288: BOOST_FIND_LIB is expanded from...
+config/boost.m4:529: BOOST_DATE_TIME is expanded from...
+config/boost.m4:923: BOOST_WAVE is expanded from...
+config/rose2xaif-boost.m4:1: ROSE2XAIF_BOOST is expanded from...
+configure.ac:59: the top level
+configure.ac:59: warning: AC_REQUIRE: `BOOST_REQUIRE' was expanded before it was required
+configure.ac:59: http://www.gnu.org/software/autoconf/manual/autoconf.html#Expanded-Before-Required
+config/boost.m4:288: BOOST_FIND_LIB is expanded from...
+config/boost.m4:529: BOOST_DATE_TIME is expanded from...
+config/boost.m4:923: BOOST_WAVE is expanded from...
+config/rose2xaif-boost.m4:1: ROSE2XAIF_BOOST is expanded from...
+configure.ac:59: the top level
+configure.ac:59: warning: AC_REQUIRE: `BOOST_REQUIRE' was expanded before it was required
+configure.ac:59: http://www.gnu.org/software/autoconf/manual/autoconf.html#Expanded-Before-Required
+config/boost.m4:288: BOOST_FIND_LIB is expanded from...
+config/boost.m4:529: BOOST_DATE_TIME is expanded from...
+config/boost.m4:923: BOOST_WAVE is expanded from...
+config/rose2xaif-boost.m4:1: ROSE2XAIF_BOOST is expanded from...
+configure.ac:59: the top level
+configure.ac:59: warning: AC_REQUIRE: `BOOST_REQUIRE' was expanded before it was required
+configure.ac:59: http://www.gnu.org/software/autoconf/manual/autoconf.html#Expanded-Before-Required
+config/boost.m4:288: BOOST_FIND_LIB is expanded from...
+config/boost.m4:529: BOOST_DATE_TIME is expanded from...
+config/boost.m4:923: BOOST_WAVE is expanded from...
+config/rose2xaif-boost.m4:1: ROSE2XAIF_BOOST is expanded from...
+configure.ac:59: the top level
+configure.ac:59: warning: AC_REQUIRE: `BOOST_REQUIRE' was expanded before it was required
+configure.ac:59: http://www.gnu.org/software/autoconf/manual/autoconf.html#Expanded-Before-Required
+config/boost.m4:288: BOOST_FIND_LIB is expanded from...
+config/boost.m4:529: BOOST_DATE_TIME is expanded from...
+config/boost.m4:923: BOOST_WAVE is expanded from...
+config/rose2xaif-boost.m4:1: ROSE2XAIF_BOOST is expanded from...
+configure.ac:59: the top level
+configure.ac:59: warning: AC_REQUIRE: `BOOST_REQUIRE' was expanded before it was required
+configure.ac:59: http://www.gnu.org/software/autoconf/manual/autoconf.html#Expanded-Before-Required
+config/boost.m4:288: BOOST_FIND_LIB is expanded from...
+config/boost.m4:529: BOOST_DATE_TIME is expanded from...
+config/boost.m4:923: BOOST_WAVE is expanded from...
+config/rose2xaif-boost.m4:1: ROSE2XAIF_BOOST is expanded from...
+configure.ac:59: the top level
+Makefile.am:5: warning: source file 'util/BaseException.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+automake: warning: possible forward-incompatibility.
+automake: At least a source file is in a subdirectory, but the 'subdir-objects'
+automake: automake option hasn't been enabled.  For now, the corresponding output
+automake: object file(s) will be placed in the top-level directory.  However,
+automake: this behaviour will change in future Automake versions: they will
+automake: unconditionally cause object files to be placed in the same subdirectory
+automake: of the corresponding sources.
+automake: You are advised to start using 'subdir-objects' option throughout your
+automake: project, to avoid future incompatibilities.
+Makefile.am:5: warning: source file 'util/BoostCommandLine.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'util/DumpAsDot.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'util/LogicException.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'util/PrintingIntException.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'util/SageAttr.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'util/StateManager.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'util/Utils.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'canon/BaseCFGcanon.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'canon/CCanon.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'canon/CPlusPlusCanon.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'canon/ExprCanon.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'canon/SageCanon.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'canon/StmtCanon.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'canon/SymbolCanon.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'xaif/AssignmentLHSTypeTraversal.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'xaif/CheckDefinitions.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'xaif/ConversionHelpers.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'xaif/DFSTraversal.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'xaif/OAtoXAIFConverter.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'xaif/SetActiveSymbols.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'xaif/Sage2XAIFGraph.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'xaif/TemplateTraverse.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'xaif/XAIFGraphImpl.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'xaif/XAIFParser.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'xaif/XAIFParserHandlers.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'xaif/XAIFPrinter.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'xaif/XAIFSymbolShape.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'xaif/XAIFtoSage.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'main/Rose2XAIF.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:5: warning: source file 'main/main.cpp' is in a subdirectory,
+Makefile.am:5: but option 'subdir-objects' is disabled
+Makefile.am:45: warning: source file 'Fortran/ConvertDeclarationsPassFortran.cpp' is in a subdirectory,
+Makefile.am:45: but option 'subdir-objects' is disabled
+Makefile.am:45: warning: source file 'Fortran/CFGcanon.cpp' is in a subdirectory,
+Makefile.am:45: but option 'subdir-objects' is disabled
+cd /home/t-filsra/adic2/ADIC/Rose2OA && ./autogen.sh
++ autoreconf -i
+configure.ac:67: warning: AC_REQUIRE: `BOOST_REQUIRE' was expanded before it was required
+configure.ac:67: http://www.gnu.org/software/autoconf/manual/autoconf.html#Expanded-Before-Required
+config/boost.m4:288: BOOST_FIND_LIB is expanded from...
+config/boost.m4:555: BOOST_DATE_TIME is expanded from...
+config/boost.m4:991: BOOST_WAVE is expanded from...
+config/rose2oa-boost.m4:1: ROSE2OA_BOOST is expanded from...
+configure.ac:67: the top level
+configure.ac:67: warning: AC_REQUIRE: `BOOST_REQUIRE' was expanded before it was required
+configure.ac:67: http://www.gnu.org/software/autoconf/manual/autoconf.html#Expanded-Before-Required
+config/boost.m4:288: BOOST_FIND_LIB is expanded from...
+config/boost.m4:555: BOOST_DATE_TIME is expanded from...
+config/boost.m4:991: BOOST_WAVE is expanded from...
+config/rose2oa-boost.m4:1: ROSE2OA_BOOST is expanded from...
+configure.ac:67: the top level
+configure.ac:67: warning: AC_REQUIRE: `BOOST_REQUIRE' was expanded before it was required
+configure.ac:67: http://www.gnu.org/software/autoconf/manual/autoconf.html#Expanded-Before-Required
+config/boost.m4:288: BOOST_FIND_LIB is expanded from...
+config/boost.m4:555: BOOST_DATE_TIME is expanded from...
+config/boost.m4:991: BOOST_WAVE is expanded from...
+config/rose2oa-boost.m4:1: ROSE2OA_BOOST is expanded from...
+configure.ac:67: the top level
+configure.ac:67: warning: AC_REQUIRE: `BOOST_REQUIRE' was expanded before it was required
+configure.ac:67: http://www.gnu.org/software/autoconf/manual/autoconf.html#Expanded-Before-Required
+config/boost.m4:288: BOOST_FIND_LIB is expanded from...
+config/boost.m4:555: BOOST_DATE_TIME is expanded from...
+config/boost.m4:991: BOOST_WAVE is expanded from...
+config/rose2oa-boost.m4:1: ROSE2OA_BOOST is expanded from...
+configure.ac:67: the top level
+configure.ac:67: warning: AC_REQUIRE: `BOOST_REQUIRE' was expanded before it was required
+configure.ac:67: http://www.gnu.org/software/autoconf/manual/autoconf.html#Expanded-Before-Required
+config/boost.m4:288: BOOST_FIND_LIB is expanded from...
+config/boost.m4:555: BOOST_DATE_TIME is expanded from...
+config/boost.m4:991: BOOST_WAVE is expanded from...
+config/rose2oa-boost.m4:1: ROSE2OA_BOOST is expanded from...
+configure.ac:67: the top level
+configure.ac:67: warning: AC_REQUIRE: `BOOST_REQUIRE' was expanded before it was required
+configure.ac:67: http://www.gnu.org/software/autoconf/manual/autoconf.html#Expanded-Before-Required
+config/boost.m4:288: BOOST_FIND_LIB is expanded from...
+config/boost.m4:555: BOOST_DATE_TIME is expanded from...
+config/boost.m4:991: BOOST_WAVE is expanded from...
+config/rose2oa-boost.m4:1: ROSE2OA_BOOST is expanded from...
+configure.ac:67: the top level
+configure.ac:67: warning: AC_REQUIRE: `BOOST_REQUIRE' was expanded before it was required
+configure.ac:67: http://www.gnu.org/software/autoconf/manual/autoconf.html#Expanded-Before-Required
+config/boost.m4:288: BOOST_FIND_LIB is expanded from...
+config/boost.m4:555: BOOST_DATE_TIME is expanded from...
+config/boost.m4:991: BOOST_WAVE is expanded from...
+config/rose2oa-boost.m4:1: ROSE2OA_BOOST is expanded from...
+configure.ac:67: the top level
+cd /home/t-filsra/adic2/ADIC/RoseFE_OpenAnalysis && ./autogen.sh
++ autoreconf -i
+*** Building angel ***
+make[1]: Entering directory `/home/t-filsra/adic2/ADIC/angel'
+cd src && make 
+make[2]: Entering directory `/home/t-filsra/adic2/ADIC/angel/src'
+make[2]: Nothing to be done for `it'.
+make[2]: Leaving directory `/home/t-filsra/adic2/ADIC/angel/src'
+ar ruv lib/libangel.a src/*.o
+make[1]: Leaving directory `/home/t-filsra/adic2/ADIC/angel'
+cd /home/t-filsra/adic2/ADIC/Rose2xaif_build/ && make && make install ; \
+
+make[1]: Entering directory `/home/t-filsra/adic2/ADIC/Rose2xaif_build'
+make  all-am
+make[2]: Entering directory `/home/t-filsra/adic2/ADIC/Rose2xaif_build'
+  CXX      rose2xaif-Rose2XAIF.o
+In file included from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XercesDefs.hpp:46,
+                 from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:25,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/xaif/XAIFParser.hpp:14,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.hpp:25,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.cpp:22:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Xerces_autoconf_config.hpp:106: error: reference to ‘uint16_t’ is ambiguous
+/usr/include/stdint.h:49: error: candidates are: typedef short unsigned int uint16_t
+/home/t-filsra/adic2/install/boost_inst/include/boost/cstdint.hpp:234: error:                 typedef short unsigned int boost::uint16_t
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Xerces_autoconf_config.hpp:106: error: reference to ‘uint16_t’ is ambiguous
+/usr/include/stdint.h:49: error: candidates are: typedef short unsigned int uint16_t
+/home/t-filsra/adic2/install/boost_inst/include/boost/cstdint.hpp:234: error:                 typedef short unsigned int boost::uint16_t
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Xerces_autoconf_config.hpp:106: error: ‘uint16_t’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Xerces_autoconf_config.hpp:111: error: reference to ‘uint16_t’ is ambiguous
+/usr/include/stdint.h:49: error: candidates are: typedef short unsigned int uint16_t
+/home/t-filsra/adic2/install/boost_inst/include/boost/cstdint.hpp:234: error:                 typedef short unsigned int boost::uint16_t
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Xerces_autoconf_config.hpp:111: error: reference to ‘uint16_t’ is ambiguous
+/usr/include/stdint.h:49: error: candidates are: typedef short unsigned int uint16_t
+/home/t-filsra/adic2/install/boost_inst/include/boost/cstdint.hpp:234: error:                 typedef short unsigned int boost::uint16_t
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Xerces_autoconf_config.hpp:111: error: ‘uint16_t’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Xerces_autoconf_config.hpp:112: error: reference to ‘uint32_t’ is ambiguous
+/usr/include/stdint.h:51: error: candidates are: typedef unsigned int uint32_t
+/home/t-filsra/adic2/install/boost_inst/include/boost/cstdint.hpp:263: error:                 typedef unsigned int boost::uint32_t
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Xerces_autoconf_config.hpp:112: error: reference to ‘uint32_t’ is ambiguous
+/usr/include/stdint.h:51: error: candidates are: typedef unsigned int uint32_t
+/home/t-filsra/adic2/install/boost_inst/include/boost/cstdint.hpp:263: error:                 typedef unsigned int boost::uint32_t
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Xerces_autoconf_config.hpp:112: error: ‘uint32_t’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Xerces_autoconf_config.hpp:113: error: reference to ‘uint64_t’ is ambiguous
+/usr/include/stdint.h:55: error: candidates are: typedef long unsigned int uint64_t
+/home/t-filsra/adic2/install/boost_inst/include/boost/cstdint.hpp:311: error:                 typedef boost::ulong_long_type boost::uint64_t
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Xerces_autoconf_config.hpp:113: error: reference to ‘uint64_t’ is ambiguous
+/usr/include/stdint.h:55: error: candidates are: typedef long unsigned int uint64_t
+/home/t-filsra/adic2/install/boost_inst/include/boost/cstdint.hpp:311: error:                 typedef boost::ulong_long_type boost::uint64_t
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Xerces_autoconf_config.hpp:113: error: ‘uint64_t’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Xerces_autoconf_config.hpp:118: error: reference to ‘int16_t’ is ambiguous
+/usr/include/stdint.h:37: error: candidates are: typedef short int int16_t
+/home/t-filsra/adic2/install/boost_inst/include/boost/cstdint.hpp:231: error:                 typedef short int boost::int16_t
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Xerces_autoconf_config.hpp:118: error: reference to ‘int16_t’ is ambiguous
+/usr/include/stdint.h:37: error: candidates are: typedef short int int16_t
+/home/t-filsra/adic2/install/boost_inst/include/boost/cstdint.hpp:231: error:                 typedef short int boost::int16_t
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Xerces_autoconf_config.hpp:118: error: ‘int16_t’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Xerces_autoconf_config.hpp:119: error: reference to ‘int32_t’ is ambiguous
+/usr/include/stdint.h:38: error: candidates are: typedef int int32_t
+/home/t-filsra/adic2/install/boost_inst/include/boost/cstdint.hpp:260: error:                 typedef int boost::int32_t
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Xerces_autoconf_config.hpp:119: error: reference to ‘int32_t’ is ambiguous
+/usr/include/stdint.h:38: error: candidates are: typedef int int32_t
+/home/t-filsra/adic2/install/boost_inst/include/boost/cstdint.hpp:260: error:                 typedef int boost::int32_t
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Xerces_autoconf_config.hpp:119: error: ‘int32_t’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Xerces_autoconf_config.hpp:120: error: reference to ‘int64_t’ is ambiguous
+/usr/include/stdint.h:40: error: candidates are: typedef long int int64_t
+/home/t-filsra/adic2/install/boost_inst/include/boost/cstdint.hpp:308: error:                 typedef boost::long_long_type boost::int64_t
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Xerces_autoconf_config.hpp:120: error: reference to ‘int64_t’ is ambiguous
+/usr/include/stdint.h:40: error: candidates are: typedef long int int64_t
+/home/t-filsra/adic2/install/boost_inst/include/boost/cstdint.hpp:308: error:                 typedef boost::long_long_type boost::int64_t
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Xerces_autoconf_config.hpp:120: error: ‘int64_t’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Xerces_autoconf_config.hpp:125: error: ‘XMLUInt64’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Xerces_autoconf_config.hpp:130: error: ‘XMLUInt64’ does not name a type
+In file included from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:25,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/xaif/XAIFParser.hpp:14,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.hpp:25,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.cpp:22:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XercesDefs.hpp:66: error: ‘XMLUInt16’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XercesDefs.hpp:67: error: ‘XMLUInt32’ does not name a type
+In file included from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLExceptMsgs.hpp:7,
+                 from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLException.hpp:27,
+                 from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:26,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/xaif/XAIFParser.hpp:14,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.hpp:25,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.cpp:22:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/dom/DOMError.hpp:129: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/dom/DOMError.hpp:129: error: ‘XMLCh’ declared as a ‘virtual’ field
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/dom/DOMError.hpp:129: error: expected ‘;’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/dom/DOMError.hpp:159: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/dom/DOMError.hpp:159: error: ‘XMLCh’ declared as a ‘virtual’ field
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/dom/DOMError.hpp:159: error: expected ‘;’ before ‘*’ token
+In file included from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLException.hpp:28,
+                 from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:26,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/xaif/XAIFParser.hpp:14,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.hpp:25,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.cpp:22:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:46: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:47: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:48: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:49: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:50: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:51: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:52: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:53: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:54: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:55: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:56: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:57: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:58: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:59: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:60: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:61: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:62: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:63: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:64: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:65: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:66: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:67: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:68: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:69: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:70: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:71: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:72: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:73: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:74: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:75: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:76: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:77: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:78: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:79: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:80: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:81: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:82: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:83: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:84: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:85: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:86: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:87: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:88: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:89: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:90: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:91: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:92: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:93: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:94: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:95: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:96: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:97: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:98: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:99: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:100: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:101: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:102: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:103: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:104: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:105: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:106: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:107: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:108: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:109: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:110: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:111: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:112: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:113: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:114: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:115: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:116: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:117: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:118: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:119: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:120: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:121: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:122: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:123: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:124: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:125: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:126: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:127: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:128: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:129: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:130: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:131: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:132: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:133: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:134: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:135: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:136: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:137: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:138: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:139: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:140: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:141: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:142: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:143: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:144: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:145: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:146: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:147: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:148: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:149: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:150: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:151: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:152: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:153: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:154: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:155: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:156: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:157: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:158: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:159: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:160: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:161: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:162: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:163: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:164: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:165: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:166: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:167: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:168: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:169: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:170: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:171: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:172: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:173: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:174: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:177: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:178: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:179: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:180: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:181: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:182: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:183: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:184: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:185: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:186: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:187: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:188: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:189: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:190: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:191: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:192: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:193: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:194: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:195: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:196: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:197: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:198: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:199: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:202: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:203: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:204: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:205: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:206: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:207: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:208: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:209: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:212: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:213: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:214: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:215: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:216: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:217: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:218: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:219: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:220: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:221: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:222: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:223: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:224: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:225: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:226: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:227: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:228: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:229: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:230: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:231: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:232: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:233: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:234: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:235: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:236: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:237: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:238: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:239: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:240: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:243: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:244: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:245: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:249: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:250: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:251: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:252: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:253: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:254: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:255: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:256: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:257: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:258: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:259: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:260: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:261: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:262: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:263: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:264: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:265: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:266: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:267: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:268: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:269: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:270: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:271: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:273: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:274: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:278: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:279: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:280: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:281: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:282: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:283: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:284: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:285: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:286: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:287: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:288: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:291: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:292: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:293: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:294: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:300: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:303: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:304: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:305: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:306: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:307: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:308: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:309: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:310: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:311: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:312: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:313: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:314: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:315: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:316: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:317: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:318: error: ‘XMLCh’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLUni.hpp:320: error: ‘XMLCh’ does not name a type
+In file included from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLException.hpp:29,
+                 from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:26,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/xaif/XAIFParser.hpp:14,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.hpp:25,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.cpp:22:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLErrorReporter.hpp:119: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLErrorReporter.hpp:119: error: expected ‘,’ or ‘...’ before ‘*’ token
+In file included from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:26,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/xaif/XAIFParser.hpp:14,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.hpp:25,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.cpp:22:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLException.hpp:54: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLException.hpp:54: error: ‘XMLCh’ declared as a ‘virtual’ field
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLException.hpp:54: error: expected ‘;’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLException.hpp:61: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLException.hpp:61: error: expected ‘;’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLException.hpp:63: error: ‘XMLFileLoc’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLException.hpp:70: error: ISO C++ forbids declaration of ‘XMLFileLoc’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLException.hpp:70: error: expected ‘,’ or ‘...’ before ‘line’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLException.hpp:83: error: ISO C++ forbids declaration of ‘XMLFileLoc’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLException.hpp:83: error: expected ‘,’ or ‘...’ before ‘srcLine’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLException.hpp:98: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLException.hpp:98: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLException.hpp:130: error: ‘XMLFileLoc’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLException.hpp:131: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLException.hpp:131: error: expected ‘;’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLException.hpp:145: error: expected initializer before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLException.hpp:157: error: ‘XMLFileLoc’ does not name a type
+In file included from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:29,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/xaif/XAIFParser.hpp:14,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.hpp:25,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.cpp:22:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLFileMgr.hpp:41: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLFileMgr.hpp:41: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLFileMgr.hpp:48: error: ‘XMLFilePos’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLFileMgr.hpp:49: error: ‘XMLFilePos’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLFileMgr.hpp:55: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLFileMgr.hpp:55: error: ‘XMLCh’ declared as a ‘virtual’ field
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLFileMgr.hpp:55: error: expected ‘;’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLFileMgr.hpp:56: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLFileMgr.hpp:56: error: ‘XMLCh’ declared as a ‘virtual’ field
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLFileMgr.hpp:56: error: expected ‘;’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLFileMgr.hpp:57: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLFileMgr.hpp:57: error: expected ‘,’ or ‘...’ before ‘*’ token
+In file included from /home/t-filsra/adic2/ADIC/Rose2xaif/xaif/XAIFParser.hpp:14,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.hpp:25,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.cpp:22:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:288: error: ‘XMLFilePos’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:314: error: ‘XMLFilePos’ does not name a type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:340: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:340: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:366: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:366: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:465: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:465: error: expected ‘;’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:484: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:484: error: expected ‘;’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:498: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:509: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:522: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:538: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:538: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:561: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:561: error: expected ‘;’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:653: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:653: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:723: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:723: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:755: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ISO C++ forbids declaration of ‘XMLFileLoc’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: expected ‘,’ or ‘...’ before ‘srcLine’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ISO C++ forbids declaration of ‘XMLFileLoc’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: expected ‘,’ or ‘...’ before ‘srcLine’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ‘xercesc_3_1::XMLPlatformUtilsException::XMLPlatformUtilsException(const char*, int)’ cannot be overloaded
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: with ‘xercesc_3_1::XMLPlatformUtilsException::XMLPlatformUtilsException(const char*, int)’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ISO C++ forbids declaration of ‘XMLFileLoc’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: expected ‘,’ or ‘...’ before ‘srcLine’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ‘xercesc_3_1::XMLPlatformUtilsException::XMLPlatformUtilsException(const char*, int)’ cannot be overloaded
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: with ‘xercesc_3_1::XMLPlatformUtilsException::XMLPlatformUtilsException(const char*, int)’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ‘XMLCh’ declared as a ‘virtual’ field
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: expected ‘;’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: expected ‘;’ before ‘private’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp: In constructor ‘xercesc_3_1::XMLPlatformUtilsException::XMLPlatformUtilsException(const char*, int)’:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ‘srcLine’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ‘memoryManager’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ‘toThrow’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp: In constructor ‘xercesc_3_1::XMLPlatformUtilsException::XMLPlatformUtilsException(const char*, int)’:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ‘srcLine’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ‘memoryManager’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ‘toThrow’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ‘text1’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ‘text2’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ‘text3’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ‘text4’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp: In constructor ‘xercesc_3_1::XMLPlatformUtilsException::XMLPlatformUtilsException(const char*, int)’:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ‘srcLine’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ‘memoryManager’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ‘toThrow’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ‘text1’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ‘text2’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ‘text3’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/PlatformUtils.hpp:774: error: ‘text4’ was not declared in this scope
+In file included from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/TransService.hpp:27,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/xaif/XAIFParser.hpp:15,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.hpp:25,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.cpp:22:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLRecognizer.hpp: At global scope:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLRecognizer.hpp:107: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLRecognizer.hpp:107: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLRecognizer.hpp:110: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLRecognizer.hpp:110: error: expected ‘;’ before ‘*’ token
+In file included from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/BaseRefVectorOf.hpp:25,
+                 from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:25,
+                 from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Hashers.hpp:25,
+                 from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/RefHashTableOf.hpp:25,
+                 from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/TransService.hpp:28,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/xaif/XAIFParser.hpp:15,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.hpp:25,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.cpp:22:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ISO C++ forbids declaration of ‘XMLFileLoc’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: expected ‘,’ or ‘...’ before ‘srcLine’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ISO C++ forbids declaration of ‘XMLFileLoc’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: expected ‘,’ or ‘...’ before ‘srcLine’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ‘xercesc_3_1::ArrayIndexOutOfBoundsException::ArrayIndexOutOfBoundsException(const char*, int)’ cannot be overloaded
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: with ‘xercesc_3_1::ArrayIndexOutOfBoundsException::ArrayIndexOutOfBoundsException(const char*, int)’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ISO C++ forbids declaration of ‘XMLFileLoc’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: expected ‘,’ or ‘...’ before ‘srcLine’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ‘xercesc_3_1::ArrayIndexOutOfBoundsException::ArrayIndexOutOfBoundsException(const char*, int)’ cannot be overloaded
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: with ‘xercesc_3_1::ArrayIndexOutOfBoundsException::ArrayIndexOutOfBoundsException(const char*, int)’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ‘XMLCh’ declared as a ‘virtual’ field
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: expected ‘;’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: expected ‘;’ before ‘private’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp: In constructor ‘xercesc_3_1::ArrayIndexOutOfBoundsException::ArrayIndexOutOfBoundsException(const char*, int)’:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ‘srcLine’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ‘memoryManager’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ‘toThrow’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp: In constructor ‘xercesc_3_1::ArrayIndexOutOfBoundsException::ArrayIndexOutOfBoundsException(const char*, int)’:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ‘srcLine’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ‘memoryManager’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ‘toThrow’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ‘text1’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ‘text2’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ‘text3’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ‘text4’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp: In constructor ‘xercesc_3_1::ArrayIndexOutOfBoundsException::ArrayIndexOutOfBoundsException(const char*, int)’:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ‘srcLine’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ‘memoryManager’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ‘toThrow’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ‘text1’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ‘text2’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ‘text3’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/ArrayIndexOutOfBoundsException.hpp:29: error: ‘text4’ was not declared in this scope
+In file included from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:26,
+                 from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Hashers.hpp:25,
+                 from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/RefHashTableOf.hpp:25,
+                 from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/TransService.hpp:28,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/xaif/XAIFParser.hpp:15,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.hpp:25,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.cpp:22:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp: At global scope:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:112: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:112: error: expected ‘,’ or ‘...’ before ‘toAppend’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:120: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:120: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:120: error: ‘void xercesc_3_1::XMLBuffer::append(int)’ cannot be overloaded
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:112: error: with ‘void xercesc_3_1::XMLBuffer::append(int)’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:134: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:134: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:134: error: ‘void xercesc_3_1::XMLBuffer::append(int)’ cannot be overloaded
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:112: error: with ‘void xercesc_3_1::XMLBuffer::append(int)’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:149: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:149: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:155: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:155: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:155: error: ‘void xercesc_3_1::XMLBuffer::set(int)’ cannot be overloaded
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:149: error: with ‘void xercesc_3_1::XMLBuffer::set(int)’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:162: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:162: error: expected ‘;’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:168: error: expected ‘;’ before ‘XMLCh’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:168: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:168: error: expected ‘;’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:174: error: expected ‘;’ before ‘void’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:253: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:253: error: expected ‘;’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp: In constructor ‘xercesc_3_1::XMLBuffer::XMLBuffer(XMLSize_t, xercesc_3_1::MemoryManager*)’:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:62: error: class ‘xercesc_3_1::XMLBuffer’ does not have any field named ‘fBuffer’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:65: error: ‘fBuffer’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:65: error: ‘XMLCh’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:65: error: expected primary-expression before ‘)’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:65: error: expected ‘;’ before ‘manager’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp: In destructor ‘xercesc_3_1::XMLBuffer::~XMLBuffer()’:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:76: error: ‘fBuffer’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp: In member function ‘void xercesc_3_1::XMLBuffer::append(int)’:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:117: error: ‘fBuffer’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:117: error: ‘toAppend’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp: In member function ‘void xercesc_3_1::XMLBuffer::append(int)’:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:122: error: could not convert ‘std::count’ to ‘bool’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:123: error: invalid operands of types ‘XMLSize_t’ and ‘<unresolved overloaded function type>’ to binary ‘operator+’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:124: error: no matching function for call to ‘xercesc_3_1::XMLBuffer::ensureCapacity(<unresolved overloaded function type>)’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:220: note: candidates are: void xercesc_3_1::XMLBuffer::ensureCapacity(XMLSize_t)
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:126: error: ‘fBuffer’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:126: error: ‘chars’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:126: error: invalid operands of types ‘<unresolved overloaded function type>’ and ‘long unsigned int’ to binary ‘operator*’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:127: error: invalid operands of types ‘XMLSize_t’ and ‘<unresolved overloaded function type>’ to binary ‘operator+’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:127: error:   in evaluation of ‘operator+=(XMLSize_t, <unresolved overloaded function type>)’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:130: error: ‘chars’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp: In member function ‘void xercesc_3_1::XMLBuffer::append(int)’:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:136: error: ‘chars’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:144: error: ‘fBuffer’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp: In member function ‘void xercesc_3_1::XMLBuffer::set(int)’:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:152: error: ‘chars’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp: In member function ‘void xercesc_3_1::XMLBuffer::set(int)’:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/framework/XMLBuffer.hpp:158: error: ‘chars’ was not declared in this scope
+In file included from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/Hashers.hpp:25,
+                 from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/RefHashTableOf.hpp:25,
+                 from /home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/TransService.hpp:28,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/xaif/XAIFParser.hpp:15,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.hpp:25,
+                 from /home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.cpp:22:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp: At global scope:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:87: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:88: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:88: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:123: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:123: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:140: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:140: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:181: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:181: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:223: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:223: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:259: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:259: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:273: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:273: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:288: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:288: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:343: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:343: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:379: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:379: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:417: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:418: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:418: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:435: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:436: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:436: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:463: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:463: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:477: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:477: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:504: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:504: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:538: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:538: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:536: error: ‘static int xercesc_3_1::XMLString::indexOf(int)’ cannot be overloaded
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:504: error: with ‘static int xercesc_3_1::XMLString::indexOf(int)’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:562: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:562: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:575: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:575: error: expected ‘,’ or ‘...’ before ‘ch’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:573: error: ‘static int xercesc_3_1::XMLString::lastIndexOf(int)’ cannot be overloaded
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:562: error: with ‘static int xercesc_3_1::XMLString::lastIndexOf(int)’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:612: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:612: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:610: error: ‘static int xercesc_3_1::XMLString::lastIndexOf(int)’ cannot be overloaded
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:562: error: with ‘static int xercesc_3_1::XMLString::lastIndexOf(int)’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:628: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:629: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:629: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:666: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:667: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:667: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:685: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:686: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:686: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:683: error: ‘static void xercesc_3_1::XMLString::subString(int*, int)’ cannot be overloaded
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:664: error: with ‘static void xercesc_3_1::XMLString::subString(int*, int)’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:720: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:720: error: expected ‘;’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:747: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:747: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:776: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:776: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:788: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:788: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:801: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:801: error: expected ‘;’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:815: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:815: error: expected ‘;’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:829: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:829: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:843: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:843: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:852: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:852: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:860: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:860: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:868: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:875: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:882: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:889: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:896: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:896: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:937: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:977: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1017: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1057: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1097: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1116: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1116: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1136: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1136: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1147: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1164: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1164: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1185: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1185: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1183: error: ‘static bool xercesc_3_1::XMLString::transcode(int)’ cannot be overloaded
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1162: error: with ‘static char* xercesc_3_1::XMLString::transcode(int)’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1202: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1202: error: expected ‘;’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1221: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1238: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1247: error: ‘XMLCh’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1247: error: template argument 1 is invalid
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1247: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1247: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1262: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1262: error: expected ‘;’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1286: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1288: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1288: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1299: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1306: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1312: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1319: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1324: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1324: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1329: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1329: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1336: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1344: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1352: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1361: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1361: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1372: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1372: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1399: error: ‘XMLCh’ has not been declared
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1428: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1428: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1442: error: variable or field ‘moveChars’ declared void
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1442: error: ‘XMLCh’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1442: error: expected primary-expression before ‘const’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1443: error: expected primary-expression before ‘const’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1444: error: expected primary-expression before ‘const’
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1449: error: ISO C++ forbids declaration of ‘XMLCh’ with no type
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1449: error: expected ‘,’ or ‘...’ before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp: In static member function ‘static XMLSize_t xercesc_3_1::XMLString::stringLen(int)’:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1451: error: ‘src’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1454: error: expected initializer before ‘*’ token
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1456: error: ‘pszTmp’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1458: error: ‘pszTmp’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1458: error: ‘src’ was not declared in this scope
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp: At global scope:
+/home/t-filsra/adic2/install/xercesc_inst/include/xercesc/util/XMLString.hpp:1461: error: expected initializer before ‘*’ token
+/home/t-filsra/adic2/ADIC/Rose2xaif/main/Rose2XAIF.cpp:325: error: expected ‘}’ at end of input
+make[2]: *** [rose2xaif-Rose2XAIF.o] Error 1
+make[2]: Leaving directory `/home/t-filsra/adic2/ADIC/Rose2xaif_build'
+make[1]: *** [all] Error 2
+make[1]: Leaving directory `/home/t-filsra/adic2/ADIC/Rose2xaif_build'
+make: *** [/home/t-filsra/adic2/install/Rose2xaif_inst/bin/rose2xaif] Error 2
