@@ -7,7 +7,7 @@ julia_dir = 'C:/Users/t-filsra/Workspace/autodiff/Julia/';
 data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/2.5M/';
 data_dir_est = [data_dir 'est/'];
 npoints = 2.5e6;
-replicate_point = true;
+% replicate_point = true;
 % replicate_point = false;
 
 tools = get_tools(exe_dir,python_dir,julia_dir);
@@ -140,12 +140,12 @@ end
 %% Transport runtimes
 test this guy
 
-[times_f_fixed,times_J_fixed] = ...
+[times_fixed_f,times_fixed_J] = ...
     read_times(data_dir,'-',fns,tools);
 mask_f = (nruns_f==0) & ~up_to_date_mask;
 mask_J = (nruns_J==0) & ~up_to_date_mask;
-times_f_fixed(mask_f) = times_f_est(mask_f);
-times_J_fixed(mask_J) = times_J_est(mask_J);
+times_fixed_f(mask_f) = times_est_f(mask_f);
+times_fixed_J(mask_J) = times_est_J(mask_J);
 for i=1:ntools
     if tools(i).call_type < 3
         postfix = ['_times_' tools(i).ext '.txt'];
@@ -153,7 +153,7 @@ for i=1:ntools
             if any([mask_f(j,i) mask_J(j,i)])
                 fn = [data_dir fns{i} postfix];
                 fid = fopen(fn,'w');
-                fprintf(fid,'%f %f\n',times_f_fixed(j,i),times_J_fixed(j,i));
+                fprintf(fid,'%f %f\n',times_fixed_f(j,i),times_fixed_J(j,i));
                 fprintf(fid,'tf tJ');
                 fclose(fid);
             end
