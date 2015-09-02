@@ -21,7 +21,7 @@
     <Optimize>false</Optimize>
     <Tailcalls>false</Tailcalls>
     <OutputPath>..\..\Debug\DiffSharp\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;MODE_AD;DO_BA</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;MODE_R;DO_BA</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Debug\DiffSharp.XML</DocumentationFile>
@@ -33,7 +33,7 @@
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
     <OutputPath>..\..\Release\DiffSharp\</OutputPath>
-    <DefineConstants>TRACE;MODE_AD;DO_BA</DefineConstants>
+    <DefineConstants>TRACE;MODE_R;DO_BA</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Release\DiffSharp.XML</DocumentationFile>

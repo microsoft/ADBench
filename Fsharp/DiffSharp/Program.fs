@@ -75,13 +75,47 @@ let test_gmm fn_in fn_out nruns_f nruns_J replicate_point =
 #endif
 
 #if DO_BA
+let compute_ba_J (cams:_[][]) (X:_[][]) (w:_[]) (obs:int[][]) (feats:float[][]) =
+    let n = cams.Length
+    let m = X.Length
+    let p = w.Length
+
+    let compute_reproj_err_J_block (cam:_[]) (X:_[]) (w:_) (feat:float[]) =
+        let compute_reproj_err_wrapper_ parameters = 
+            ba.compute_reproj_err_wrapper parameters feat
+        jacobian' compute_reproj_err_wrapper_ (ba.vectorize cam X w)
+    let compute_w_err_d = 
+        diff' ba.compute_zach_weight_error_
+
+    let reproj_err_val_J = 
+        [|for i=0 to p-1 do 
+            yield compute_reproj_err_J_block cams.[obs.[i].[0]] X.[obs.[i].[1]] w.[i] feats.[i]|]
+    let w_err_val_J = Array.map compute_w_err_d w
+    
+    let reproj_err, reproj_err_d = Array.unzip reproj_err_val_J
+    let w_err, w_err_d = Array.unzip w_err_val_J
+    
+    let J = ba.create_sparse_J m n p obs reproj_err_d w_err_d
+
+    (reproj_err, w_err), J
+
 let test_ba fn_in fn_out nruns_f nruns_J = 
-    let cams, X, w, obs, feat = ba.read_ba_instance (fn_in + ".txt")
-    let aa = ba.sqnorm X.[0]
+    let cams_float, X_float, w_float, obs, feat = ba.read_ba_instance (fn_in + ".txt")
+#if MODE_AD
+    let cams = Array.map (Array.map D) cams_float 
+    let X = Array.map (Array.map D) X_float 
+    let w = Array.map D w_float
+#else
+    let cams = cams_float
+    let X = X_float
+    let w = w_float
+#endif
+    
+
     let obj_stop_watch = Stopwatch.StartNew()
-    let err = ba.ba_objective cams X w obs feat
+    let err = ba.ba_objective cams_float X_float w_float obs feat
     for i = 1 to nruns_f-1 do
-        ba.ba_objective cams X w obs feat
+        ba.ba_objective cams_float X_float w_float obs feat
     obj_stop_watch.Stop()
 
   #if MODE_AD
@@ -94,18 +128,15 @@ let test_ba fn_in fn_out nruns_f nruns_J =
     let m = X.Length
     let p = obs.Length
     
+
     let jac_stop_watch = Stopwatch.StartNew()
     if nruns_J>0 then   
-        let parameters = (ba.vectorize cams X w) 
-#if MODE_AD
-                            |> Array.map D
-#endif
-        let err2, J = (J_func parameters)
+        let err2, J = compute_ba_J cams X w obs feat
         for i = 1 to nruns_J-1 do
-            J_func parameters    
+            compute_ba_J cams X w obs feat
         jac_stop_watch.Stop()
 
-        ba.write_J (fn_out + "_J_" + name + ".txt") gradient   
+        //ba.write_J (fn_out + "_J_" + name + ".txt") gradient   
         
     let tf = ((float obj_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns_f)
     let tJ = ((float jac_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns_J)

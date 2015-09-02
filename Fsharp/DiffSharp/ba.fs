@@ -1,17 +1,14 @@
 ﻿module ba
-let abc = printfn "abc"
 
 open System
 open System.Diagnostics
 open System.IO
 
-#if MODE_AD && (DO_GMM || DO_GMM_SPLIT)
+#if MODE_AD
 open DiffSharp.AD
 #else
 open DiffSharp.AD.Specialized.Reverse1
 #endif
-
-////// IO //////
 
 let N_CAM_PARAMS = 11
 let ROT_IDX = 0
@@ -19,47 +16,6 @@ let CENTER_IDX = 3
 let FOCAL_IDX = 6
 let X0_IDX = 7
 let RAD_IDX = 9
-
-let read_ba_instance (fn:string) =
-    let read_in_elements (fn:string) =
-        let string_lines = File.ReadLines(fn)
-        let separators = [|' '|]
-        [| for line in string_lines do yield line.Split separators |] 
-            |> Array.map (Array.filter (fun x -> x.Length > 0))
-
-    let parse_double (arr:string[]) = Array.map Double.Parse arr
-
-    let data = read_in_elements fn
-
-    let n = Int32.Parse data.[0].[0]
-    let m = Int32.Parse data.[0].[1]
-    let p = Int32.Parse data.[0].[2]
-    
-    let mutable offset = 1
-    let one_cam = parse_double data.[offset]
-    let cams = [|for i=1 to n do yield one_cam|]
-    offset <- offset + 1
-
-    let one_X = parse_double data.[offset]
-    let X = [|for i=1 to m do yield one_X|]
-    offset <- offset + 1
-
-    let one_w = Double.Parse data.[offset].[0]
-    let w = [|for i=1 to p do yield one_w|]
-    offset <- offset + 1
-
-    let one_feat = parse_double data.[offset]
-    let feat = [|for i=1 to p do yield one_feat|]
-
-    let mutable camIdx = 0
-    let mutable ptIdx = 0
-    let obs = [|for i=1 to p do 
-                yield [|camIdx; ptIdx|]
-                camIdx <- (camIdx+1) % n
-                ptIdx <- (ptIdx+1) % m
-              |]
-
-    cams, X, w, obs, feat
 
 ////// Objective //////
 
@@ -160,57 +116,67 @@ let compute_reproj_err_wrapper (parameters:_[]) (feat:float[]) =
     let w_off = X_off + 3
     compute_reproj_err_ parameters.[..(X_off-1)] parameters.[X_off..(X_off+2)] parameters.[w_off] feat
 
+let vectorize (cam:_[]) (X:_[]) (w:_) = 
+    Array.append (Array.append cam X) [|w|]
+
 let compute_zach_weight_error_ (w:D) =
     1. - w*w
     
-let vectorize (cams:_[][]) (Xs:_[][]) (w:_[]) =
-    Array.append (Array.append [|for cam in cams do for elem in cam do yield elem|] 
-                    [|for X in Xs do for elem in X do yield elem|]) w
+////// UTILS ////
 
-////let ba_objective_ (cams:D[][]) (X:D[][]) (w:D[]) (obs:int[][]) (feat:float[][]) =
-////    let n = cams.Length
-////    let p = w.Length
-////    let grad_compute_f_prior_err = grad' compute_f_prior_err_
-////    let diff_w_err = diff' compute_zach_weight_error_
-////    
-////    let do_jac_reproj_err (parameters:_[]) (feat:float[]) =
-////        let compute_reproj_err_wrapper_ (parameters:_[]) = 
-////            compute_reproj_err_wrapper parameters feat
-////        let jac_reproj_err = jacobian' compute_reproj_err_wrapper_
-////        jac_reproj_err parameters
-////
-////    let J_reproj_err = 
-////        [|for i = 0 to p-1 do 
-////            yield (do_jac_reproj_err (vectorize cams.[obs.[i].[0]] X.[obs.[i].[1]] w.[i]) feat.[i])|]
-////    let J_f_prior_err = 
-////        [|for i = 0 to n-3 do 
-////            yield (grad_compute_f_prior_err [|cams.[i].[FOCAL_IDX]; 
-////                                                cams.[i].[FOCAL_IDX]; 
-////                                                cams.[i].[FOCAL_IDX]|])|]
-////    let J_w_err = Array.map diff_w_err w
-////
-////    J_reproj_err, J_f_prior_err, J_w_err
-//    
-//let ba_objective_ (cams:_[][]) (X:_[][]) (w:_[]) (obs:int[][]) (feat:float[][]) =
-//    let n = cams.Length
-//    let p = w.Length
-//    let grad_compute_f_prior_err = grad' compute_f_prior_err_
-//    let diff_w_err = diff' compute_zach_weight_error_
-//    
-//    let do_jac_reproj_err (parameters:_[]) (feat:float[]) =
-//        let compute_reproj_err_wrapper_ (parameters:_[]) = 
-//            compute_reproj_err_wrapper parameters feat
-//        let jac_reproj_err = jacobian' compute_reproj_err_wrapper_
-//        jac_reproj_err parameters
-//
-//    let J_reproj_err = 
-//        [|for i = 0 to p-1 do 
-//            yield (do_jac_reproj_err (vectorize cams.[obs.[i].[0]] X.[obs.[i].[1]] w.[i]) feat.[i])|]
-//    let J_f_prior_err = 
-//        [|for i = 0 to n-3 do 
-//            yield (grad_compute_f_prior_err [|cams.[i].[FOCAL_IDX]; 
-//                                                cams.[i].[FOCAL_IDX]; 
-//                                                cams.[i].[FOCAL_IDX]|])|]
-//    let J_w_err = Array.map diff_w_err w
-//
-//    J_reproj_err, J_f_prior_err, J_w_err
+// TODO
+let create_sparse_J n m p obs (reproj_err_d:_[,][]) (w_err_d:_[]) =
+    let nrows = 2 * p + p;
+    let ncols = N_CAM_PARAMS*n + 3 * m + p;
+
+//    let n_new_cols = N_CAM_PARAMS + 3 + 1
+//    let rows1 = [|for i=0 to 2*p-1 do yield i*n_new_cols|];
+//    let w_off = n_new_cols*2*p
+//    let rows2 = [|for i=0 to p-1 do yield i + w_off+1|];
+//    let rows = Array.append (Array.append [|0|] rows1) rows2
+    
+    (reproj_err_d, w_err_d)
+    //(nrows,ncols,rows,cols,vals)
+
+////// IO //////
+
+let read_ba_instance (fn:string) =
+    let read_in_elements (fn:string) =
+        let string_lines = File.ReadLines(fn)
+        let separators = [|' '|]
+        [| for line in string_lines do yield line.Split separators |] 
+            |> Array.map (Array.filter (fun x -> x.Length > 0))
+
+    let parse_double (arr:string[]) = Array.map Double.Parse arr
+
+    let data = read_in_elements fn
+
+    let n = Int32.Parse data.[0].[0]
+    let m = Int32.Parse data.[0].[1]
+    let p = Int32.Parse data.[0].[2]
+    
+    let mutable offset = 1
+    let one_cam = parse_double data.[offset]
+    let cams = [|for i=1 to n do yield one_cam|]
+    offset <- offset + 1
+
+    let one_X = parse_double data.[offset]
+    let X = [|for i=1 to m do yield one_X|]
+    offset <- offset + 1
+
+    let one_w = Double.Parse data.[offset].[0]
+    let w = [|for i=1 to p do yield one_w|]
+    offset <- offset + 1
+
+    let one_feat = parse_double data.[offset]
+    let feat = [|for i=1 to p do yield one_feat|]
+
+    let mutable camIdx = 0
+    let mutable ptIdx = 0
+    let obs = [|for i=1 to p do 
+                yield [|camIdx; ptIdx|]
+                camIdx <- (camIdx+1) % n
+                ptIdx <- (ptIdx+1) % m
+              |]
+
+    cams, X, w, obs, feat
