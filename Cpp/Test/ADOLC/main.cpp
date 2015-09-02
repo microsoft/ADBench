@@ -364,7 +364,7 @@ void convert_J(int nnz, unsigned int *ridxs, unsigned int *cidxs,
 
 double compute_ba_J(int nruns, int n, int m, int p,
   double *cams, double *X, double *w, int *obs, double *feats,
-  double *reproj_err, double *w_err, BASparseMat *J)
+  double *reproj_err, double *w_err, BASparseMat *J, double* t_sparsity)
 {
   if (nruns == 0)
     return 0.;
@@ -439,7 +439,7 @@ double compute_ba_J(int nruns, int n, int m, int p,
   sparse_jac(tapeTag, J->nrows, J->ncols, samePattern,
     in.data(), &nnz, &ridxs, &cidxs, &nzvals, opt);
   end = high_resolution_clock::now();
-  double t_J_sparsity = duration_cast<duration<double>>(end - start).count();
+  *t_sparsity = duration_cast<duration<double>>(end - start).count();
 
   samePattern = 1;
   start = high_resolution_clock::now();
@@ -458,7 +458,7 @@ double compute_ba_J(int nruns, int n, int m, int p,
   delete[] nzvals;
 
   cout << "t_tape: " << t_tape << endl;
-  cout << "t_sparsity: " << t_J_sparsity - t_J << endl;
+  cout << "t_sparsity: " << t_sparsity << endl;
   cout << "t_J:" << t_J << endl;
 
   return t_J;
@@ -503,14 +503,17 @@ void test_ba(const string& fn_in, const string& fn_out,
 }
   end = high_resolution_clock::now();
   tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
+  write_times(fn_in + "_times_" + name + ".txt", tf, tJ);
 #elif defined DO_BA_SPARSE
   string name("ADOLC_sparse");
+  double t_sparsity;
   tJ = compute_ba_J(nruns_J, n, m, p, cams.data(), X.data(), w.data(),
-    obs.data(), feats.data(), reproj_err.data(), w_err.data(), &J);
+    obs.data(), feats.data(), reproj_err.data(), w_err.data(), &J, &t_sparsity);
+
+  write_times(fn_in + "_times_" + name + ".txt", tf, tJ, &t_sparsity);
 #endif
 
   //write_J_sparse(fn_in + "_J_" + name + ".txt", J);
-  write_times(fn_in + "_times_" + name + ".txt", tf, tJ);
 }
 #endif
 

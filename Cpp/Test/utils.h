@@ -254,11 +254,17 @@ void write_times(double tf, double tJ)
   cout << "tJ/tf = " << tJ / tf << "s" << endl;
 }
 
-void write_times(const string& fn, double tf, double tJ)
+void write_times(const string& fn, double tf, double tJ, double *t_sparsity = nullptr)
 {
   std::ofstream out(fn);
-  out << std::scientific << tf << " " << tJ << endl;
-  out << "tf tJ" << endl;
+  out << std::scientific << tf << " " << tJ;
+  if (t_sparsity)
+    out << " " << *t_sparsity;
+  out << endl;
+  out << "tf tJ";
+  if (t_sparsity)
+    out << " t_sparsity";
+  out << endl;
   out << "tf = " << std::scientific << tf << "s" << endl;
   out << "tJ = " << tJ << "s" << endl;
   out << "tJ/tf = " << tJ / tf << "s" << endl;
