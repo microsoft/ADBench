@@ -2,6 +2,10 @@ function params_final = generate_ba_instance_params
 % generate_ba_instance_params:
 %       assuming 11 camera parameters and zach robustifier
 %       ntasks x [n_cams, n_pts, n_obs, total_in_params]
+%
+%       returns a cell array of:
+%           [num_cams, num_pts, num_observations, num_in_parameters,...
+%               num_out_parameters, ]
 
 ncam_params = 11;
 

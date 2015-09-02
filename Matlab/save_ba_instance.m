@@ -1,4 +1,4 @@
-function save_ba_instance( fn, cams, X, w, obs )
+function save_ba_instance( fn, cams, X, w, obs, n, m, p )
 %SAVE_BA_INSTANCE format:
 %           n m p
 %           cam (row)
@@ -8,7 +8,13 @@ function save_ba_instance( fn, cams, X, w, obs )
 
 fid = fopen(fn,'w');
 
-fprintf(fid,'%i %i %i\r\n',size(cams,2),size(X,2),size(obs,2));
+if nargin < 6
+    n = size(cams,2);
+    m = size(X,2);
+    p = size(obs,2);
+end
+
+fprintf(fid,'%i %i %i\r\n',n,m,p);
 
 camIdx = obs(1,1);
 ptIdx = obs(2,1);
