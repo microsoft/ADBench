@@ -6,7 +6,7 @@
     <ProjectGuid>25e5af84-1df1-4561-ac43-7338df8f38c6</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>autograd_split.py</StartupFile>
+    <StartupFile>autograd_ba.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -14,7 +14,7 @@
     <Name>Autograd</Name>
     <RootNamespace>PythonTests</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>..\..\ ..\..\ gmm 1 1 -rep</CommandLineArguments>
+    <CommandLineArguments>..\..\ ..\..\ ba 1 1</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
@@ -27,12 +27,16 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="autograd_ba.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ba_io.py" />
     <Compile Include="gmm_objective.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="gmm_python_objective.py" />
     <Compile Include="autograd_split.py" />
     <Compile Include="autograd_full.py" />
+    <Compile Include="gmm_python_objective.py" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

@@ -120,8 +120,6 @@ def compute_ba_J(cams, X, w, obs, feats):
     for curr_w in w:
         w_err_d.append(f_w_err_d(curr_w))
 
-    print(w_err_d)
-
     return (reproj_err_d, w_err_d)
 
 ####### Run experiments ########
