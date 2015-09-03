@@ -34,7 +34,7 @@ for i=1:ntasks
     if nruns_curr_J > 0
         tic
         for j=1:nruns_curr_J
-            [J{i},reproj_err,w_err] = mupad_ba_objective(cams, X, w, obs, false);
+            [J{i},reproj_err,w_err] = mupad_ba_objective(cams, X, w, obs, true);
         end
         times_J(i) = toc/nruns_curr_J;
     end

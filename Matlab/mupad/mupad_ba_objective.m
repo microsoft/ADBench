@@ -80,10 +80,12 @@ for i=1:p
     err_and_J = mupad_ba_compute_weight_err_mex(w(i),dummy,do_jac);
     w_err(i) = err_and_J(1);
     
-    rows(offset) = i + row_offset;
-    cols(offset) = i + col_offset;
-    vals(offset) = err_and_J(2);
-    offset = offset + 1;
+    if do_jac
+        rows(offset) = i + row_offset;
+        cols(offset) = i + col_offset;
+        vals(offset) = err_and_J(2);
+        offset = offset + 1;
+    end
 end
 
 if do_jac
