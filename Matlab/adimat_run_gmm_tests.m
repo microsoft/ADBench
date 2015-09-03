@@ -23,9 +23,10 @@ addpath('awful\matlab');
 independents = [1 2 3];
 
 if do_adimat_vector
-    adimat_translate_if_new(@gmm_objective_vector_repmat, independents);
+    adimat_translate_if_new(@gmm_objective_vector_repmat, independents,...
+        do_F_mode);
 else
-    adimat_translate_if_new(@gmm_objective, independents);
+    adimat_translate_if_new(@gmm_objective, independents, do_F_mode);
 end
 
 for i=1:ntasks

@@ -1,6 +1,13 @@
 function write_script(script_fn,params,dir_in,dir_out,...
     fns,tools,nruns_f,nruns_J,replicate_point)
 
+if ~exist('replicate_point','var')
+    replicate_point = false;
+end
+
+isgmm = (numel(params{1}) == 3);
+isba = (numel(params{1}) == 5);
+
 ntasks = numel(fns);
 
 targets = {};
@@ -28,9 +35,13 @@ for i=1:numel(tools)
             for j=1:ntasks
                 if nruns_f(j,i)+nruns_J(j,i) > 0
                     
-                    d = params{j}(1);
-                    k = params{j}(2);
-                    curr_dk = sprintf('d%ik%i',d,k);
+                    if isgmm
+                        params_str = sprintf('d%ik%i',...
+                            params{j}(1),params{j}(2));
+                    elseif isba
+                        params_str = sprintf('n%im%ip%i',...
+                            params{j}(1),params{j}(2),params{j}(3));
+                    end
                     args = sprintf('%s %s %s %i %i',...
                         dir_in,...
                         dir_out,...
@@ -44,11 +55,11 @@ for i=1:numel(tools)
                         
                     elseif tools(i).call_type == 2 % ceres
                         cmd = sprintf('%s%s.exe %s',...
-                            tools(i).run_cmd,curr_dk,args);
+                            tools(i).run_cmd,params_str,args);
                     end
                     
                     targets(end).targets(end+1).name = ...
-                        [targets(end).name '_' curr_dk];
+                        [targets(end).name '_' params_str];
                     targets(end).targets(end).cmd = cmd;
                 end
             end

@@ -20,35 +20,33 @@ function P = create_nonzero_pattern( ncams, npts, obs )
 %         P p x (11*ncams+3*npts) pattern
 
 p = size(obs,2);
-% P = sparse(2*p + ncams-2 + p,11*ncams+3*npts);
-P = sparse(2*p + p,11*ncams+3*npts);
+nnz = 2*p*(11+3+1) + p; %num non zero
+rows = repmat(1:2*p,11+3+1,1);
+rows = [rows(:); 2*p+(1:p)'];
+cols = zeros(1,nnz);
+vals = true(1,nnz);
 
+camCols = (obs(1,:)-1)*11;
+ptCols = (obs(2,:)-1)*3 + 11*ncams;
+wCols = (0:p-1) + 3*npts + 11*ncams;
+
+idx = 1;
 for i=1:p
-    camIdx = obs(1,i);
-    ptIdx = obs(2,i);
     
-    idx = 2*(i-1) + 1;
-    % camera parameters
-    P([idx idx+1],((camIdx-1)*11)+(1:11)) = true;
-    % point parameters
-    col_off = ncams*11;
-    P([idx idx+1],(col_off+(ptIdx-1)*3)+(1:3)) = true;
-    % weight
-    col_off = col_off + npts*3;
-    P([idx idx+1],col_off+i) = true;
+    for j=1:2
+        cols(idx:idx+10) = (1:11) + camCols(i);
+        idx = idx+11;
+        
+        cols(idx:idx+2) = (1:3) + ptCols(i);
+        idx = idx+3;
+        
+        cols(idx) = 1 + wCols(i);
+        idx = idx+1;
+    end
 end
 
-% row_off = 2*p;
-% f_idx = 7;
-% for i=1:(ncams-2)
-%     for j=1:3
-%         P(row_off+i, (i-1+j-1)*11 + f_idx) = true;
-%     end
-% end
-
-row_off = 2*p + ncams-2;
-col_off = ncams*11 + npts*3;
-P(row_off+(1:p),col_off+(1:p)) = logical(eye(p));
+cols(end-p+1:end) = 11*ncams+3*npts+(1:p);
+P = sparse(rows,cols,vals);
 
 end
 

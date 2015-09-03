@@ -4,7 +4,7 @@ function tools = get_tools_ba(exe_dir,python_dir,julia_dir)
 %   1 theano - tools(id).run_cmd
 %   2 ceres - tools(id).run_cmd+d+k
 %   3 adimat
-%   4 adimat vectorized
+%   4 adimat sparse
 %   5 mupad
 
 % markers
@@ -120,7 +120,7 @@ tools(end).col = cols(unused_col_id,:); unused_col_id = unused_col_id + 1;
 tools(end).marker = markers{1};
 tools(end).call_type = 3;
 
-tools(end+1).name = 'AdiMat, R (sparse)';
+tools(end+1).name = 'AdiMat, F (sparse)';
 tools(end).exe = 'ba_objective.m';
 tools(end).ext = 'adimat_sparse';
 tools(end).col = tools(end-1).col;
