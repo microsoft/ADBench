@@ -65,6 +65,22 @@ tools(end).col = tools(end-1).col;
 tools(end).marker = markers{2};
 tools(end).call_type = 0;
 
+tools(end+1).name = 'ADOLC, Eigen';
+tools(end).exe = [exe_dir,'ADOLC_eigen.exe'];
+tools(end).run_cmd = tools(end).exe;
+tools(end).ext = 'ADOLC_eigen';
+tools(end).col = tools(end-2).col;
+tools(end).marker = markers{3};
+tools(end).call_type = 0;
+
+tools(end+1).name = 'ADOLC, Eigen (sparse)';
+tools(end).exe = [exe_dir,'ADOLC_sparse_eigen.exe'];
+tools(end).run_cmd = tools(end).exe;
+tools(end).ext = 'ADOLC_sparse_eigen';
+tools(end).col = tools(end-3).col;
+tools(end).marker = markers{4};
+tools(end).call_type = 0;
+
 tools(end+1).name = 'Adept, R';
 tools(end).exe = [exe_dir,'Adept.exe'];
 tools(end).run_cmd = tools(end).exe;

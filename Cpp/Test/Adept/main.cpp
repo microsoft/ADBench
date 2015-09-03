@@ -15,7 +15,7 @@
 #define ADEPT_COMPILATION
 #include "../ADOLC/gmm.h"
 #elif defined DO_BA
-#include "../ADOLC/ba.h"
+#include "../ba.h"
 #endif
 
 using adept::adouble;

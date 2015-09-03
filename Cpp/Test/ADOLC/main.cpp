@@ -13,10 +13,17 @@
 #define DO_BA_BLOCK
 //#define DO_BA_SPARSE
 
-#if defined DO_GMM_FULL || defined DO_GMM_SPLIT
+#define DO_CPP
+//#define DO_EIGEN
+
+#if (defined DO_GMM_FULL || defined DO_GMM_SPLIT) && defined DO_CPP
 #include "gmm.h"
 #elif defined DO_BA_BLOCK || defined DO_BA_SPARSE
-#include "ba.h"
+#ifdef DO_CPP
+#include "../ba.h"
+#elif defined DO_EIGEN
+#include "../ba_eigen.h"
+#endif
 #endif
 
 using std::cout;
@@ -494,18 +501,26 @@ void test_ba(const string& fn_in, const string& fn_out,
   tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
 
 #if defined DO_BA_BLOCK
+#ifdef DO_CPP
   string name("ADOLC");
+#elif defined DO_EIGEN
+  string name("ADOLC_eigen");
+#endif
   start = high_resolution_clock::now();
   for (int i = 0; i < nruns_J; i++)
   {
     compute_ba_J(n, m, p, cams.data(), X.data(), w.data(),
       obs.data(), feats.data(), reproj_err.data(), w_err.data(), &J);
-}
+  }
   end = high_resolution_clock::now();
   tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
   write_times(fn_in + "_times_" + name + ".txt", tf, tJ);
 #elif defined DO_BA_SPARSE
+#ifdef DO_CPP
   string name("ADOLC_sparse");
+#elif defined DO_EIGEN
+  string name("ADOLC_sparse_eigen");
+#endif
   double t_sparsity;
   tJ = compute_ba_J(nruns_J, n, m, p, cams.data(), X.data(), w.data(),
     obs.data(), feats.data(), reproj_err.data(), w_err.data(), &J, &t_sparsity);
