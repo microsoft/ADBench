@@ -3,12 +3,12 @@ exe_dir = 'C:/Users/t-filsra/Workspace/autodiff/Release/gmm/';
 python_dir = 'C:/Users/t-filsra/Workspace/autodiff/Python/';
 julia_dir = 'C:/Users/t-filsra/Workspace/autodiff/Julia/';
 % data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/1k/';
-% data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/10k/';
-data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/2.5M/';
+data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/10k/';
+% data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/2.5M/';
 data_dir_est = [data_dir 'est/'];
 npoints = 2.5e6;
 % replicate_point = true;
-% replicate_point = false;
+replicate_point = false;
 
 tools = get_tools(exe_dir,python_dir,julia_dir);
 manual_cpp_id = 1;
@@ -104,7 +104,7 @@ end
 
 nruns_f = determine_n_runs(times_est_f);
 nruns_J = determine_n_runs(times_est_J);
-save([data_dir_est 'gmm_estimates_backup.mat'],'nruns_f','nruns_J',...
+save([data_dir_est 'estimates_backup.mat'],'nruns_f','nruns_J',...
     'times_est_f','times_est_J','up_to_date_mask');
 nruns_f = nruns_f .* ~up_to_date_mask;
 nruns_J = nruns_J .* ~up_to_date_mask;
@@ -138,12 +138,11 @@ for i=1:ntools
 end
 
 %% Transport runtimes
-test this guy
-
+load([data_dir_est 'estimates_backup.mat']);
 [times_fixed_f,times_fixed_J] = ...
     read_times(data_dir,'-',fns,tools);
-mask_f = (nruns_f==0) & ~up_to_date_mask;
-mask_J = (nruns_J==0) & ~up_to_date_mask;
+mask_f = (nruns_f==0) & ~up_to_date_mask & ~isinf(times_est_f);
+mask_J = (nruns_J==0) & ~up_to_date_mask & ~isinf(times_est_J);
 times_fixed_f(mask_f) = times_est_f(mask_f);
 times_fixed_J(mask_J) = times_est_J(mask_J);
 for i=1:ntools
@@ -151,7 +150,7 @@ for i=1:ntools
         postfix = ['_times_' tools(i).ext '.txt'];
         for j=1:ntasks
             if any([mask_f(j,i) mask_J(j,i)])
-                fn = [data_dir fns{i} postfix];
+                fn = [data_dir fns{j} postfix];
                 fid = fopen(fn,'w');
                 fprintf(fid,'%f %f\n',times_fixed_f(j,i),times_fixed_J(j,i));
                 fprintf(fid,'tf tJ');
@@ -205,7 +204,7 @@ end
 
 %% read final times
 [times_f,times_J,up_to_date_mask] = ...
-    read_times(data_dir,data_dir_est,fns,tools);
+    read_times(data_dir,data_dir,fns,tools);
 
 times_f_relative = bsxfun(@rdivide,times_f,times_f(:,manual_cpp_id));
 times_f_relative(isnan(times_f_relative)) = Inf;
