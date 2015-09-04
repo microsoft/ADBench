@@ -6,8 +6,8 @@ function [times_f, times_J] = ...
 
 ntasks = numel(task_fns);
 do_F_mode = false;
-times_f = zeros(1,ntasks);
-times_J = zeros(1,ntasks);
+times_f = Inf(1,ntasks);
+times_J = Inf(1,ntasks);
 J = cell(1,ntasks);
 
 if ~exist('times_file','var')
@@ -36,6 +36,10 @@ for i=1:ntasks
     
     nruns_curr_f = nruns_f(i);
     nruns_curr_J = nruns_J(i);
+    
+    if nruns_curr_f+nruns_curr_J == 0
+        continue;
+    end
     
     if do_adimat_vector
         objective = @gmm_objective_vector_repmat;
