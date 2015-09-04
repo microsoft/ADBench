@@ -2,13 +2,11 @@
 exe_dir = 'C:/Users/t-filsra/Workspace/autodiff/Release/gmm/';
 python_dir = 'C:/Users/t-filsra/Workspace/autodiff/Python/';
 julia_dir = 'C:/Users/t-filsra/Workspace/autodiff/Julia/';
-% data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/1k/';
-data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/10k/';
-% data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/2.5M/';
+% data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/1k/'; replicate_point = false;
+data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/10k/'; replicate_point = false;
+% data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/2.5M/'; replicate_point = true;
 data_dir_est = [data_dir 'est/'];
 npoints = 2.5e6;
-% replicate_point = true;
-replicate_point = false;
 
 tools = get_tools(exe_dir,python_dir,julia_dir);
 manual_cpp_id = 1;
@@ -204,7 +202,7 @@ end
 
 %% read final times
 [times_f,times_J,up_to_date_mask] = ...
-    read_times(data_dir,data_dir,fns,tools);
+    read_times(data_dir_est,data_dir_est,fns,tools);
 
 times_f_relative = bsxfun(@rdivide,times_f,times_f(:,manual_cpp_id));
 times_f_relative(isnan(times_f_relative)) = Inf;
