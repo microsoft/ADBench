@@ -1,7 +1,6 @@
-#pragma once
-
 #include <cmath>
-#include "../defs.h"
+#include "defs.h"
+#include "matrix.h"
 
 ////////////////////////////////////////////////////////////
 //////////////////// Declarations //////////////////////////
@@ -43,26 +42,39 @@ void gmm_objective_split_other(int d, int k, int n,
   Wishart wishart,
   T* err);
 
+template<typename T>
+T logsumexp(int n, const T* const x);
+
+// p dim
+// k number of components
+// wishart parameters
+// icf  (p*(p+1)/2)*k parametrizing lower triangular 
+//					square roots of inverse covariances log of diagonal 
+//					is first p params
+template<typename T>
+T log_wishart_prior(int p, int k,
+  Wishart wishart,
+  const T* const sum_qs,
+  const T* const Qdiags,
+  const T* const icf);
+
+template<typename T>
+void preprocess_qs(int d, int k,
+  const T* const icf,
+  T* sum_qs,
+  T* Qdiags);
+
+template<typename T>
+void Qtimesx(int d,
+  const T* const Qdiag,
+  const T* const ltri, // strictly lower triangular part
+  const T* const x,
+  T* out);
+
 ////////////////////////////////////////////////////////////
 //////////////////// Definitions ///////////////////////////
 ////////////////////////////////////////////////////////////
 
-// This throws error on n<1
-template<typename T>
-T arr_max(int n, const T* const x)
-{
-	T m = x[0];
-	for (int i = 1; i < n; i++)
-	{
-#ifdef ADEPT_COMPILATION
-    if (m < x[i])
-      m = x[i];
-#else
-		m = fmax(m, x[i]);
-#endif
-	}
-	return m;
-}
 
 template<typename T>
 T logsumexp(int n, const T* const x)
@@ -71,31 +83,9 @@ T logsumexp(int n, const T* const x)
 	T semx = 0.;
 	for (int i = 0; i < n; i++)
 	{
-		semx += exp(x[i] - mx);
+		semx = semx + exp(x[i] - mx);
 	}
 	return log(semx) + mx;
-}
-
-double log_gamma_distrib(double a, double p)
-{
-  double out = 0.25 * p * (p - 1) * log(PI);
-	for (int j = 1; j <= p; j++)
-	{
-		out += lgamma(a + 0.5*(1 - j));
-	}
-	return out;
-}
-
-template<typename T>
-T sqnorm(int d,
-  const T* const x)
-{
-  T out = 0;
-  for (int i = 0; i < d; i++)
-  {
-    out += x[i] * x[i];
-  }
-  return out;
 }
 
 // p dim
@@ -140,7 +130,7 @@ void preprocess_qs(int d, int k,
     for (int id = 0; id < d; id++)
     {
       T q = icf[ik*icf_sz + id];
-      sum_qs[ik] += q;
+      sum_qs[ik] = sum_qs[ik] + q;
       Qdiags[ik*d + id] = exp(q);
     }
   }
@@ -161,22 +151,9 @@ void Qtimesx(int d,
   {
     for (int j = i + 1; j < d; j++)
     {
-      out[j] += ltri[Lparamsidx] * x[i];
+      out[j] = out[j] + ltri[Lparamsidx] * x[i];
       Lparamsidx++;
     }
-  }
-}
-
-// out = a - b
-template<typename T>
-void subtract(int d,
-  const double* const x,
-  const T* const y,
-  T* out)
-{
-  for (int id = 0; id < d; id++)
-  {
-    out[id] = x[id] - y[id];
   }
 }
 
@@ -192,39 +169,32 @@ void gmm_objective(int d, int k, int n,
 	const double CONSTANT = -n*d*0.5*log(2 * PI);
 	int icf_sz = d*(d + 1) / 2;
 
-  T *sum_qs = new T[k];
-  T *Qdiags = new T[d*k];
-	T *xcentered = new T[d];
-	T *Qxcentered = new T[d];
-	T *main_term = new T[k];
+  vector<T> Qdiags(d*k);
+  vector<T> sum_qs(k);
+  vector<T> xcentered(d);
+  vector<T> Qxcentered(d);
+  vector<T> main_term(k);
 
-  preprocess_qs(d, k, icf, sum_qs, Qdiags);
+  preprocess_qs(d, k, icf, &sum_qs[0], &Qdiags[0]);
 
 	T slse = 0.;
 	for (int ix = 0; ix < n; ix++)
 	{
 		for (int ik = 0; ik < k; ik++)
 		{
-      subtract(d, &x[ix*d], &means[ik*d], xcentered);
-      Qtimesx(d, &Qdiags[ik*d], &icf[ik*icf_sz + d], xcentered, Qxcentered);
+      subtract(d, &x[ix*d], &means[ik*d], &xcentered[0]);
+      Qtimesx(d, &Qdiags[ik*d], &icf[ik*icf_sz + d], &xcentered[0], &Qxcentered[0]);
 
-      main_term[ik] = alphas[ik] + sum_qs[ik] - 0.5*sqnorm(d, Qxcentered);
+      main_term[ik] = alphas[ik] + sum_qs[ik] - 0.5*sqnorm(d, &Qxcentered[0]);
 		}
-		slse += logsumexp(k, main_term);
+		slse = slse + logsumexp(k, &main_term[0]);
 	}
-
-	delete[] xcentered;
-	delete[] Qxcentered;
-	delete[] main_term;
 
 	T lse_alphas = logsumexp(k, alphas);
 
 	*err = CONSTANT + slse - n*lse_alphas;
 
-	*err += log_wishart_prior(d, k, wishart, sum_qs, Qdiags, icf);
-
-  delete[] sum_qs;
-  delete[] Qdiags;
+	*err = *err + log_wishart_prior(d, k, wishart, &sum_qs[0], &Qdiags[0], icf);
 }
 
 template<typename T>
@@ -249,7 +219,7 @@ void gmm_objective_split_inner(int d, int k,
     T sumlog_Ldiag(0.);
     for (int id = 0; id < d; id++)
     {
-      sumlog_Ldiag += icf[icf_off + id];
+      sumlog_Ldiag = sumlog_Ldiag + icf[icf_off + id];
       Ldiag[id] = exp(icf[icf_off + id]);
     }
 
@@ -263,14 +233,14 @@ void gmm_objective_split_inner(int d, int k,
     {
       for (int j = i + 1; j < d; j++)
       {
-        mahal[j] += icf[icf_off + Lparamsidx] * xcentered[i];
+        mahal[j] = mahal[j] + icf[icf_off + Lparamsidx] * xcentered[i];
         Lparamsidx++;
       }
     }
     T sqsum_mahal(0.);
     for (int id = 0; id < d; id++)
     {
-      sqsum_mahal += mahal[id] * mahal[id];
+      sqsum_mahal = sqsum_mahal + mahal[id] * mahal[id];
     }
 
     lse[ik] = alphas[ik] + sumlog_Ldiag - 0.5*sqsum_mahal;

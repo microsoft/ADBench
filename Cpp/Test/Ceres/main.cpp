@@ -273,8 +273,8 @@ void test_ba(const string& fn_in, const string& fn_out,
   tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
 
   string name = "Ceres";
-  //write_J_sparse(fn_in + "_J_" + name + ".txt", J);
-  write_times(fn_in + "_times_" + name + ".txt", tf, tJ);
+  //write_J_sparse(fn_out + "_J_" + name + ".txt", J);
+  write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
 }
 
 #endif

@@ -10,14 +10,14 @@
 
 //#define DO_GMM_FULL
 //#define DO_GMM_SPLIT
-#define DO_BA_BLOCK
-//#define DO_BA_SPARSE
+//#define DO_BA_BLOCK
+#define DO_BA_SPARSE
 
-#define DO_CPP
-//#define DO_EIGEN
+//#define DO_CPP
+#define DO_EIGEN
 
 #if (defined DO_GMM_FULL || defined DO_GMM_SPLIT) && defined DO_CPP
-#include "gmm.h"
+#include "../gmm.h"
 #elif defined DO_BA_BLOCK || defined DO_BA_SPARSE
 #ifdef DO_CPP
 #include "../ba.h"
@@ -168,7 +168,9 @@ double compute_gmm_J_split(int nruns,
       gmm_objective_split_inner(d, k, aalphas, ameans,
         aicf, &x[i*d], wishart, &aerr);
 
-      aerr >>= err;
+      double err_tmp;
+      aerr >>= err_tmp;
+      err += err_tmp;
 
       trace_off();
 
@@ -514,7 +516,7 @@ void test_ba(const string& fn_in, const string& fn_out,
   }
   end = high_resolution_clock::now();
   tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
-  write_times(fn_in + "_times_" + name + ".txt", tf, tJ);
+  write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
 #elif defined DO_BA_SPARSE
 #ifdef DO_CPP
   string name("ADOLC_sparse");
@@ -525,10 +527,10 @@ void test_ba(const string& fn_in, const string& fn_out,
   tJ = compute_ba_J(nruns_J, n, m, p, cams.data(), X.data(), w.data(),
     obs.data(), feats.data(), reproj_err.data(), w_err.data(), &J, &t_sparsity);
 
-  write_times(fn_in + "_times_" + name + ".txt", tf, tJ, &t_sparsity);
+  write_times(fn_out + "_times_" + name + ".txt", tf, tJ, &t_sparsity);
 #endif
 
-  //write_J_sparse(fn_in + "_J_" + name + ".txt", J);
+  //write_J_sparse(fn_out + "_J_" + name + ".txt", J);
 }
 #endif
 

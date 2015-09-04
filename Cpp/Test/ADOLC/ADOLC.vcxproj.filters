@@ -20,19 +20,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="gmm.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\defs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\utils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ba.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ba_eigen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

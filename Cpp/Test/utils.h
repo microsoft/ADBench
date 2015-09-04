@@ -35,6 +35,10 @@ public:
   {
     nrows = 2 * p + p;
     ncols = BA_NCAMPARAMS*n + 3 * m + p;
+    rows.reserve(nrows + 1);
+    int nnonzero = (BA_NCAMPARAMS + 3 + 1) * 2 * p + p;
+    cols.reserve(nnonzero);
+    vals.reserve(nnonzero);
     rows.push_back(0);
   }
 

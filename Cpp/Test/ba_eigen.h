@@ -6,7 +6,9 @@
 
 #include "Eigen/Dense"
 
+#ifdef TOOL_ADOLC
 #include "adolc/adouble.h"
+#endif
 
 using Eigen::Map;
 template<typename T>
@@ -16,7 +18,7 @@ using Vector3 = Eigen::Matrix<T, 3, 1>;
 template<typename T>
 using Vector2 = Eigen::Matrix<T, 2, 1>;
 
-#include "../defs.h"
+#include "defs.h"
 
 ////////////////////////////////////////////////////////////
 //////////////////// Declarations //////////////////////////
@@ -115,6 +117,7 @@ void rodrigues_rotate_point(
     rotatedX = X + rot.cross(X);
   }
 }
+#ifdef TOOL_ADOLC
 template<>
 void rodrigues_rotate_point(
   Map<const Vector3<adouble>>& rot,
@@ -145,6 +148,7 @@ void rodrigues_rotate_point(
     rotatedX = X + rot_cross_X;
   }
 }
+#endif
 
 // rad_params 2 radial distortion parameters
 // proj 2 projection to be distorted

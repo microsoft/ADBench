@@ -90,7 +90,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <Cpp0xSupport>true</Cpp0xSupport>
-      <PreprocessorDefinitions>DO_BA;DO_EIGEN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DO_GMM;DO_CPP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -131,13 +131,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ba.cpp" />
-    <ClCompile Include="gmm.cpp" />
+    <ClCompile Include="ba_d.cpp" />
+    <ClCompile Include="gmm_d.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ba.h" />
-    <ClInclude Include="gmm.h" />
+    <ClInclude Include="..\gmm.h" />
+    <ClInclude Include="..\gmm_eigen.h" />
+    <ClInclude Include="ba_d.h" />
+    <ClInclude Include="gmm_d.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

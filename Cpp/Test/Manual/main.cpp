@@ -7,9 +7,11 @@
 #include "../utils.h"
 #include "../defs.h"
 #ifdef DO_GMM
-#include "gmm.h"
+#include "../gmm.h"
+#include "gmm_d.h"
 #elif defined DO_BA
-#include "ba.h"
+#include "../ba.h"
+#include "ba_d.h"
 #endif
 
 using std::cout;

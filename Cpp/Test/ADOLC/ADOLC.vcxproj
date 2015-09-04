@@ -90,6 +90,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(ProjectDir)include</AdditionalIncludeDirectories>
       <Cpp0xSupport>true</Cpp0xSupport>
+      <PreprocessorDefinitions>TOOL_ADOLC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -122,6 +123,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(ProjectDir)include</AdditionalIncludeDirectories>
       <Cpp0xSupport>true</Cpp0xSupport>
+      <PreprocessorDefinitions>TOOL_ADOLC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -135,11 +137,8 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\ba.h" />
-    <ClInclude Include="..\ba_eigen.h" />
     <ClInclude Include="..\defs.h" />
     <ClInclude Include="..\utils.h" />
-    <ClInclude Include="gmm.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
