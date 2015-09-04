@@ -13,8 +13,8 @@
 //#define DO_BA_BLOCK
 #define DO_BA_SPARSE
 
-//#define DO_CPP
-#define DO_EIGEN
+#define DO_CPP
+//#define DO_EIGEN
 
 #if (defined DO_GMM_FULL || defined DO_GMM_SPLIT) && defined DO_CPP
 #include "../gmm.h"
@@ -467,7 +467,7 @@ double compute_ba_J(int nruns, int n, int m, int p,
   delete[] nzvals;
 
   cout << "t_tape: " << t_tape << endl;
-  cout << "t_sparsity: " << t_sparsity << endl;
+  cout << "t_sparsity: " << *t_sparsity << endl;
   cout << "t_J:" << t_J << endl;
 
   return t_J;
