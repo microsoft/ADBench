@@ -23,6 +23,10 @@ for i=1:ntasks
     nruns_curr_f = nruns_f(i);
     nruns_curr_J = nruns_J(i);
     
+    if nruns_curr_f+nruns_curr_J == 0
+        continue;
+    end
+    
     if nruns_curr_f > 0
         tic
         [ J, err ] = mupad_gmm_objective(nruns_curr_f, paramsGMM, x, ...
