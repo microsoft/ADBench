@@ -5,8 +5,10 @@
 #include <float.h>
 
 #include "Eigen/Dense"
-using Eigen::Map;
 
+#include "adolc/adouble.h"
+
+using Eigen::Map;
 template<typename T>
 using VectorX = Eigen::Matrix<T, -1, 1>;
 template<typename T>
@@ -103,44 +105,44 @@ void rodrigues_rotate_point(
     T theta_inverse = 1.0 / theta;
 
     Vector3<T> w = rot*theta_inverse;
-    
-    Vector3<T> w_cross_X;
-    cross(w.data(), X, w_cross_X);
 
     T tmp = w.dot(X) * (1. - costheta);
-
-    rotatedX = X*costheta + w_cross_X*sintheta + w*tmp;
-  }
-  else
-  {
-    Vector3<T> rot_cross_X;
-    cross(rot.data(), X, rot_cross_X);
-    rotatedX = X + rot_cross_X;
-  }
-}
-template<>
-void rodrigues_rotate_point(
-  Map<const Vector3<double>>& rot,
-  const Vector3<double>& X,
-  Vector3<double>& rotatedX)
-{
-  double sqtheta = rot.squaredNorm();
-  if (sqtheta != 0)
-  {
-    double theta = sqrt(sqtheta);
-    double costheta = cos(theta);
-    double sintheta = sin(theta);
-    double theta_inverse = 1.0 / theta;
-
-    Vector3<double> w = rot*theta_inverse;
-
-    double tmp = w.dot(X) * (1. - costheta);
 
     rotatedX = X*costheta + w.cross(X)*sintheta + w*tmp;
   }
   else
   {
     rotatedX = X + rot.cross(X);
+  }
+}
+template<>
+void rodrigues_rotate_point(
+  Map<const Vector3<adouble>>& rot,
+  const Vector3<adouble>& X,
+  Vector3<adouble>& rotatedX)
+{
+  adouble sqtheta = rot.squaredNorm();
+  if (sqtheta != 0)
+  {
+    adouble theta = sqrt(sqtheta);
+    adouble costheta = cos(theta);
+    adouble sintheta = sin(theta);
+    adouble theta_inverse = 1.0 / theta;
+
+    Vector3<adouble> w = rot*theta_inverse;
+    
+    Vector3<adouble> w_cross_X;
+    cross(w.data(), X, w_cross_X);
+
+    adouble tmp = w.dot(X) * (1. - costheta);
+
+    rotatedX = X*costheta + w_cross_X*sintheta + w*tmp;
+  }
+  else
+  {
+    Vector3<adouble> rot_cross_X;
+    cross(rot.data(), X, rot_cross_X);
+    rotatedX = X + rot_cross_X;
   }
 }
 
