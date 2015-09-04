@@ -6,7 +6,7 @@ if ~exist('replicate_point','var')
 end
 
 isgmm = (numel(params{1}) == 3);
-isba = (numel(params{1}) == 5);
+isba = (numel(params{1}) == 6);
 
 ntasks = numel(fns);
 
@@ -39,8 +39,7 @@ for i=1:numel(tools)
                         params_str = sprintf('d%ik%i',...
                             params{j}(1),params{j}(2));
                     elseif isba
-                        params_str = sprintf('n%im%ip%i',...
-                            params{j}(1),params{j}(2),params{j}(3));
+                        params_str = sprintf('%i',j);
                     end
                     args = sprintf('%s %s %s %i %i',...
                         dir_in,...
