@@ -46,7 +46,7 @@ nnonzero = (ncam_params-1 + 3 + 1) * p(:,3) + p(:,3);
 [~,order]=sort(nnonzero);
 params_final = {};
 for i=order'
-    params_final{i} = [params{i} nin(i) nout(i) nnonzero(i)];
+    params_final{end+1} = [params{i} nin(i) nout(i) nnonzero(i)];
 end
 
 end

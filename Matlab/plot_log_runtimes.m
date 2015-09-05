@@ -1,4 +1,4 @@
-function plot_log_runtimes( params, tools, times, title_, ylabel_,...
+function plot_log_runtimes( tools, times, xvals, title_, ylabel_,...
     do_plot_linear_quadratic_complexity)
 
 % set(groot,'defaultAxesColorOrder',...
@@ -16,11 +16,11 @@ function plot_log_runtimes( params, tools, times, title_, ylabel_,...
 
 lw = 2;
 msz = 7;
-x=[params{:}]; x=x(3:3:end);
+[xvals, order] = sort(xvals);
 
 figure; 
 for i=1:numel(tools)
-    loglog(x, times(:, i),'linewidth',lw,'markersize',msz,...
+    loglog(xvals, times(order, i),'linewidth',lw,'markersize',msz,...
         'color',tools(i).col,'marker',tools(i).marker);
     hold on
 end
@@ -33,7 +33,7 @@ end
 
 legend(tools.name, 'location', 'nw');
 set(gca,'FontSize',14,'xscale','log','yscale','log')
-xlim([min(x) max(x)])
+xlim([min(xvals) max(xvals)])
 title(title_)
 xlabel('# parameters')
 ylabel(ylabel_)

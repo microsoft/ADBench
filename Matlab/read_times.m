@@ -1,5 +1,5 @@
 function [times_f,times_J,up_to_date_mask] = ...
-    read_times(data_dir,data_dir_est,fns,tools)
+    read_times(data_dir,data_dir_est,fns,tools,problem_name)
 
 ntasks = numel(fns);
 ntools = numel(tools);
@@ -27,7 +27,7 @@ for i=1:ntools
             end
         end
     elseif tools(i).call_type >= 3
-        postfix = ['gmm' postfix '.mat'];
+        postfix = [problem_name postfix '.mat'];
         fn = [data_dir postfix];
         if nargout >= 3
             up_to_date_mask(:,i) = is_up_to_date(fn,tools(i).exe);

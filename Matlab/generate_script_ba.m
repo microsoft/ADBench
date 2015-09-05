@@ -4,6 +4,8 @@ python_dir = 'C:/Users/t-filsra/Workspace/autodiff/Python/';
 julia_dir = 'C:/Users/t-filsra/Workspace/autodiff/Julia/';
 data_dir = 'C:/Users/t-filsra/Workspace/autodiff/ba_instances/';
 data_dir_est = [data_dir 'est/'];
+replicate_point = false;
+problem_name = 'ba';
 
 tools = get_tools_ba(exe_dir,python_dir,julia_dir);
 manual_eigen_id = 1;
@@ -18,10 +20,10 @@ end
 
 fns = {};
 for i=1:numel(params)
-    fns{end+1} = ['ba' num2str(i)];
+    fns{end+1} = [problem_name num2str(i)];
 end
 ntasks = numel(params);
-save('params_ba.mat','params');
+% save(['params_' problem_name '.mat'],'params');
 
 %% write instances into files
 addpath('awful/matlab')
@@ -50,7 +52,7 @@ write_script(fn_run_once,params,data_dir,data_dir_est,fns,tools,...
 % tools ran from matlab
 nruns = ones(1,ntasks);
 for i=1:ntools
-   times_file = [data_dir_est 'ba_times_' tools(i).ext '.mat'];
+   times_file = [data_dir_est problem_name '_times_' tools(i).ext '.mat'];
    if tools(i).call_type == 3 % adimat
        do_adimat_sparse = false;
        adimat_run_ba_tests(do_adimat_sparse,data_dir,fns,...
@@ -67,7 +69,7 @@ end
 
 %% read time estimates & determine nruns for everyone
 [times_est_f,times_est_J,up_to_date_mask] = ...
-    read_times(data_dir,data_dir_est,fns,tools);
+    read_times(data_dir,data_dir_est,fns,tools,problem_name);
 
 nruns_f = determine_n_runs(times_est_f);
 nruns_J = determine_n_runs(times_est_J);
@@ -88,7 +90,7 @@ write_script(fn_run_experiments,params,data_dir,data_dir,...
 
 % tools ran from matlab
 for i=1:ntools
-   times_file = [data_dir 'ba_times_' tools(i).ext '.mat'];
+   times_file = [data_dir problem_name '_times_' tools(i).ext '.mat'];
    if tools(i).call_type == 3 % adimat
        do_adimat_sparse = false;
        adimat_run_ba_tests(do_adimat_sparse,params,data_dir,fns,...
@@ -106,7 +108,7 @@ end
 %% Transport runtimes
 load([data_dir_est 'estimates_backup.mat']);
 [times_fixed_f,times_fixed_J] = ...
-    read_times(data_dir,'-',fns,tools);
+    read_times(data_dir,'-',fns,tools,problem_name);
 mask_f = (nruns_f==0) & ~up_to_date_mask & ~isinf(times_est_f);
 mask_J = (nruns_J==0) & ~up_to_date_mask & ~isinf(times_est_J);
 times_fixed_f(mask_f) = times_est_f(mask_f);
@@ -127,8 +129,8 @@ for i=1:ntools
 end
 
 %% read final times
-[times_f,times_J,up_to_date_mask] = ...
-    read_times(data_dir,data_dir_est,fns,tools);
+[times_f,times_J] = ...
+    read_times(data_dir,data_dir_est,fns,tools,problem_name);
 
 times_f_relative = bsxfun(@rdivide,times_f,times_f(:,manual_eigen_id));
 times_f_relative(isnan(times_f_relative)) = Inf;
@@ -144,18 +146,18 @@ save([data_dir 'times_' date],'times_f','times_J','params','tools');
 %% plot times
 lw = 2;
 msz = 7;
-x=[params{:}]; x=x(3:3:end);
+x=[params{:}]; x=x(6:6:end);
 
-plot_log_runtimes(params,tools,times_J,...
+plot_log_runtimes(tools,times_J,x,...
     'Jacobian runtimes','runtime [seconds]',true);
 
-plot_log_runtimes(params,tools,times_J_relative,...
+plot_log_runtimes(tools,times_J_relative,x,...
     'Jacobian runtimes relative to Manual, C++','runtime',false);
 
-plot_log_runtimes(params,tools,times_f,...
+plot_log_runtimes(tools,times_f,x,...
     'objective runtimes','runtime [seconds]',true);
 
-plot_log_runtimes(params,tools,times_f_relative,...
+plot_log_runtimes(tools,times_f_relative,x,...
     'objective runtimes relative to Manual, C++','runtime',false);
 
 %% do 2D plots

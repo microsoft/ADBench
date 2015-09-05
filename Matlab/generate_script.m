@@ -7,6 +7,7 @@ data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/10k/'; replicate_
 % data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/2.5M/'; replicate_point = true;
 data_dir_est = [data_dir 'est/'];
 npoints = 2.5e6;
+problem_name='gmm';
 
 tools = get_tools(exe_dir,python_dir,julia_dir);
 manual_cpp_id = 1;
@@ -37,15 +38,15 @@ fns = {};
 for i=1:numel(params)
     d = params{i}(1);
     k = params{i}(2);
-    fns{end+1} = ['gmm_d' num2str(d) '_K' num2str(k)];
+    fns{end+1} = [problem_name '_d' num2str(d) '_K' num2str(k)];
 end
 ntasks = numel(params);
-% save('params_gmm.mat','params');
+% save('params_' problem_name '.mat','params');
 
 %% write instances into files
 addpath('awful/matlab')
 for i=1:ntasks
-    disp(['runnning gmm: ' num2str(i) '; params: ' num2str(params{i})]);
+    disp(['runnning: ' num2str(i) '; params: ' num2str(params{i})]);
     
     d = params{i}(1);
     k = params{i}(2);
@@ -80,8 +81,8 @@ write_script(fn_run_once,params,data_dir,data_dir_est,fns,tools,...
 % tools ran from matlab
 nruns = ones(1,ntasks);
 for i=1:ntools
-   J_file = [data_dir_est 'gmm_J_' tools(i).ext '.mat'];
-   times_file = [data_dir_est 'gmm_times_' tools(i).ext '.mat'];
+   J_file = [data_dir_est problem_name '_J_' tools(i).ext '.mat'];
+   times_file = [data_dir_est problem_name '_times_' tools(i).ext '.mat'];
    if tools(i).call_type == 3 % adimat
        do_adimat_vector = false;
        adimat_run_gmm_tests(do_adimat_vector,params,data_dir,fns,...
@@ -98,7 +99,7 @@ end
 
 %% read time estimates & determine nruns for everyone
 [times_est_f,times_est_J,up_to_date_mask] = ...
-    read_times(data_dir,data_dir_est,fns,tools);
+    read_times(data_dir,data_dir_est,fns,tools,problem_name);
 
 nruns_f = determine_n_runs(times_est_f);
 nruns_J = determine_n_runs(times_est_J);
@@ -119,8 +120,8 @@ write_script(fn_run_experiments,params,data_dir,data_dir,...
 
 % tools ran from matlab
 for i=1:ntools
-   J_file = [data_dir 'gmm_J_' tools(i).ext '.mat'];
-   times_file = [data_dir 'gmm_times_' tools(i).ext '.mat'];
+   J_file = [data_dir problem_name '_J_' tools(i).ext '.mat'];
+   times_file = [data_dir problem_name '_times_' tools(i).ext '.mat'];
    if tools(i).call_type == 3 % adimat
        do_adimat_vector = false;
        adimat_run_gmm_tests(do_adimat_vector,params,data_dir,fns,...
@@ -138,7 +139,7 @@ end
 %% Transport runtimes
 load([data_dir_est 'estimates_backup.mat']);
 [times_fixed_f,times_fixed_J] = ...
-    read_times(data_dir,'-',fns,tools);
+    read_times(data_dir,'-',fns,tools,problem_name);
 mask_f = (nruns_f==0) & ~up_to_date_mask & ~isinf(times_est_f);
 mask_J = (nruns_J==0) & ~up_to_date_mask & ~isinf(times_est_J);
 times_fixed_f(mask_f) = times_est_f(mask_f);
@@ -167,7 +168,7 @@ bad = {};
 num_ok = 0;
 num_not_comp = 0;
 for i=1:ntasks
-    disp(['comparing to adimat: gmm: ' num2str(i) '; params: ' num2str(params{i})]);
+    disp(['comparing to adimat: ' num2str(i) '; params: ' num2str(params{i})]);
     d = params{i}(1);
     k = params{i}(2);
     [paramsGMM,x,hparams] = load_gmm_instance(...
@@ -202,7 +203,7 @@ end
 
 %% read final times
 [times_f,times_J,up_to_date_mask] = ...
-    read_times(data_dir_est,data_dir_est,fns,tools);
+    read_times(data_dir_est,data_dir_est,fns,tools,problem_name);
 
 times_f_relative = bsxfun(@rdivide,times_f,times_f(:,manual_cpp_id));
 times_f_relative(isnan(times_f_relative)) = Inf;
@@ -220,16 +221,16 @@ lw = 2;
 msz = 7;
 x=[params{:}]; x=x(3:3:end);
 
-plot_log_runtimes(params,tools,times_J,...
+plot_log_runtimes(tools,times_J,x,...
     'Jacobian runtimes','runtime [seconds]',true);
 
-plot_log_runtimes(params,tools,times_J_relative,...
+plot_log_runtimes(tools,times_J_relative,x,...
     'Jacobian runtimes relative to Manual, C++','runtime',false);
 
-plot_log_runtimes(params,tools,times_f,...
+plot_log_runtimes(tools,times_f,x,...
     'objective runtimes','runtime [seconds]',true);
 
-plot_log_runtimes(params,tools,times_f_relative,...
+plot_log_runtimes(tools,times_f_relative,x,...
     'objective runtimes relative to Manual, C++','runtime',false);
 
 %% do 2D plots

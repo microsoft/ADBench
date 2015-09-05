@@ -1,5 +1,5 @@
 function [times_f, times_J] = ...
-    mupad_run_ba_tests(params,task_fns,...
+    mupad_run_ba_tests(params,data_dir,task_fns,...
     nruns_f,nruns_J,out_file)
 %mupad_run_ba_tests
 %   compute derivative of ba
@@ -18,7 +18,7 @@ end
 
 for i=1:ntasks
     disp(['runnning ba: ' num2str(i) '; params: ' num2str(params{i})]);
-    [cams, X, w, obs] = load_ba_instance([task_fns{i} '.txt']);
+    [cams, X, w, obs] = load_ba_instance([data_dir task_fns{i} '.txt']);
     
     nruns_curr_f = nruns_f(i);
     nruns_curr_J = nruns_J(i);
