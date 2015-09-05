@@ -146,8 +146,8 @@ for task_id in range(ntasks):
         err = f(cams, X, w, obs, feats)
     end = t.time()
     tf = (end - start)/nruns_f
-    print("err:")
-    print(err)
+    #print("err:")
+    #print(err)
     
     name = "Theano"
 
@@ -156,8 +156,8 @@ for task_id in range(ntasks):
         start = t.time()
         for i in range(nruns_J):
             J = f_compute_ba_J(cams, X, w, obs, feats)
-            print("J:")
-            print(J)
+            #print("J:")
+            #print(J)
         end = t.time()
         tJ = ((end - start)/nruns_J) + tf ###!!!!!!!!! adding this because no function value is returned by fJ
         #ba_io.write_J(fn_out + "_J_" + name + ".txt",J)
