@@ -12,8 +12,8 @@ times_sparse = Inf(1,ntasks);
 if ~exist('times_file','var')
     times_file = [];
 else
-    if exist(out_file,'file')
-        load(out_file,'times_f','times_J');
+    if exist(times_file,'file')
+        load(times_file,'times_f','times_J');
     end
 end
 
