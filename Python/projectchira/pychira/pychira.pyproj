@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>fffa769a-0359-47e7-940a-af216d71007d</ProjectGuid>
+    <ProjectHome>.</ProjectHome>
+    <StartupFile>cvpr12_example.py</StartupFile>
+    <SearchPath>..\ezvtk\;pychira\</SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <Name>python</Name>
+    <RootNamespace>python</RootNamespace>
+    <SccProjectName>
+    </SccProjectName>
+    <SccProvider>
+    </SccProvider>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccLocalPath>
+    </SccLocalPath>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <CommandLineArguments>
+    </CommandLineArguments>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
+    <Environment>
+    </Environment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="pychira\fitsubdiv\_fitsubdiv.exp" />
+    <Content Include="pychira\fitsubdiv\_fitsubdiv.lib" />
+    <Content Include="pychira\fitsubdiv\_fitsubdiv.pdb" />
+    <Content Include="pychira\fitsubdiv\_fitsubdiv.pyd" />
+    <Content Include="pychira\poseinfer\_poseinfer.exp" />
+    <Content Include="pychira\poseinfer\_poseinfer.lib" />
+    <Content Include="pychira\poseinfer\_poseinfer.pdb" />
+    <Content Include="pychira\poseinfer\_poseinfer.pyd" />
+    <Content Include="pychira\recordings\_recordings.exp" />
+    <Content Include="pychira\recordings\_recordings.lib" />
+    <Content Include="pychira\recordings\_recordings.pdb" />
+    <Content Include="pychira\recordings\_recordings.pyd" />
+    <Content Include="README.txt">
+      <SubType>Code</SubType>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ezvtk\ezvtk.pyproj">
+      <Name>ezvtk</Name>
+      <Project>{ef17a50d-44a5-4a23-adb4-8c8652e854be}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="extensions\fitsubdiv\FitSubdiv.vcxproj">
+      <Name>FitSubdiv (Extensions\FitSubdiv)</Name>
+      <Project>{259a3cc7-a158-40f3-9c16-53c077681ca2}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="extensions\poseinfer\poseinfer.vcxproj">
+      <Name>PoseInfer (Extensions\PoseInfer)</Name>
+      <Project>{e3074107-5d16-4423-a15b-d9c1ed9c5e28}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="extensions\recordings\Recordings.vcxproj">
+      <Name>Recordings</Name>
+      <Project>{c43274cb-5481-436d-a54b-3d5a5af3ee63}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="pychira\" />
+    <Folder Include="pychira\fitsubdiv\" />
+    <Folder Include="pychira\poseinfer\" />
+    <Folder Include="pychira\recordings\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="cvpr12_example.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="local_setup.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="pychira\fitsubdiv\__init__.py" />
+    <Compile Include="pychira\model.py" />
+    <Compile Include="annotate_pose.py" />
+    <Compile Include="pychira\optimizer.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="pychira\ply_reader.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="pychira\poseinfer\__init__.py" />
+    <Compile Include="pychira\recordings\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="pychira\rotation.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="pychira\pose_sequence.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="pychira\test_model.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="view_model.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="pychira\subdiv_surface_troupe.py" />
+    <Compile Include="pychira\util.py" />
+    <Compile Include="pychira\__init__.py" />
+  </ItemGroup>
+  <Import Condition="Exists($(PtvsTargetsFile))" Project="$(PtvsTargetsFile)" />
+  <Import Condition="!Exists($(PtvsTargetsFile))" Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
+  <!-- Uncomment the CoreCompile target to enable the Build command in
+       Visual Studio and specify your pre- and post-build commands in
+       the BeforeBuild and AfterBuild targets below. -->
+  <!--<Target Name="CoreCompile" />-->
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+</Project>
