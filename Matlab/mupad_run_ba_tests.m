@@ -10,10 +10,13 @@ addpath('awful\matlab');
 ntasks = numel(task_fns);
 times_f = Inf(1,ntasks);
 times_J = Inf(1,ntasks);
-J = cell(1,ntasks);
 
 if ~exist('out_file','var')
     out_file = [];
+else
+    if exist(out_file,'file')
+        load(out_file,'times_f','times_J');
+    end
 end
 
 for i=1:ntasks
@@ -38,13 +41,13 @@ for i=1:ntasks
     if nruns_curr_J > 0
         tic
         for j=1:nruns_curr_J
-            [J{i},reproj_err,w_err] = mupad_ba_objective(cams, X, w, obs, true);
+            [J, reproj_err,w_err] = mupad_ba_objective(cams, X, w, obs, true);
         end
         times_J(i) = toc/nruns_curr_J;
     end
     
     if ~isempty(out_file)
-        save(out_file,'times_f','times_J','params','J');
+        save(out_file,'times_f','times_J','params');
     end
 end
 

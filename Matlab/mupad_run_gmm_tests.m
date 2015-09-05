@@ -13,6 +13,10 @@ times_J = Inf(1,ntasks);
 
 if ~exist('out_file','var')
     out_file = [];
+else
+    if exist(out_file,'file')
+        load(out_file,'times_f','times_J');
+    end
 end
 
 for i=1:ntasks
