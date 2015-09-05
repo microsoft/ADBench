@@ -3,8 +3,8 @@ function [J, fval] = adimat_run_ba(do_F_mode,...
 %adimat_run_ba Call already translated function 
 %                   and create our gradient
 
-if ~do_F_mode
-   error('adimat_run_ba: reverse not implemented.'); 
+if do_F_mode
+   error('adimat_run_ba: forward not implemented.'); 
 end
 
 %other options include:

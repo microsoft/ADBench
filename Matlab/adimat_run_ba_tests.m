@@ -69,14 +69,14 @@ for i=1:ntasks
                     compressedSeedMatrix);
             else
                 [J, fval_] = adimat_run_ba(do_F_mode,...
-                    do_adimat_sparse,cams,X,w,obs);
+                    cams,X,w,obs);
             end
         end
         times_J(i) = toc/nruns_curr_J;
     end
     
     if ~isempty(times_file)
-        save(times_file,'times_f','times_J','params','times_sparse');
+        save(times_file,'times_f','times_J','times_sparse');
     end
 end
 
