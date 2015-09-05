@@ -1,4 +1,4 @@
-import sys
+﻿import sys
 import os
 import time as t
 
@@ -91,36 +91,37 @@ end = t.time()
 tf_compile = (end - start)
 print("tf_compile: %f" % tf_compile)
 
+####### Derivative extras ########
+
 start = t.time()
-one_cam_ = T.dvector('one_cam_')
-one_X_ = T.dvector('one_X_')
-one_w_ = T.dscalar('one_w_')
-one_feat_ = T.dvector('one_feat_')
 
-w_err_d_ = T.grad(compute_w_err(one_w_),[one_w_])
-f_w_err_d = th.function([one_w_], w_err_d_, mode=compile_mode)
+def compute_ba_J(cams, X, w, obs, feats):
 
-reproj_err_d_ = T.jacobian(compute_reproj_err(one_cam_, one_X_, one_w_, one_feat_),
-                           [one_cam_, one_X_, one_w_])
-f_reproj_err_d = th.function([one_cam_, one_X_, one_w_, one_feat_], reproj_err_d_, mode=compile_mode)
+    def compute_reproj_err_d_wrapper(curr_w,o,feat):
+        curr_cam = cams[o[0]]
+        curr_X = X[o[1]]
+        return T.jacobian(compute_reproj_err(curr_cam,curr_X,curr_w,feat),
+                           [curr_cam,curr_X,curr_w])
+        #return compute_reproj_err_d(cams[o[0]],X[o[1]],curr_w,feat)
+    reproj_err_d,_ = th.scan(fn=compute_reproj_err_d_wrapper,
+            outputs_info=None,
+            sequences=[w,obs,feats])
+
+    #w_err_d,_ = th.scan(fn=compute_w_err_d,
+    def compute_w_err_d_wrapper(curr_w):
+        return T.grad(compute_w_err(curr_w),[curr_w])
+    w_err_d,_ = th.scan(fn=compute_w_err_d_wrapper,
+                        outputs_info=None,
+                        sequences=w)
+    
+    return (reproj_err_d[0],reproj_err_d[1],reproj_err_d[2], w_err_d)
+
+cams_d_, X_d_, w_d_, w_err_d_ = compute_ba_J(cams_, X_, w_, obs_, feats_)
+f_compute_ba_J = th.function([cams_, X_, w_, obs_, feats_], (cams_d_, X_d_, w_d_, w_err_d_), mode=compile_mode)
 
 end = t.time()
 tJ_compile = (end - start)
 print("tJ_compile: %f" % tJ_compile)
-
-####### Derivative extras ########
-
-def compute_ba_J(cams, X, w, obs, feats):
-    p = obs.shape[0]
-    reproj_err_d = []
-    for i in range(p):
-        reproj_err_d.append(f_reproj_err_d(cams[obs[i,0]],X[obs[i,1]],w[i],feats[i]))
-
-    w_err_d = []
-    for curr_w in w:
-        w_err_d.append(f_w_err_d(curr_w))
-
-    return (reproj_err_d, w_err_d)
 
 ####### Run experiments ########
 
@@ -146,7 +147,7 @@ for task_id in range(ntasks):
     end = t.time()
     tf = (end - start)/nruns_f
     print("err:")
-    #print(err)
+    print(err)
     
     name = "Theano"
 
@@ -154,7 +155,9 @@ for task_id in range(ntasks):
     if nruns_J > 0:
         start = t.time()
         for i in range(nruns_J):
-            J = compute_ba_J(cams, X, w, obs, feats)
+            J = f_compute_ba_J(cams, X, w, obs, feats)
+            print("J:")
+            print(J)
         end = t.time()
         tJ = ((end - start)/nruns_J) + tf ###!!!!!!!!! adding this because no function value is returned by fJ
         #ba_io.write_J(fn_out + "_J_" + name + ".txt",J)
