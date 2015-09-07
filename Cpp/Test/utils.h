@@ -1,5 +1,4 @@
-#ifndef TEST_UTILS
-#define TEST_UTILS
+#pragma once
 
 #pragma warning (disable : 4996) // fopen
 
@@ -8,6 +7,8 @@
 #include <vector>
 #include <fstream>
 
+#include <Eigen/Dense>
+
 #include "../defs.h"
 
 using std::cin;
@@ -15,6 +16,7 @@ using std::cout;
 using std::endl;
 using std::string;
 using std::vector;
+using std::getline;
 
 // rows is nrows+1 vector containing
 // indices to cols and vals. 
@@ -275,4 +277,103 @@ void write_times(const string& fn, double tf, double tJ, double *t_sparsity = nu
   out.close();
 }
 
-#endif
+void read_hand_model(const string& path, HandModel *pmodel)
+{
+  const char DELIMITER = ':';
+  auto& model = *pmodel;
+  std::ifstream bones_in(path + "bones.txt");
+  string s;
+  while (bones_in.good())
+  {
+    getline(bones_in, s, DELIMITER);
+    if (s.empty())
+      continue;
+    model.bone_names.push_back(s);
+    getline(bones_in, s, DELIMITER);
+    model.parents.push_back(std::stoi(s));
+    double tmp[16];
+    for (int i = 0; i < 16; i++)
+    {
+      getline(bones_in, s, DELIMITER);
+      tmp[i] = std::stod(s);
+    }
+    model.base_relatives.push_back(Eigen::Map<Eigen::Matrix4d>(tmp));
+    model.base_relatives.back().transposeInPlace();
+    for (int i = 0; i < 15; i++)
+    {
+      getline(bones_in, s, DELIMITER);
+      tmp[i] = std::stod(s);
+    }
+    getline(bones_in, s, '\n');
+    tmp[15] = std::stod(s);
+    model.inverse_base_absolutes.push_back(Eigen::Map<Eigen::Matrix4d>(tmp));
+    model.inverse_base_absolutes.back().transposeInPlace();
+  }
+  bones_in.close();
+  int n_bones = (int)model.bone_names.size();
+
+  std::ifstream vert_in(path + "vertices.txt");
+  int n_vertices = 0;
+  while (vert_in.good())
+  {
+    getline(vert_in, s);
+    if (!s.empty())
+      n_vertices++;
+  }
+  vert_in.close();
+
+  model.base_positions.resize(3, n_vertices);
+  model.weights = Eigen::ArrayXXd::Zero(n_bones, n_vertices);
+  vert_in = std::ifstream(path + "vertices.txt");
+  for (int i_vert = 0; i_vert < n_vertices; i_vert++)
+  {
+    for (int j = 0; j < 3; j++)
+    {
+      getline(vert_in, s, DELIMITER);
+      model.base_positions(j, i_vert) = std::stod(s);
+    }
+    for (int j = 0; j < 3 + 2; j++)
+    {
+      getline(vert_in, s, DELIMITER); // skip
+    }
+    getline(vert_in, s, DELIMITER);
+    int n = std::stoi(s);
+    for (int j = 0; j < n; j++)
+    {
+      getline(vert_in, s, DELIMITER);
+      int i_bone = std::stoi(s);
+      if (j == n - 1)
+        getline(vert_in, s, '\n');
+      else
+        getline(vert_in, s, DELIMITER);
+      model.weights(i_bone, i_vert) = std::stod(s);
+    }
+  }
+  vert_in.close();
+
+  model.is_mirrored = false;
+}
+
+void read_hand_instance(const string& path, vector<double>* params, HandData *data)
+{
+  read_hand_model(path, &data->model);
+  std::ifstream in(path + "instance.txt");
+  int n_pts, n_theta;
+  in >> n_pts >> n_theta;
+  data->correspondences.resize(n_pts);
+  data->points.resize(3, n_pts);
+  for (int i = 0; i < n_pts; i++)
+  {
+    in >> data->correspondences[i];
+    for (int j = 0; j < 3; j++)
+    {
+      in >> data->points(j, i);
+    }
+  }
+  params->resize(n_theta);
+  for (int i = 0; i < n_theta; i++)
+  {
+    in >> (*params)[i];
+  }
+  in.close();
+}

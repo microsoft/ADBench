@@ -16,8 +16,8 @@ addpath('awful/matlab');
 %% create random GMM instance
 d = 2;
 k = 3;
-n = 2;
-n_ = 2;
+n = 10;
+n_ = 10;
 rng(1);
 gmm.alphas = randn(1,k);
 gmm.means = au_map(@(i) rand(d,1), cell(k,1));
@@ -29,7 +29,7 @@ hparams = [1 0];
 
 fn = '../gmm';
 % fn = '../gmm_instances/gmm_d2_K25';
-% save_gmm_instance([fn '.txt'],gmm,x,hparams,n);
+save_gmm_instance([fn '.txt'],gmm,x,hparams,n);
 [gmm,x,hparams] = load_gmm_instance([fn '.txt'],n~=n_);
 
 num_params = numel(gmm.alphas) + numel(gmm.means) + ...
@@ -52,7 +52,7 @@ opt = admOptions('independents', [1 2 3],  'functionResults', {1});
 % Jexternal = load_J([fn '_J_manual_eigen.txt']);
 % Jexternal = load_J([fn '_J_manual_eigen_vector.txt']);
 % Jexternal = load_J([fn '_J_Tapenade.txt']);
-Jexternal = load_J([fn '_J_Tapenade_split.txt']);
+% Jexternal = load_J([fn '_J_Tapenade_split.txt']);
 % Jexternal = load_J([fn '_J_ADOLC_split.txt']);
 % Jexternal = load_J([fn '_J_ADOLC.txt']);
 % Jexternal = load_J([fn '_J_Adept.txt']);
@@ -168,9 +168,12 @@ opt2 = admOptions('independents', [1 2 3],  'functionResults', ...
 % Jexternal = load_J_sparse([fn '_J_manual_eigen.txt']);
 % Jexternal = load_J_sparse([fn '_J_Tapenade.txt']);
 % Jexternal = load_J_sparse([fn '_J_ADOLC.txt']);
+% Jexternal = load_J_sparse([fn '_J_ADOLC_eigen.txt']);
 % Jexternal = load_J_sparse([fn '_J_ADOLC_sparse.txt']);
-% Jexternal = load_J_sparse([fn '_J_Adept.txt']);
-Jexternal = load_J_sparse([fn '_J_Ceres.txt']);
+% Jexternal = load_J_sparse([fn '_J_ADOLC_sparse_eigen.txt']);
+Jexternal = load_J_sparse([fn '_J_Adept.txt']);
+% Jexternal = load_J_sparse([fn '_J_Ceres.txt']);
+% Jexternal = load_J_sparse([fn '_J_DiffSharp.txt']);
 [JforV, fvalforV1, fvalforV2] = ...
     admDiffVFor(@ba_objective, 1, cams, X, w, obs, opt);
 
@@ -247,13 +250,16 @@ norm(Jfd(:) - JforV(:)) / norm(JforV(:))
 % norm(Jcom(:) - Jrev(:)) / norm(Jrev(:))
 % norm(Jcom(:) - JforV(:)) / norm(JforV(:))
 
-%% run forward mode
-% [Jfor, fvalfor] = admDiffFor(@ba_objective, 1, cams, X, obs, opt); % translate first
-% tic
-% for i = 1:nRuns
-%     [Jfor, fvalfor] = admDiffFor(@ba_objective, 1, cams, X, obs, opt);
-% end
-% tfor = toc
-% 
+
+
 
  
+
+%% load instance
+path = '../hand';
+[params, data] = load_hand_instance(path);
+
+%% run objective
+fval = hand_objective(params, data);
+
+

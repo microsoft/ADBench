@@ -11,19 +11,24 @@
 //#define DO_GMM_FULL
 //#define DO_GMM_SPLIT
 //#define DO_BA_BLOCK
-#define DO_BA_SPARSE
+//#define DO_BA_SPARSE
+#define DO_HAND
 
-#define DO_CPP
-//#define DO_EIGEN
+//#define DO_CPP
+#define DO_EIGEN
 
 #if (defined DO_GMM_FULL || defined DO_GMM_SPLIT) && defined DO_CPP
 #include "../gmm.h"
+
 #elif defined DO_BA_BLOCK || defined DO_BA_SPARSE
 #ifdef DO_CPP
 #include "../ba.h"
 #elif defined DO_EIGEN
 #include "../ba_eigen.h"
 #endif
+
+#elif defined DO_HAND && defined DO_EIGEN
+#include "hand_eigen.h"
 #endif
 
 using std::cout;
@@ -532,6 +537,96 @@ void test_ba(const string& fn_in, const string& fn_out,
 
   //write_J_sparse(fn_out + "_J_" + name + ".txt", J);
 }
+
+#elif defined DO_HAND && defined DO_EIGEN
+
+double compute_hand_J(int nruns, 
+  const vector<double>& params, 
+  const HandData& data,
+  vector<double> *perr,
+  double ***pJ)
+{
+  auto& err = *perr;
+
+  int tapeTag = 1;
+  int Jrows = 3* (int)data.correspondences.size();
+  int Jcols = (int)params.size();
+  vector<adouble> aparams;
+  vector<adouble> aerr;
+  aparams.resize(Jcols);
+  aerr.resize(Jrows);
+
+  // Record on a tape
+  trace_on(tapeTag);
+
+  for (size_t i = 0; i < params.size(); i++)
+    aparams[i] <<= params[i];
+
+  hand_objective(aparams, data, &aerr[0]);
+
+  for (int i = 0; i < Jrows; i++)
+    aerr[i] >>= err[i];
+  
+  trace_off();
+
+  // Compute J
+  high_resolution_clock::time_point start, end;
+  start = high_resolution_clock::now();
+  for (int i = 0; i < nruns; i++)
+  {
+    jacobian(tapeTag, Jrows, Jcols, &params[0], *pJ);
+  }
+  end = high_resolution_clock::now();
+
+  return duration_cast<duration<double>>(end - start).count() / nruns;
+}
+
+void test_hand(const string& dir_in, const string& fn_out,
+  int nruns_f, int nruns_J)
+{
+  vector<double> params;
+  HandData data;
+  read_hand_instance(dir_in + "/", &params, &data);
+
+  vector<double> err;
+  err.resize(3 * data.correspondences.size());
+  double **J = new double *[err.size()];
+  for (size_t i = 0; i < err.size(); i++)
+    J[i] = new double[params.size()];
+
+  high_resolution_clock::time_point start, end;
+  double tf = 0., tJ = 0;
+
+  start = high_resolution_clock::now();
+  for (int i = 0; i < nruns_f; i++)
+  {
+    hand_objective(params, data, &err[0]);
+  }
+  end = high_resolution_clock::now();
+  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
+
+  string name("ADOLC_eigen");
+#define DO_CORRESPONDENCES_NOT_CHANGE
+#if defined DO_CORRESPONDENCES_CHANGE
+  start = high_resolution_clock::now();
+  for (int i = 0; i < nruns_J; i++)
+  {
+    compute_hand_J();
+  }
+  end = high_resolution_clock::now();
+  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
+#elif defined DO_CORRESPONDENCES_NOT_CHANGE
+  tJ = compute_hand_J(nruns_J, params, data, &err, &J);
+#endif
+
+  write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), (int)params.size(), J);
+  write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
+
+  for (size_t i = 0; i < err.size(); i++)
+    delete[] J[i];
+  delete[] J;
+}
+
 #endif
 
 int main(int argc, char *argv[])
@@ -549,5 +644,7 @@ int main(int argc, char *argv[])
   test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
 #elif defined DO_BA_BLOCK || defined DO_BA_SPARSE
   test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
+#elif defined DO_HAND
+  test_hand(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
 #endif
 }
