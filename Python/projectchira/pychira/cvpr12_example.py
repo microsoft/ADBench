@@ -58,11 +58,21 @@ class Energy(object):
 
         return result
 
+def save_instance(fn, correspondences, data_points, theta):
+    fid = open(fn, "w")
+    n_pts = data_points.shape[0]
+    print("%i %i" % (n_pts,theta.size) , file = fid)
+    for i in range(n_pts):
+        print("%i %f %f %f" % (correspondences[i],data_points[i,0],data_points[i,1],data_points[i,2]) , file = fid)
+    for t in theta:
+        print("%f " % (t) , file = fid)
+    fid.close()
+
 # Create Linear blend skinning model.
 model = load_model("../exported_template_from_blender/")
 
 # Construct correspondences and data points.
-n_data_points = 10
+n_data_points = 2
 correspondences = np.random.random_integers(0, model.n_vertices - 1, n_data_points)
 data_points = np.zeros((n_data_points, 3))
 
@@ -83,4 +93,7 @@ print('Energy with perfect data point correspondences:', energy.evaluate(theta))
 
 # Now add some noise to the data points.
 energy.data_points += .1 * np.random.randn(*energy.data_points.shape)
+
+#save_instance("C:/Users/t-filsra/Workspace/autodiff/hand/instance.txt", correspondences, data_points, theta);
+
 print('Energy with noisy data points:', energy.evaluate(theta))
