@@ -144,8 +144,6 @@ times_J_relative(times_J_relative==0) = Inf;
 save([data_dir 'times_' date],'times_f','times_J','params','tools');
 
 %% plot times
-lw = 2;
-msz = 7;
 x=[params{:}]; x=x(6:6:end);
 
 plot_log_runtimes(tools,times_J,x,...

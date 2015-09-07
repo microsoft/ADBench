@@ -35,7 +35,7 @@ legend(tools.name, 'location', 'nw');
 set(gca,'FontSize',14,'xscale','log','yscale','log')
 xlim([min(xvals) max(xvals)])
 title(title_)
-xlabel('# parameters')
+xlabel('# nonzero entries')
 ylabel(ylabel_)
 
 end

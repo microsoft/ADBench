@@ -3,8 +3,8 @@ exe_dir = 'C:/Users/t-filsra/Workspace/autodiff/Release/gmm/';
 python_dir = 'C:/Users/t-filsra/Workspace/autodiff/Python/';
 julia_dir = 'C:/Users/t-filsra/Workspace/autodiff/Julia/';
 % data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/1k/'; replicate_point = false;
-data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/10k/'; replicate_point = false;
-% data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/2.5M/'; replicate_point = true;
+% data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/10k/'; replicate_point = false;
+data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/2.5M/'; replicate_point = true;
 data_dir_est = [data_dir 'est/'];
 npoints = 2.5e6;
 problem_name='gmm';
@@ -203,7 +203,7 @@ end
 
 %% read final times
 [times_f,times_J,up_to_date_mask] = ...
-    read_times(data_dir_est,data_dir_est,fns,tools,problem_name);
+    read_times(data_dir,data_dir,fns,tools,problem_name);
 
 times_f_relative = bsxfun(@rdivide,times_f,times_f(:,manual_cpp_id));
 times_f_relative(isnan(times_f_relative)) = Inf;
@@ -217,8 +217,6 @@ times_J_relative(times_J_relative==0) = Inf;
 save([data_dir 'times_' date],'times_f','times_J','params','tools');
 
 %% plot times
-lw = 2;
-msz = 7;
 x=[params{:}]; x=x(3:3:end);
 
 plot_log_runtimes(tools,times_J,x,...
