@@ -34,7 +34,10 @@ void angle_axis_to_rotation_matrix(
 {
   T norm = angle_axis.norm();
   if (norm < .0001)
+  {
     R->setIdentity();
+    return;
+  }
 
   T x = angle_axis(0) / norm;
   T y = angle_axis(1) / norm;
