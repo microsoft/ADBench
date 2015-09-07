@@ -262,4 +262,18 @@ path = '../hand';
 %% run objective
 fval = hand_objective(params, data);
 
+%%
+addpath('adimat-0.6.0-4971');
+start_adimat
+addpath('awful/matlab');
+% differentiate only with respect to the first+ 3 parameters
+% also set the shape of function results
+opt = admOptions('independents', [1],  'functionResults', {fval});
+
+[J,fvalrev] = admDiffVFor(@hand_objective, 1, params, data, opt);
+
+%% compare
+% Jexternal = load_J([path '_J_ADOLC_eigen.txt']);
+Jexternal = load_J([path '_J_Julia_F.txt']);
+norm(J(:) - Jexternal(:)) / norm(J(:))
 
