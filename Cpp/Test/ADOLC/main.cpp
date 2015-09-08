@@ -11,11 +11,11 @@
 //#define DO_GMM_FULL
 //#define DO_GMM_SPLIT
 //#define DO_BA_BLOCK
-//#define DO_BA_SPARSE
-#define DO_HAND
+#define DO_BA_SPARSE
+//#define DO_HAND
 
-//#define DO_CPP
-#define DO_EIGEN
+#define DO_CPP
+//#define DO_EIGEN
 
 #if (defined DO_GMM_FULL || defined DO_GMM_SPLIT) && defined DO_CPP
 #include "../gmm.h"
@@ -507,12 +507,13 @@ void test_ba(const string& fn_in, const string& fn_out,
   end = high_resolution_clock::now();
   tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
 
-#if defined DO_BA_BLOCK
 #ifdef DO_CPP
-  string name("ADOLC");
+  string postfix("");
 #elif defined DO_EIGEN
-  string name("ADOLC_eigen");
+  string postfix("_eigen");
 #endif
+#if defined DO_BA_BLOCK
+  string name("ADOLC" + postfix);
   start = high_resolution_clock::now();
   for (int i = 0; i < nruns_J; i++)
   {
@@ -523,11 +524,7 @@ void test_ba(const string& fn_in, const string& fn_out,
   tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
 #elif defined DO_BA_SPARSE
-#ifdef DO_CPP
-  string name("ADOLC_sparse");
-#elif defined DO_EIGEN
-  string name("ADOLC_sparse_eigen");
-#endif
+  string name("ADOLC_sparse" + postfix);
   double t_sparsity;
   tJ = compute_ba_J(nruns_J, n, m, p, cams.data(), X.data(), w.data(),
     obs.data(), feats.data(), reproj_err.data(), w_err.data(), &J, &t_sparsity);
@@ -551,10 +548,8 @@ double compute_hand_J(int nruns,
   int tapeTag = 1;
   int Jrows = 3* (int)data.correspondences.size();
   int Jcols = (int)params.size();
-  vector<adouble> aparams;
-  vector<adouble> aerr;
-  aparams.resize(Jcols);
-  aerr.resize(Jrows);
+  vector<adouble> aparams(Jcols);
+  vector<adouble> aerr(Jrows);
 
   // Record on a tape
   trace_on(tapeTag);
