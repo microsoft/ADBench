@@ -8,6 +8,8 @@
 #include <fstream>
 
 #include <Eigen/Dense>
+#include <vnl/vnl_matrix.h>
+#include <vnl/vnl_matrix_fixed.h>
 
 #include "../defs.h"
 
@@ -368,6 +370,109 @@ void read_hand_instance(const string& path, vector<double>* params, HandData *da
     for (int j = 0; j < 3; j++)
     {
       in >> data->points(j, i);
+    }
+  }
+  params->resize(n_theta);
+  for (int i = 0; i < n_theta; i++)
+  {
+    in >> (*params)[i];
+  }
+  in.close();
+}
+
+void read_hand_model(const string& path, HandModelVXL *pmodel)
+{
+  const char DELIMITER = ':';
+  auto& model = *pmodel;
+  std::ifstream bones_in(path + "bones.txt");
+  string s;
+  while (bones_in.good())
+  {
+    getline(bones_in, s, DELIMITER);
+    if (s.empty())
+      continue;
+    model.bone_names.push_back(s);
+    getline(bones_in, s, DELIMITER);
+    model.parents.push_back(std::stoi(s));
+    double tmp[16];
+    for (int i = 0; i < 16; i++)
+    {
+      getline(bones_in, s, DELIMITER);
+      tmp[i] = std::stod(s);
+    }
+    model.base_relatives.emplace_back();
+    model.base_relatives.back().set(tmp);
+    for (int i = 0; i < 15; i++)
+    {
+      getline(bones_in, s, DELIMITER);
+      tmp[i] = std::stod(s);
+    }
+    getline(bones_in, s, '\n');
+    tmp[15] = std::stod(s);
+    model.inverse_base_absolutes.emplace_back();
+    model.inverse_base_absolutes.back().set(tmp);
+  }
+  bones_in.close();
+  int n_bones = (int)model.bone_names.size();
+
+  std::ifstream vert_in(path + "vertices.txt");
+  int n_vertices = 0;
+  while (vert_in.good())
+  {
+    getline(vert_in, s);
+    if (!s.empty())
+      n_vertices++;
+  }
+  vert_in.close();
+
+  model.base_positions.set_size(n_vertices, 4);
+  model.base_positions.set_column(3, 1.);
+  model.weights.set_size(n_bones, n_vertices);
+  model.weights.fill(0.);
+  vert_in = std::ifstream(path + "vertices.txt");
+  for (int i_vert = 0; i_vert < n_vertices; i_vert++)
+  {
+    for (int j = 0; j < 3; j++)
+    {
+      getline(vert_in, s, DELIMITER);
+      model.base_positions(i_vert, j) = std::stod(s);
+    }
+    for (int j = 0; j < 3 + 2; j++)
+    {
+      getline(vert_in, s, DELIMITER); // skip
+    }
+    getline(vert_in, s, DELIMITER);
+    int n = std::stoi(s);
+    for (int j = 0; j < n; j++)
+    {
+      getline(vert_in, s, DELIMITER);
+      int i_bone = std::stoi(s);
+      if (j == n - 1)
+        getline(vert_in, s, '\n');
+      else
+        getline(vert_in, s, DELIMITER);
+      model.weights(i_bone, i_vert) = std::stod(s);
+    }
+  }
+  vert_in.close();
+
+  model.is_mirrored = false;
+}
+
+void read_hand_instance(const string& path, vector<double>* params, HandDataVXL *data)
+{
+  read_hand_model(path, &data->model);
+  std::ifstream in(path + "instance.txt");
+  int n_pts, n_theta;
+  in >> n_pts >> n_theta;
+  data->correspondences.resize(n_pts);
+  data->points.set_size(n_pts, 3);
+  for (int i = 0; i < n_pts; i++)
+  {
+    in >> data->correspondences[i];
+    for (int j = 0; j < 3; j++)
+    {
+      in >> data->points(i, j);
     }
   }
   params->resize(n_theta);

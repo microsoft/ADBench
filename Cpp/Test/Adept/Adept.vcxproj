@@ -89,13 +89,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;$(ProjectDir)..\include\vxl\core;$(ProjectDir)..\include\vxl\vcl;$(ProjectDir)..\include\vxl\v3p</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>TOOL_ADEPT;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Adeptd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)lib;$(ProjectDir)..\lib\Debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Adeptd.lib;vnl.lib;clipper.lib;netlib.lib;testlib.lib;v3p_netlib.lib;vbl.lib;vcl.lib;vcsl.lib;vgl.lib;vgl_algo.lib;vnl_algo.lib;vpgl.lib;vpgl_algo.lib;vpgl_file_formats.lib;vpgl_io.lib;vpgl_xio.lib;vpl.lib;vul.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -119,21 +119,35 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;$(ProjectDir)..\include\vxl\core;$(ProjectDir)..\include\vxl\vcl;$(ProjectDir)..\include\vxl\v3p</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>TOOL_ADEPT;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(ProjectDir)lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Adept.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)lib;$(ProjectDir)..\lib\Release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Adept.lib;vnl.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\defs.h" />
+    <ClInclude Include="..\utils.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\..\..\packages\Eigen.3.2.5\build\native\Eigen.targets" Condition="Exists('..\..\..\packages\Eigen.3.2.5\build\native\Eigen.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\..\..\packages\Eigen.3.2.5\build\native\Eigen.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\packages\Eigen.3.2.5\build\native\Eigen.targets'))" />
+  </Target>
 </Project>
