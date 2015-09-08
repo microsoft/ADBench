@@ -32,7 +32,7 @@ let inline add_vec (x:_[]) (y:_[]) =
     Array.map2 (+) x y
 
 let inline add_vec3 (x:_[]) (y:_[]) (z:_[]) =
-    Array.map3 (fun a b c -> a+b+c) x y z
+  add_vec (add_vec x y) z
 
 let inline mult_by_scalar (x:_[]) y =
     Array.map (fun a -> a*y) x

@@ -128,7 +128,7 @@ let gmm_objective (alphas:float[]) (means:float[][]) (icf:float[][]) (x:float[][
     
     let mutable slse = 0. 
     for curr_x in x do
-        let tmp = Array.map3 (fun x y z -> x+y+z) alphas sum_qs [| for i = 0 to k-1 do yield (main_term curr_x i)|]
+        let tmp = Array.map2 (+) (Array.map2 (+) alphas sum_qs) [| for i = 0 to k-1 do yield (main_term curr_x i)|]
         slse <- slse + (logsumexp tmp)
 
     slse + (float n) * ((log CONSTANT) - (logsumexp alphas)) + (log_wishart_prior d wishart Qdiags sum_qs icf)
