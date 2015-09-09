@@ -19,7 +19,7 @@ cols = [.8 .1 0;
         0 .8 .8;
         .8 0 .8;
         0 1 0];
-markers = {'none', 's', 'x', '^'};
+markers = {'s', 'x', '^', 'none'};
 
 % tools
 tools = {};
@@ -136,12 +136,12 @@ tools(end).col = cols(unused_col_id,:); unused_col_id = unused_col_id + 1;
 tools(end).marker = markers{1};
 tools(end).call_type = 3;
 
-% tools(end+1).name = 'AdiMat, F (sparse)';
-% tools(end).exe = 'hand_objective.m';
-% tools(end).ext = 'adimat_sparse';
-% tools(end).col = tools(end-1).col;
-% tools(end).marker = markers{2};
-% tools(end).call_type = 4;
+tools(end+1).name = 'AdiMat, F (sparse)';
+tools(end).exe = 'hand_objective.m';
+tools(end).ext = 'adimat_sparse';
+tools(end).col = tools(end-1).col;
+tools(end).marker = markers{2};
+tools(end).call_type = 4;
 
 % tools(end+1).name = 'MuPAD';
 % tools(end).exe = 'mupad/mupad_ba_compute_reproj_err_mex.cxx';

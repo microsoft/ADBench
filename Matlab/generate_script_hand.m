@@ -72,27 +72,27 @@ write_script(fn_run_experiments,params,data_dir,data_dir,...
     fns,tools,nruns_f,nruns_J,replicate_point);
 
 %% run all experiments
-% % tic
-% % system(fn_run_experiments);
-% % toc
-% 
-% % tools ran from matlab
-% for i=1:ntools
-%    times_file = [data_dir problem_name '_times_' tools(i).ext '.mat'];
-%    if tools(i).call_type == 3 % adimat
-%        do_adimat_sparse = false;
-%        adimat_run_ba_tests(do_adimat_sparse,params,data_dir,fns,...
-%            nruns_f(:,i),nruns_J(:,i),times_file);
-%    elseif tools(i).call_type == 4 % adimat vector
-%        do_adimat_sparse = true;
-%        adimat_run_ba_tests(do_adimat_sparse,params,data_dir,fns,...
-%            nruns_f(:,i),nruns_J(:,i),times_file);
-%    elseif tools(i).call_type == 5 % mupad
+% tic
+% system(fn_run_experiments);
+% toc
+
+% tools ran from matlab
+for i=1:ntools
+   times_file = [data_dir problem_name '_times_' tools(i).ext '.mat'];
+   if tools(i).call_type == 3 % adimat
+       do_adimat_sparse = false;
+       adimat_run_tests(problem_name,do_adimat_sparse,data_dir,fns,...
+           nruns_f(:,i),nruns_J(:,i),times_file);
+   elseif tools(i).call_type == 4 % adimat vector
+       do_adimat_sparse = true;
+       adimat_run_tests(problem_name,do_adimat_sparse,data_dir,fns,...
+           nruns_f(:,i),nruns_J(:,i),times_file);
+   elseif tools(i).call_type == 5 % mupad
 %        mupad_run_ba_tests(params,data_dir,fns,...
 %            nruns_f(:,i),nruns_J(:,i),times_file);
-%    end    
-% end
-% 
+   end    
+end
+
 %% Transport runtimes
 % load([data_dir_est 'estimates_backup.mat']);
 % [times_fixed_f,times_fixed_J] = ...
