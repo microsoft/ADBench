@@ -53,14 +53,15 @@ void angle_axis_to_rotation_matrix(
 
 template<typename T>
 void apply_global_transform(
-  const unordered_map<string, Vector3<T>>& pose_params, 
+  const Matrix3X<T>& pose_params,
   Matrix3X<T>* positions)
 {
   Matrix3<T> R;
-  angle_axis_to_rotation_matrix(pose_params.at("global_rotation"), &R);
-  R.noalias() = (R.array().rowwise() * pose_params.at("scale").transpose().array()).matrix();
+  const Vector3<T>& global_rotation = pose_params.col(0);
+  angle_axis_to_rotation_matrix(global_rotation, &R);
+  R.noalias() = (R.array().rowwise() * pose_params.col(1).transpose().array()).matrix();
   
-  *positions = (R * (*positions)).colwise() + pose_params.at("global_translation");
+  *positions = (R * (*positions)).colwise() + pose_params.col(2);
 }
 
 template<typename T>
@@ -83,16 +84,17 @@ void relatives_to_absolutes(
 template<typename T>
 void get_posed_relatives(
   const HandModel& model,
-  const unordered_map<string, Vector3<T>>& pose_params,
+  const Matrix3X<T>& pose_params,
   vector<Matrix4<T>>* prelatives)
 {
   auto& relatives = *prelatives;
   relatives.resize(model.base_relatives.size());
 
+  int offset = 3;
   for (size_t i = 0; i < model.bone_names.size(); i++)
   {
     Matrix4<T> tr = Matrix4<T>::Identity();
-    const Vector3<T>& rot_params = pose_params.at(model.bone_names[i]);
+    const auto& rot_params = pose_params.col(i + offset);
 
     int mapping[] = HAND_XYZ_TO_ROTATIONAL_PARAMETERIZATION;
     tr.block(0, 0, 3, 3).noalias() = 
@@ -107,7 +109,7 @@ void get_posed_relatives(
 template<typename T>
 void get_skinned_vertex_positions(
   const HandModel& model,
-  const unordered_map<string, Vector3<T>>& pose_params,
+  const Matrix3X<T>& pose_params,
   Matrix3X<T>* positions,
   bool apply_global = true)
 {
@@ -142,34 +144,31 @@ void get_skinned_vertex_positions(
 template<typename T>
 void to_pose_params(const vector<T>& theta,
   const vector<string>& bone_names,
-  unordered_map<string, Vector3<T>> *ppose_params)
+  Matrix3X<T> *ppose_params)
 {
   auto& pose_params = *ppose_params;
-  pose_params.reserve(bone_names.size() + 3);
+  pose_params.resize(3, bone_names.size() + 3);
+  pose_params.setZero();
 
-  pose_params["global_rotation"] = Map<const Vector3<T>>(&theta[0]);
-  pose_params["scale"] = Vector3<T>::Ones();
-  pose_params["global_translation"] = Map<const Vector3<T>>(&theta[3]);
-
-  for (const auto& bone_name : bone_names)
-    pose_params[bone_name] = Vector3<T>::Zero();
+  pose_params.col(0) = Map<const Vector3<T>>(&theta[0]);
+  pose_params.col(1).setOnes();
+  pose_params.col(2) = Map<const Vector3<T>>(&theta[3]);
 
   int i_theta = 6;
-  string fingers[] = { "thumb", "index", "middle", "ring", "pinky" };
-  for (const auto& finger : fingers)
+  int i_pose_params = 5;
+  int n_fingers = 5;
+  for (int i_finger = 0; i_finger < n_fingers; i_finger++)
   {
     for (int i = 2; i <= 4; i++)
     {
-      string bone_name = finger + std::to_string(i);
-      auto& curr = pose_params[bone_name];
-      curr(0) = theta[i_theta];
-      i_theta = i_theta + 1;
+      pose_params(0, i_pose_params) = theta[i_theta++];
       if (i == 2)
       {
-        curr(1) = theta[i_theta];
-        i_theta = i_theta + 1;
+        pose_params(1, i_pose_params) = theta[i_theta++];
       }
+      i_pose_params++;
     }
+    i_pose_params++;
   }
 }
 
@@ -179,7 +178,7 @@ void hand_objective(
   const HandData& data,
   T *perr)
 {
-  unordered_map<string,Vector3<T>> pose_params;
+  Matrix3X<T> pose_params;
   to_pose_params(params, data.model.bone_names, &pose_params);
   
   Matrix3X<T> vertex_positions;

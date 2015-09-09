@@ -11,11 +11,11 @@
 //#define DO_GMM_FULL
 //#define DO_GMM_SPLIT
 //#define DO_BA_BLOCK
-#define DO_BA_SPARSE
-//#define DO_HAND
+//#define DO_BA_SPARSE
+#define DO_HAND
 
-#define DO_CPP
-//#define DO_EIGEN
+//#define DO_CPP
+#define DO_EIGEN
 
 #if (defined DO_GMM_FULL || defined DO_GMM_SPLIT) && defined DO_CPP
 #include "../gmm.h"
@@ -535,7 +535,7 @@ void test_ba(const string& fn_in, const string& fn_out,
   //write_J_sparse(fn_out + "_J_" + name + ".txt", J);
 }
 
-#elif defined DO_HAND && defined DO_EIGEN
+#elif defined DO_HAND
 
 double compute_hand_J(int nruns, 
   const vector<double>& params, 
@@ -601,18 +601,7 @@ void test_hand(const string& dir_in, const string& fn_out,
   tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
 
   string name("ADOLC_eigen");
-#define DO_CORRESPONDENCES_NOT_CHANGE
-#if defined DO_CORRESPONDENCES_CHANGE
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_J; i++)
-  {
-    compute_hand_J();
-  }
-  end = high_resolution_clock::now();
-  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
-#elif defined DO_CORRESPONDENCES_NOT_CHANGE
   tJ = compute_hand_J(nruns_J, params, data, &err, &J);
-#endif
 
   write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), (int)params.size(), J);
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
