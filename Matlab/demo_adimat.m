@@ -154,7 +154,7 @@ fn = '../ba';
 
 %% run options
 nruns = 100;%1000
-non_zero_pattern = create_nonzero_pattern(n,m,obs);
+non_zero_pattern = create_nonzero_pattern_ba(n,m,obs);
 % differentiate only with respect to the first 2 parameters
 % also set the shape of function results
 opt = admOptions('independents', [1 2 3],  'functionResults', ...
@@ -273,7 +273,7 @@ opt = admOptions('independents', [1],  'functionResults', {fval});
 [J,fvalrev] = admDiffVFor(@hand_objective, 1, params, data, opt);
 
 %% compare
-% Jexternal = load_J([path '_J_ADOLC_eigen.txt']);
-Jexternal = load_J([path '_J_Julia_F.txt']);
+Jexternal = load_J([path '_J_ADOLC_eigen.txt']);
+% Jexternal = load_J([path '_J_Julia_F.txt']);
 norm(J(:) - Jexternal(:)) / norm(J(:))
 

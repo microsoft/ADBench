@@ -360,8 +360,8 @@ void read_hand_instance(const string& path, vector<double>* params, HandData *da
 {
   read_hand_model(path, &data->model);
   std::ifstream in(path + "instance.txt");
-  int n_pts, n_theta;
-  in >> n_pts >> n_theta;
+  int n_pts, n_theta, n_more_vertices;
+  in >> n_pts >> n_theta >> n_more_vertices;
   data->correspondences.resize(n_pts);
   data->points.resize(3, n_pts);
   for (int i = 0; i < n_pts; i++)
@@ -378,6 +378,16 @@ void read_hand_instance(const string& path, vector<double>* params, HandData *da
     in >> (*params)[i];
   }
   in.close();
+
+  Eigen::Matrix3Xd base_positions = data->model.base_positions;
+  Eigen::ArrayXXd weights = data->model.weights;
+  data->model.base_positions.resize(3, base_positions.cols() + n_more_vertices);
+  data->model.weights.resize(weights.rows(), weights.cols() + n_more_vertices);
+  for (int i = 0; i < data->model.base_positions.cols(); i++)
+  {
+    data->model.base_positions.col(i) = base_positions.col(i % base_positions.cols());
+    data->model.weights.col(i) = weights.col(i % weights.cols());
+  }
 }
 
 void read_hand_model(const string& path, HandModelVXL *pmodel)

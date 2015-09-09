@@ -58,17 +58,13 @@ function read_hand_instance(path)
       end
   end
 
-  model = HandModel(bone_names,parents,transforms,
-                    inverse_absolute_transforms,
-                    [base_positions; ones(Float64,1,size(base_positions,2))],
-                    weights,false)
-
   fid = open(joinpath(path,"instance.txt"))
   lines = readlines(fid)
   close(fid)
   line=split(lines[1]," ")
   n_corrs = parse(Int,line[1])
   n_params = parse(Int,line[2])
+  n_more_vertices = parse(Int,line[3])
   off = 1
 
   corrs = zeros(Int,n_corrs)
@@ -86,6 +82,14 @@ function read_hand_instance(path)
   for i in 1:n_params
     params[i] = parse(Float64,lines[i+off])
   end
+
+  base_positions = [base_positions repmat(base_positions[:,1],1,n_more_vertices)]
+  weights = [weights repmat(weights[:,1],1,n_more_vertices)]
+
+  model = HandModel(bone_names,parents,transforms,
+                    inverse_absolute_transforms,
+                    [base_positions; ones(Float64,1,size(base_positions,2))],
+                    weights,false)
 
   data = HandData(model, corrs, pts)
 

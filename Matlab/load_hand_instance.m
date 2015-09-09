@@ -30,19 +30,11 @@ for i_vert = 1:n_vertices
     end
 end
 
-model = {};
-model.bone_names = bone_names;
-model.parents = parents;
-model.base_relatives = transforms;
-model.inverse_base_transforms = inverse_absolute_transforms;
-model.base_positions = [base_positions; ones(1,size(base_positions,2))];
-model.weights = weights;
-model.is_mirrored = false;
-
 fid = fopen(fullfile(path,'instance.txt'),'r');
 
 n_pts = fscanf(fid,'%i',1);
 n_params = fscanf(fid,'%i',1);
+n_more_vertices = fscanf(fid,'%i',1);
 
 all = fscanf(fid,'%lf',[1+3 n_pts])';
 correspondences = all(:,1) + 1; %matlab indexing
@@ -51,6 +43,19 @@ pts = all(:,2:end)';
 params = fscanf(fid,'%lf',[1 n_params]);
 
 fclose(fid);
+
+
+base_positions = [base_positions repmat(base_positions(:,1),1,n_more_vertices)];
+weights = [weights repmat(weights(:,1),1,n_more_vertices)];
+
+model = {};
+model.bone_names = bone_names;
+model.parents = parents;
+model.base_relatives = transforms;
+model.inverse_base_transforms = inverse_absolute_transforms;
+model.base_positions = [base_positions; ones(1,size(base_positions,2))];
+model.weights = weights;
+model.is_mirrored = false;
 
 data = {};
 data.model = model;

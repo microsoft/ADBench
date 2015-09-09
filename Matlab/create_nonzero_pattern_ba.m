@@ -1,4 +1,4 @@
-function P = create_nonzero_pattern( ncams, npts, obs )
+function P = create_nonzero_pattern_ba( ncams, npts, obs )
 %create_nonzero_pattern 
 %         CAMERAS c x n 
 %               matrix containing parameters of n cameras
