@@ -21,12 +21,14 @@
     <Optimize>false</Optimize>
     <Tailcalls>false</Tailcalls>
     <OutputPath>..\..\Debug\DiffSharp\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;MODE_R;DO_BA</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;MODE_AD;DO_HAND</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Debug\DiffSharp.XML</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
-    <StartArguments>..\..\ ..\..\ ba 1 1</StartArguments>
+    <StartArguments>..\..\ ..\..\ hand 1 1</StartArguments>
+    <OtherFlags>
+    </OtherFlags>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -61,6 +63,7 @@
     <Content Include="packages.config" />
     <Compile Include="gmm.fs" />
     <Compile Include="ba.fs" />
+    <Compile Include="hand.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
@@ -72,6 +75,10 @@
       <HintPath>..\..\packages\FsAlg.0.5.8\lib\FsAlg.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="FSharp.Core">
+      <HintPath>..\..\packages\FSharp.Core.3.1.2.1\lib\net40\FSharp.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="FSharp.Quotations.Evaluator">
       <HintPath>..\..\packages\FSharp.Quotations.Evaluator.1.0.6\lib\net40\FSharp.Quotations.Evaluator.dll</HintPath>
       <Private>True</Private>
@@ -80,10 +87,11 @@
       <HintPath>..\..\packages\MathNet.Numerics.3.7.0\lib\net40\MathNet.Numerics.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <Reference Include="MathNet.Numerics.FSharp">
+      <HintPath>..\..\packages\MathNet.Numerics.FSharp.3.7.0\lib\net40\MathNet.Numerics.FSharp.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
