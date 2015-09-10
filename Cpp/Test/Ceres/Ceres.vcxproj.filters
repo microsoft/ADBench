@@ -32,6 +32,9 @@
     <ClInclude Include="..\utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="hand_eigen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

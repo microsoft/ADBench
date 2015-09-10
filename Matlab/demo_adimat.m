@@ -274,7 +274,8 @@ opt = admOptions('independents', [1],  'functionResults', {fval});
 
 %% compare
 % Jexternal = load_J([path '_J_ADOLC_eigen.txt']);
-Jexternal = load_J([path '_J_ADOLC_eigen_sparse.txt']);
+% Jexternal = load_J([path '_J_ADOLC_eigen_sparse.txt']);
+Jexternal = load_J([path '_J_Ceres_eigen.txt']);
 % Jexternal = load_J([path '_J_Julia_F.txt']);
 norm(J(:) - Jexternal(:)) / norm(J(:))
 

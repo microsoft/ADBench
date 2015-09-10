@@ -5,7 +5,8 @@
 #include <vector>
 
 //#define DO_GMM
-#define DO_BA
+//#define DO_BA
+#define DO_HAND_EIGEN
 
 #include "ceres/ceres.h"
 #include "../utils.h"
@@ -18,6 +19,11 @@
 
 #elif defined DO_BA
 #include "ba.h"
+
+#elif defined DO_HAND_EIGEN
+#include "hand_eigen.h"
+#define HAND_PARAMS_DIM 26
+#define HAND_NUM_PTS 100000
 #endif
 
 using ceres::AutoDiffCostFunction;
@@ -277,6 +283,73 @@ void test_ba(const string& fn_in, const string& fn_out,
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
 }
 
+#elif defined DO_HAND_EIGEN
+struct HandCostFunctor {
+  HandCostFunctor(const HandData& data) :
+    data_(data) {}
+
+  template <typename T> bool operator()(const T* const params, T* err) const
+  {
+    hand_objective(params, data_, err);
+    return true;
+  }
+
+private:
+  const HandData& data_;
+};
+
+void compute_hand_J(
+  vector<double>& params,
+  const HandData& data,
+  vector<double> *perr,
+  vector<double> *pJ)
+{
+  auto& err = *perr;
+  auto& J = *pJ;
+  CostFunction *cost_function =
+    new AutoDiffCostFunction<HandCostFunctor, 3 * HAND_NUM_PTS,
+    HAND_PARAMS_DIM>(new HandCostFunctor(data));
+
+  double *tmp_J = &J[0];
+  double *tmp_params = &params[0];
+  cost_function->Evaluate(&tmp_params, &err[0], &tmp_J);
+}
+
+void test_hand(const string& dir_in, const string& fn_out,
+  int nruns_f, int nruns_J)
+{
+  vector<double> params;
+  HandData data;
+  read_hand_instance(dir_in + "/", &params, &data);
+
+  vector<double> err(3 * data.correspondences.size());
+  vector<double> J(err.size() * params.size(), 0);
+
+  high_resolution_clock::time_point start, end;
+  double tf = 0., tJ = 0;
+
+  start = high_resolution_clock::now();
+  for (int i = 0; i < nruns_f; i++)
+  {
+    hand_objective(&params[0], data, &err[0]);
+  }
+  end = high_resolution_clock::now();
+  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
+
+  start = high_resolution_clock::now();
+  for (int i = 0; i < nruns_J; i++)
+  {
+    compute_hand_J(params, data, &err, &J);
+}
+  end = high_resolution_clock::now();
+  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
+
+  string name("Ceres_eigen");
+
+  write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), (int)params.size(), &J[0]);
+  write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
+}
+
 #endif
 
 int main(int argc, char** argv)
@@ -294,5 +367,7 @@ int main(int argc, char** argv)
   test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
 #elif defined DO_BA
   test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
+#elif defined DO_HAND_EIGEN
+  test_hand(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
 #endif
 }
