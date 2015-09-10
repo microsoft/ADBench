@@ -115,18 +115,27 @@ times_fixed_f(mask_f) = times_est_f(mask_f);
 times_fixed_J(mask_J) = times_est_J(mask_J);
 for i=1:ntools
     if tools(i).call_type < 3
-        postfix = ['_times_' tools(i).ext '.txt'];
-        for j=1:ntasks
-            if any([mask_f(j,i) mask_J(j,i)])
-                fn = [data_dir fns{j} postfix];
-                fid = fopen(fn,'w');
-                fprintf(fid,'%f %f\n',times_fixed_f(j,i),times_fixed_J(j,i));
-                fprintf(fid,'tf tJ');
-                fclose(fid);
-            end
+%         postfix = ['_times_' tools(i).ext '.txt'];
+%         for j=1:ntasks
+%             if any([mask_f(j,i) mask_J(j,i)])
+%                 fn = [data_dir fns{j} postfix];
+%                 fid = fopen(fn,'w');
+%                 fprintf(fid,'%f %f\n',times_fixed_f(j,i),times_fixed_J(j,i));
+%                 fprintf(fid,'tf tJ');
+%                 fclose(fid);
+%             end
+%         end
+    else
+        fn = [data_dir problem_name '_times_' tools(i).ext '.mat'];
+        if exist(fn,'file')
+            ld=load(fn);
+            ld.times_f = times_fixed_f(:,i);
+            ld.times_J = times_fixed_J(:,i);
+            save(fn,'-struct','ld')
         end
     end
 end
+
 
 %% read final times
 [times_f,times_J] = ...
