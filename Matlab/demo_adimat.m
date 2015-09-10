@@ -273,7 +273,8 @@ opt = admOptions('independents', [1],  'functionResults', {fval});
 [J,fvalrev] = admDiffVFor(@hand_objective, 1, params, data, opt);
 
 %% compare
-Jexternal = load_J([path '_J_ADOLC_eigen.txt']);
+% Jexternal = load_J([path '_J_ADOLC_eigen.txt']);
+Jexternal = load_J([path '_J_ADOLC_eigen_sparse.txt']);
 % Jexternal = load_J([path '_J_Julia_F.txt']);
 norm(J(:) - Jexternal(:)) / norm(J(:))
 

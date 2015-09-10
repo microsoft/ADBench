@@ -12,7 +12,8 @@
 //#define DO_GMM_SPLIT
 //#define DO_BA_BLOCK
 //#define DO_BA_SPARSE
-#define DO_HAND
+//#define DO_HAND
+#define DO_HAND_SPARSE
 
 //#define DO_CPP
 #define DO_EIGEN
@@ -27,7 +28,7 @@
 #include "../ba_eigen.h"
 #endif
 
-#elif defined DO_HAND && defined DO_EIGEN
+#elif (defined DO_HAND || defined DO_HAND_SPARSE) && defined DO_EIGEN
 #include "hand_eigen.h"
 #endif
 
@@ -348,7 +349,6 @@ void compute_ba_J(int n, int m, int p,
     J->insert_w_err_block(i, err_d);
   }
 }
-
 #elif defined DO_BA_SPARSE
 void convert_J(int nnz, unsigned int *ridxs, unsigned int *cidxs,
   double *nzvals, BASparseMat *J)
@@ -535,16 +535,119 @@ void test_ba(const string& fn_in, const string& fn_out,
   //write_J_sparse(fn_out + "_J_" + name + ".txt", J);
 }
 
-#elif defined DO_HAND
+#elif defined DO_HAND || defined DO_HAND_SPARSE
+
+void get_hand_nnz_pattern(const HandData& data, 
+  vector<unsigned int> *pridxs, 
+  vector<unsigned int> *pcidxs, 
+  vector<double> *pnzvals)
+{
+  auto& ridxs = *pridxs;
+  auto& cidxs = *pcidxs;
+
+  int n_pts = (int)data.points.cols();
+  int nnz_estimate = 3 * n_pts*(3 + 1 + 4);
+  ridxs.reserve(nnz_estimate); cidxs.reserve(nnz_estimate);
+
+  for (int i = 0; i < 3*n_pts; i++)
+  {
+    for (int j = 0; j < 3; j++)
+    {
+      ridxs.push_back(i); 
+      cidxs.push_back(j);
+    }
+    ridxs.push_back(i);
+    cidxs.push_back(3 + (i % 3));
+  }
+  int col_off = 6;
+
+  const auto& parents = data.model.parents;
+  for (int i_pt = 0; i_pt < n_pts; i_pt++)
+  {
+    int i_vert = data.correspondences[i_pt];
+    vector<bool> bones(data.model.bone_names.size(), false);
+    for (size_t i_bone = 0; i_bone < bones.size(); i_bone++)
+    {
+      bones[i_bone] = bones[i_bone] | (data.model.weights(i_bone, i_vert) != 0);
+    }
+    for (int i_bone = (int)parents.size()-1; i_bone >= 0; i_bone--)
+    {
+      if(parents[i_bone] >= 0)
+        bones[parents[i_bone]] = bones[i_bone] | bones[parents[i_bone]];
+    }
+    int i_col = col_off;
+    for (int i_finger = 0; i_finger < 5; i_finger++)
+    {
+      for (int i_finger_bone = 1; i_finger_bone < 4; i_finger_bone++)
+      {
+        int i_bone = 1 + i_finger * 4 + i_finger_bone;
+        if (bones[i_bone])
+        {
+          for (int i_coord = 0; i_coord < 3; i_coord++)
+          {
+            ridxs.push_back(i_pt*3 + i_coord);
+            cidxs.push_back(i_col);
+          }
+        }
+        i_col++;
+        if (i_finger_bone == 1)
+        {
+          if (bones[i_bone])
+          {
+            for (int i_coord = 0; i_coord < 3; i_coord++)
+            {
+              ridxs.push_back(i_pt * 3 + i_coord);
+              cidxs.push_back(i_col);
+            }
+          }
+          i_col++;
+        }
+      }
+    }
+  }
+
+  pnzvals->resize(cidxs.size());
+}
+
+void get_hand_nnz_pattern(int n_rows,
+  const vector<unsigned int>& ridxs,
+  const vector<unsigned int>& cidxs,
+  unsigned int ***ppattern)
+{
+  auto &pattern = *ppattern;
+
+  vector<int> cols_counts(n_rows, 0);
+  for (size_t i = 0; i < ridxs.size(); i++)
+    cols_counts[ridxs[i]]++;
+
+  pattern = new unsigned int*[n_rows];
+  for (int i = 0; i < n_rows; i++)
+  {
+    pattern[i] = new unsigned int[cols_counts[i] + 1];
+    pattern[i][0] = cols_counts[i];
+  }
+
+  vector<int> tails(n_rows, 1);
+  for (size_t i = 0; i < ridxs.size(); i++)
+  {
+    pattern[ridxs[i]][tails[ridxs[i]]++] = cidxs[i];
+  }
+}
 
 double compute_hand_J(int nruns, 
-  const vector<double>& params, 
+  vector<double>& params, 
   const HandData& data,
   vector<double> *perr,
-  double ***pJ)
+  double ***pJ,
+  double *t_sparsity)
 {
-  auto& err = *perr;
+  if (nruns == 0)
+    return 0;
 
+  auto& err = *perr;
+  auto& J = *pJ;
+
+  bool doRowCompression = false;
   int tapeTag = 1;
   int Jrows = 3* (int)data.correspondences.size();
   int Jcols = (int)params.size();
@@ -566,13 +669,51 @@ double compute_hand_J(int nruns,
 
   // Compute J
   high_resolution_clock::time_point start, end;
+#ifdef DO_HAND
   start = high_resolution_clock::now();
   for (int i = 0; i < nruns; i++)
   {
     jacobian(tapeTag, Jrows, Jcols, &params[0], *pJ);
   }
-  end = high_resolution_clock::now();
+  *t_sparsity = 0;
 
+#elif defined DO_HAND_SPARSE
+  start = high_resolution_clock::now();
+  int opt[4];
+  opt[0] = 0; // default
+  opt[1] = 0; // default
+  opt[2] = 0; // 0=auto 1=F 2=R
+  opt[3] = doRowCompression ? 1 : 0;
+
+  vector<unsigned int> ridxs, cidxs;
+  vector<double> nzvals;
+  get_hand_nnz_pattern(data, &ridxs, &cidxs, &nzvals);
+
+  unsigned int **row_sparsity_pattern;
+  get_hand_nnz_pattern((int)err.size(), ridxs, cidxs, &row_sparsity_pattern);
+
+  double **seed = nullptr;
+  int n_colors;
+  generate_seed_jac((int)err.size(), (int)params.size(), row_sparsity_pattern,//row_sparsity_pattern,
+    &seed, &n_colors, opt[3]);
+  end = high_resolution_clock::now();
+  *t_sparsity = duration_cast<duration<double>>(end - start).count() / nruns;
+
+  start = high_resolution_clock::now();
+  int samePattern = 1;
+  for (int i = 0; i < nruns; i++)
+  {
+    forward(tapeTag, (int)err.size(), (int)params.size(), n_colors,
+      &params[0], seed, &err[0], J);
+  }
+
+  for (size_t i = 0; i < err.size(); i++)
+    delete[] row_sparsity_pattern[i];
+  delete[] row_sparsity_pattern;
+
+#endif
+
+  end = high_resolution_clock::now();
   return duration_cast<duration<double>>(end - start).count() / nruns;
 }
 
@@ -590,7 +731,7 @@ void test_hand(const string& dir_in, const string& fn_out,
     J[i] = new double[params.size()];
 
   high_resolution_clock::time_point start, end;
-  double tf = 0., tJ = 0;
+  double tf = 0., tJ = 0, t_sparsity = 0;
 
   start = high_resolution_clock::now();
   for (int i = 0; i < nruns_f; i++)
@@ -601,10 +742,14 @@ void test_hand(const string& dir_in, const string& fn_out,
   tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
 
   string name("ADOLC_eigen");
-  tJ = compute_hand_J(nruns_J, params, data, &err, &J);
+  tJ = compute_hand_J(nruns_J, params, data, &err, &J, &t_sparsity);
+
+#ifdef DO_HAND_SPARSE
+  name = name + "_sparse";
+#endif
 
   write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), (int)params.size(), J);
-  write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
+  write_times(fn_out + "_times_" + name + ".txt", tf, tJ, &t_sparsity);
 
   for (size_t i = 0; i < err.size(); i++)
     delete[] J[i];
@@ -628,7 +773,7 @@ int main(int argc, char *argv[])
   test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
 #elif defined DO_BA_BLOCK || defined DO_BA_SPARSE
   test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
-#elif defined DO_HAND
+#elif defined DO_HAND || defined DO_HAND_SPARSE
   test_hand(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
 #endif
 }
