@@ -8,7 +8,7 @@
 //#define DO_BA
 #define DO_HAND
 
-#define DO_VXL
+#define DO_LIGHT_MATRIX
 
 #include "adept.h"
 #include "../utils.h"
@@ -19,8 +19,8 @@
 #include "../gmm.h"
 #elif defined DO_BA
 #include "../ba.h"
-#elif defined DO_HAND && defined DO_VXL
-#include "../hand_vxl.h"
+#elif defined DO_HAND && defined DO_LIGHT_MATRIX
+#include "../hand_light_matrix.h"
 #endif
 
 using adept::adouble;
@@ -28,7 +28,6 @@ using std::cout;
 using std::endl;
 using std::string;
 using namespace std::chrono;
-
 #ifdef DO_GMM_FULL
 
 double compute_gmm_J(int nruns,
@@ -299,9 +298,11 @@ void test_ba(const string& fn_in, const string& fn_out,
 #elif defined DO_HAND
 
 double compute_hand_J(int nruns,
-  const vector<double>& params, const HandDataVXL& data,
-  vector<double> err, vector<double> J)
+  const vector<double>& params, const HandDataLightMatrix& data,
+  vector<double> *perr, vector<double> *pJ)
 {
+  auto &err = *perr;
+  auto &J = *pJ;
   adept::Stack stack;
   vector<adouble> aparams(params.size());
   vector<adouble> aerr(err.size());
@@ -313,7 +314,7 @@ double compute_hand_J(int nruns,
     adept::set_values(&aparams[0], params.size(), &params[0]);
 
     stack.new_recording();
-    //hand_objective(aparams, data, &aerr[0]);
+    hand_objective(aparams, data, &aerr[0]);
     stack.independent(&aparams[0], aparams.size());
     stack.dependent(&aerr[0], aerr.size());
     stack.jacobian_forward(&J[0]);
@@ -328,7 +329,7 @@ void test_hand(const string& path, const string& fn_out,
   int nruns_f, int nruns_J)
 {
   vector<double> params;
-  HandDataVXL data;
+  HandDataLightMatrix data;
 
   read_hand_instance(path, &params, &data);
 
@@ -346,8 +347,8 @@ void test_hand(const string& path, const string& fn_out,
   end = high_resolution_clock::now();
   tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
 
-  string name = "Adept_vxl";
-  tJ = compute_hand_J(nruns_J, params, data, err, J);
+  string name = "Adept_light";
+  tJ = compute_hand_J(nruns_J, params, data, &err, &J);
 
   write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), (int)params.size(), &J[0]);
   //write_times(tf, tJ);
@@ -375,3 +376,101 @@ int main(int argc, char *argv[])
   test_hand(dir_in + fn + "/", dir_out + fn, nruns_f, nruns_J);
 #endif
 }
+
+
+
+/*
+#include <vnl/vnl_numeric_traits.h>
+
+VCL_DEFINE_SPECIALIZATION
+class vnl_numeric_traits<adouble>
+{
+public:
+//: Additive identity
+static VNL_EXPORT const adouble zero VCL_STATIC_CONST_INIT_FLOAT_DECL(0.0);
+//: Multiplicative identity
+static VNL_EXPORT const adouble one VCL_STATIC_CONST_INIT_FLOAT_DECL(1.0);
+//: Maximum value which this type can assume
+static VNL_EXPORT const adouble maxval VCL_STATIC_CONST_INIT_FLOAT_DECL(1.7976931348623157E+308);
+//: Return value of abs()
+typedef adouble abs_t;
+//: Name of a type twice as long as this one for accumulators and products.
+typedef adouble double_t;
+//: Name of type which results from multiplying this type with a double
+typedef adouble real_t;
+};
+
+#if !VCL_CANNOT_SPECIALIZE_CV
+VCL_DEFINE_SPECIALIZATION
+class vnl_numeric_traits<adouble const> : public vnl_numeric_traits<adouble> {};
+#endif
+
+namespace vnl_math {
+bool isnan(const adouble& x) { return false; } // hack
+bool isinf(const adouble& x) { return !_finite(x.value()) && !isnan(x); }
+bool isfinite(const adouble& x) { return _finite(x.value()) != 0; }
+inline adouble             abs(const adouble& x) { return x < 0.0 ? -x : x; }
+inline adouble             max(const adouble& x, const adouble& y) { return (x < y) ? y : x; }
+inline adouble             min(const adouble& x, const adouble& y) { return (x > y) ? y : x; }
+inline adouble             cube(const adouble& x) { return x*x*x; }
+inline int sgn(const adouble& x) { return (x != 0) ? ((x>0) ? 1 : -1) : 0; }
+inline int sgn0(const adouble& x) { return (x >= 0) ? 1 : -1; }
+inline adouble             sqr(const adouble& x) { return x*x; }
+inline adouble      squared_magnitude(const adouble&      x) { return x*x; }
+}
+
+#include <vnl\vnl_complex_traits.h>
+VCL_DEFINE_SPECIALIZATION struct vnl_complex_traits<adouble>
+{
+enum { isreal = true };
+static adouble conjugate(adouble x) { return x; }
+static vcl_complex<adouble> complexify(adouble x) { return vcl_complex<adouble>(x, 0.0); }
+};
+
+#include <vnl\vnl_matrix.txx>
+VNL_MATRIX_INSTANTIATE(adept::adouble);
+#include <vnl\vnl_c_vector.txx>
+VNL_MATRIX_INSTANTIATE(adept::adouble);
+#include <vnl\vnl_vector.txx>
+VNL_MATRIX_INSTANTIATE(adept::adouble);
+
+template <unsigned M, unsigned N, unsigned O>
+vnl_matrix_fixed<adouble, M, O>
+operator*(const vnl_matrix_fixed<adouble, M, N>& a, const vnl_matrix_fixed<double, N, O>& b)
+{
+vnl_matrix_fixed<adouble, M, O> out;
+vnl_matrix_fixed_mat_mat_mult(a, b, &out);
+return out;
+}
+
+template <unsigned M, unsigned N, unsigned O>
+vnl_matrix_fixed<adouble, M, O>
+operator*(const vnl_matrix_fixed<double, M, N>& a, const vnl_matrix_fixed<adouble, N, O>& b)
+{
+vnl_matrix_fixed<adouble, M, O> out;
+vnl_matrix_fixed_mat_mat_mult(a, b, &out);
+return out;
+}
+
+template<class T>
+#include <vnl\vnl_matrix.txx>
+void my_ordinary_mat_mult(vnl_matrix<double> const &A, vnl_matrix_4<T> const &B, vnl_matrix<T> &out)
+{
+//out.set_size(A.rows(), B.cols());
+
+unsigned int l = A.rows();
+unsigned int m = A.cols(); // == B.num_rows
+unsigned int n = B.cols();
+
+for (unsigned int i = 0; i<l; ++i) {
+for (unsigned int k = 0; k<n; ++k) {
+T sum(0);
+for (unsigned int j = 0; j<m; ++j)
+sum = sum + A(i,j) * B(j,k);
+out(i,k) = sum;
+}
+}
+}
+
+//VNL_MATRIX_FIXED_INSTANTIATE(...)
+*/

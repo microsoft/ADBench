@@ -8,8 +8,8 @@
 #include <fstream>
 
 #include <Eigen/Dense>
-#include <vnl/vnl_matrix.h>
-#include <vnl/vnl_matrix_fixed.h>
+#include <Eigen\StdVector>
+#include "light_matrix.h"
 
 #include "../defs.h"
 
@@ -19,6 +19,47 @@ using std::endl;
 using std::string;
 using std::vector;
 using std::getline;
+
+template<typename T>
+using avector = vector<T, Eigen::aligned_allocator<T>>;
+
+typedef struct
+{
+  vector<string> bone_names;
+  vector<int> parents; // assumimng that parent is earlier in the order of bones
+  avector<Eigen::Matrix4d> base_relatives;
+  avector<Eigen::Matrix4d> inverse_base_absolutes;
+  Eigen::Matrix3Xd base_positions;
+  Eigen::ArrayXXd weights;
+  bool is_mirrored;
+} HandModel;
+
+typedef struct
+{
+  HandModel model;
+  vector<int> correspondences;
+  Eigen::Matrix3Xd points;
+} HandData;
+
+class HandModelLightMatrix
+{
+public:
+  vector<string> bone_names;
+  vector<int> parents; // assumimng that parent is earlier in the order of bones
+  vector<LightMatrix<double>> base_relatives;
+  vector<LightMatrix<double>> inverse_base_absolutes;
+  LightMatrix<double> base_positions;
+  LightMatrix<double> weights;
+  bool is_mirrored;
+};
+
+class HandDataLightMatrix
+{
+public:
+  HandModelLightMatrix model;
+  vector<int> correspondences;
+  LightMatrix<double> points;
+};
 
 // rows is nrows+1 vector containing
 // indices to cols and vals. 
@@ -390,7 +431,7 @@ void read_hand_instance(const string& path, vector<double>* params, HandData *da
   }
 }
 
-void read_hand_model(const string& path, HandModelVXL *pmodel)
+void read_hand_model(const string& path, HandModelLightMatrix *pmodel)
 {
   const char DELIMITER = ':';
   auto& model = *pmodel;
@@ -410,8 +451,9 @@ void read_hand_model(const string& path, HandModelVXL *pmodel)
       getline(bones_in, s, DELIMITER);
       tmp[i] = std::stod(s);
     }
-    model.base_relatives.emplace_back();
+    model.base_relatives.emplace_back(4, 4);
     model.base_relatives.back().set(tmp);
+    model.base_relatives.back().transpose_in_place();
     for (int i = 0; i < 15; i++)
     {
       getline(bones_in, s, DELIMITER);
@@ -419,8 +461,9 @@ void read_hand_model(const string& path, HandModelVXL *pmodel)
     }
     getline(bones_in, s, '\n');
     tmp[15] = std::stod(s);
-    model.inverse_base_absolutes.emplace_back();
+    model.inverse_base_absolutes.emplace_back(4, 4);
     model.inverse_base_absolutes.back().set(tmp);
+    model.inverse_base_absolutes.back().transpose_in_place();
   }
   bones_in.close();
   int n_bones = (int)model.bone_names.size();
@@ -435,9 +478,9 @@ void read_hand_model(const string& path, HandModelVXL *pmodel)
   }
   vert_in.close();
 
-  model.base_positions.set_size(n_vertices, 4);
-  model.base_positions.set_column(3, 1.);
-  model.weights.set_size(n_bones, n_vertices);
+  model.base_positions.resize(4, n_vertices);
+  model.base_positions.set_row(3, 1.);
+  model.weights.resize(n_bones, n_vertices);
   model.weights.fill(0.);
   vert_in = std::ifstream(path + "vertices.txt");
   for (int i_vert = 0; i_vert < n_vertices; i_vert++)
@@ -445,7 +488,7 @@ void read_hand_model(const string& path, HandModelVXL *pmodel)
     for (int j = 0; j < 3; j++)
     {
       getline(vert_in, s, DELIMITER);
-      model.base_positions(i_vert, j) = std::stod(s);
+      model.base_positions(j, i_vert) = std::stod(s);
     }
     for (int j = 0; j < 3 + 2; j++)
     {
@@ -469,20 +512,20 @@ void read_hand_model(const string& path, HandModelVXL *pmodel)
   model.is_mirrored = false;
 }
 
-void read_hand_instance(const string& path, vector<double>* params, HandDataVXL *data)
+void read_hand_instance(const string& path, vector<double>* params, HandDataLightMatrix *data)
 {
   read_hand_model(path, &data->model);
   std::ifstream in(path + "instance.txt");
-  int n_pts, n_theta;
-  in >> n_pts >> n_theta;
+  int n_pts, n_theta, n_more_vertices;
+  in >> n_pts >> n_theta >> n_more_vertices;
   data->correspondences.resize(n_pts);
-  data->points.set_size(n_pts, 3);
+  data->points.resize(3, n_pts);
   for (int i = 0; i < n_pts; i++)
   {
     in >> data->correspondences[i];
     for (int j = 0; j < 3; j++)
     {
-      in >> data->points(i, j);
+      in >> data->points(j, i);
     }
   }
   params->resize(n_theta);
@@ -491,4 +534,14 @@ void read_hand_instance(const string& path, vector<double>* params, HandDataVXL 
     in >> (*params)[i];
   }
   in.close();
+
+  LightMatrix<double> base_positions = data->model.base_positions;
+  LightMatrix<double> weights = data->model.weights;
+  data->model.base_positions.resize(4, base_positions.ncols_ + n_more_vertices);
+  data->model.weights.resize(weights.nrows_, weights.ncols_ + n_more_vertices);
+  for (int i = 0; i < data->model.base_positions.ncols_; i++)
+  {
+    data->model.base_positions.set_col(i, base_positions.get_col(i % base_positions.ncols_));
+    data->model.weights.set_col(i, weights.get_col(i % weights.ncols_));
+  }
 }

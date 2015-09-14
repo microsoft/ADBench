@@ -3,6 +3,7 @@
 #include <iostream>
 #include <random>
 #include <string>
+#include <vector>
 #include <fstream>
 
 #include "../defs.h"
@@ -27,6 +28,7 @@ using std::cin;
 using std::cout;
 using std::endl;
 using std::string;
+using std::vector;
 using namespace std::chrono;
 
 #if defined DO_GMM_FULL
