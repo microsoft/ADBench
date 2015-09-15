@@ -12,12 +12,13 @@
 //#define DO_GMM_SPLIT
 //#define DO_BA_BLOCK
 //#define DO_BA_SPARSE
-#define DO_HAND
+//#define DO_HAND
+#define DO_HAND_COMPLICATED
 //#define DO_HAND_SPARSE
 
 //#define DO_CPP
-#define DO_EIGEN
-//#define DO_LIGHT_MATRIX
+//#define DO_EIGEN
+#define DO_LIGHT_MATRIX
 
 #if (defined DO_GMM_FULL || defined DO_GMM_SPLIT) && defined DO_CPP
 #include "../gmm.h"
@@ -29,10 +30,12 @@
 #include "../ba_eigen.h"
 #endif
 
-#elif defined DO_HAND || defined DO_HAND_SPARSE
+#elif defined DO_HAND || defined DO_HAND_SPARSE || defined DO_HAND_COMPLICATED
 #ifdef DO_LIGHT_MATRIX
+typedef HandDataLightMatrix HandDataType;
 #include "../hand_light_matrix.h"
 #elif defined DO_EIGEN
+typedef HandDataEigen HandDataType;
 #include "hand_eigen.h"
 #endif
 #endif
@@ -41,6 +44,27 @@ using std::cout;
 using std::endl;
 using std::string;
 using namespace std::chrono;
+
+class Pointer2
+{
+public:
+  Pointer2(int n, int m)
+  {
+    data = new double*[n];
+    for (int i = 0; i < n; i++)
+      data[i] = new double[m];
+  }
+  ~Pointer2()
+  {
+    for (int i = 0; i < n; i++)
+      delete[] data[i];
+    delete[] data;
+  }
+  double*& operator[](int i) { return data[i]; }
+  double **data;
+  int n;
+  int m;
+};
 
 #ifdef DO_GMM_FULL
 
@@ -542,12 +566,6 @@ void test_ba(const string& fn_in, const string& fn_out,
 
 #elif defined DO_HAND || defined DO_HAND_SPARSE
 
-#ifdef DO_EIGEN
-typedef HandDataEigen HandDataType;
-#elif defined DO_LIGHT_MATRIX
-typedef HandDataLightMatrix HandDataType;
-#endif
-
 #ifdef DO_HAND_SPARSE
 void get_hand_nnz_pattern(const HandDataType& data,
   vector<unsigned int> *pridxs, 
@@ -674,7 +692,7 @@ double compute_hand_J(int nruns,
   for (size_t i = 0; i < params.size(); i++)
     aparams[i] <<= params[i];
 
-  hand_objective(aparams, data, &aerr[0]);
+  hand_objective(&aparams[0], data, &aerr[0]);
 
   for (int i = 0; i < Jrows; i++)
     aerr[i] >>= err[i];
@@ -750,7 +768,7 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   start = high_resolution_clock::now();
   for (int i = 0; i < nruns_f; i++)
   {
-    hand_objective(params, data, &err[0]);
+    hand_objective(&params[0], data, &err[0]);
   }
   end = high_resolution_clock::now();
   tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
@@ -774,6 +792,111 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   delete[] J;
 }
 
+#elif defined DO_HAND_COMPLICATED
+
+double compute_hand_J(int nruns,
+  const vector<double>& params, const vector<double>& us,
+  const HandDataLightMatrix& data,
+  vector<double> *perr, vector<double> *pJ)
+{
+  if (nruns == 0)
+    return 0;
+
+  auto &err = *perr;
+  auto &J = *pJ;
+
+  int tapeTag = 1;
+  int Jrows = (int)err.size();
+  int n_independents = (int)(us.size()+params.size());
+  vector<adouble> aus(us.size());
+  vector<adouble> aparams(params.size());
+  vector<adouble> aerr(err.size());
+
+  vector<double> all_params(n_independents);
+  for (size_t i = 0; i < us.size(); i++)
+    all_params[i] = us[i];
+  for (size_t i = 0; i < params.size(); i++)
+    all_params[i+us.size()] = params[i];
+
+  // create seed matrix
+  int ndirs = 2 + (int)params.size();
+  Pointer2 seed(n_independents, ndirs);
+  for (int i = 0; i < n_independents; i++)
+    memset(seed[i], 0, ndirs*sizeof(double));  
+  size_t n_pts = err.size() / 3;
+  for (size_t i = 0; i < n_pts; i++)
+  {
+    seed[2 * i][0] = 1.;
+    seed[2 * i + 1][1] = 1.;
+  }
+  for (size_t i = 0; i < params.size(); i++)
+    seed[us.size() + i][2 + i] = 1.;
+
+  Pointer2 J_tmp(Jrows, ndirs);
+
+  high_resolution_clock::time_point start, end;
+  start = high_resolution_clock::now();
+  for (int i = 0; i < nruns; i++)
+  {
+    // Record on a tape
+    trace_on(tapeTag);
+    for (size_t i = 0; i < us.size(); i++)
+      aus[i] <<= us[i];
+    for (size_t i = 0; i < params.size(); i++)
+      aparams[i] <<= params[i];
+
+    hand_objective(&aparams[0], &aus[0], data, &aerr[0]);
+
+    for (int i = 0; i < Jrows; i++)
+      aerr[i] >>= err[i];
+
+    trace_off();
+
+    fov_forward(tapeTag, Jrows, n_independents, ndirs, &all_params[0], seed.data, &err[0], J_tmp.data);
+  }
+  end = high_resolution_clock::now();
+
+  for (int i = 0; i < Jrows; i++)
+    for (int j = 0; j < ndirs; j++)
+      J[j*Jrows + i] = J_tmp[i][j];
+
+  return duration_cast<duration<double>>(end - start).count() / nruns;
+}
+
+void test_hand(const string& model_dir, const string& fn_in, const string& fn_out,
+  int nruns_f, int nruns_J)
+{
+  vector<double> params, us;
+  HandDataType data;
+
+  read_hand_instance(model_dir, fn_in + ".txt", &params, &data, &us);
+
+  vector<double> err(3 * data.correspondences.size());
+  vector<double> J(err.size() * (2 + params.size()));
+
+  high_resolution_clock::time_point start, end;
+  double tf = 0., tJ = 0;
+
+  start = high_resolution_clock::now();
+  for (int i = 0; i < nruns_f; i++)
+  {
+    hand_objective(&params[0], &us[0], data, &err[0]);
+  }
+  end = high_resolution_clock::now();
+  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
+
+  tJ = compute_hand_J(nruns_J, params, us, data, &err, &J);
+
+#ifdef DO_EIGEN
+  string name("ADOLC_eigen");
+#elif defined DO_LIGHT_MATRIX
+  string name("ADOLC_light");
+#endif
+  write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), 2 + (int)params.size(), &J[0]);
+  //write_times(tf, tJ);
+  write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
+}
+
 #endif
 
 int main(int argc, char *argv[])
@@ -791,7 +914,7 @@ int main(int argc, char *argv[])
   test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
 #elif defined DO_BA_BLOCK || defined DO_BA_SPARSE
   test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
-#elif defined DO_HAND || defined DO_HAND_SPARSE
+#elif defined DO_HAND || defined DO_HAND_SPARSE || defined DO_HAND_COMPLICATED
   test_hand(dir_in + "model/", dir_in + fn, dir_out + fn, nruns_f, nruns_J);
 #endif
 }
