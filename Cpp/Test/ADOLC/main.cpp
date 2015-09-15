@@ -12,11 +12,12 @@
 //#define DO_GMM_SPLIT
 //#define DO_BA_BLOCK
 //#define DO_BA_SPARSE
-//#define DO_HAND
-#define DO_HAND_SPARSE
+#define DO_HAND
+//#define DO_HAND_SPARSE
 
 //#define DO_CPP
-#define DO_EIGEN
+//#define DO_EIGEN
+#define DO_LIGHT_MATRIX
 
 #if (defined DO_GMM_FULL || defined DO_GMM_SPLIT) && defined DO_CPP
 #include "../gmm.h"
@@ -28,8 +29,12 @@
 #include "../ba_eigen.h"
 #endif
 
-#elif (defined DO_HAND || defined DO_HAND_SPARSE) && defined DO_EIGEN
+#elif defined DO_HAND || defined DO_HAND_SPARSE
+#ifdef DO_LIGHT_MATRIX
+#include "../hand_light_matrix.h"
+#elif defined DO_EIGEN
 #include "hand_eigen.h"
+#endif
 #endif
 
 using std::cout;
@@ -537,7 +542,13 @@ void test_ba(const string& fn_in, const string& fn_out,
 
 #elif defined DO_HAND || defined DO_HAND_SPARSE
 
-void get_hand_nnz_pattern(const HandData& data, 
+#ifdef DO_EIGEN
+typedef HandData HandDataType;
+#elif defined DO_LIGHT_MATRIX
+typedef HandDataLightMatrix HandDataType;
+#endif
+
+void get_hand_nnz_pattern(const HandDataType& data,
   vector<unsigned int> *pridxs, 
   vector<unsigned int> *pcidxs, 
   vector<double> *pnzvals)
@@ -636,7 +647,7 @@ void get_hand_nnz_pattern(int n_rows,
 
 double compute_hand_J(int nruns, 
   vector<double>& params, 
-  const HandData& data,
+  const HandDataType& data,
   vector<double> *perr,
   double ***pJ,
   double *t_sparsity)
@@ -717,12 +728,12 @@ double compute_hand_J(int nruns,
   return duration_cast<duration<double>>(end - start).count() / nruns;
 }
 
-void test_hand(const string& dir_in, const string& fn_out,
+void test_hand(const string& path, const string& fn_out,
   int nruns_f, int nruns_J)
 {
   vector<double> params;
-  HandData data;
-  read_hand_instance(dir_in + "/", &params, &data);
+  HandDataType data;
+  read_hand_instance(path, &params, &data);
 
   vector<double> err;
   err.resize(3 * data.correspondences.size());
@@ -741,7 +752,11 @@ void test_hand(const string& dir_in, const string& fn_out,
   end = high_resolution_clock::now();
   tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
 
+#ifdef DO_EIGEN
   string name("ADOLC_eigen");
+#elif defined DO_LIGHT_MATRIX
+  string name("ADOLC_light");
+#endif
   tJ = compute_hand_J(nruns_J, params, data, &err, &J, &t_sparsity);
 
 #ifdef DO_HAND_SPARSE
@@ -774,6 +789,6 @@ int main(int argc, char *argv[])
 #elif defined DO_BA_BLOCK || defined DO_BA_SPARSE
   test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
 #elif defined DO_HAND || defined DO_HAND_SPARSE
-  test_hand(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
+  test_hand(dir_in + fn + "/", dir_out + fn, nruns_f, nruns_J);
 #endif
 }

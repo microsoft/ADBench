@@ -15,6 +15,7 @@ public:
   ~LightMatrix() { if (is_data_owner_) delete[] data_; }
 
   int size() const { return ncols_*nrows_; }
+  int cols() const { return ncols_; }
   void resize(int nrows, int ncols);
   void fill(const T& val);
   void set(const T* const data);
