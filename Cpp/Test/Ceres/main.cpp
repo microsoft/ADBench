@@ -6,22 +6,32 @@
 
 //#define DO_GMM
 //#define DO_BA
-#define DO_HAND_EIGEN
+#define DO_HAND
+
+//#define DO_CPP
+//#define DO_EIGEN
+#define DO_LIGHT_MATRIX
 
 #include "ceres/ceres.h"
 #include "../utils.h"
 
-#ifdef DO_GMM
+#if defined DO_GMM && defined DO_CPP
 #include "gmm.h"
 #define GMM_D 64
 #define GMM_K 5
 #define GMM_ICF_DIM (GMM_D*(GMM_D + 1) / 2)
 
-#elif defined DO_BA
+#elif defined DO_BA && defined DO_CPP
 #include "ba.h"
 
-#elif defined DO_HAND_EIGEN
+#elif defined DO_HAND
+#ifdef DO_EIGEN
 #include "hand_eigen.h"
+typedef HandDataEigen HandDataType;
+#elif defined DO_LIGHT_MATRIX
+#include "hand_light_matrix.h"
+typedef HandDataLightMatrix HandDataType;
+#endif
 #define HAND_PARAMS_DIM 26
 #define HAND_NUM_PTS 100000
 #endif
@@ -283,9 +293,16 @@ void test_ba(const string& fn_in, const string& fn_out,
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
 }
 
-#elif defined DO_HAND_EIGEN
+#elif defined DO_HAND
+void convert_J(size_t n_rows, size_t n_cols, vector<double>& J_ceres, vector<double> *pJ)
+{
+  for (size_t i_row = 0; i_row < n_rows; i_row++)
+    for (size_t i_col = 0; i_col < n_cols; i_col++)
+      (*pJ)[i_col*n_rows + i_row] = J_ceres[i_row*n_cols + i_col];
+}
+
 struct HandCostFunctor {
-  HandCostFunctor(const HandData& data) :
+  HandCostFunctor(const HandDataType& data) :
     data_(data) {}
 
   template <typename T> bool operator()(const T* const params, T* err) const
@@ -295,32 +312,33 @@ struct HandCostFunctor {
   }
 
 private:
-  const HandData& data_;
+  const HandDataType& data_;
 };
 
 void compute_hand_J(
   vector<double>& params,
-  const HandData& data,
+  const HandDataType& data,
   vector<double> *perr,
   vector<double> *pJ)
 {
   auto& err = *perr;
-  auto& J = *pJ;
+  vector<double> J_ceres(pJ->size());
   CostFunction *cost_function =
     new AutoDiffCostFunction<HandCostFunctor, 3 * HAND_NUM_PTS,
     HAND_PARAMS_DIM>(new HandCostFunctor(data));
 
-  double *tmp_J = &J[0];
+  double *tmp_J = &J_ceres[0];
   double *tmp_params = &params[0];
   cost_function->Evaluate(&tmp_params, &err[0], &tmp_J);
+  convert_J(err.size(), params.size(), J_ceres, pJ);
 }
 
-void test_hand(const string& dir_in, const string& fn_out,
+void test_hand(const string& model_dir, const string& fn_in, const string& fn_out,
   int nruns_f, int nruns_J)
 {
   vector<double> params;
-  HandData data;
-  read_hand_instance(dir_in + "/", &params, &data);
+  HandDataType data;
+  read_hand_instance(model_dir, fn_in + ".txt", &params, &data);
 
   vector<double> err(3 * data.correspondences.size());
   vector<double> J(err.size() * params.size(), 0);
@@ -344,7 +362,11 @@ void test_hand(const string& dir_in, const string& fn_out,
   end = high_resolution_clock::now();
   tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
 
+#ifdef DO_EIGEN
   string name("Ceres_eigen");
+#elif defined DO_LIGHT_MATRIX
+  string name("Ceres_light");
+#endif
 
   write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), (int)params.size(), &J[0]);
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
@@ -367,7 +389,7 @@ int main(int argc, char** argv)
   test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
 #elif defined DO_BA
   test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
-#elif defined DO_HAND_EIGEN
-  test_hand(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
+#elif defined DO_HAND
+  test_hand(dir_in + "model/", dir_in + fn, dir_out + fn, nruns_f, nruns_J);
 #endif
 }

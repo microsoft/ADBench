@@ -256,8 +256,10 @@ norm(Jfd(:) - JforV(:)) / norm(JforV(:))
  
 
 %% load instance
-path = '../hand';
-[params, data] = load_hand_instance(path);
+path = '../hand/';
+model_dir = [path 'model/'];
+fn = [path 'hand'];
+[params, data] = load_hand_instance(model_dir,[fn '.txt']);
 
 %% run objective
 fval = hand_objective(params, data);
@@ -273,10 +275,13 @@ opt = admOptions('independents', [1],  'functionResults', {fval});
 [J,fvalrev] = admDiffVFor(@hand_objective, 1, params, data, opt);
 
 %% compare
-% Jexternal = load_J([path '_J_ADOLC_eigen.txt']);
-% Jexternal = load_J([path '_J_ADOLC_eigen_sparse.txt']);
-Jexternal = load_J([path '_J_Adept_light.txt']);
-% Jexternal = load_J([path '_J_Ceres_eigen.txt']);
-% Jexternal = load_J([path '_J_Julia_F.txt']);
+% Jexternal = load_J([fn '_J_ADOLC_eigen.txt']);
+% Jexternal = load_J([fn '_J_ADOLC_eigen_sparse.txt']);
+% Jexternal = load_J([fn '_J_ADOLC_light.txt']);
+% Jexternal = load_J([fn '_J_ADOLC_light_sparse.txt']);
+% Jexternal = load_J([fn '_J_Adept_light.txt']);
+% Jexternal = load_J([fn '_J_Ceres_eigen.txt']);
+Jexternal = load_J([fn '_J_Ceres_light.txt']);
+% Jexternal = load_J([fn '_J_Julia_F.txt']);
 norm(J(:) - Jexternal(:)) / norm(J(:))
 

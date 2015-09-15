@@ -32,14 +32,14 @@ typedef struct
   Eigen::Matrix3Xd base_positions;
   Eigen::ArrayXXd weights;
   bool is_mirrored;
-} HandModel;
+} HandModelEigen;
 
 typedef struct
 {
-  HandModel model;
+  HandModelEigen model;
   vector<int> correspondences;
   Eigen::Matrix3Xd points;
-} HandData;
+} HandDataEigen;
 
 class HandModelLightMatrix
 {
@@ -320,7 +320,7 @@ void write_times(const string& fn, double tf, double tJ, double *t_sparsity = nu
   out.close();
 }
 
-void read_hand_model(const string& path, HandModel *pmodel)
+void read_hand_model(const string& path, HandModelEigen *pmodel)
 {
   const char DELIMITER = ':';
   auto& model = *pmodel;
@@ -397,12 +397,13 @@ void read_hand_model(const string& path, HandModel *pmodel)
   model.is_mirrored = false;
 }
 
-void read_hand_instance(const string& path, vector<double>* params, HandData *data)
+void read_hand_instance(const string& model_dir, const string& fn_in, 
+  vector<double>* params, HandDataEigen *data)
 {
-  read_hand_model(path, &data->model);
-  std::ifstream in(path + "instance.txt");
-  int n_pts, n_theta, n_more_vertices;
-  in >> n_pts >> n_theta >> n_more_vertices;
+  read_hand_model(model_dir, &data->model);
+  std::ifstream in(fn_in);
+  int n_pts, n_theta;
+  in >> n_pts >> n_theta;
   data->correspondences.resize(n_pts);
   data->points.resize(3, n_pts);
   for (int i = 0; i < n_pts; i++)
@@ -419,16 +420,6 @@ void read_hand_instance(const string& path, vector<double>* params, HandData *da
     in >> (*params)[i];
   }
   in.close();
-
-  Eigen::Matrix3Xd base_positions = data->model.base_positions;
-  Eigen::ArrayXXd weights = data->model.weights;
-  data->model.base_positions.resize(3, base_positions.cols() + n_more_vertices);
-  data->model.weights.resize(weights.rows(), weights.cols() + n_more_vertices);
-  for (int i = 0; i < data->model.base_positions.cols(); i++)
-  {
-    data->model.base_positions.col(i) = base_positions.col(i % base_positions.cols());
-    data->model.weights.col(i) = weights.col(i % weights.cols());
-  }
 }
 
 void read_hand_model(const string& path, HandModelLightMatrix *pmodel)
@@ -512,12 +503,13 @@ void read_hand_model(const string& path, HandModelLightMatrix *pmodel)
   model.is_mirrored = false;
 }
 
-void read_hand_instance(const string& path, vector<double>* params, HandDataLightMatrix *data)
+void read_hand_instance(const string& model_dir, const string& fn_in, 
+  vector<double>* params, HandDataLightMatrix *data)
 {
-  read_hand_model(path, &data->model);
-  std::ifstream in(path + "instance.txt");
-  int n_pts, n_theta, n_more_vertices;
-  in >> n_pts >> n_theta >> n_more_vertices;
+  read_hand_model(model_dir, &data->model);
+  std::ifstream in(fn_in);
+  int n_pts, n_theta;
+  in >> n_pts >> n_theta;
   data->correspondences.resize(n_pts);
   data->points.resize(3, n_pts);
   for (int i = 0; i < n_pts; i++)
@@ -534,14 +526,4 @@ void read_hand_instance(const string& path, vector<double>* params, HandDataLigh
     in >> (*params)[i];
   }
   in.close();
-
-  LightMatrix<double> base_positions = data->model.base_positions;
-  LightMatrix<double> weights = data->model.weights;
-  data->model.base_positions.resize(4, base_positions.ncols_ + n_more_vertices);
-  data->model.weights.resize(weights.nrows_, weights.ncols_ + n_more_vertices);
-  for (int i = 0; i < data->model.base_positions.ncols_; i++)
-  {
-    data->model.base_positions.set_col(i, base_positions.get_col(i % base_positions.ncols_));
-    data->model.weights.set_col(i, weights.get_col(i % weights.ncols_));
-  }
 }

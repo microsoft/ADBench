@@ -137,6 +137,7 @@
     <ClInclude Include="ba.h" />
     <ClInclude Include="gmm.h" />
     <ClInclude Include="hand_eigen.h" />
+    <ClInclude Include="hand_light_matrix.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

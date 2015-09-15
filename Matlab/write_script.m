@@ -7,7 +7,7 @@ end
 
 isgmm = (numel(params{1}) == 3);
 isba = (numel(params{1}) == 6);
-ishand = (numel(params{1}) == 2);
+ishand = (numel(params{1}) == 1);
 
 ntasks = numel(fns);
 

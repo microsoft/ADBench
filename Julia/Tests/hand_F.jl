@@ -28,8 +28,8 @@ type HandData
 end
 
 #################### IO ############################
-function read_hand_instance(path)
-  bones_fn = joinpath(path,"bones.txt");
+function read_hand_instance(model_dir,fn_in)
+  bones_fn = joinpath(model_dir,"bones.txt")
 
   A = readdlm(bones_fn, ':')
 
@@ -44,7 +44,7 @@ function read_hand_instance(path)
   inverse_absolute_transforms = permutedims(reshape(
     inverse_absolute_transforms,(n_bones,4,4)),(1,3,2));
 
-  vertices_fn = joinpath(path,"vertices.txt")
+  vertices_fn = joinpath(model_dir,"vertices.txt")
   A = readdlm(vertices_fn,':');
 
   base_positions = A[:,1:3]';
@@ -58,13 +58,12 @@ function read_hand_instance(path)
       end
   end
 
-  fid = open(joinpath(path,"instance.txt"))
+  fid = open(fn_in)
   lines = readlines(fid)
   close(fid)
   line=split(lines[1]," ")
   n_corrs = parse(Int,line[1])
   n_params = parse(Int,line[2])
-  n_more_vertices = parse(Int,line[3])
   off = 1
 
   corrs = zeros(Int,n_corrs)
@@ -82,9 +81,6 @@ function read_hand_instance(path)
   for i in 1:n_params
     params[i] = parse(Float64,lines[i+off])
   end
-
-  base_positions = [base_positions repmat(base_positions[:,1],1,n_more_vertices)]
-  weights = [weights repmat(weights[:,1],1,n_more_vertices)]
 
   model = HandModel(bone_names,parents,transforms,
                     inverse_absolute_transforms,
@@ -248,10 +244,11 @@ fn = ARGS[3]
 nruns_f = parse(Int,ARGS[4])
 nruns_J = parse(Int,ARGS[5])
 
-path = joinpath(dir_in, fn)
+model_dir = joinpath(dir_in, "model")
+fn_in = joinpath(dir_in, fn)
 fn_out = string(dir_out, fn)
 
-params,data = read_hand_instance(path)
+params,data = read_hand_instance(model_dir,string(fn_in,".txt"))
 
 precompile(euler_angles_to_rotation_matrix,(Vec,))
 precompile(get_posed_relatives,(HandModel, Mat))

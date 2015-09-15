@@ -325,13 +325,13 @@ double compute_hand_J(int nruns,
   return duration_cast<duration<double>>(end - start).count() / nruns;
 }
 
-void test_hand(const string& path, const string& fn_out,
+void test_hand(const string& model_dir, const string& fn_in, const string& fn_out,
   int nruns_f, int nruns_J)
 {
   vector<double> params;
   HandDataLightMatrix data;
 
-  read_hand_instance(path, &params, &data);
+  read_hand_instance(model_dir, fn_in + ".txt", &params, &data);
 
   vector<double> err(3 * data.correspondences.size());
   vector<double> J(err.size() * params.size());
@@ -373,7 +373,7 @@ int main(int argc, char *argv[])
 #elif defined DO_BA
   test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
 #elif defined DO_HAND
-  test_hand(dir_in + fn + "/", dir_out + fn, nruns_f, nruns_J);
+  test_hand(dir_in + "model/", dir_in + fn, dir_out + fn, nruns_f, nruns_J);
 #endif
 }
 

@@ -1,19 +1,25 @@
 %% get tools
-exe_dir = 'C:/Users/t-filsra/Workspace/autodiff/Release/hand/';
+exe_dir = 'C:/Users/t-filsra/Workspace/autodiff/Release/hand';
 python_dir = 'C:/Users/t-filsra/Workspace/autodiff/Python/';
 julia_dir = 'C:/Users/t-filsra/Workspace/autodiff/Julia/';
 data_dir = 'C:/Users/t-filsra/Workspace/autodiff/hand_instances/';
+problem_level = 'simple';
+% problem_level = 'complicated';
+data_dir = [data_dir problem_level];
+exe_dir = [exe_dir '_' problem_level '/'];
+data_dir = [data_dir '_small/'];
+% data_dir = [data_dir '_big/'];
 data_dir_est = [data_dir 'est/'];
 replicate_point = false;
 problem_name = 'hand';
 
 tools = get_tools_hand(exe_dir,python_dir,julia_dir);
+
 manual_eigen_id = 1;
 ntools = numel(tools);
 
 %% generate parameters and order them
-params = {[192 544], [500 1544], [1000 2544],[2000 3544],...
-    [4000 4544],[8000 5544],[16000 6544],[32000 7544],[64000 8544],[100000 10000]};
+params = {100, 192, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200, 100000};
 
 for i=1:numel(params)
     disp(num2str(params{i}));
@@ -132,7 +138,7 @@ times_J_relative(times_J_relative==0) = Inf;
 save([data_dir 'times_' date],'times_f','times_J','params','tools');
 
 %% plot times
-x=[params{:}]; x=x(1:2:end);
+x=[params{:}];
 
 plot_log_runtimes(tools,times_J,x,...
     'Jacobian runtimes','runtime [seconds]',true);

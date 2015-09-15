@@ -97,9 +97,9 @@ void LightMatrix<T>::set_identity()
   for (int i_col = 0; i_col < ncols_; i_col++)
     for (int i_row = 0; i_row < nrows_; i_row++)
       if (i_col == i_row)
-        (*this)(i_col, i_row) = 1;
+        (*this)(i_col, i_row) = T(1);
       else
-        (*this)(i_col, i_row) = 0;
+        (*this)(i_col, i_row) = T(0);
 }
 
 template<typename T>
@@ -176,8 +176,8 @@ void mat_mult(const LightMatrix<T>& lhs, const LightMatrix<U>& rhs, LightMatrix<
   {
     for (int k = 0; k < rhs.ncols_; k++)
     {
-      out(i, k) = 0;
-      for (int j = 0; j < lhs.ncols_; j++)
+      out(i, k) = lhs(i, 0) * rhs(0, k);
+      for (int j = 1; j < lhs.ncols_; j++)
       {
         out(i, k) += lhs(i, j) * rhs(j, k);
       }

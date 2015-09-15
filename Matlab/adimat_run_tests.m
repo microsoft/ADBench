@@ -42,7 +42,8 @@ for i=1:ntasks
         [cams, X, w, obs] = load_ba_instance([data_dir task_fns{i} '.txt']);
         run_objective = @() ba_objective(cams,X,w,obs);
     elseif ishand
-        [params, data] = load_hand_instance([data_dir task_fns{i}]);
+        [params, data] = load_hand_instance(fullfile(data_dir,'model'),...
+            fullfile(data_dir,[task_fns{i} '.txt']));
         run_objective = @() hand_objective(params, data);
     end
     

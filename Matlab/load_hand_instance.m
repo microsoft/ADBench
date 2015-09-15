@@ -1,6 +1,6 @@
-function [params, data] = load_hand_instance(path)
+function [params, data] = load_hand_instance(model_dir,fn)
 
-bones_fn = fullfile(path,'bones.txt');
+bones_fn = fullfile(model_dir,'bones.txt');
 
 A=readtable(bones_fn,'Delimiter',':','ReadVariableNames',false);
 
@@ -16,7 +16,7 @@ inverse_absolute_transforms  = table2array(A(:,19:34));
 inverse_absolute_transforms = permute(reshape(...
     inverse_absolute_transforms,[n_bones 4 4]),[1 3 2]);
 
-vertices_fn = fullfile(path,'vertices.txt');
+vertices_fn = fullfile(model_dir,'vertices.txt');
 A=dlmread(vertices_fn,':');
 
 base_positions = A(:,1:3)';
@@ -30,11 +30,10 @@ for i_vert = 1:n_vertices
     end
 end
 
-fid = fopen(fullfile(path,'instance.txt'),'r');
+fid = fopen(fn,'r');
 
 n_pts = fscanf(fid,'%i',1);
 n_params = fscanf(fid,'%i',1);
-n_more_vertices = fscanf(fid,'%i',1);
 
 all = fscanf(fid,'%lf',[1+3 n_pts])';
 correspondences = all(:,1) + 1; %matlab indexing
@@ -43,10 +42,6 @@ pts = all(:,2:end)';
 params = fscanf(fid,'%lf',[1 n_params]);
 
 fclose(fid);
-
-
-base_positions = [base_positions repmat(base_positions(:,1),1,n_more_vertices)];
-weights = [weights repmat(weights(:,1),1,n_more_vertices)];
 
 model = {};
 model.bone_names = bone_names;

@@ -16,8 +16,8 @@
 //#define DO_HAND_SPARSE
 
 //#define DO_CPP
-//#define DO_EIGEN
-#define DO_LIGHT_MATRIX
+#define DO_EIGEN
+//#define DO_LIGHT_MATRIX
 
 #if (defined DO_GMM_FULL || defined DO_GMM_SPLIT) && defined DO_CPP
 #include "../gmm.h"
@@ -543,11 +543,12 @@ void test_ba(const string& fn_in, const string& fn_out,
 #elif defined DO_HAND || defined DO_HAND_SPARSE
 
 #ifdef DO_EIGEN
-typedef HandData HandDataType;
+typedef HandDataEigen HandDataType;
 #elif defined DO_LIGHT_MATRIX
 typedef HandDataLightMatrix HandDataType;
 #endif
 
+#ifdef DO_HAND_SPARSE
 void get_hand_nnz_pattern(const HandDataType& data,
   vector<unsigned int> *pridxs, 
   vector<unsigned int> *pcidxs, 
@@ -645,6 +646,8 @@ void get_hand_nnz_pattern(int n_rows,
   }
 }
 
+#endif
+
 double compute_hand_J(int nruns, 
   vector<double>& params, 
   const HandDataType& data,
@@ -728,12 +731,12 @@ double compute_hand_J(int nruns,
   return duration_cast<duration<double>>(end - start).count() / nruns;
 }
 
-void test_hand(const string& path, const string& fn_out,
+void test_hand(const string& model_dir, const string& fn_in, const string& fn_out,
   int nruns_f, int nruns_J)
 {
   vector<double> params;
   HandDataType data;
-  read_hand_instance(path, &params, &data);
+  read_hand_instance(model_dir, fn_in + ".txt", &params, &data);
 
   vector<double> err;
   err.resize(3 * data.correspondences.size());
@@ -789,6 +792,6 @@ int main(int argc, char *argv[])
 #elif defined DO_BA_BLOCK || defined DO_BA_SPARSE
   test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
 #elif defined DO_HAND || defined DO_HAND_SPARSE
-  test_hand(dir_in + fn + "/", dir_out + fn, nruns_f, nruns_J);
+  test_hand(dir_in + "model/", dir_in + fn, dir_out + fn, nruns_f, nruns_J);
 #endif
 }

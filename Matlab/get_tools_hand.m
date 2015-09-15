@@ -49,22 +49,30 @@ unused_col_id = 1;
 % tools(end).marker = markers{1};
 % tools(end).call_type = 0;
 
-tools(end+1).name = 'ADOLC, Eigen';
-tools(end).exe = [exe_dir,'ADOLC_eigen.exe'];
+tools(end+1).name = 'ADOLC, light';
+tools(end).exe = [exe_dir,'ADOLC_light.exe'];
 tools(end).run_cmd = tools(end).exe;
-tools(end).ext = 'ADOLC_eigen';
+tools(end).ext = 'ADOLC_light';
 tools(end).col = cols(unused_col_id,:); unused_col_id = unused_col_id + 1;
 tools(end).marker = markers{1};
 tools(end).call_type = 0;
 
-tools(end+1).name = 'ADOLC, Eigen (sparse)';
-tools(end).exe = [exe_dir,'ADOLC_eigen_sparse.exe'];
+tools(end+1).name = 'ADOLC, Eigen';
+tools(end).exe = [exe_dir,'ADOLC_eigen.exe'];
 tools(end).run_cmd = tools(end).exe;
-tools(end).ext = 'ADOLC_eigen_sparse';
+tools(end).ext = 'ADOLC_eigen';
 tools(end).col = tools(end-1).col;
 tools(end).marker = markers{2};
 tools(end).call_type = 0;
-% 
+ 
+% tools(end+1).name = 'ADOLC, Eigen (sparse)';
+% tools(end).exe = [exe_dir,'ADOLC_eigen_sparse.exe'];
+% tools(end).run_cmd = tools(end).exe;
+% tools(end).ext = 'ADOLC_eigen_sparse';
+% tools(end).col = tools(end-1).col;
+% tools(end).marker = markers{2};
+% tools(end).call_type = 0;
+
 % tools(end+1).name = 'ADOLC, tapeless';
 % tools(end).exe = [exe_dir,'ADOLC_tapeless.exe'];
 % tools(end).run_cmd = tools(end).exe;
@@ -81,13 +89,13 @@ tools(end).call_type = 0;
 % tools(end).marker = markers{4};
 % tools(end).call_type = 0;
 
-% tools(end+1).name = 'Adept, R';
-% tools(end).exe = [exe_dir,'Adept.exe'];
-% tools(end).run_cmd = tools(end).exe;
-% tools(end).ext = 'Adept';
-% tools(end).col = cols(unused_col_id,:); unused_col_id = unused_col_id + 1;
-% tools(end).marker = markers{1};
-% tools(end).call_type = 0;
+tools(end+1).name = 'Adept, light';
+tools(end).exe = [exe_dir,'Adept_light.exe'];
+tools(end).run_cmd = tools(end).exe;
+tools(end).ext = 'Adept_light';
+tools(end).col = cols(unused_col_id,:); unused_col_id = unused_col_id + 1;
+tools(end).marker = markers{1};
+tools(end).call_type = 0;
 
 % tools(end+1).name = 'Theano';
 % tools(end).exe = [python_dir,'Theano/Theano_ba.py'];
@@ -97,12 +105,20 @@ tools(end).call_type = 0;
 % tools(end).marker = markers{1};
 % tools(end).call_type = 1;
 
-tools(end+1).name = 'Ceres, Eigen';
-tools(end).exe = [exe_dir,'Ceresd1.exe'];
-tools(end).run_cmd = [exe_dir,'Ceres_eigen'];
-tools(end).ext = 'Ceres_eigen';
+tools(end+1).name = 'Ceres, light';
+tools(end).exe = [exe_dir,'Ceres/Ceres_light1.exe'];
+tools(end).run_cmd = [exe_dir,'Ceres/Ceres_light'];
+tools(end).ext = 'Ceres_light';
 tools(end).col = cols(unused_col_id,:); unused_col_id = unused_col_id + 1;
 tools(end).marker = markers{1};
+tools(end).call_type = 2;
+
+tools(end+1).name = 'Ceres, Eigen';
+tools(end).exe = [exe_dir,'Ceres/Ceres_eigen1.exe'];
+tools(end).run_cmd = [exe_dir,'Ceres/Ceres_eigen'];
+tools(end).ext = 'Ceres_eigen';
+tools(end).col = tools(end-1).col;
+tools(end).marker = markers{2};
 tools(end).call_type = 2;
 
 % tools(end+1).name = 'DiffSharp';
@@ -136,12 +152,12 @@ tools(end).col = cols(unused_col_id,:); unused_col_id = unused_col_id + 1;
 tools(end).marker = markers{1};
 tools(end).call_type = 3;
 
-tools(end+1).name = 'AdiMat, F (sparse)';
-tools(end).exe = 'hand_objective.m';
-tools(end).ext = 'adimat_sparse';
-tools(end).col = tools(end-1).col;
-tools(end).marker = markers{2};
-tools(end).call_type = 4;
+% tools(end+1).name = 'AdiMat, F (sparse)';
+% tools(end).exe = 'hand_objective.m';
+% tools(end).ext = 'adimat_sparse';
+% tools(end).col = tools(end-1).col;
+% tools(end).marker = markers{2};
+% tools(end).call_type = 4;
 
 % tools(end+1).name = 'MuPAD';
 % tools(end).exe = 'mupad/mupad_ba_compute_reproj_err_mex.cxx';

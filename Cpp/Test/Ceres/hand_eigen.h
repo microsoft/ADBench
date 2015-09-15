@@ -83,7 +83,7 @@ void relatives_to_absolutes(
 
 template<typename T>
 void get_posed_relatives(
-  const HandModel& model,
+  const HandModelEigen& model,
   const Matrix3X<T>& pose_params,
   vector<Matrix4<T>>* prelatives)
 {
@@ -108,7 +108,7 @@ void get_posed_relatives(
 
 template<typename T>
 void get_skinned_vertex_positions(
-  const HandModel& model,
+  const HandModelEigen& model,
   const Matrix3X<T>& pose_params,
   Matrix3X<T>* positions,
   bool apply_global = true)
@@ -175,7 +175,7 @@ void to_pose_params(const T* const theta,
 template<typename T>
 void hand_objective(
   const T* const params, 
-  const HandData& data,
+  const HandDataEigen& data,
   T *perr)
 {
   Matrix3X<T> pose_params;

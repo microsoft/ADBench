@@ -84,8 +84,8 @@ int arr_max_idx(int n, const T* const x)
 template<typename T>
 T sqnorm(int n, const T* const x)
 {
-  T res = 0;
-  for (int i = 0; i < n; i++)
+  T res = x[0] * x[0];
+  for (int i = 1; i < n; i++)
     res = res + x[i] * x[i];
   return res;
 }
