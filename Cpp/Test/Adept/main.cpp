@@ -6,7 +6,8 @@
 //#define DO_GMM_FULL
 //#define DO_GMM_SPLIT
 //#define DO_BA
-#define DO_HAND
+//#define DO_HAND
+#define DO_HAND_COMPLICATED
 
 #define DO_LIGHT_MATRIX
 
@@ -19,7 +20,7 @@
 #include "../gmm.h"
 #elif defined DO_BA
 #include "../ba.h"
-#elif defined DO_HAND && defined DO_LIGHT_MATRIX
+#elif (defined DO_HAND || defined DO_HAND_COMPLICATED) && defined DO_LIGHT_MATRIX
 #include "../hand_light_matrix.h"
 #endif
 
@@ -314,7 +315,7 @@ double compute_hand_J(int nruns,
     adept::set_values(&aparams[0], params.size(), &params[0]);
 
     stack.new_recording();
-    hand_objective(aparams, data, &aerr[0]);
+    hand_objective(&aparams[0], data, &aerr[0]);
     stack.independent(&aparams[0], aparams.size());
     stack.dependent(&aerr[0], aerr.size());
     stack.jacobian_forward(&J[0]);
@@ -342,7 +343,7 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   start = high_resolution_clock::now();
   for (int i = 0; i < nruns_f; i++)
   {
-    hand_objective(params, data, &err[0]);
+    hand_objective(&params[0], data, &err[0]);
   }
   end = high_resolution_clock::now();
   tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
@@ -351,6 +352,101 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   tJ = compute_hand_J(nruns_J, params, data, &err, &J);
 
   write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), (int)params.size(), &J[0]);
+  //write_times(tf, tJ);
+  write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
+}
+#elif defined DO_HAND_COMPLICATED
+
+void set_gradients(double val, vector<adouble> *aparams)
+{
+  for (size_t i = 0; i < aparams->size(); i++)
+    (*aparams)[i].set_gradient(val);
+}
+
+double compute_hand_J(int nruns,
+  const vector<double>& params, const vector<double>& us,
+  const HandDataLightMatrix& data,
+  vector<double> *perr, vector<double> *pJ)
+{
+  auto &err = *perr;
+  auto &J = *pJ;
+  adept::Stack stack;
+  vector<adouble> aparams(params.size());
+  vector<adouble> aus(params.size());
+  vector<adouble> aerr(err.size());
+  size_t n_pts = us.size() / 2;
+
+  high_resolution_clock::time_point start, end;
+  start = high_resolution_clock::now();
+  for (int i = 0; i < nruns; i++)
+  {
+    adept::set_values(&aparams[0], params.size(), &params[0]);
+    adept::set_values(&aus[0], us.size(), &us[0]);
+
+    stack.new_recording();
+    hand_objective(&aparams[0], &aus[0], data, &aerr[0]);
+    adept::get_values(&aerr[0], err.size(), &err[0]);
+
+    // Compute wrt. us
+    set_gradients(0., &aparams);
+    for (size_t i = 0; i < n_pts; i++)
+    {
+      aus[2 * i].set_gradient(1.);
+      aus[2 * i + 1].set_gradient(0.);
+    }
+    stack.forward();
+    adept::get_gradients(&aerr[0], aerr.size(), &J[0]);
+    for (size_t i = 0; i < n_pts; i++)
+    {
+      aus[2 * i].set_gradient(0.);
+      aus[2 * i + 1].set_gradient(1.);
+    }
+    stack.forward();
+    adept::get_gradients(&aerr[0], aerr.size(), &J[aerr.size()]);
+    for (size_t i = 0; i < n_pts; i++)
+      aus[2 * i + 1].set_gradient(0.);
+    int offset = 2;
+
+    // Compute wrt. params
+    for (size_t i_param = 0; i_param < params.size(); i_param++)
+    {
+      aparams[i_param].set_gradient(1.);
+      stack.forward();
+      adept::get_gradients(&aerr[0], aerr.size(), &J[(offset+i_param)*aerr.size()]);
+      aparams[i_param].set_gradient(0.);
+    }
+  }
+  end = high_resolution_clock::now();
+
+  return duration_cast<duration<double>>(end - start).count() / nruns;
+}
+
+void test_hand(const string& model_dir, const string& fn_in, const string& fn_out,
+  int nruns_f, int nruns_J)
+{
+  vector<double> params, us;
+  HandDataLightMatrix data;
+
+  read_hand_instance(model_dir, fn_in + ".txt", &params, &data, &us);
+
+  vector<double> err(3 * data.correspondences.size());
+  vector<double> J(err.size() * (2 + params.size()));
+
+  high_resolution_clock::time_point start, end;
+  double tf = 0., tJ = 0;
+
+  start = high_resolution_clock::now();
+  for (int i = 0; i < nruns_f; i++)
+  {
+    hand_objective(&params[0], &us[0], data, &err[0]);
+  }
+  end = high_resolution_clock::now();
+  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
+
+  string name = "Adept_light";
+  tJ = compute_hand_J(nruns_J, params, us, data, &err, &J);
+
+  write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), 2+(int)params.size(), &J[0]);
   //write_times(tf, tJ);
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
 }
@@ -372,7 +468,7 @@ int main(int argc, char *argv[])
   test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
 #elif defined DO_BA
   test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
-#elif defined DO_HAND
+#elif defined DO_HAND || defined DO_HAND_COMPLICATED
   test_hand(dir_in + "model/", dir_in + fn, dir_out + fn, nruns_f, nruns_J);
 #endif
 }

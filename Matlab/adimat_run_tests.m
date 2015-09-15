@@ -37,7 +37,7 @@ elseif ishand
 end
 
 for i=1:ntasks
-    disp(['runnning ba: ' num2str(i)]);
+    disp(['runnning instance: ' num2str(i)]);
     if isba
         [cams, X, w, obs] = load_ba_instance([data_dir task_fns{i} '.txt']);
         run_objective = @() ba_objective(cams,X,w,obs);

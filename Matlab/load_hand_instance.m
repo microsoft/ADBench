@@ -1,4 +1,4 @@
-function [params, data] = load_hand_instance(model_dir,fn)
+function [params, data, us] = load_hand_instance(model_dir,fn)
 
 bones_fn = fullfile(model_dir,'bones.txt');
 
@@ -30,6 +30,8 @@ for i_vert = 1:n_vertices
     end
 end
 
+triangles=dlmread(fullfile(model_dir,'triangles.txt'),':')'+1;%matlab indexing
+
 fid = fopen(fn,'r');
 
 n_pts = fscanf(fid,'%i',1);
@@ -38,6 +40,10 @@ n_params = fscanf(fid,'%i',1);
 all = fscanf(fid,'%lf',[1+3 n_pts])';
 correspondences = all(:,1) + 1; %matlab indexing
 pts = all(:,2:end)';
+
+if nargout >= 3
+    us = fscanf(fid,'%lf',[2 n_pts]);
+end
 
 params = fscanf(fid,'%lf',[1 n_params]);
 
@@ -50,6 +56,7 @@ model.base_relatives = transforms;
 model.inverse_base_transforms = inverse_absolute_transforms;
 model.base_positions = [base_positions; ones(1,size(base_positions,2))];
 model.weights = weights;
+model.triangles = triangles;
 model.is_mirrored = false;
 
 data = {};

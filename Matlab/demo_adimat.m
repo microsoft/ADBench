@@ -274,14 +274,35 @@ opt = admOptions('independents', [1],  'functionResults', {fval});
 
 [J,fvalrev] = admDiffVFor(@hand_objective, 1, params, data, opt);
 
+%% load instance - hand complicated
+path = '../hand/';
+model_dir = [path 'model/'];
+fn = [path 'hand_complicated'];
+[params, data, us] = load_hand_instance(model_dir,[fn '.txt']);
+
+%% run objective
+fval = hand_objective_complicated(params, us, data);
+
+%%
+addpath('adimat-0.6.0-4971');
+start_adimat
+addpath('awful/matlab');
+% differentiate only with respect to the first+ 3 parameters
+% also set the shape of function results
+opt = admOptions('independents', [1 2],  'functionResults', {fval});
+
+[J,fvalrev] = admDiffVFor(@hand_objective_complicated, 1, params, us,...
+    data, opt);
+% compress
+J = [sum(J(:,27:2:end),2) sum(J(:,28:2:end),2) J(:,1:26)];
 %% compare
 % Jexternal = load_J([fn '_J_ADOLC_eigen.txt']);
 % Jexternal = load_J([fn '_J_ADOLC_eigen_sparse.txt']);
 % Jexternal = load_J([fn '_J_ADOLC_light.txt']);
 % Jexternal = load_J([fn '_J_ADOLC_light_sparse.txt']);
-% Jexternal = load_J([fn '_J_Adept_light.txt']);
+Jexternal = load_J([fn '_J_Adept_light.txt']);
 % Jexternal = load_J([fn '_J_Ceres_eigen.txt']);
-Jexternal = load_J([fn '_J_Ceres_light.txt']);
+% Jexternal = load_J([fn '_J_Ceres_light.txt']);
 % Jexternal = load_J([fn '_J_Julia_F.txt']);
 norm(J(:) - Jexternal(:)) / norm(J(:))
 

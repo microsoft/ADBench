@@ -23,6 +23,7 @@ using std::getline;
 template<typename T>
 using avector = vector<T, Eigen::aligned_allocator<T>>;
 
+typedef struct { int verts[3]; } Triangle;
 typedef struct
 {
   vector<string> bone_names;
@@ -31,6 +32,7 @@ typedef struct
   avector<Eigen::Matrix4d> inverse_base_absolutes;
   Eigen::Matrix3Xd base_positions;
   Eigen::ArrayXXd weights;
+  vector<Triangle> triangles;
   bool is_mirrored;
 } HandModelEigen;
 
@@ -50,6 +52,7 @@ public:
   vector<LightMatrix<double>> inverse_base_absolutes;
   LightMatrix<double> base_positions;
   LightMatrix<double> weights;
+  vector<Triangle> triangles;
   bool is_mirrored;
 };
 
@@ -394,11 +397,28 @@ void read_hand_model(const string& path, HandModelEigen *pmodel)
   }
   vert_in.close();
 
+  std::ifstream triangles_in(path + "triangles.txt");
+  string ss[3];
+  while (triangles_in.good())
+  {
+    getline(triangles_in, ss[0], DELIMITER);
+    if (ss[0].empty())
+      continue;
+
+    getline(triangles_in, ss[1], DELIMITER);
+    getline(triangles_in, ss[2], '\n');
+    Triangle curr;
+    for (int i = 0; i < 3; i++)
+      curr.verts[i] = std::stoi(ss[i]);
+    model.triangles.push_back(curr);
+  }
+  triangles_in.close();
+
   model.is_mirrored = false;
 }
 
 void read_hand_instance(const string& model_dir, const string& fn_in, 
-  vector<double>* params, HandDataEigen *data)
+  vector<double>* params, HandDataEigen *data, vector<double> *us = nullptr)
 {
   read_hand_model(model_dir, &data->model);
   std::ifstream in(fn_in);
@@ -412,6 +432,14 @@ void read_hand_instance(const string& model_dir, const string& fn_in,
     for (int j = 0; j < 3; j++)
     {
       in >> data->points(j, i);
+    }
+  }
+  if (us != nullptr)
+  {
+    us->resize(2 * n_pts);
+    for (int i = 0; i < 2 * n_pts; i++)
+    {
+      in >> (*us)[i];
     }
   }
   params->resize(n_theta);
@@ -500,11 +528,28 @@ void read_hand_model(const string& path, HandModelLightMatrix *pmodel)
   }
   vert_in.close();
 
+  std::ifstream triangles_in(path + "triangles.txt");
+  string ss[3];
+  while (triangles_in.good())
+  {
+    getline(triangles_in, ss[0], DELIMITER);
+    if (ss[0].empty())
+      continue;
+
+    getline(triangles_in, ss[1], DELIMITER);
+    getline(triangles_in, ss[2], '\n');
+    Triangle curr;
+    for (int i = 0; i < 3; i++)
+      curr.verts[i] = std::stoi(ss[i]);
+    model.triangles.push_back(curr);
+  }
+  triangles_in.close();
+
   model.is_mirrored = false;
 }
 
 void read_hand_instance(const string& model_dir, const string& fn_in, 
-  vector<double>* params, HandDataLightMatrix *data)
+  vector<double>* params, HandDataLightMatrix *data, vector<double> *us = nullptr)
 {
   read_hand_model(model_dir, &data->model);
   std::ifstream in(fn_in);
@@ -518,6 +563,14 @@ void read_hand_instance(const string& model_dir, const string& fn_in,
     for (int j = 0; j < 3; j++)
     {
       in >> data->points(j, i);
+    }
+  }
+  if (us != nullptr)
+  {
+    us->resize(2 * n_pts);
+    for (int i = 0; i < 2 * n_pts; i++)
+    {
+      in >> (*us)[i];
     }
   }
   params->resize(n_theta);

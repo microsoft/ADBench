@@ -19,18 +19,23 @@
 %
 % Parameters:
 %  - dependents=err
-%  - independents=params
+%  - independents=params, us
 %  - inputEncoding=ISO-8859-1
 %
-% Functions in this file: d_hand_objective, d_to_pose_params,
+% Functions in this file: d_hand_objective_complicated, d_to_pose_params,
 %  d_get_skinned_vertex_positions, d_apply_global_transform, apply_global_transform,
 %  d_angle_axis_to_rotation_matrix, angle_axis_to_rotation_matrix, d_relatives_to_absolutes,
 %  relatives_to_absolutes, d_get_posed_relatives, get_posed_relatives,
 %  d_euler_angles_to_rotation_matrix, euler_angles_to_rotation_matrix
 %
 
-function [d_err err] = d_hand_objective(d_params, params, data)
+function [d_err err] = d_hand_objective_complicated(d_params, params, d_us, us, data)
 %HAND_OBJECTIVE 
+   verts = [];
+   u = [];
+   d_u = d_zeros(u);
+   hand_point = [];
+   d_hand_point = d_zeros(hand_point);
    tmpda1 = size(data.model.bone_names, 1);
    [d_pose_params pose_params] = d_to_pose_params(d_params, params, tmpda1);
    [d_vertex_positions vertex_positions] = d_get_skinned_vertex_positions(data.model, d_pose_params, pose_params);
@@ -38,8 +43,23 @@ function [d_err err] = d_hand_objective(d_params, params, data)
    err = zeros(3, n_corr);
    d_err = d_zeros(err);
    for i=1 : n_corr
-      d_err = adimat_opdiff_subsasgn(d_err, struct('type', {'()'}, 'subs', {{':' i}}), adimat_opdiff_sum(-adimat_opdiff_subsref(d_vertex_positions, struct('type', '()', 'subs', {{':' data.correspondences(i)}})), d_zeros(data.points(:, i))));
-      err(:, i) = data.points(:, i) - vertex_positions(:, data.correspondences(i));
+      verts = data.model.triangles(:, data.correspondences(i));
+      d_u = adimat_opdiff_subsref(d_us, struct('type', '()', 'subs', {{':' i}}));
+      u = us(:, i);
+      d_tmpca5 = adimat_diff_sum1(d_u, u);
+      tmpca5 = sum(u);
+      d_tmpca4 = adimat_opdiff_sum(-d_tmpca5, d_zeros(1));
+      tmpca4 = 1 - tmpca5;
+      d_tmpca3 = adimat_opdiff_mult(d_tmpca4, tmpca4, adimat_opdiff_subsref(d_vertex_positions, struct('type', '()', 'subs', {{':' verts(3)}})), vertex_positions(:, verts(3)));
+      tmpca3 = tmpca4 * vertex_positions(:, verts(3));
+      d_tmpca2 = adimat_opdiff_mult(adimat_opdiff_subsref(d_u, struct('type', '()', 'subs', {{2}})), u(2), adimat_opdiff_subsref(d_vertex_positions, struct('type', '()', 'subs', {{':' verts(2)}})), vertex_positions(:, verts(2)));
+      tmpca2 = u(2) * vertex_positions(:, verts(2));
+      d_tmpca1 = adimat_opdiff_mult(adimat_opdiff_subsref(d_u, struct('type', '()', 'subs', {{1}})), u(1), adimat_opdiff_subsref(d_vertex_positions, struct('type', '()', 'subs', {{':' verts(1)}})), vertex_positions(:, verts(1)));
+      tmpca1 = u(1) * vertex_positions(:, verts(1));
+      d_hand_point = adimat_opdiff_sum(d_tmpca1, d_tmpca2, d_tmpca3);
+      hand_point = tmpca1 + tmpca2 + tmpca3;
+      d_err = adimat_opdiff_subsasgn(d_err, struct('type', {'()'}, 'subs', {{':' i}}), adimat_opdiff_sum(-d_hand_point, d_zeros(data.points(:, i))));
+      err(:, i) = data.points(:, i) - hand_point;
    end
 end
 
