@@ -296,11 +296,11 @@ opt = admOptions('independents', [1 2],  'functionResults', {fval});
 % compress
 J = [sum(J(:,27:2:end),2) sum(J(:,28:2:end),2) J(:,1:26)];
 %% compare
-% Jexternal = load_J([fn '_J_ADOLC_eigen.txt']);
-% Jexternal = load_J([fn '_J_ADOLC_eigen_sparse.txt']);
+Jexternal = load_J([fn '_J_ADOLC_eigen.txt']);
+% Jexternal = load_J([fn '_J_ADOLC_eigen_tapeless.txt']);
 % Jexternal = load_J([fn '_J_ADOLC_light.txt']);
-% Jexternal = load_J([fn '_J_ADOLC_light_sparse.txt']);
-Jexternal = load_J([fn '_J_Adept_light.txt']);
+% Jexternal = load_J([fn '_J_ADOLC_light_tapeless.txt']);
+% Jexternal = load_J([fn '_J_Adept_light.txt']);
 % Jexternal = load_J([fn '_J_Ceres_eigen.txt']);
 % Jexternal = load_J([fn '_J_Ceres_light.txt']);
 % Jexternal = load_J([fn '_J_Julia_F.txt']);

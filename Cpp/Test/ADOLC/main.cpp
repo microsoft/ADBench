@@ -3,8 +3,18 @@
 #include <chrono>
 #include <set>
 
+//#define ADOLC_TAPELESS
+#ifdef ADOLC_TAPELESS
+#define NUMBER_DIRECTIONS (2+26)
+#include "adolc/adtl.h"
+typedef adtl::adouble adouble;
+enum adtl::Mode adtl::adouble::forward_mode = ADTL_FOV;
+size_t adtl::adouble::numDir = NUMBER_DIRECTIONS;
+size_t adtl::refcounter::refcnt = 0;
+#else
 #include "adolc/adolc.h"
 #include "adolc/adolc_sparse.h"
+#endif
 #include "../utils.h"
 #include "../defs.h"
 
@@ -17,8 +27,8 @@
 //#define DO_HAND_SPARSE
 
 //#define DO_CPP
-//#define DO_EIGEN
-#define DO_LIGHT_MATRIX
+#define DO_EIGEN
+//#define DO_LIGHT_MATRIX
 
 #if (defined DO_GMM_FULL || defined DO_GMM_SPLIT) && defined DO_CPP
 #include "../gmm.h"
@@ -796,7 +806,7 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
 
 double compute_hand_J(int nruns,
   const vector<double>& params, const vector<double>& us,
-  const HandDataLightMatrix& data,
+  const HandDataType& data,
   vector<double> *perr, vector<double> *pJ)
 {
   if (nruns == 0)
@@ -808,10 +818,13 @@ double compute_hand_J(int nruns,
   int tapeTag = 1;
   int Jrows = (int)err.size();
   int n_independents = (int)(us.size()+params.size());
+  size_t n_pts = err.size() / 3;
+  int ndirs = 2 + (int)params.size();
   vector<adouble> aus(us.size());
   vector<adouble> aparams(params.size());
   vector<adouble> aerr(err.size());
 
+#ifndef ADOLC_TAPELESS
   vector<double> all_params(n_independents);
   for (size_t i = 0; i < us.size(); i++)
     all_params[i] = us[i];
@@ -819,11 +832,9 @@ double compute_hand_J(int nruns,
     all_params[i+us.size()] = params[i];
 
   // create seed matrix
-  int ndirs = 2 + (int)params.size();
   Pointer2 seed(n_independents, ndirs);
   for (int i = 0; i < n_independents; i++)
     memset(seed[i], 0, ndirs*sizeof(double));  
-  size_t n_pts = err.size() / 3;
   for (size_t i = 0; i < n_pts; i++)
   {
     seed[2 * i][0] = 1.;
@@ -833,11 +844,37 @@ double compute_hand_J(int nruns,
     seed[us.size() + i][2 + i] = 1.;
 
   Pointer2 J_tmp(Jrows, ndirs);
+#endif
 
   high_resolution_clock::time_point start, end;
   start = high_resolution_clock::now();
   for (int i = 0; i < nruns; i++)
   {
+#ifdef ADOLC_TAPELESS
+    for (size_t i = 0; i < us.size(); i++)
+      aus[i] = us[i];
+    for (size_t i = 0; i < params.size(); i++)
+      aparams[i] = params[i];
+
+    // Compute wrt. us
+    for (size_t i = 0; i < n_pts; i++)
+    {
+      aus[2 * i].setADValue(0, 1.);
+      aus[2 * i + 1].setADValue(1, 1.);
+    }
+    for (size_t i = 0; i < params.size(); i++)
+      aparams[i].setADValue(2 + i, 1.);
+
+    hand_objective(&aparams[0], &aus[0], data, &aerr[0]);
+
+    for (int j = 0; j < ndirs; j++)
+    {
+      for (size_t i = 0; i < aerr.size(); i++)
+      {
+        J[j*aerr.size() + i] = aerr[i].getADValue(j);
+      }
+    }
+#else
     // Record on a tape
     trace_on(tapeTag);
     for (size_t i = 0; i < us.size(); i++)
@@ -853,12 +890,15 @@ double compute_hand_J(int nruns,
     trace_off();
 
     fov_forward(tapeTag, Jrows, n_independents, ndirs, &all_params[0], seed.data, &err[0], J_tmp.data);
+#endif
   }
   end = high_resolution_clock::now();
 
+#ifndef ADOLC_TAPELESS
   for (int i = 0; i < Jrows; i++)
     for (int j = 0; j < ndirs; j++)
       J[j*Jrows + i] = J_tmp[i][j];
+#endif
 
   return duration_cast<duration<double>>(end - start).count() / nruns;
 }
@@ -891,6 +931,9 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   string name("ADOLC_eigen");
 #elif defined DO_LIGHT_MATRIX
   string name("ADOLC_light");
+#endif
+#ifdef ADOLC_TAPELESS
+  name = name + "_tapeless";
 #endif
   write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), 2 + (int)params.size(), &J[0]);
   //write_times(tf, tJ);

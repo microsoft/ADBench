@@ -13,8 +13,11 @@ data_dir_est = [data_dir 'est/'];
 replicate_point = false;
 problem_name = 'hand';
 
-tools = get_tools_hand(exe_dir,python_dir,julia_dir);
-
+if strcmp(problem_level,'simple')
+    tools = get_tools_hand(exe_dir,python_dir,julia_dir);
+else
+    tools = get_tools_hand_complicated(exe_dir,python_dir,julia_dir);
+end
 manual_eigen_id = 1;
 ntools = numel(tools);
 

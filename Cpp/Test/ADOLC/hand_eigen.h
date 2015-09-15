@@ -142,7 +142,7 @@ void get_skinned_vertex_positions(
 }
 
 template<typename T>
-void to_pose_params(const vector<T>& theta,
+void to_pose_params(const T* const theta,
   const vector<string>& bone_names,
   Matrix3X<T> *ppose_params)
 {
@@ -174,7 +174,7 @@ void to_pose_params(const vector<T>& theta,
 
 template<typename T>
 void hand_objective(
-  const vector<T>& params, 
+  const T* const params, 
   const HandDataEigen& data,
   T *perr)
 {
@@ -188,5 +188,30 @@ void hand_objective(
   for (int i = 0; i < data.correspondences.size(); i++)
   {
     err.col(i) = data.points.col(i).cast<T>() - vertex_positions.col(data.correspondences[i]);
+  }
+}
+
+template<typename T>
+void hand_objective(
+  const T* const params,
+  const T* const us,
+  const HandDataEigen& data,
+  T *perr)
+{
+  Matrix3X<T> pose_params;
+  to_pose_params(params, data.model.bone_names, &pose_params);
+
+  Matrix3X<T> vertex_positions;
+  get_skinned_vertex_positions(data.model, pose_params, &vertex_positions);
+
+  Map<Matrix3X<T>> err(perr, 3, data.correspondences.size());
+  for (int i = 0; i < data.correspondences.size(); i++)
+  {
+    const auto& verts = data.model.triangles[data.correspondences[i]].verts;
+    const T* const u = &us[2 * i];
+
+    Vector3<T> hand_point = u[0] * vertex_positions.col(verts[0]) + u[1] * vertex_positions.col(verts[1])
+      + (1. - u[0] - u[1])*vertex_positions.col(verts[2]);
+    err.col(i) = data.points.col(i).cast<T>() - hand_point;
   }
 }
