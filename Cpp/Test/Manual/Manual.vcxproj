@@ -90,7 +90,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <Cpp0xSupport>true</Cpp0xSupport>
-      <PreprocessorDefinitions>DO_GMM;DO_CPP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DO_EIGEN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
     </ClCompile>
@@ -127,7 +127,7 @@
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <Cpp0xSupport>true</Cpp0xSupport>
-      <PreprocessorDefinitions>DO_BA;DO_EIGEN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DO_EIGEN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
     </ClCompile>
@@ -151,6 +151,7 @@
     <ClInclude Include="..\gmm_eigen.h" />
     <ClInclude Include="ba_d.h" />
     <ClInclude Include="gmm_d.h" />
+    <ClInclude Include="hand_eigen_d.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

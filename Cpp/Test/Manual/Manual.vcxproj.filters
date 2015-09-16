@@ -38,6 +38,9 @@
     <ClInclude Include="..\gmm_eigen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="hand_eigen_d.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
