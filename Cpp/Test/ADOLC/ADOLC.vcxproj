@@ -138,8 +138,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\defs.h" />
+    <ClInclude Include="..\hand_eigen.h" />
     <ClInclude Include="..\utils.h" />
-    <ClInclude Include="hand_eigen.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

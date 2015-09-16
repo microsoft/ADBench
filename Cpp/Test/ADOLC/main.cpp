@@ -46,7 +46,7 @@ typedef HandDataLightMatrix HandDataType;
 #include "../hand_light_matrix.h"
 #elif defined DO_EIGEN
 typedef HandDataEigen HandDataType;
-#include "hand_eigen.h"
+#include "../hand_eigen.h"
 #endif
 #endif
 
