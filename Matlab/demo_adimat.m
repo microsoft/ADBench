@@ -3,13 +3,13 @@ addpath('adimat-0.6.0-4971');
 start_adimat
 addpath('awful/matlab');
 
-% %%
-% k = rand(2,1);
-% x = rand(3,1);
-% opt = admOptions('independents', [2]);
-% 
-% %%
-% JforV = admDiffVFor(@foo, 1, k, x, opt)
+%%
+k = rand(2,1);
+x = rand(3,1);
+opt = admOptions('independents', [1]);
+
+%%
+JforV = admDiffVFor(@foo, 1, x, opt)
 % dy = foo_d(k,x)
 % JforV - dy
 
@@ -296,7 +296,8 @@ opt = admOptions('independents', [1 2],  'functionResults', {fval});
 % compress
 J = [sum(J(:,27:2:end),2) sum(J(:,28:2:end),2) J(:,1:26)];
 %% compare
-Jexternal = load_J([fn '_J_ADOLC_eigen.txt']);
+Jexternal = load_J([fn '_J_Manual_eigen.txt']);
+% Jexternal = load_J([fn '_J_ADOLC_eigen.txt']);
 % Jexternal = load_J([fn '_J_ADOLC_eigen_tapeless.txt']);
 % Jexternal = load_J([fn '_J_ADOLC_light.txt']);
 % Jexternal = load_J([fn '_J_ADOLC_light_tapeless.txt']);

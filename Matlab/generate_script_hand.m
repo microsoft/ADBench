@@ -154,3 +154,43 @@ plot_log_runtimes(tools,times_f,x,...
 
 plot_log_runtimes(tools,times_f_relative,x,...
     'objective runtimes relative to Manual, C++','runtime',false);
+
+%% verify results - only simple now
+addpath('adimat-0.6.0-4971');
+start_adimat
+addpath('awful\matlab');
+bad = {};
+num_ok = 0;
+num_not_comp = 0;
+for i=1:ntasks
+    disp(['comparing to adimat: ' num2str(i) '; params: ' num2str(params{i})]);
+    [param, data] = load_hand_instance([data_dir 'model/'],...
+        [data_dir fns{i} '.txt']);
+    fval = hand_objective(param, data);
+    opt = admOptions('independents', [1],  'functionResults', {fval});
+    [J,~] = admDiffVFor(@hand_objective, 1, param, data, opt);
+    
+    for j=1:ntools
+        if tools(j).call_type < 3
+            fn = [data_dir fns{i} '_J_' tools(j).ext '.txt'];
+            if exist(fn,'file')
+                Jexternal = load_J(fn);
+                tmp = norm(J(:) - Jexternal(:)) / norm(J(:));
+                if tmp < 1e-5
+                    num_ok = num_ok + 1;
+                else
+                    bad{end+1} = {fn, tmp};
+                end
+            else
+                disp([tools(j).name ': not computed']);
+                num_not_comp = num_not_comp + 1;
+            end
+        end
+    end
+end
+disp(['num ok: ' num2str(num_ok)]);
+disp(['num bad: ' num2str(numel(bad))]);
+disp(['num not computed: ' num2str(num_not_comp)]);
+for i=1:numel(bad)
+    disp([bad{i}{1} ' : ' num2str(bad{i}{2})]);
+end
