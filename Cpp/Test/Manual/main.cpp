@@ -6,7 +6,8 @@
 
 //#define DO_GMM
 //#define DO_BA
-#define DO_HAND
+//#define DO_HAND
+#define DO_HAND_COMPLICATED
 
 #include "../utils.h"
 #include "../defs.h"
@@ -16,7 +17,7 @@
 #elif defined DO_BA
 #include "../ba.h"
 #include "ba_d.h"
-#elif defined DO_HAND && defined DO_EIGEN
+#elif (defined DO_HAND || defined DO_HAND_COMPLICATED) && defined DO_EIGEN
 #include "../hand_eigen.h"
 #include "hand_eigen_d.h"
 #endif
@@ -159,7 +160,7 @@ void test_ba(const string& fn_in, const string& fn_out,
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
 }
 
-#elif defined DO_HAND && defined DO_EIGEN
+#elif defined DO_HAND
 void test_hand(const string& model_dir, const string& fn_in, const string& fn_out,
   int nruns_f, int nruns_J)
 {
@@ -197,6 +198,44 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
 }
 
+#elif defined DO_HAND_COMPLICATED
+void test_hand(const string& model_dir, const string& fn_in, const string& fn_out,
+  int nruns_f, int nruns_J)
+{
+  vector<double> params, us;
+  HandDataEigen data;
+
+  read_hand_instance(model_dir, fn_in + ".txt", &params, &data, &us);
+
+  vector<double> err(3 * data.correspondences.size());
+  vector<double> J(err.size() * (2+params.size()));
+
+  high_resolution_clock::time_point start, end;
+  double tf = 0., tJ = 0;
+
+  start = high_resolution_clock::now();
+  for (int i = 0; i < nruns_f; i++)
+  {
+    hand_objective(&params[0], &us[0], data, &err[0]);
+  }
+  end = high_resolution_clock::now();
+  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
+
+  start = high_resolution_clock::now();
+  for (int i = 0; i < nruns_J; i++)
+  {
+    hand_objective_d(&params[0], &us[0], data, &err[0], &J[0]);
+  }
+  end = high_resolution_clock::now();
+  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
+
+  string name = "manual_eigen";
+
+  write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), 2+(int)params.size(), &J[0]);
+  //write_times(tf, tJ);
+  write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
+}
+
 #endif
 
 int main(int argc, char *argv[])
@@ -214,7 +253,7 @@ int main(int argc, char *argv[])
   test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
 #elif defined DO_BA
   test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
-#elif defined DO_HAND
+#elif defined DO_HAND || defined DO_HAND_COMPLICATED
   test_hand(dir_in + "model/", dir_in + fn, dir_out + fn, nruns_f, nruns_J);
 #endif
 }

@@ -116,6 +116,52 @@ void apply_global_transform_d(
   positions = (R * positions).colwise() + pose_params.col(2);
 }
 
+void apply_global_transform_d(
+  const double* const us,
+  const vector<Triangle>& triangles,
+  const vector<int>& corresp,
+  const Matrix3Xd& pose_params,
+  Matrix3Xd* ppositions,
+  double *pJ,
+  Matrix3d *pR)
+{
+  auto& R = *pR;
+  auto& positions = *ppositions;
+  vector<Matrix3d> dR(3);
+  const Vector3d& global_rotation = pose_params.col(0);
+  angle_axis_to_rotation_matrix_d(global_rotation, &R, &dR);
+  R.noalias() = (R.array().rowwise() * pose_params.col(1).transpose().array()).matrix();
+  for (int i = 0; i < 3; i++)
+    dR[i].noalias() = (dR[i].array().rowwise() * pose_params.col(1).transpose().array()).matrix();
+
+  // global rotation
+  size_t npts = corresp.size();
+  for (int i_param = 0; i_param < 3; i_param++)
+  {
+    Map<Matrix3Xd> J_glob_rot(&pJ[i_param * 3 * npts], 3, npts);
+    for (size_t i_pt = 0; i_pt < npts; i_pt++)
+    {
+      const auto& verts = triangles[corresp[i_pt]].verts;
+      const double* const u = &us[2 * i_pt];
+
+      Vector3d tmp = u[0] * positions.col(verts[0]) + u[1] * positions.col(verts[1])
+        + (1. - u[0] - u[1])*positions.col(verts[2]);
+
+      J_glob_rot.col(i_pt).noalias() = -dR[i_param] * tmp;
+    }
+  }
+
+  // global translation
+  Map<MatrixXd> J_glob_translation(&pJ[3 * 3 * npts], 3 * npts, 3);
+  for (size_t i = 0; i < npts; i++)
+  {
+    J_glob_translation.middleRows(i * 3, 3).setIdentity();
+  }
+  J_glob_translation *= -1.;
+
+  positions = (R * positions).colwise() + pose_params.col(2);
+}
+
 void relatives_to_absolutes_d(
   const avector<Matrix4d>& relatives,
   const avector<Matrix4d>& relatives_d,
@@ -247,11 +293,12 @@ void get_posed_relatives_d(
   }
 }
 
-void get_skinned_vertex_positions_d(
+void get_skinned_vertex_positions_d_common(
   const HandModelEigen& model,
   const Matrix3Xd& pose_params,
   const vector<int>& corresp,
   Matrix3Xd* positions,
+  vector<Matrix3Xd> *positions_d,
   double *pJ,
   bool apply_global = true)
 {
@@ -274,10 +321,10 @@ void get_skinned_vertex_positions_d(
 
   // Transform vertices by necessary transforms. + apply skinning
   *positions = Matrix3Xd::Zero(3, model.base_positions.cols());
-  vector<Matrix3Xd> positions_d(4 * 5, Matrix3Xd::Zero(3, model.base_positions.cols()));
+  positions_d->resize(4 * 5, Matrix3Xd::Zero(3, model.base_positions.cols()));
   for (int i = 0; i < (int)transforms.size(); i++)
   {
-    *positions += 
+    *positions +=
       ((transforms[i] * model.base_positions.colwise().homogeneous()).array()
         .rowwise() * model.weights.row(i)).matrix()
       .topRows(3);
@@ -285,8 +332,8 @@ void get_skinned_vertex_positions_d(
     int i_finger = (i - 1) / 4;
     for (int j = 0; j < (int)transforms_d[i].size(); j++)
     {
-      int i_param = j + 4*i_finger;
-      positions_d[i_param] += 
+      int i_param = j + 4 * i_finger;
+      (*positions_d)[i_param] +=
         ((transforms_d[i][j] * model.base_positions.colwise().homogeneous()).array()
           .rowwise() * model.weights.row(i)).matrix()
         .topRows(3);
@@ -295,11 +342,25 @@ void get_skinned_vertex_positions_d(
 
   if (model.is_mirrored)
     positions->row(0) = -positions->row(0);
+}
+
+void get_skinned_vertex_positions_d(
+  const HandModelEigen& model,
+  const Matrix3Xd& pose_params,
+  const vector<int>& corresp,
+  Matrix3Xd* positions,
+  double *pJ,
+  bool apply_global = true)
+{
+  vector<Matrix3Xd> positions_d;
+  get_skinned_vertex_positions_d_common(model, pose_params, corresp, positions,
+    &positions_d, pJ, apply_global);
 
   Matrix3d Rglob = Matrix3d::Identity();
   if (apply_global)
     apply_global_transform_d(corresp, pose_params, positions, pJ, &Rglob);
 
+  // finger parameters
   size_t ncorresp = corresp.size();
   for (int i = 0; i < 4 * 5; i++)
   {
@@ -307,6 +368,43 @@ void get_skinned_vertex_positions_d(
     for (int j = 0; j < curr_J.cols(); j++)
     {
       curr_J.col(j).noalias() = -Rglob * positions_d[i].col(corresp[j]);
+    }
+  }
+}
+
+void get_skinned_vertex_positions_d(
+  const double* const us,
+  const HandModelEigen& model,
+  const Matrix3Xd& pose_params,
+  const vector<int>& corresp,
+  Matrix3Xd* positions,
+  double *pJ,
+  bool apply_global = true)
+{
+  vector<Matrix3Xd> positions_d;
+
+  get_skinned_vertex_positions_d_common(model, pose_params, corresp, positions, 
+    &positions_d, pJ, apply_global);
+
+  Matrix3d Rglob = Matrix3d::Identity();
+  if (apply_global)
+    apply_global_transform_d(us, model.triangles, corresp, pose_params, positions, pJ, &Rglob);
+
+  // finger parameters
+  size_t ncorresp = corresp.size();
+  Vector3d tmp;
+  for (int i = 0; i < 4 * 5; i++)
+  {
+    Map<Matrix3Xd> curr_J(&pJ[(6 + i) * 3 * ncorresp], 3, ncorresp); // 6 is offset (global params)
+    for (int j = 0; j < curr_J.cols(); j++)
+    {
+      const auto& verts = model.triangles[corresp[j]].verts;
+      const double* const u = &us[2 * j];
+
+      tmp = u[0] * positions_d[i].col(verts[0]) + u[1] * positions_d[i].col(verts[1])
+        + (1. - u[0] - u[1])*positions_d[i].col(verts[2]);
+
+      curr_J.col(j).noalias() = -Rglob * tmp;
     }
   }
 }
@@ -358,5 +456,36 @@ void hand_objective_d(
   for (int i = 0; i < data.correspondences.size(); i++)
   {
     err.col(i) = data.points.col(i) - vertex_positions.col(data.correspondences[i]);
+  }
+}
+
+void hand_objective_d(
+  const double* const params,
+  const double* const us,
+  const HandDataEigen& data,
+  double *perr,
+  double *pJ)
+{
+  Matrix3Xd pose_params;
+  to_pose_params_d(params, data.model.bone_names, &pose_params);
+
+  size_t npts = data.correspondences.size();
+  Matrix3Xd vertex_positions;
+  get_skinned_vertex_positions_d(us, data.model, pose_params, data.correspondences, &vertex_positions, &pJ[2*3*npts]);
+
+  Map<Matrix3Xd> err(perr, 3, npts);
+  Map<Matrix3Xd> du0(&pJ[0], 3, npts), du1(&pJ[3*npts], 3, npts);
+  Vector3d hand_point;
+  for (int i = 0; i < data.correspondences.size(); i++)
+  {
+    const auto& verts = data.model.triangles[data.correspondences[i]].verts;
+    const double* const u = &us[2 * i];
+
+    du0.col(i) = -(vertex_positions.col(verts[0]) - vertex_positions.col(verts[2]));
+    du1.col(i) = -(vertex_positions.col(verts[1]) - vertex_positions.col(verts[2]));
+
+    hand_point = u[0] * vertex_positions.col(verts[0]) + u[1] * vertex_positions.col(verts[1])
+      + (1. - u[0] - u[1])*vertex_positions.col(verts[2]);
+    err.col(i) = data.points.col(i) - hand_point;
   }
 }
