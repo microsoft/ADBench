@@ -372,7 +372,7 @@ double compute_hand_J(int nruns,
   auto &J = *pJ;
   adept::Stack stack;
   vector<adouble> aparams(params.size());
-  vector<adouble> aus(params.size());
+  vector<adouble> aus(us.size());
   vector<adouble> aerr(err.size());
   size_t n_pts = us.size() / 2;
 
