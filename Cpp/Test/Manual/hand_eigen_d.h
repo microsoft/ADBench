@@ -232,12 +232,12 @@ void get_posed_relatives_d(
         Matrix3d dR1;
         euler_angles_to_rotation_matrix(pose_params.col(i + offset), &R, &dR0, &dR1);
         dtr1.block(0, 0, 3, 3) = dR1;
-        relatives_d[tail + 1] = model.base_relatives[i] * dtr1;
+        relatives_d[tail + 1].noalias() = model.base_relatives[i] * dtr1;
       }
       else
         euler_angles_to_rotation_matrix(pose_params.col(i + offset), &R, &dR0);
       dtr0.block(0, 0, 3, 3) = dR0;
-      relatives_d[tail++] = model.base_relatives[i] * dtr0;
+      relatives_d[tail++].noalias() = model.base_relatives[i] * dtr0;
       if (n_finger_bone == 1)
         tail++;
     }
@@ -277,7 +277,7 @@ void get_skinned_vertex_positions_d(
   vector<Matrix3Xd> positions_d(4 * 5, Matrix3Xd::Zero(3, model.base_positions.cols()));
   for (int i = 0; i < (int)transforms.size(); i++)
   {
-    positions->noalias() = *positions +
+    *positions += 
       ((transforms[i] * model.base_positions.colwise().homogeneous()).array()
         .rowwise() * model.weights.row(i)).matrix()
       .topRows(3);
