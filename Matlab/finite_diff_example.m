@@ -6,24 +6,26 @@ while h(end)<1
 end
 lw = 1.5;
 
-x = 10;
+x = 1e6;
 dy = FDfwd(x,h);
-plot(log10(abs(dy-dfoo(x))),'linewidth',lw);
+plot(h,abs(dy-dfoo(x))/mean(dy),'linewidth',lw);
 hold on
 
-x = 0.1;
+x = 1;
 dy = FDfwd(x,h);
-plot(log10(abs(dy-dfoo(x))),'linewidth',lw);
+plot(h,abs(dy-dfoo(x))/mean(dy),'linewidth',lw);
 
-x = 0.001;
+x = 1e-3;
 dy = FDfwd(x,h);
-plot(log10(abs(dy-dfoo(x))),'linewidth',lw);
+plot(h,abs(dy-dfoo(x))/mean(dy),'linewidth',lw);
 
 
-legend('x=10','x=0.1','x=0.001')
-ylim([-16 4])
-set(gca,'XTickLabel',[])
-set(gca,'YTickLabel',[])
+legend('x=1e6','x=1','x=1e-3','location', 'se')
+set(gca,'fontsize',20,'xscale','log','yscale','log')
+xlim([h(1) h(end)])
+ylim([0 10e1])
+xlabel('h')
+ylabel('err/gradient\_magnitude')
 
 end
 
