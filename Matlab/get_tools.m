@@ -164,11 +164,11 @@ tools(end).col = cols('adimat');
 tools(end).marker = markers('vector');
 tools(end).call_type = 4;
 
-tools(end+1).name = 'MuPAD';
+tools(end+1).name = 'MuPAD (split)';
 tools(end).exe = 'awful/matlab/example_gmm_objective_mex_d32_K5.cxx';
 tools(end).ext = 'mupad';
 tools(end).col = cols('mupad');
-tools(end).marker = markers('');
+tools(end).marker = markers('split');
 tools(end).call_type = 5;
 
 tools(end+1).name = 'Julia, F';
