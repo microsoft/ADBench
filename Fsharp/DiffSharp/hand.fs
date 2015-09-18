@@ -1,5 +1,4 @@
 ﻿module hand
-open MathNet.Numerics.LinearAlgebra
 
 open System
 open System.Diagnostics
@@ -7,7 +6,9 @@ open System.IO
 
 #if MODE_AD
 open DiffSharp.AD
+open DiffSharp.AD.Vector
 #endif
+open FsAlg.Generic
 
 type HandModel = {
     bone_names:string[]
@@ -51,12 +52,9 @@ let euler_angles_to_rotation_matrix (xzy:_[]) =
   let tx = xzy.[0]
   let ty = xzy.[2]
   let tz = xzy.[1]
-  let Rx_data = [|[|1.;0.;0.|]; [|0.; cos(tx);-sin(tx)|];[| 0.; sin(tx); cos(tx)|]|]
-  let Ry_data = [|[|cos(ty); 0.; sin(ty)|]; [|0.; 1.; 0.|]; [|-sin(ty); 0.; cos(ty)|]|]
-  let Rz_data = [|[|cos(tz); -sin(tz); 0.|]; [|sin(tz); cos(tz); 0.|]; [|0.;0.;1.|]|]
-  let Rx = DenseMatrix.ofRowArrays Rx_data
-  let Ry = DenseMatrix.ofRowArrays Ry_data
-  let Rz = DenseMatrix.ofRowArrays Rz_data
+  let Rx = matrix [[1.;0.;0.]; [0.; cos(tx);-sin(tx)];[ 0.; sin(tx); cos(tx)]]
+  let Ry = matrix [[cos(ty); 0.; sin(ty)]; [0.; 1.; 0.]; [-sin(ty); 0.; cos(ty)]]
+  let Rz = matrix [[cos(tz); -sin(tz); 0.]; [sin(tz); cos(tz); 0.]; [0.;0.;1.]]
   Rz*Ry*Rx
 
 let get_posed_relatives (model:HandModel) (pose_params:_[,]) =
@@ -64,14 +62,15 @@ let get_posed_relatives (model:HandModel) (pose_params:_[,]) =
   let n_bones = model.bone_names.Length
 
   let make_relative (pose_params:_[]) (base_relative:Matrix<_>) =
-    let T = DenseMatrix.identity 4
-    T.[0..2,0..2] <- euler_angles_to_rotation_matrix pose_params
+    let R = euler_angles_to_rotation_matrix pose_params
+    let T = Matrix.appendRow (Vector.create 4 0.) (Matrix.appendCol (Vector.create 3 0.) R)
+    T.[3,3] <- 1.
     base_relative * T
   
   [|for i_bone=0 to n_bones-1 do yield (make_relative pose_params.[i_bone+offset,*] model.base_relatives.[i_bone])|]
 
 let relatives_to_absolutes (relatives:Matrix<_>[]) (parents:int[]) =
-  let absolutes = [|for i=0 to relatives.Length-1 do yield DenseMatrix.identity 4|]
+  let absolutes = [|for i=0 to relatives.Length-1 do yield Matrix.identity 4|]
   for i=0 to parents.Length-1 do
     if parents.[i] = -1 then
       absolutes.[i] <- relatives.[i]
@@ -82,7 +81,7 @@ let relatives_to_absolutes (relatives:Matrix<_>[]) (parents:int[]) =
 let angle_axis_to_rotation_matrix (angle_axis:_[]) =
   let n = sqrt (angle_axis |> Array.map (fun x -> x*x) |> Array.sum)
   if n < 0.0001 then
-    DenseMatrix.identity 3
+    Matrix.identity 3
   else
     let x = angle_axis.[0] / n
     let y = angle_axis.[1] / n
@@ -91,21 +90,19 @@ let angle_axis_to_rotation_matrix (angle_axis:_[]) =
     let s = sin n
     let c = cos n
     
-    let R_data = [|[|x*x + (1. - x*x)*c; x*y*(1. - c) - z*s; x*z*(1. - c) + y*s|]; 
-                  [|x*y*(1. - c) + z*s; y*y + (1. - y*y)*c; y*z*(1. - c) - x*s|];
-                  [|x*z*(1. - c) - y*s; z*y*(1. - c) + x*s; z*z + (1. - z*z)*c|]|]
-
-    DenseMatrix.ofRowArrays R_data
+    matrix [[x*x + (1. - x*x)*c; x*y*(1. - c) - z*s; x*z*(1. - c) + y*s]; 
+                  [x*y*(1. - c) + z*s; y*y + (1. - y*y)*c; y*z*(1. - c) - x*s];
+                  [x*z*(1. - c) - y*s; z*y*(1. - c) + x*s; z*z + (1. - z*z)*c]]
 
 let apply_global_transform (pose_params:_[,]) (positions:Matrix<_>) = 
-  let T = DenseMatrix.identity2 3 4
-  T.[*,0..2] <- angle_axis_to_rotation_matrix pose_params.[0,*]
-  let scale = DenseVector.ofArray pose_params.[1,*]
+  let R = angle_axis_to_rotation_matrix pose_params.[0,*]
+  let scale = Matrix.ofArray 1 pose_params.[1,*] // 1 row vector
   for i=0 to 2 do
-    T.[i,0..2] <- T.[i,0..2].PointwiseMultiply(scale)
-  T.[*,3] <- DenseVector.ofArray pose_params.[2,*]
+    Matrix.replaceWith R.[i,*] ((Matrix.row i R) .* scale)
   
-  let positions_homog = positions.Stack(DenseMatrix.create 1 positions.ColumnCount 1.)
+  let T = Matrix.appendCol (Vector.ofArray pose_params.[2,*]) R
+  
+  let positions_homog = Matrix.appendRow (Vector.create positions.Cols 1.) positions
   T * positions_homog
 
 let get_skinned_vertex_positions (model:HandModel) (pose_params:_[,]) =
@@ -114,15 +111,15 @@ let get_skinned_vertex_positions (model:HandModel) (pose_params:_[,]) =
   
   let transforms = Array.map2 (*) absolutes model.inverse_base_absolutes
   
-  let n_verts = model.base_positions.ColumnCount
-  let positions = DenseMatrix.zero 3 n_verts
-  for i=0 to transforms.Length-1 do
-    let curr = transforms.[i].[0..2,*] * model.base_positions
-    for j=0 to 2 do
-      positions.[j,*] <- positions.[j,*] + curr.[j,*].PointwiseMultiply(model.weights.[*,i])
+  let n_verts = model.base_positions.Cols
+  let positions = Matrix.create 3 n_verts 0.
+  for i_transform=0 to transforms.Length-1 do
+    let curr_positions = transforms.[i_transform].[0..2,*] * model.base_positions
+    Matrix.replacei2 (fun i j pos curr_pos -> pos + curr_pos * model.weights.[i_transform,j]) positions curr_positions
 
   if model.is_mirrored then
-    positions.[0,*] <- -positions.[0,*]
+    for i=0 to positions.Cols do
+      positions.[0,i] <- -positions.[0,i]
     
   let apply_global = true
   if apply_global then
@@ -136,17 +133,18 @@ let hand_objective (param:_[]) (data:HandData) =
   let vertex_positions = get_skinned_vertex_positions data.model pose_params
   
   let n_corr = data.correspondences.Length
-  [|for i=0 to n_corr-1 do yield (data.points.[*,i] - vertex_positions.[*,data.correspondences.[i]])|]
-
+  let err = [|for i=0 to n_corr-1 do yield Matrix.toArray (data.points.[*,i] - vertex_positions.[*,data.correspondences.[i]])|]
+  [|for elems in err do for elem in elems do yield elem|]
+  
 ////// IO //////
 
-let read_hand_instance (path_in:string) =
+let read_hand_instance (model_dir:string) (fn_in:string) =
     let read_in_elements (fn:string) (separators:_[]) =
         let string_lines = File.ReadLines(fn)
         [| for line in string_lines do yield line.Split separators |] 
             |> Array.map (Array.filter (fun x -> x.Length > 0))
 
-    let bones_name = path_in + "bones.txt"
+    let bones_name = model_dir + "bones.txt"
     let lines = array2D (read_in_elements bones_name [|':'|])
 
     let bone_names = lines.[*,0]
@@ -167,7 +165,7 @@ let read_hand_instance (path_in:string) =
         [|for i=0 to n_bones-1 do 
             yield reshape (Array.map Double.Parse lines.[i,18..33]) 4 4|]
             
-    let vetices_name = path_in + "vertices.txt"
+    let vetices_name = model_dir + "vertices.txt"
     let data = read_in_elements vetices_name [|':'|]
     let n_verts = data.Length
 
@@ -187,19 +185,19 @@ let read_hand_instance (path_in:string) =
         array2D ([|for i=0 to n_verts-1 do
                     yield (get_weights n_bones data.[i].[8..])|])
 
-    let base_positions_ = DenseMatrix.ofArray2 base_positions
-    let base_positions_homog = base_positions_.Transpose().Stack(DenseMatrix.create 1 n_verts 1.)
+    let base_positions_ = Matrix.transpose (Matrix.ofArray2D base_positions)
+    let base_positions_homog = Matrix.appendRow (Vector.create n_verts 1.) base_positions_
     let model = {
         bone_names = bone_names;
         parents = parents;
-        base_relatives = Array.map DenseMatrix.ofArray2 transforms;
-        inverse_base_absolutes = Array.map DenseMatrix.ofArray2 inverse_absolute_transforms;
+        base_relatives = Array.map Matrix.ofArray2D transforms;
+        inverse_base_absolutes = Array.map Matrix.ofArray2D inverse_absolute_transforms;
         base_positions = base_positions_homog;
-        weights = DenseMatrix.ofArray2 weights;
+        weights = Matrix.transpose (Matrix.ofArray2D weights);
         is_mirrored = false
         }
 
-    let instance = read_in_elements (path_in + "instance.txt")  [|' '|]
+    let instance = read_in_elements fn_in  [|' '|]
 
     let n_pts = Int32.Parse instance.[0].[0]
     let n_params = Int32.Parse instance.[0].[1]
@@ -212,11 +210,11 @@ let read_hand_instance (path_in:string) =
 
     let param = [|for i=0 to n_params-1 do yield (Double.Parse instance.[offset+i].[0])|]
 
-    let points_mat = DenseMatrix.ofArray2 pts
+    let points_mat = Matrix.ofArray2D pts
     let data = {
         model=model;
         correspondences=correspondences;
-        points=points_mat.Transpose();
+        points=points_mat.GetTranspose()
         }
 
     param, data

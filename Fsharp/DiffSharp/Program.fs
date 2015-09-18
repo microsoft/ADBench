@@ -145,33 +145,32 @@ let test_ba fn_in fn_out nruns_f nruns_J =
 
 #if DO_HAND
 
-let test_hand path_in fn_out nruns_f nruns_J = 
-  let param_, data = hand.read_hand_instance path_in
+let test_hand model_dir fn_in fn_out nruns_f nruns_J = 
+  let param_, data = hand.read_hand_instance model_dir (fn_in + ".txt")
     
 #if MODE_AD
-  //let param = Array.map D param_
-  let param = param_
+  let param = Array.map D param_
 #endif
     
   let obj_stop_watch = Stopwatch.StartNew()
-  let err = hand.hand_objective param data
+  let err = hand.hand_objective param_ data
   for i = 1 to nruns_f-1 do
-    hand.hand_objective param data
+    hand.hand_objective param_ data
   obj_stop_watch.Stop()
   
-#if MODE_AD
-  let name = "DiffSharp"
-#endif
-  let objective_wrapper (parameters:_[]) = 
-    let err = hand.hand_objective parameters data
-    [|for entry in err do for elem in entry do yield elem|]
-  let grad_hand_objective = jacobian' objective_wrapper
-
-  let jac_stop_watch = Stopwatch.StartNew()
-        
-  let tf = ((float obj_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns_f)
-  let tJ = ((float jac_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns_J)
-  write_times (fn_out + "_times_" + name + ".txt") tf tJ
+//#if MODE_AD
+//  let name = "DiffSharp"
+//#endif
+//  let objective_wrapper (parameters:D[]) = 
+//    let err = hand.hand_objective_ parameters data
+//    [|for entry in err do for elem in entry do yield elem|]
+//  let grad_hand_objective = jacobian' objective_wrapper
+//
+//  let jac_stop_watch = Stopwatch.StartNew()
+//        
+//  let tf = ((float obj_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns_f)
+//  let tJ = ((float jac_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns_J)
+//  write_times (fn_out + "_times_" + name + ".txt") tf tJ
 #endif
 
 [<EntryPoint>]
@@ -191,6 +190,6 @@ let main argv =
     test_ba (dir_in + fn) (dir_out + fn) nruns_f nruns_J
 #endif
 #if DO_HAND
-    test_hand (dir_in + fn + "/") (dir_out + fn) nruns_f nruns_J
+    test_hand (dir_in + "model/") (dir_in + fn) (dir_out + fn) nruns_f nruns_J
 #endif
     0
