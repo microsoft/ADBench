@@ -202,7 +202,7 @@ for i=1:numel(bad)
 end
 
 %% read final times
-[times_f,times_J,up_to_date_mask] = ...
+[times_f,times_J] = ...
     read_times(data_dir,data_dir,fns,tools,problem_name);
 
 times_f_relative = bsxfun(@rdivide,times_f,times_f(:,manual_cpp_id));
