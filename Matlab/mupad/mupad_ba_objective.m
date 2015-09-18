@@ -1,4 +1,5 @@
-function [J,reproj_err,w_err] = mupad_ba_objective(cams, X, w, obs,do_jac)
+function [compressedJ,reproj_err,w_err] = ...
+    mupad_ba_objective(cams, X, w, obs,do_jac)
 %         CAMERAS c x n 
 %               matrix containing parameters of n cameras
 %               for now, supported format is only
@@ -27,71 +28,19 @@ n = size(cams,2);
 m = size(X,2);
 p = size(obs,2);
 ncam_params = size(cams,1);
-batchsz = ncam_params + 3 + 1;
-batch = 1:batchsz;
+
+params = [cams(:,obs(1,:));X(:,obs(2,:));w];
+err_and_J = mupad_ba_compute_reproj_err_mex(params,obs(3:4,:),do_jac);
+reproj_err = reshape(err_and_J(1,:)',2,p);
+
+dummy = zeros(0,p);
+err_and_J2 = mupad_ba_compute_weight_err_mex(w,dummy,do_jac);
+w_err = err_and_J2(1,:);
 
 if do_jac
-    nnonzero = batchsz*2*p + p;
-    rows = zeros(1,nnonzero);
-    cols = rows;
-    vals = rows;
-end
-
-reproj_err = zeros(2,p);
-offset = 0;
-for i=1:p
-    camIdx = obs(1,i);
-    ptIdx = obs(2,i);
-    
-    params.cam = cams(:,camIdx);
-    params.X = X(:,ptIdx);
-    params.w = w(i);
-    err_and_J = mupad_ba_compute_reproj_err_mex(...
-        au_deep_vectorize(params),obs(3:4,i),do_jac);
-    
-    reproj_err(:,i) = err_and_J(1,:);
-    if do_jac        
-        cam_offset = (camIdx-1)*ncam_params;
-        camIdxs = (1:ncam_params) + cam_offset;
-        pt_offset = n*ncam_params + (ptIdx-1)*3;
-        ptIdxs = (1:3) + pt_offset;
-        wIdx = n*ncam_params + m*3 + i;
-        
-        colIdxs = [camIdxs ptIdxs wIdx];
-        rowIdx=2*(i-1)+1;
-        rows(batch + offset) = rowIdx;
-        cols(batch + offset) = colIdxs;
-        vals(batch + offset) = err_and_J(2:end,1);
-        offset = offset + batchsz;
-        
-        rows(batch + offset) = rowIdx+1;
-        cols(batch + offset) = colIdxs;
-        vals(batch + offset) = err_and_J(2:end,2);
-        offset = offset + batchsz;
-    end
-end
-
-offset = offset + 1;
-w_err = zeros(1,p);
-row_offset = 2*p;
-col_offset = n*ncam_params + m*3;
-dummy = zeros(0,1);
-for i=1:p
-    err_and_J = mupad_ba_compute_weight_err_mex(w(i),dummy,do_jac);
-    w_err(i) = err_and_J(1);
-    
-    if do_jac
-        rows(offset) = i + row_offset;
-        cols(offset) = i + col_offset;
-        vals(offset) = err_and_J(2);
-        offset = offset + 1;
-    end
-end
-
-if do_jac
-   J = sparse(rows, cols, vals, 3*p, n*ncam_params + m*3 + p);
+    compressedJ = {err_and_J(2:end,:), err_and_J2(2,:)};
 else
-   J = []; 
+    compressedJ=[];
 end
 
 end
