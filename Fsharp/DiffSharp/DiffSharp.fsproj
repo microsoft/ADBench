@@ -21,12 +21,12 @@
     <Optimize>false</Optimize>
     <Tailcalls>false</Tailcalls>
     <OutputPath>..\..\Debug\DiffSharp\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;MODE_AD;DO_HAND</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;MODE_AD;DO_HAND_COMPLICATED</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Debug\DiffSharp.XML</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
-    <StartArguments>..\..\hand\ ..\..\hand\ hand 1 1</StartArguments>
+    <StartArguments>..\..\hand\ ..\..\hand\ hand_complicated 1 1</StartArguments>
     <OtherFlags>
     </OtherFlags>
   </PropertyGroup>
@@ -35,12 +35,12 @@
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
     <OutputPath>..\..\Release\DiffSharp\</OutputPath>
-    <DefineConstants>TRACE;MODE_AD;DO_HAND</DefineConstants>
+    <DefineConstants>TRACE;MODE_F;DO_HAND_COMPLICATED</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Release\DiffSharp.XML</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
-    <StartArguments>..\..\ ..\..\ ba 1 1</StartArguments>
+    <StartArguments>..\..\hand\ ..\..\hand\ hand_complicated 1 1</StartArguments>
   </PropertyGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
@@ -64,6 +64,7 @@
     <Compile Include="gmm.fs" />
     <Compile Include="ba.fs" />
     <Compile Include="hand.fs" />
+    <Compile Include="hand_d.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>

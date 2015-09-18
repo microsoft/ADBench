@@ -71,21 +71,21 @@ tools(end).call_type = 0;
 % tools(end).marker = markers{1};
 % tools(end).call_type = 1;
 
-% tools(end+1).name = 'DiffSharp';
-% tools(end).exe = [exe_dir,'DiffSharp/DiffSharpTests.exe'];
-% tools(end).run_cmd = tools(end).exe;
-% tools(end).ext = 'DiffSharp';
-% tools(end).col = cols(unused_col_id,:); unused_col_id = unused_col_id + 1;
-% tools(end).marker = markers{1};
-% tools(end).call_type = 0;
+tools(end+1).name = 'DiffSharp';
+tools(end).exe = [exe_dir,'DiffSharp/DiffSharpTests.exe'];
+tools(end).run_cmd = tools(end).exe;
+tools(end).ext = 'DiffSharp';
+tools(end).col = cols('diffsharp');
+tools(end).marker = markers('automode');
+tools(end).call_type = 0;
 
-% tools(end+1).name = 'DiffSharp, F';
-% tools(end).exe = [exe_dir,'DiffSharpF/DiffSharpTests.exe'];
-% tools(end).run_cmd = tools(end).exe;
-% tools(end).ext = 'DiffSharp_F';
-% tools(end).col = tools(end-1).col;
-% tools(end).marker = markers{2};
-% tools(end).call_type = 0;
+tools(end+1).name = 'DiffSharp, F';
+tools(end).exe = [exe_dir,'DiffSharpF/DiffSharpTests.exe'];
+tools(end).run_cmd = tools(end).exe;
+tools(end).ext = 'DiffSharp_F';
+tools(end).col = cols('diffsharp');
+tools(end).marker = markers('');
+tools(end).call_type = 0;
 
 % tools(end+1).name = 'AdiMat, F';
 % tools(end).exe = 'hand_objective.m';
@@ -93,11 +93,4 @@ tools(end).call_type = 0;
 % tools(end).col = cols(unused_col_id,:); unused_col_id = unused_col_id + 1;
 % tools(end).marker = markers{1};
 % tools(end).call_type = 3;
-
-% tools(end+1).name = 'AdiMat, F (sparse)';
-% tools(end).exe = 'hand_objective.m';
-% tools(end).ext = 'adimat_sparse';
-% tools(end).col = tools(end-1).col;
-% tools(end).marker = markers{2};
-% tools(end).call_type = 4;
 

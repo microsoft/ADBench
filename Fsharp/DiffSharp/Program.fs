@@ -4,9 +4,20 @@ open System.IO
 
 #if MODE_AD
 open DiffSharp.AD
+let D_seed (x:float) = D x
 #else
+#if MODE_R
 open DiffSharp.AD.Specialized.Reverse1
+#else
+#if MODE_F
+open DiffSharp.AD.Specialized.Forward1
+let D = hand_d.D
+let D_seed (x:float) = x
 #endif
+#endif
+#endif
+
+let transpose (mtx : _ [,]) = Array2D.init (mtx.GetLength 1) (mtx.GetLength 0) (fun x y -> mtx.[y,x])
 
 let write_times (fn:string) (tf:float) (tJ:float) =
     let line1 = sprintf "%f %f\n" tf tJ
@@ -144,33 +155,103 @@ let test_ba fn_in fn_out nruns_f nruns_J =
 #endif
 
 #if DO_HAND
-
 let test_hand model_dir fn_in fn_out nruns_f nruns_J = 
-  let param_, data = hand.read_hand_instance model_dir (fn_in + ".txt")
+  let param, data, _ = hand.read_hand_instance model_dir (fn_in + ".txt") false
+  let param_D, data_D, _ = hand_d.read_hand_instance model_dir (fn_in + ".txt") false
     
 #if MODE_AD
-  let param = Array.map D param_
+  let param_in, data_in = param_D, data_D
+#else 
+  let param_in, data_in = param, data_D
 #endif
     
   let obj_stop_watch = Stopwatch.StartNew()
-  let err = hand.hand_objective param_ data
+  let err = hand.hand_objective param data
   for i = 1 to nruns_f-1 do
-    hand.hand_objective param_ data
+    hand.hand_objective param data
   obj_stop_watch.Stop()
   
-//#if MODE_AD
-//  let name = "DiffSharp"
-//#endif
-//  let objective_wrapper (parameters:D[]) = 
-//    let err = hand.hand_objective_ parameters data
-//    [|for entry in err do for elem in entry do yield elem|]
-//  let grad_hand_objective = jacobian' objective_wrapper
-//
-//  let jac_stop_watch = Stopwatch.StartNew()
-//        
-//  let tf = ((float obj_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns_f)
-//  let tJ = ((float jac_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns_J)
-//  write_times (fn_out + "_times_" + name + ".txt") tf tJ
+#if MODE_AD
+  let name = "DiffSharp"
+#else
+  let name = "DiffSharp_F"
+#endif
+
+  let objective_wrapper (parameters:D[]) = 
+    hand_d.hand_objective parameters data_in
+  let hand_objective_d = jacobian' objective_wrapper
+
+  let jac_stop_watch = Stopwatch.StartNew()
+  if nruns_J>0 then   
+    let err2, J = hand_objective_d param_in
+    for i = 1 to nruns_J-1 do
+      hand_objective_d param_in
+    jac_stop_watch.Stop()
+    hand_d.write_J (fn_out + "_J_" + name + ".txt") J
+        
+  let tf = ((float obj_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns_f)
+  let tJ = ((float jac_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns_J)
+  write_times (fn_out + "_times_" + name + ".txt") tf tJ
+#endif
+
+#if DO_HAND_COMPLICATED
+let compute_J_transposed (param:_[]) (us:_[]) data =
+  let objective_wrapper (parameters:D[]) =
+    let param = parameters.[0..25]
+    let us = parameters.[26..]
+    hand_d.hand_objective_complicated param us data
+  
+  let parameters = (Array.append param us)
+
+  let npts = us.Length / 2
+  let Jcols = param.Length + 2
+  let seed = [|for i=0 to Jcols-1 do yield Array.create (param.Length+us.Length) (D_seed 0.)|]
+
+  for i=0 to npts-1 do
+    seed.[0].[param.Length + 2*i] <- (D_seed 1.)
+    seed.[1].[param.Length + 2*i+1] <- (D_seed 1.)
+
+  for i=0 to param.Length-1 do
+    seed.[i+2].[i] <- (D_seed 1.)
+    
+  let err,J0 = jacobianv' objective_wrapper parameters seed.[0]
+  let J = array2D [|yield J0; for i=1 to Jcols-1 do yield jacobianv objective_wrapper parameters seed.[i]|]
+  
+  err, J
+
+let test_hand model_dir fn_in fn_out nruns_f nruns_J = 
+  let param, data, us = hand.read_hand_instance model_dir (fn_in + ".txt") true
+  let param_D, data_D, us_D = hand_d.read_hand_instance model_dir (fn_in + ".txt") true
+    
+#if MODE_AD
+  let param_in, data_in, us_in = param_D, data_D, us_D
+#else 
+  let param_in, data_in, us_in = param, data_D, us
+#endif
+    
+  let obj_stop_watch = Stopwatch.StartNew()
+  let err = hand.hand_objective_complicated param us data
+  for i = 1 to nruns_f-1 do
+    hand.hand_objective_complicated param us data
+  obj_stop_watch.Stop()
+  
+#if MODE_AD
+  let name = "DiffSharp"
+#else
+  let name = "DiffSharp_F"
+#endif
+
+  let jac_stop_watch = Stopwatch.StartNew()
+  if nruns_J>0 then   
+    let err2, J_transposed = compute_J_transposed param_in us_in data_in
+    for i = 1 to nruns_J-1 do
+      compute_J_transposed param_in us_in data_in
+    jac_stop_watch.Stop()
+    hand_d.write_J (fn_out + "_J_" + name + ".txt") (transpose J_transposed)
+        
+  let tf = ((float obj_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns_f)
+  let tJ = ((float jac_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns_J)
+  write_times (fn_out + "_times_" + name + ".txt") tf tJ
 #endif
 
 [<EntryPoint>]
@@ -189,7 +270,7 @@ let main argv =
 #if DO_BA
     test_ba (dir_in + fn) (dir_out + fn) nruns_f nruns_J
 #endif
-#if DO_HAND
+#if DO_HAND || DO_HAND_COMPLICATED
     test_hand (dir_in + "model/") (dir_in + fn) (dir_out + fn) nruns_f nruns_J
 #endif
     0

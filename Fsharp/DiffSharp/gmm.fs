@@ -64,8 +64,7 @@ let read_gmm_instance (fn:string) replicate_point =
 
 #if MODE_AD
 let write_grad (fn:string) (gradient:D[]) =
-#endif
-#if MODE_R
+#else
 let write_grad (fn:string) (gradient:float[]) =
 #endif
     let line1 = sprintf "1 %i\n" gradient.Length
