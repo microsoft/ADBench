@@ -13,7 +13,7 @@
     <Name>Theano</Name>
     <RootNamespace>Theano</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>..\..\hand\ ..\..\hand\ hand 1 1</CommandLineArguments>
+    <CommandLineArguments>..\..\hand\ ..\..\hand\ hand_complicated 1 1</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>True</IsWindowsApplication>
   </PropertyGroup>
@@ -39,6 +39,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Theano_hand.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Theano_hand_complicated.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Theano_vector.py" />

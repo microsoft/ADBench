@@ -14,6 +14,12 @@ import hand_io
 
 ############## Objective in theano ##################
 
+def get_identity(dim,dtype):
+    A = T.zeros((dim,dim),dtype=dtype)
+    for i in range(dim):
+        A = T.set_subtensor(A[i,i], 1.)
+    return A
+
 def to_pose_params(theta,nbones):
     pose_params = T.zeros((nbones+3,3),theta.dtype)
     
@@ -41,19 +47,19 @@ def euler_angles_to_rotation_matrix(xzy):
     ty = xzy[2]
     tz = xzy[1]
     
-    Rx = T.eye(3,dtype=tx.dtype)
+    Rx = get_identity(3,dtype=tx.dtype)
     Rx = T.set_subtensor(Rx[1,1],T.cos(tx))
     Rx = T.set_subtensor(Rx[2,1],T.sin(tx))
     Rx = T.set_subtensor(Rx[1,2],-Rx[2,1])
     Rx = T.set_subtensor(Rx[2,2],Rx[1,1])
     
-    Ry = T.eye(3,dtype=tx.dtype)
+    Ry = get_identity(3,dtype=tx.dtype)
     Ry = T.set_subtensor(Ry[0,0],T.cos(ty))
     Ry = T.set_subtensor(Ry[0,2],T.sin(ty))
     Ry = T.set_subtensor(Ry[2,0],-Ry[0,2])
     Ry = T.set_subtensor(Ry[2,2],Ry[0,0])
     
-    Rz = T.eye(3,dtype=tx.dtype)
+    Rz = get_identity(3,dtype=tx.dtype)
     Rz = T.set_subtensor(Rz[0,0],T.cos(tz))
     Rz = T.set_subtensor(Rz[1,0],T.sin(tz))
     Rz = T.set_subtensor(Rz[0,1],-Rz[1,0])
@@ -63,7 +69,7 @@ def euler_angles_to_rotation_matrix(xzy):
 
 def get_posed_relatives(pose_params,base_relatives):
     def inner(rot_param,base_relative):
-        tr = T.eye(4, dtype = base_relative.dtype)
+        tr = get_identity(4, dtype = base_relative.dtype)
         R = euler_angles_to_rotation_matrix(rot_param)
         tr = T.set_subtensor(tr[:3,:3], R)
         return T.dot(base_relative, tr)
@@ -85,7 +91,7 @@ def relatives_to_absolutes(relatives,parents):
     absolutes = T.zeros_like(relatives)
     # hack (parent == -1 accesses last element - we set it to zero)
     # Theano did not take ifselse here
-    absolutes = T.set_subtensor(absolutes[-1],T.eye(4,dtype=relatives.dtype))
+    absolutes = T.set_subtensor(absolutes[-1],get_identity(4,dtype=relatives.dtype))
     absolutes_timeline,_ = th.scan(fn=compute_absolute,
                           sequences=[T.arange(relatives.shape[0]),parents,relatives],
                           outputs_info=absolutes)
@@ -115,7 +121,7 @@ def angle_axis_to_rotation_matrix(angle_axis):
         R = T.set_subtensor(R[2,2], z*z+(1-z*z)*c)
         return R
 
-    return th.ifelse.ifelse(T.lt(n,.0001), T.eye(3, dtype=angle_axis.dtype), aa2R())
+    return th.ifelse.ifelse(T.lt(n,.0001), get_identity(3, dtype=angle_axis.dtype), aa2R())
 
 def apply_global_transform(pose_params,positions):
     R = angle_axis_to_rotation_matrix(pose_params[0])
@@ -143,20 +149,26 @@ def get_skinned_vertex_positions(pose_params,base_relatives,parents,inverse_base
 
     return positions
 
-def hand_objective(params,nbones,base_relatives,parents,inverse_base_absolutes,base_positions,
-                   weights,mirror_factor,points,correspondences):
-    pose_params = to_pose_params(params,nbones)
+def hand_objective_complicated(all_params,nbones,base_relatives,parents,inverse_base_absolutes,base_positions,
+                   weights,mirror_factor,points,correspondences,triangles):
+    npts = points.shape[0]
+    us = T.reshape(all_params[:2*npts],(npts,2))
+    theta = all_params[2*npts:]
+    pose_params = to_pose_params(theta,nbones)
     vertex_positions = get_skinned_vertex_positions(pose_params,base_relatives,parents,
                                                     inverse_base_absolutes,base_positions,
                                                     weights,mirror_factor)
 
-    err,_ = th.scan(fn=(lambda pt, i_vert : pt - vertex_positions[i_vert]),
-                    sequences=[points,correspondences],
+    def get_hand_pt(u,triangle):
+        return u[0]*vertex_positions[triangle[0]] + u[1]*vertex_positions[triangle[1]] + (1. - u[0] - u[1])*vertex_positions[triangle[2]]
+    
+    err,_ = th.scan(fn=(lambda u, pt, i_triangle : pt - get_hand_pt(u,triangles[i_triangle])),
+                    sequences=[us,points,correspondences],
                     outputs_info=None)
 
     return err
 
-params_ = T.dvector('params_')
+all_params_ = T.dvector('params_')
 parents_ = T.ivector('parents_')
 base_relatives_ = T.dtensor3('base_relatives_')
 inverse_base_absolutes_ = T.dtensor3('inverse_base_absolutes_')
@@ -167,24 +179,26 @@ nbones_ = T.iscalar('nbones_')
 mirror_factor_ = T.dscalar('mirror_factor_')
 correspondences_ = T.ivector('correspondences_')
 points_ = T.dmatrix('points_')
+triangles_ = T.imatrix('triangles_')
+seed_ = T.dvector('seed_')
 
 compile_mode = 'FAST_COMPILE'
 #compile_mode = 'FAST_RUN'
 th.config.linker='cvm'
 
 start = t.time()
-err_ = hand_objective(params_,nbones_,base_relatives_,parents_,inverse_base_absolutes_,base_positions_,
-                      weights_,mirror_factor_,points_,correspondences_)
-f = th.function([params_,nbones_,base_relatives_,parents_,inverse_base_absolutes_,base_positions_,
-                 weights_,mirror_factor_,points_,correspondences_], err_, mode=compile_mode)
+err_ = hand_objective_complicated(all_params_,nbones_,base_relatives_,parents_,inverse_base_absolutes_,base_positions_,
+                      weights_,mirror_factor_,points_,correspondences_,triangles_)
+f = th.function([all_params_,nbones_,base_relatives_,parents_,inverse_base_absolutes_,base_positions_,
+                 weights_,mirror_factor_,points_,correspondences_,triangles_], err_, mode=compile_mode)
 end = t.time()
 tf_compile = (end - start)
 print("tf_compile: %f" % tf_compile)
 
 start = t.time()
-jac = T.jacobian(T.flatten(err_),[params_])
-fjac = th.function([params_,nbones_,base_relatives_,parents_,inverse_base_absolutes_,base_positions_,
-                 weights_,mirror_factor_,points_,correspondences_], jac, mode=compile_mode)
+jac = T.Rop(T.flatten(err_),all_params_,seed_)
+fjac = th.function([all_params_,seed_,nbones_,base_relatives_,parents_,inverse_base_absolutes_,base_positions_,
+                 weights_,mirror_factor_,points_,correspondences_,triangles_], jac, mode=compile_mode)
 end = t.time()
 tJ_compile = (end - start)
 print("tJ_compile: %f" % tJ_compile)
@@ -204,7 +218,8 @@ for task_id in range(ntasks):
     fn_in = dir_in + fn
     fn_out = dir_out + fn
     
-    params, data = hand_io.read_hand_instance(model_dir, fn_in + ".txt", False)
+    params, us, data = hand_io.read_hand_instance(model_dir, fn_in + ".txt", True)
+    all_params = np.append(us.flatten(), params)
     if data.model.is_mirrored:
         mirror_factor = -1.
     else:
@@ -212,30 +227,40 @@ for task_id in range(ntasks):
 
     start = t.time()
     for i in range(nruns_f):
-        err = f(params, data.model.nbones, data.model.base_relatives, data.model.parents,
+        err = f(all_params, data.model.nbones, data.model.base_relatives, data.model.parents,
                 data.model.inverse_base_absolutes,data.model.base_positions,
                 data.model.weights,mirror_factor,data.points,
-                data.correspondences)
+                data.correspondences,data.model.triangles)
     end = t.time()
     tf = (end - start)/nruns_f
     print("err:")
     #print(err)
     
     name = "Theano"
+    
+    ntheta = params.shape[0]
+    npts = us.shape[0]
+    seed = np.zeros((2+ntheta,all_params.shape[0]),dtype=all_params.dtype)
+    for i in range(npts):
+        seed[0][2*i] = 1.
+        seed[1][2*i+1] = 1.
+    for i in range(ntheta):
+        seed[i+2][i+2*npts] = 1.
 
     tJ = 0
     if nruns_J > 0:
         start = t.time()
         for i in range(nruns_J):
-            J = fjac(params, data.model.nbones, data.model.base_relatives, data.model.parents,
+            J = np.array([fjac(all_params,curr_seed,data.model.nbones, data.model.base_relatives, data.model.parents,
                 data.model.inverse_base_absolutes,data.model.base_positions,
                 data.model.weights,mirror_factor,data.points,
-                data.correspondences)
+                data.correspondences,data.model.triangles)
+                    for curr_seed in seed]).transpose()
         end = t.time()
         tJ = ((end - start)/nruns_J) + tf ###!!!!!!!!! adding this because no function value is returned by fjac
         print("J:")
         #print(J)
-        hand_io.write_J(fn_out + "_J_" + name + ".txt",J[0])    
+        hand_io.write_J(fn_out + "_J_" + name + ".txt",J)    
     
     hand_io.write_times(fn_out + "_times_" + name + ".txt",tf,tJ)
 

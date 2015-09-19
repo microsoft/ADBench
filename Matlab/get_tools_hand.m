@@ -47,13 +47,13 @@ tools(end).col = cols('adept');
 tools(end).marker = markers('light');
 tools(end).call_type = 0;
 
-% tools(end+1).name = 'Theano';
-% tools(end).exe = [python_dir,'Theano/Theano_ba.py'];
-% tools(end).run_cmd = ['python.exe ' tools(end).exe];
-% tools(end).ext = 'Theano';
-% tools(end).col = cols(unused_col_id,:); unused_col_id = unused_col_id + 1;
-% tools(end).marker = markers{1};
-% tools(end).call_type = 1;
+tools(end+1).name = 'Theano';
+tools(end).exe = [python_dir,'Theano/Theano_hand.py'];
+tools(end).run_cmd = ['python.exe ' tools(end).exe];
+tools(end).ext = 'Theano';
+tools(end).col = cols('theano');
+tools(end).marker = markers('');
+tools(end).call_type = 1;
 
 tools(end+1).name = 'Ceres, light';
 tools(end).exe = [exe_dir,'Ceres/Ceres_light1.exe'];
