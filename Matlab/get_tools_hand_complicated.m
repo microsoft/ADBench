@@ -87,10 +87,10 @@ tools(end).col = cols('diffsharp');
 tools(end).marker = markers('');
 tools(end).call_type = 0;
 
-% tools(end+1).name = 'AdiMat, F';
-% tools(end).exe = 'hand_objective.m';
-% tools(end).ext = 'adimat';
-% tools(end).col = cols(unused_col_id,:); unused_col_id = unused_col_id + 1;
-% tools(end).marker = markers{1};
-% tools(end).call_type = 3;
+tools(end+1).name = 'AdiMat, F';
+tools(end).exe = 'hand_objective_complicated.m';
+tools(end).ext = 'adimat';
+tools(end).col = cols('adimat');
+tools(end).marker = markers('');
+tools(end).call_type = 3;
 

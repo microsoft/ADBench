@@ -3,7 +3,8 @@ function [times_f, times_J, times_sparse] = ...
     nruns_f,nruns_J,times_file)
 
 isba = strcmp(problem_name,'ba');
-ishand = strcmp(problem_name,'hand');
+ishandsimple = strcmp(problem_name,'handsimple');
+ishandcomplicated = strcmp(problem_name,'handcomplicated');
 
 ntasks = numel(task_fns);
 times_f = Inf(1,ntasks);
@@ -31,9 +32,12 @@ if isba
         adimat_translate_if_new(@ba_compute_reproj_err, [1 2 3], do_F_mode);
         adimat_translate_if_new(@compute_w_err, [1], do_F_mode);
     end
-elseif ishand
+elseif ishandsimple
     do_F_mode = true;
     adimat_translate_if_new(@hand_objective, [1], do_F_mode);
+elseif ishandcomplicated
+    do_F_mode = true;
+    adimat_translate_if_new(@hand_objective_complicated, [1 2], do_F_mode);
 end
 
 for i=1:ntasks
@@ -41,10 +45,14 @@ for i=1:ntasks
     if isba
         [cams, X, w, obs] = load_ba_instance([data_dir task_fns{i} '.txt']);
         run_objective = @() ba_objective(cams,X,w,obs);
-    elseif ishand
+    elseif ishandsimple
         [params, data] = load_hand_instance(fullfile(data_dir,'model'),...
             fullfile(data_dir,[task_fns{i} '.txt']));
         run_objective = @() hand_objective(params, data);
+    elseif ishandcomplicated
+        [params, data, us] = load_hand_instance(fullfile(data_dir,'model'),...
+            fullfile(data_dir,[task_fns{i} '.txt']));
+        run_objective = @() hand_objective_complicated(params, us, data);
     end
     
     nruns_curr_f = nruns_f(i);
@@ -89,9 +97,12 @@ for i=1:ntasks
             if isba
                 run_objective_d = @() adimat_run_ba(do_F_mode,...
                     cams,X,w,obs);
-            elseif ishand
+            elseif ishandsimple
                 run_objective_d = @() adimat_run_hand(do_F_mode,...
                     params,data);
+            elseif ishandcomplicated
+                run_objective_d = @() adimat_run_hand(do_F_mode,...
+                    params,data,us);
             end
         end
         
