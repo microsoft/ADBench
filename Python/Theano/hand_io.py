@@ -75,7 +75,7 @@ def load_model(path):
 
     return result
 
-def read_hand_instance(model_dir, fn):
+def read_hand_instance(model_dir, fn, read_us):
     model = load_model(model_dir)
 
     fid = open(fn, "r")
@@ -90,15 +90,32 @@ def read_hand_instance(model_dir, fn):
 
     points = np.array([[float(line[i]) for i in range(1,len(line))] for line in lines])
     
+    if read_us:
+        us = np.array([[float(elem) for elem in fid.readline().split()] for i_pt in range(npts)])
+
     params = np.array([float(fid.readline()) for i in range(ntheta)])
     fid.close()
 
     data = HandData(model, correspondences, points)
 
-    return params, data
+    if read_us:
+        return params, us, data
+    else:
+        return params, data
 
 def write_times(fn,tf,tJ):
     fid = open(fn, "w")
     print("%f %f" % (tf,tJ) , file = fid)
     print("tf tJ" , file = fid)
+    fid.close()
+    
+def write_J(fn,J):
+    fid = open(fn, "w")
+    print("%i %i" % (J.shape[0],J.shape[1]) , file = fid)
+    line = ""
+    for row in J:
+        for elem in row:
+            line += ("%f " % elem)
+        line += "\n"
+    print(line,file = fid)
     fid.close()

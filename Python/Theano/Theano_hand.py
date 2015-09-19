@@ -158,6 +158,22 @@ def hand_objective(params,nbones,base_relatives,parents,inverse_base_absolutes,b
 
     return err
 
+def hand_objective_complicated(params,us,nbones,base_relatives,parents,inverse_base_absolutes,base_positions,
+                   weights,mirror_factor,points,correspondences,triangles):
+    pose_params = to_pose_params(params,nbones)
+    vertex_positions = get_skinned_vertex_positions(pose_params,base_relatives,parents,
+                                                    inverse_base_absolutes,base_positions,
+                                                    weights,mirror_factor)
+
+    def get_hand_pt(u,triangle):
+        return u[0]*vertex_positions[triangle[0]] + u[1]*vertex_positions[triangle[1]] + (1. - u[0] - u[1])*vertex_positions[triangle[2]]
+    
+    err,_ = th.scan(fn=(lambda u, pt, i_triangle : pt - get_hand_pt(u,triangles[i_triangle])),
+                    sequences=[us,points,correspondences],
+                    outputs_info=None)
+
+    return err
+
 params_ = T.dvector('params_')
 parents_ = T.ivector('parents_')
 base_relatives_ = T.dtensor3('base_relatives_')
@@ -185,13 +201,13 @@ end = t.time()
 tf_compile = (end - start)
 print("tf_compile: %f" % tf_compile)
 
-#start = t.time()
-#jac = T.jacobian(T.flatten(err_),[params_])
-#fjac = th.function([params_,nbones_,base_relatives_,parents_,inverse_base_absolutes_,base_positions_,
-#                 weights_,mirror_factor_,points_,correspondences_], jac, mode=compile_mode)
-#end = t.time()
-#tJ_compile = (end - start)
-#print("tJ_compile: %f" % tJ_compile)
+start = t.time()
+jac = T.jacobian(T.flatten(err_),[params_])
+fjac = th.function([params_,nbones_,base_relatives_,parents_,inverse_base_absolutes_,base_positions_,
+                 weights_,mirror_factor_,points_,correspondences_], jac, mode=compile_mode)
+end = t.time()
+tJ_compile = (end - start)
+print("tJ_compile: %f" % tJ_compile)
 
 ntasks = (len(sys.argv)-1)//5
 for task_id in range(ntasks):
@@ -208,7 +224,7 @@ for task_id in range(ntasks):
     fn_in = dir_in + fn
     fn_out = dir_out + fn
     
-    params, data = hand_io.read_hand_instance(model_dir, fn_in + ".txt")
+    params, data = hand_io.read_hand_instance(model_dir, fn_in + ".txt", False)
     if data.model.is_mirrored:
         mirror_factor = -1.
     else:
@@ -223,22 +239,24 @@ for task_id in range(ntasks):
     end = t.time()
     tf = (end - start)/nruns_f
     print("err:")
-    print(err)
+    #print(err)
     
     name = "Theano"
 
-    #tJ = 0
-    #if nruns_J > 0:
-    #    start = t.time()
-    #    for i in range(nruns_J):
-    #        J = fjac(params, data.model.nbones, data.model.base_relatives, data.model.parents,
-    #            data.model.inverse_base_absolutes,data.model.base_positions,
-    #            data.model.weights,mirror_factor,data.points,
-    #            data.correspondences)
-    #    end = t.time()
-    #    tJ = ((end - start)/nruns_J) + tf ###!!!!!!!!! adding this because no function value is returned by fgrad
-    #    #gmm_io.write_J(fn_out + "_J_" + name + ".txt",J)    
+    tJ = 0
+    if nruns_J > 0:
+        start = t.time()
+        for i in range(nruns_J):
+            J = fjac(params, data.model.nbones, data.model.base_relatives, data.model.parents,
+                data.model.inverse_base_absolutes,data.model.base_positions,
+                data.model.weights,mirror_factor,data.points,
+                data.correspondences)
+        end = t.time()
+        tJ = ((end - start)/nruns_J) + tf ###!!!!!!!!! adding this because no function value is returned by fgrad
+        print("J:")
+        #print(J)
+        hand_io.write_J(fn_out + "_J_" + name + ".txt",J[0])    
     
-#    gmm_io.write_times(fn_out + "_times_" + name + ".txt",tf,tJ)
+    hand_io.write_times(fn_out + "_times_" + name + ".txt",tf,tJ)
 
 
