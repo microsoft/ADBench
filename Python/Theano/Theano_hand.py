@@ -76,13 +76,18 @@ def get_posed_relatives(pose_params,base_relatives):
     
     return relatives
 
+### warning, this function contains hack ###
 def relatives_to_absolutes(relatives,parents):
     def compute_absolute(i,parent,relative,absolutes):
-        absolutes = T.set_subtensor(absolutes[i], 
-                                    th.ifelse.ifelse(T.eq(parent,-1), relative, T.dot(absolutes[parent],relative)))
+        # hack (parent == -1 accesses last element - we set it to zero)
+        # Theano did not take ifselse here
+        absolutes = T.set_subtensor(absolutes[i],T.dot(absolutes[parent],relative)) 
         return absolutes
 
     absolutes = T.zeros_like(relatives)
+    # hack (parent == -1 accesses last element - we set it to zero)
+    # Theano did not take ifselse here
+    absolutes = T.set_subtensor(absolutes[-1],T.eye(4,dtype=relatives.dtype))
     absolutes_timeline,_ = th.scan(fn=compute_absolute,
                           sequences=[T.arange(relatives.shape[0]),parents,relatives],
                           outputs_info=absolutes)
@@ -124,11 +129,12 @@ def apply_global_transform(pose_params,positions):
 def get_skinned_vertex_positions(pose_params,base_relatives,parents,inverse_base_absolutes,
                                  base_positions,weights,mirror_factor):
     relatives = get_posed_relatives(pose_params,base_relatives)
+
     absolutes = relatives_to_absolutes(relatives,parents)
 
     transforms,_ = th.scan(fn=(lambda A, B : T.dot(A,B)),
                            sequences=[absolutes,inverse_base_absolutes])
-
+    
     positions = T.tensordot(transforms,base_positions,[2, 1]).dimshuffle((2,0,1))
 
     positions = (positions * weights[:,:,np.newaxis]).sum(axis=1)[:,:3]
@@ -180,8 +186,9 @@ tf_compile = (end - start)
 print("tf_compile: %f" % tf_compile)
 
 #start = t.time()
-#grad = T.grad(err_,[alphas_, means_, icf_])
-#fgrad = th.function([alphas_, means_, icf_, x_, wishart_gamma_, wishart_m_], grad, mode=compile_mode)
+#jac = T.jacobian(T.flatten(err_),[params_])
+#fjac = th.function([params_,nbones_,base_relatives_,parents_,inverse_base_absolutes_,base_positions_,
+#                 weights_,mirror_factor_,points_,correspondences_], jac, mode=compile_mode)
 #end = t.time()
 #tJ_compile = (end - start)
 #print("tJ_compile: %f" % tJ_compile)
@@ -220,14 +227,17 @@ for task_id in range(ntasks):
     
     name = "Theano"
 
-#    tJ = 0
-#    if nruns_J > 0:
-#        start = t.time()
-#        for i in range(nruns_J):
-#            J = compute_J(alphas,means,icf,x,wishart_gamma,wishart_m)
-#        end = t.time()
-#        tJ = ((end - start)/nruns_J) + tf ###!!!!!!!!! adding this because no function value is returned by fgrad
-#        gmm_io.write_J(fn_out + "_J_" + name + ".txt",J)    
+    #tJ = 0
+    #if nruns_J > 0:
+    #    start = t.time()
+    #    for i in range(nruns_J):
+    #        J = fjac(params, data.model.nbones, data.model.base_relatives, data.model.parents,
+    #            data.model.inverse_base_absolutes,data.model.base_positions,
+    #            data.model.weights,mirror_factor,data.points,
+    #            data.correspondences)
+    #    end = t.time()
+    #    tJ = ((end - start)/nruns_J) + tf ###!!!!!!!!! adding this because no function value is returned by fgrad
+    #    #gmm_io.write_J(fn_out + "_J_" + name + ".txt",J)    
     
 #    gmm_io.write_times(fn_out + "_times_" + name + ".txt",tf,tJ)
 
