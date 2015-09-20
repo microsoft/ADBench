@@ -19,12 +19,24 @@ msz = 7;
 [xvals, order] = sort(xvals);
 
 figure; 
-for i=1:numel(tools)
+to_show = 1:numel(tools); % all
+% to_show=[1 2 3 4 10 11 14 16 18 19 20 21 22]; % unique languages for gmm
+% to_show = [1:3 4:2:9 10:14 16 18 19 21:23]; % gmm non-split
+% to_show = [1:4 6:8 10:numel(tools)]; % gmm 1k to show
+% to_show = [1:4 6:numel(tools)]; % gmm 10k to show
+emphasized = [];
+% emphasized = [11 17 22];
+for i=to_show
     properties = {'linewidth',lw,'markersize',msz,...
             'color',tools(i).col,'marker',tools(i).marker};
     if tools(i).call_type == 6
         properties{end+1} = 'linestyle';
         properties{end+1} = '--';
+    end
+    if ismember(i,emphasized)
+        properties{2} = 2*lw;
+        properties{end+1} = 'markersize';
+        properties{end+1} = 15;
     end
     loglog(xvals, times(order, i),properties{:});
     hold on
@@ -36,11 +48,14 @@ end
 %     plot(a,a.^2/50000,'color',[.7 .7 .7])
 % end
 
-legend(tools.name, 'location', 'nw');
+legend(tools(to_show).name, 'location', 'nw');
 set(gca,'FontSize',14,'xscale','log','yscale','log')
 xlim([min(xvals) max(xvals)])
 title(title_)
+% title('Gradient Absolute Runtimes - 1k Data Points')
+% title('Gradient Relative Runtimes - 2.5M Data Points^{[Zoran & Weiss, ICCV 11]}')
 xlabel('# nonzero entries')
+% xlabel('# parameters')
 ylabel(ylabel_)
 
 end

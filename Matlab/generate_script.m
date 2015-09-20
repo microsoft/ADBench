@@ -2,9 +2,9 @@
 exe_dir = 'C:/Users/t-filsra/Workspace/autodiff/Release/gmm/';
 python_dir = 'C:/Users/t-filsra/Workspace/autodiff/Python/';
 julia_dir = 'C:/Users/t-filsra/Workspace/autodiff/Julia/';
-data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/1k/'; replicate_point = false;
+% data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/1k/'; replicate_point = false;
 % data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/10k/'; replicate_point = false;
-% data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/2.5M/'; replicate_point = true;
+data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/2.5M/'; replicate_point = true;
 data_dir_est = [data_dir 'est/'];
 npoints = 2.5e6;
 problem_name='gmm';
@@ -232,13 +232,13 @@ plot_log_runtimes(tools,times_J,x,...
     'Jacobian runtimes','runtime [seconds]',true);
 
 plot_log_runtimes(tools,times_J_relative,x,...
-    'Jacobian runtimes relative to Manual, C++','runtime',false);
+    'Jacobian runtimes relative to Manual, C++','relative runtime',false);
 
 plot_log_runtimes(tools,times_f,x,...
     'objective runtimes','runtime [seconds]',true);
 
 plot_log_runtimes(tools,times_f_relative,x,...
-    'objective runtimes relative to Manual, C++','runtime',false);
+    'objective runtimes relative to Manual, C++','relative runtime',false);
 
 %% do 2D plots
 tool_id = adimat_id-1;
