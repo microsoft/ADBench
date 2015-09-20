@@ -69,7 +69,7 @@ tools(end).marker = markers('light');
 tools(end).call_type = 0;
 cpp_objective_ids = [cpp_objective_ids numel(tools)];
 
-tools(end+1).name = 'Theano';
+tools(end+1).name = 'Theano (R-op)';
 tools(end).exe = [python_dir,'Theano/Theano_hand_complicated.py'];
 tools(end).run_cmd = ['python.exe ' tools(end).exe];
 tools(end).ext = 'Theano';
