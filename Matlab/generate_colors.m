@@ -13,4 +13,6 @@ cols_map('adimat') = [0 158 115]/255; % bluish green
 cols_map('mupad') = [.8 0 .8]; % magenta
 cols_map('julia_f') = [0.6 0.5 0.1]; % brown
 
+cols_map('finite_differences') = [0.5 0.5 0.5]; 
+
 end

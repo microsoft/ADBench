@@ -20,8 +20,13 @@ msz = 7;
 
 figure; 
 for i=1:numel(tools)
-    loglog(xvals, times(order, i),'linewidth',lw,'markersize',msz,...
-        'color',tools(i).col,'marker',tools(i).marker);
+    properties = {'linewidth',lw,'markersize',msz,...
+            'color',tools(i).col,'marker',tools(i).marker};
+    if tools(i).call_type == 6
+        properties{end+1} = 'linestyle';
+        properties{end+1} = '--';
+    end
+    loglog(xvals, times(order, i),properties{:});
     hold on
 end
 

@@ -13,7 +13,7 @@ markers = generate_symbols();
 
 % tools
 tools = {};
-unused_col_id = 1;
+cpp_objective_ids = [];
 
 % tools(end+1).name = 'manual, C++';
 % tools(end).exe = [exe_dir,'Manual_cpp.exe'];
@@ -46,6 +46,7 @@ tools(end).ext = 'ADOLC';
 tools(end).col = cols('adolc');
 tools(end).marker = markers('');
 tools(end).call_type = 0;
+cpp_objective_ids = [cpp_objective_ids numel(tools)];
 
 tools(end+1).name = 'ADOLC (autosparse)';
 tools(end).exe = [exe_dir,'ADOLC_sparse.exe'];
@@ -54,6 +55,7 @@ tools(end).ext = 'ADOLC_sparse';
 tools(end).col = cols('adolc');
 tools(end).marker = markers('sparse');
 tools(end).call_type = 0;
+cpp_objective_ids = [cpp_objective_ids numel(tools)];
 
 tools(end+1).name = 'ADOLC, Eigen';
 tools(end).exe = [exe_dir,'ADOLC_eigen.exe'];
@@ -78,6 +80,7 @@ tools(end).ext = 'Adept';
 tools(end).col = cols('adept');
 tools(end).marker = markers('');
 tools(end).call_type = 0;
+cpp_objective_ids = [cpp_objective_ids numel(tools)];
 
 tools(end+1).name = 'Theano';
 tools(end).exe = [python_dir,'Theano/Theano_ba.py'];
@@ -94,6 +97,7 @@ tools(end).ext = 'Ceres';
 tools(end).col = cols('ceres');
 tools(end).marker = markers('');
 tools(end).call_type = 0;
+cpp_objective_ids = [cpp_objective_ids numel(tools)];
 
 tools(end+1).name = 'DiffSharp';
 tools(end).exe = [exe_dir,'DiffSharp/DiffSharpTests.exe'];
@@ -148,3 +152,8 @@ tools(end).col = cols('julia_f');
 tools(end).marker = markers('');
 tools(end).call_type = 0;
 
+tools(end+1).name = 'Finite differences, C++';
+tools(end).col = cols('finite_differences');
+tools(end).marker = markers('');
+tools(end).cpp_objective_ids = cpp_objective_ids;
+tools(end).call_type = 6;

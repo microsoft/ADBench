@@ -13,7 +13,7 @@ markers = generate_symbols();
 
 % tools
 tools = {};
-unused_col_id = 1;
+cpp_objective_ids = [];
 
 tools(end+1).name = 'manual, Eigen';
 tools(end).exe = [exe_dir,'Manual_eigen.exe'];
@@ -22,6 +22,7 @@ tools(end).ext = 'manual_eigen';
 tools(end).col = cols('manual');
 tools(end).marker = markers('eigen');
 tools(end).call_type = 0;
+cpp_objective_ids = [cpp_objective_ids numel(tools)];
 
 tools(end+1).name = 'ADOLC, light';
 tools(end).exe = [exe_dir,'ADOLC_light.exe'];
@@ -30,6 +31,7 @@ tools(end).ext = 'ADOLC_light';
 tools(end).col = cols('adolc');
 tools(end).marker = markers('light');
 tools(end).call_type = 0;
+cpp_objective_ids = [cpp_objective_ids numel(tools)];
 
 tools(end+1).name = 'ADOLC, Eigen';
 tools(end).exe = [exe_dir,'ADOLC_eigen.exe'];
@@ -38,6 +40,7 @@ tools(end).ext = 'ADOLC_eigen';
 tools(end).col = cols('adolc');
 tools(end).marker = markers('eigen');
 tools(end).call_type = 0;
+cpp_objective_ids = [cpp_objective_ids numel(tools)];
 
 tools(end+1).name = 'Adept, light';
 tools(end).exe = [exe_dir,'Adept_light.exe'];
@@ -46,6 +49,7 @@ tools(end).ext = 'Adept_light';
 tools(end).col = cols('adept');
 tools(end).marker = markers('light');
 tools(end).call_type = 0;
+cpp_objective_ids = [cpp_objective_ids numel(tools)];
 
 tools(end+1).name = 'Theano';
 tools(end).exe = [python_dir,'Theano/Theano_hand.py'];
@@ -62,6 +66,7 @@ tools(end).ext = 'Ceres_light';
 tools(end).col = cols('ceres');
 tools(end).marker = markers('light');
 tools(end).call_type = 2;
+cpp_objective_ids = [cpp_objective_ids numel(tools)];
 
 tools(end+1).name = 'Ceres, Eigen';
 tools(end).exe = [exe_dir,'Ceres/Ceres_eigen1.exe'];
@@ -70,6 +75,7 @@ tools(end).ext = 'Ceres_eigen';
 tools(end).col = cols('ceres');
 tools(end).marker = markers('eigen');
 tools(end).call_type = 2;
+cpp_objective_ids = [cpp_objective_ids numel(tools)];
 
 tools(end+1).name = 'DiffSharp';
 tools(end).exe = [exe_dir,'DiffSharp/DiffSharpTests.exe'];
@@ -101,4 +107,10 @@ tools(end).ext = 'Julia_F';
 tools(end).col = cols('julia_f');
 tools(end).marker = markers('');
 tools(end).call_type = 0;
+
+tools(end+1).name = 'Finite differences, C++';
+tools(end).col = cols('finite_differences');
+tools(end).marker = markers('');
+tools(end).cpp_objective_ids = cpp_objective_ids;
+tools(end).call_type = 6;
 

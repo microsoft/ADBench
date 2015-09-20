@@ -2,9 +2,9 @@
 exe_dir = 'C:/Users/t-filsra/Workspace/autodiff/Release/gmm/';
 python_dir = 'C:/Users/t-filsra/Workspace/autodiff/Python/';
 julia_dir = 'C:/Users/t-filsra/Workspace/autodiff/Julia/';
-% data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/1k/'; replicate_point = false;
+data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/1k/'; replicate_point = false;
 % data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/10k/'; replicate_point = false;
-data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/2.5M/'; replicate_point = true;
+% data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/2.5M/'; replicate_point = true;
 data_dir_est = [data_dir 'est/'];
 npoints = 2.5e6;
 problem_name='gmm';
@@ -204,6 +204,15 @@ end
 %% read final times
 [times_f,times_J] = ...
     read_times(data_dir,data_dir,fns,tools,problem_name);
+
+% add finite differences times
+for i=1:ntools
+    if tools(i).call_type == 6
+        nparams=[params{:}]; nparams=nparams(3:3:end);
+        [times_f(:,i), times_J(:,i)] = compute_finite_diff_times_J(tools(i),...
+            nparams,times_f);
+    end
+end
 
 times_f_relative = bsxfun(@rdivide,times_f,times_f(:,manual_cpp_id));
 times_f_relative(isnan(times_f_relative)) = Inf;

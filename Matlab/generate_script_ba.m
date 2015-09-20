@@ -141,6 +141,15 @@ end
 [times_f,times_J] = ...
     read_times(data_dir,data_dir_est,fns,tools,problem_name);
 
+% add finite differences times
+for i=1:ntools
+    if tools(i).call_type == 6
+        nparams = repmat(11+3+1,1,numel(params));
+        [times_f(:,i), times_J(:,i)] = compute_finite_diff_times_J(tools(i),...
+            nparams,times_f);
+    end
+end
+
 times_f_relative = bsxfun(@rdivide,times_f,times_f(:,manual_eigen_id));
 times_f_relative(isnan(times_f_relative)) = Inf;
 times_f_relative(times_f_relative==0) = Inf;

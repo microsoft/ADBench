@@ -6,14 +6,15 @@ function tools = get_tools(exe_dir,python_dir,julia_dir)
 %   3 adimat
 %   4 adimat vectorized
 %   5 mupad
+%   6 finite differences
 
 % markers
 cols = generate_colors();
 markers = generate_symbols();
 
 % tools
+cpp_objective_ids = [];
 tools = {};
-unused_col_id = 1;
 tools(end+1).name = 'manual, C++';
 tools(end).exe = [exe_dir,'Manual_cpp.exe'];
 tools(end).run_cmd = tools(end).exe;
@@ -21,6 +22,7 @@ tools(end).ext = 'manual_cpp';
 tools(end).col = cols('manual');
 tools(end).marker = markers('');
 tools(end).call_type = 0;
+cpp_objective_ids = [cpp_objective_ids numel(tools)];
 
 tools(end+1).name = 'manual, Eigen';
 tools(end).exe = [exe_dir,'Manual_eigen.exe'];
@@ -61,6 +63,7 @@ tools(end).ext = 'ADOLC';
 tools(end).col = cols('adolc');
 tools(end).marker = markers('');
 tools(end).call_type = 0;
+cpp_objective_ids = [cpp_objective_ids numel(tools)];
 
 tools(end+1).name = 'ADOLC, R (split)';
 tools(end).exe = [exe_dir,'ADOLC_split.exe'];
@@ -69,6 +72,7 @@ tools(end).ext = 'ADOLC_split';
 tools(end).col = cols('adolc');
 tools(end).marker = markers('split');
 tools(end).call_type = 0;
+cpp_objective_ids = [cpp_objective_ids numel(tools)];
 
 tools(end+1).name = 'Adept, R';
 tools(end).exe = [exe_dir,'Adept.exe'];
@@ -77,6 +81,7 @@ tools(end).ext = 'Adept';
 tools(end).col = cols('adept');
 tools(end).marker = markers('');
 tools(end).call_type = 0;
+cpp_objective_ids = [cpp_objective_ids numel(tools)];
 
 tools(end+1).name = 'Adept, R (split)';
 tools(end).exe = [exe_dir,'Adept_split.exe'];
@@ -85,6 +90,7 @@ tools(end).ext = 'Adept_split';
 tools(end).col = cols('adept');
 tools(end).marker = markers('split');
 tools(end).call_type = 0;
+cpp_objective_ids = [cpp_objective_ids numel(tools)];
 
 tools(end+1).name = 'Theano';
 tools(end).exe = [python_dir,'Theano/Theano.py'];
@@ -109,6 +115,7 @@ tools(end).ext = 'Ceres';
 tools(end).col = cols('ceres');
 tools(end).marker = markers('');
 tools(end).call_type = 2;
+cpp_objective_ids = [cpp_objective_ids numel(tools)];
 
 tools(end+1).name = 'DiffSharp';
 tools(end).exe = [exe_dir,'DiffSharp/DiffSharpTests.exe'];
@@ -186,3 +193,9 @@ tools(end).ext = 'Julia_F_vector';
 tools(end).col = cols('julia_f');
 tools(end).marker = markers('vector');
 tools(end).call_type = 0;
+
+tools(end+1).name = 'Finite differences, C++';
+tools(end).col = cols('finite_differences');
+tools(end).marker = markers('');
+tools(end).cpp_objective_ids = cpp_objective_ids;
+tools(end).call_type = 6;
