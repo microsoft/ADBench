@@ -59,6 +59,14 @@ tools(end).col = cols('theano');
 tools(end).marker = markers('');
 tools(end).call_type = 1;
 
+tools(end+1).name = 'Theano (R-op)';
+tools(end).exe = [python_dir,'Theano/Theano_hand_simple_Rop.py'];
+tools(end).run_cmd = ['python.exe ' tools(end).exe];
+tools(end).ext = 'Theano_rop';
+tools(end).col = cols('theano');
+tools(end).marker = markers('r-op');
+tools(end).call_type = 1;
+
 tools(end+1).name = 'Ceres, light';
 tools(end).exe = [exe_dir,'Ceres/Ceres_light1.exe'];
 tools(end).run_cmd = [exe_dir,'Ceres/Ceres_light'];

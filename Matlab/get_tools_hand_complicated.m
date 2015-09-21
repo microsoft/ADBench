@@ -74,7 +74,7 @@ tools(end).exe = [python_dir,'Theano/Theano_hand_complicated.py'];
 tools(end).run_cmd = ['python.exe ' tools(end).exe];
 tools(end).ext = 'Theano';
 tools(end).col = cols('theano');
-tools(end).marker = markers('');
+tools(end).marker = markers('r-op');
 tools(end).call_type = 1;
 
 tools(end+1).name = 'DiffSharp';

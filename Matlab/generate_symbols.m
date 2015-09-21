@@ -12,5 +12,6 @@ symbols_map('eigen_sparse') = 'diamond';
 symbols_map('light') = '<';
 symbols_map('light_tapeless') = '*';
 symbols_map('eigen_tapeless') = 'diamond';
+symbols_map('r-op') = 'o';
 
 end
