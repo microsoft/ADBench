@@ -94,7 +94,10 @@ let compute_ba_J (cams:_[][]) (X:_[][]) (w:_[]) (obs:int[][]) (feats:float[][]) 
     let compute_reproj_err_J_block (cam:_[]) (X:_[]) (w:_) (feat:float[]) =
         let compute_reproj_err_wrapper_ parameters = 
             ba.compute_reproj_err_wrapper parameters feat
-        jacobian' compute_reproj_err_wrapper_ (ba.vectorize cam X w)
+        let err_D, J_D = (jacobian' compute_reproj_err_wrapper_ (ba.vectorize cam X w))
+        let err = Array.map (float) err_D
+        let J = Array2D.map (float) J_D
+        err, J
     let compute_w_err_d = 
         diff' ba.compute_zach_weight_error_
 
