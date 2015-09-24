@@ -1,37 +1,4 @@
-# User-specific files
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
-
-# Visual C++ cache files
-ipch/
-*.aps
-*.ncb
-*.opensdf
-*.sdf
-*.cachefile
-
-# Build results
-[Dd]ebug/
-[Dd]ebugPublic/
-[Rr]elease/
-[Rr]eleases/
-x64/
-x86/
-build/
-bld/
-[Oo]bj/
-
-# Compiled source #
-
-###################
-
-*.com
-*.class
-*.sdf
-*.exe
-*.o
-*.so
-
-
+x64
+/Adept/lib/Debug/vxl
+/packages
+/Ceres/lib/ceres-debug.lib

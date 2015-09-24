@@ -44,6 +44,9 @@
     <Compile Include="Theano_hand_complicated.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Theano_hand_simple_Rop.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Theano_vector.py" />
     <Compile Include="Theano_experimenting.py" />
     <Compile Include="Theano.py" />

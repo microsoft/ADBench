@@ -1,10 +1,8 @@
-.adimat/
-adimat-0.6.0-4971/
-adigator/
-awful/
-old/
+.adimat
+/adigator/
 *.asv
-foo.m
-d_foo.m
-run_tools*
-run_experiments*
+/foo.m
+/d_foo.m
+/run_tools*
+/run_experiments*
+*.mexw64

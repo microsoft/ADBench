@@ -40,10 +40,12 @@ function err = example_gmm_objective(params, data, get_lse_offset)
 
 if nargin == 0
   %%
+    addpath('..')
+    addpath('../awful/matlab')
   
   % Make a small random GMM
-  d = 20;
-  K = 5;
+  d = 2;
+  K = 2;
   params.log_alphas = randn(K,1);
   params.means = au_map(@(i) rand(d,1), cell(K,1));
   params.inv_cov_factors = au_map(@(i) randn(d*(d+1)/2,1), cell(K,1));

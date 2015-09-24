@@ -7,8 +7,8 @@ data_dir = 'C:/Users/t-filsra/Workspace/autodiff/hand_instances/';
 problem_level = 'complicated';
 data_dir = [data_dir problem_level];
 exe_dir = [exe_dir '_' problem_level '/'];
-data_dir = [data_dir '_small/'];
-% data_dir = [data_dir '_big/'];
+% data_dir = [data_dir '_small/'];
+data_dir = [data_dir '_big/'];
 data_dir_est = [data_dir 'est/'];
 replicate_point = false;
 problem_name = 'hand';
@@ -107,28 +107,28 @@ for i=1:ntools
 end
 
 %% Transport runtimes
-% load([data_dir_est 'estimates_backup.mat']);
-% [times_fixed_f,times_fixed_J] = ...
-%     read_times(data_dir,'-',fns,tools,problem_name);
-% mask_f = (nruns_f==0) & ~up_to_date_mask & ~isinf(times_est_f);
-% mask_J = (nruns_J==0) & ~up_to_date_mask & ~isinf(times_est_J);
-% times_fixed_f(mask_f) = times_est_f(mask_f);
-% times_fixed_J(mask_J) = times_est_J(mask_J);
-% for i=1:ntools
-%     if tools(i).call_type < 3
-%         postfix = ['_times_' tools(i).ext '.txt'];
-%         for j=1:ntasks
-%             if any([mask_f(j,i) mask_J(j,i)])
-%                 fn = [data_dir fns{j} postfix];
-%                 fid = fopen(fn,'w');
-%                 fprintf(fid,'%f %f\n',times_fixed_f(j,i),times_fixed_J(j,i));
-%                 fprintf(fid,'tf tJ');
-%                 fclose(fid);
-%             end
-%         end
-%     end
-% end
-% 
+load([data_dir_est 'estimates_backup.mat']);
+[times_fixed_f,times_fixed_J] = ...
+    read_times(data_dir,'-',fns,tools,problem_name);
+mask_f = (nruns_f==0) & ~up_to_date_mask & ~isinf(times_est_f);
+mask_J = (nruns_J==0) & ~up_to_date_mask & ~isinf(times_est_J);
+times_fixed_f(mask_f) = times_est_f(mask_f);
+times_fixed_J(mask_J) = times_est_J(mask_J);
+for i=1:ntools
+    if tools(i).call_type < 3
+        postfix = ['_times_' tools(i).ext '.txt'];
+        for j=1:ntasks
+            if any([mask_f(j,i) mask_J(j,i)])
+                fn = [data_dir fns{j} postfix];
+                fid = fopen(fn,'w');
+                fprintf(fid,'%f %f\n',times_fixed_f(j,i),times_fixed_J(j,i));
+                fprintf(fid,'tf tJ');
+                fclose(fid);
+            end
+        end
+    end
+end
+
 %% read final times
 [times_f,times_J] = ...
     read_times(data_dir,data_dir_est,fns,tools,problem_name);
@@ -149,11 +149,21 @@ end
 times_f_relative = bsxfun(@rdivide,times_f,times_f(:,manual_eigen_id));
 times_f_relative(isnan(times_f_relative)) = Inf;
 times_f_relative(times_f_relative==0) = Inf;
-% times_relative = times_J./times_f;
-times_J_relative = bsxfun(@rdivide,times_J,times_J(:,manual_eigen_id));
+times_J_relative = times_J./times_f;
+% times_J_relative = bsxfun(@rdivide,times_J,times_J(:,manual_eigen_id));
 times_J_relative(isnan(times_J_relative)) = Inf;
 times_J_relative(times_J_relative==0) = Inf;
 
+if strcmp(problem_level,'simple')
+    levelstr = 'Hand Tracking';
+else 
+    levelstr = 'Hand Tracking';
+end
+if strcmp(data_dir(end-3:end-1),'big')
+    modelstr = 'Hand Model with 10k Vertices';
+else 
+    modelstr = 'Hand Model with 544 Vertices';
+end
 %% output results
 save([data_dir 'times_' date],'times_f','times_J','params','tools');
 
@@ -161,16 +171,20 @@ save([data_dir 'times_' date],'times_f','times_J','params','tools');
 x=[params{:}];
 
 plot_log_runtimes(tools,times_J,x,...
-    'Jacobian runtimes','runtime [seconds]',true);
+    ['Jacobian Absolute Runtimes - ' modelstr],...
+    'runtime [seconds]','# correspondences',true);
 
 plot_log_runtimes(tools,times_J_relative,x,...
-    'Jacobian runtimes relative to Manual, C++','runtime',false);
+    ['Jacobian Relative Runtimes wrt Objective Runtimes - ' modelstr],...
+    'relative runtime','# correspondences',false);
 
 plot_log_runtimes(tools,times_f,x,...
-    'objective runtimes','runtime [seconds]',true);
+    ['Objective Absolute Runtimes - ' modelstr],...
+    'runtime [seconds]','# correspondences',true);
 
 plot_log_runtimes(tools,times_f_relative,x,...
-    'objective runtimes relative to Manual, C++','runtime',false);
+    'objective runtimes relative to Manual, C++','runtime',...
+    '# correspondences',false);
 
 %% verify results - only simple now
 addpath('adimat-0.6.0-4971');

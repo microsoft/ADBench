@@ -1,0 +1,109 @@
+<h2>au_mex.h</h2>
+This is a collection of classes which greatly simplify the development of robust MEX files which smoothly handle a variety of input datatypes.   <br />
+<h3>Reference</h3>
+See <a href="/awful/wikipage?title=au_mex_reference&referringTitle=au_mex.h">au_mex_reference</a> for a more detailed reference manual, or carry on here for a tutorial<br />
+<h3>Tutorial</h3>
+To see what au_mex.h offers,, take a look at this mexFunction to add two arrays:<br /><div style="color:Black;background-color:White;"><pre>
+<span style="color:Green;">// Bare-bones example of au_mex</span>
+
+#include <span style="color:#A31515;">&quot;au_mex.h&quot;</span>
+
+<span style="color:Blue;">void</span> mexFunction(<span style="color:Blue;">int</span> nlhs, mxArray *plhs[], <span style="color:Blue;">int</span> nrhs, <span style="color:Blue;">const</span> mxArray *prhs[])
+{
+   mlx_cast&lt;<span style="color:Blue;">double</span>&gt; A(prhs[0]); <span style="color:Green;">// Get input 0</span>
+   mlx_cast&lt;<span style="color:Blue;">double</span>&gt; B(prhs[1]); <span style="color:Green;">// Get input 1</span>
+
+   mlx_make_array&lt;<span style="color:Blue;">double</span>&gt; sum(A.size); <span style="color:Green;">// Make output array</span>
+
+   <span style="color:Green;">// Perform the operation</span>
+   <span style="color:Blue;">for</span>(<span style="color:Blue;">int</span> i = 0; i &lt; A.numel(); ++i)
+     sum[i] = A[i] + B[i];
+
+   out[0] = sum; <span style="color:Green;">// Assign to output</span>
+}
+</pre></div>The key concepts here are the use of <a href="/awful/wikipage?title=mlx_cast&referringTitle=au_mex.h">mlx_cast</a> to take an mxArray, and robustly extract a pointer to its data, having checked its datatype is double.   <a href="/awful/wikipage?title=mlx_make_array&referringTitle=au_mex.h">mlx_make_array</a> is a helper which makes a new array of the given size and datatype, which can be passed around just like an <span class="codeInline">mxArray*</span>, but more safely.<br />
+<h2>Better error checking</h2>
+But don&#39;t stop there.   Let&#39;s comprehensively bulletproof this code so any incorrect input generates an appropriate error, rather than a segfault.   That means adding three lines of code....<br /><br /><div style="color:Black;background-color:White;"><pre>
+<span style="color:Green;">// au_mex_example_2.cxx: Bare-bones example of au_mex</span>
+
+#include <span style="color:#A31515;">&quot;au_mex.h&quot;</span>
+
+<span style="color:Blue;">void</span> mexFunction(<span style="color:Blue;">int</span> nlhs, mxArray *plhs[], <span style="color:Blue;">int</span> nrhs, <span style="color:Blue;">const</span> mxArray *prhs[])
+{
+   mlx_inputs  <span style="color:Blue;">in</span>(nrhs, prhs); <span style="color:Green;">// Wrap inputs -- allows us to check the number and datatypes</span>
+   mlx_outputs out(nlhs, plhs); <span style="color:Green;">// Wrap outputs</span>
+
+   mlx_cast&lt;<span style="color:Blue;">double</span>&gt; A(<span style="color:Blue;">in</span>[0]); <span style="color:Green;">// Get input 0</span>
+   mlx_cast&lt;<span style="color:Blue;">double</span>&gt; B(<span style="color:Blue;">in</span>[1]); <span style="color:Green;">// Get input 1</span>
+
+   mlx_assert(A.size == B.size);<span style="color:Green;">// Check sizes match</span>
+
+   mlx_make_array&lt;<span style="color:Blue;">double</span>&gt; sum(A.size); <span style="color:Green;">// Make output array</span>
+
+   <span style="color:Green;">// Perform the operation</span>
+   <span style="color:Blue;">for</span>(<span style="color:Blue;">int</span> i = 0; i &lt; A.numel(); ++i)
+     sum[i] = A[i] + B[i];
+
+   out[0] = sum; <span style="color:Green;">// Assign to output</span>
+}
+</pre></div><br />I know, you&#39;re hoping I&#39;m not slowing you down by bounds-checking your arrays?   Yes, operator[] does bounds check unless you <span class="codeInline">#include &quot;au_mex_unchecked.h&quot;</span>.  The other accessors <span class="codeInline">get/put 0/1</span> never check.<br />
+<h2>Handling multiple datatypes</h2>
+A joy of C++ is that we can easily lay down code for different datatypes using templates.   MEX by default makes it rather fiddly to handle multiple datatypes, but au_mex makes it easy.    Before looking at that, though let&#39;s introduce a few other features. <br /><br />Having trouble remembering which Matlab datatype corresponds to which C++ one?  We&#39;ve typedeffed them handily for you:<br /><div style="color:Black;background-color:White;"><pre>
+<span style="color:Blue;">typedef</span> ... mlx_uint8;
+<span style="color:Blue;">typedef</span> ... mlx_uint16;
+<span style="color:Blue;">typedef</span> ... mlx_uint32;
+<span style="color:Blue;">typedef</span> ... mlx_uint64;
+<span style="color:Blue;">typedef</span> ... mlx_single; <span style="color:Green;">// etc</span>
+<span style="color:Blue;">typedef</span> ... mlx_double; <span style="color:Green;">// etc</span>
+</pre></div>And you can get the matlab class ID from a C++ type using e.g. <span class="codeInline">mlx_class_id((double)*0)</span><br />Want to check if an array is a certain type?  Try this:<br /><div style="color:Black;background-color:White;"><pre>
+<span style="color:Blue;">if</span> (mlx_isa&lt;<span style="color:Blue;">double</span>&gt;(a_ptr)) { <span style="color:Green;">// it is... }</span>
+</pre></div><br />And now let&#39;s see the full templated glory of the type dispatch example.   First, we write a function template that does our operation<br /><div style="color:Black;background-color:White;"><pre>
+#include <span style="color:#A31515;">&quot;au_mex.h&quot;</span>
+
+<span style="color:Blue;">template</span> &lt;<span style="color:Blue;">class</span> Real&gt;
+mlx_cast&lt;Real&gt; Compute(mlx_cast&lt;Real&gt; <span style="color:Blue;">const</span>&amp; A, mlx_cast&lt;Real&gt; <span style="color:Blue;">const</span>&amp; B)
+{
+   mlx_assert(A.size == B.size);<span style="color:Green;">// Check sizes match</span>
+   
+   mlx_make_array&lt;Real&gt; sum(A.size); <span style="color:Green;">// Make output array</span>
+
+   <span style="color:Green;">// Perform the operation</span>
+   <span style="color:Blue;">for</span>(<span style="color:Blue;">int</span> i = 0; i &lt; A.numel(); ++i)
+     sum[i] = A[i] + B[i];
+
+   <span style="color:Blue;">return</span> sum;
+}
+</pre></div>So far so standard.   Then we write a function which will take a pair of mxArrays, check sizes, cast, and so on, to call the above.   The key to this function is that it silently returns false if the mxArrays are the wrong type.<br /><div style="color:Black;background-color:White;"><pre>
+<span style="color:Blue;">template</span> &lt;<span style="color:Blue;">class</span> Real&gt;
+<span style="color:Blue;">bool</span> try_cast(mxArray <span style="color:Blue;">const</span>* pA, mxArray <span style="color:Blue;">const</span>* pB, mlx_output* out)
+{
+   <span style="color:Blue;">if</span> (!(mlx_isa&lt;Real&gt;(pA) &amp;&amp; mlx_isa&lt;Real&gt;(pB))) 
+      <span style="color:Blue;">return</span> <span style="color:Blue;">false</span>;  <span style="color:Green;">// Return silently if types don&#39;t match.</span>
+
+   mlx_cast&lt;Real&gt; A(pA);  
+   mlx_cast&lt;Real&gt; B(pB);
+   
+   *out = Compute(A, B);
+   <span style="color:Blue;">return</span> <span style="color:Blue;">true</span>;
+}   
+</pre></div>Now, for each datatype I want to handle, I call try_cast, and return if it&#39;s successul:<br /><div style="color:Black;background-color:White;"><pre>
+
+<span style="color:Blue;">void</span> mexFunction(<span style="color:Blue;">int</span> nlhs, mxArray *plhs[], <span style="color:Blue;">int</span> nrhs, <span style="color:Blue;">const</span> mxArray *prhs[])
+{
+   mlx_inputs  <span style="color:Blue;">in</span>(nrhs, prhs); <span style="color:Green;">// Wrap inputs</span>
+   mlx_outputs out(nlhs, plhs); <span style="color:Green;">// Wrap outputs</span>
+   
+   <span style="color:Green;">// Enumerate the types.  You really do have to do this, so that the </span>
+   <span style="color:Green;">// C++ compiler can lay down different code for each case.</span>
+   <span style="color:Green;">// You could clean this up with a macro if you like that sort of thing.</span>
+   <span style="color:Blue;">if</span> (try_cast&lt;mlx_double&gt;(<span style="color:Blue;">in</span>[0], <span style="color:Blue;">in</span>[1], &amp;out[0])) <span style="color:Blue;">return</span>;
+   <span style="color:Blue;">if</span> (try_cast&lt;mlx_single&gt;(<span style="color:Blue;">in</span>[0], <span style="color:Blue;">in</span>[1], &amp;out[0])) <span style="color:Blue;">return</span>;
+   <span style="color:Blue;">if</span> (try_cast&lt;mlx_uint8&gt;(<span style="color:Blue;">in</span>[0], <span style="color:Blue;">in</span>[1], &amp;out[0])) <span style="color:Blue;">return</span>;
+ 
+   <span style="color:Green;">// If we get here, </span>
+   mexErrMsgIdAndTxt(<span style="color:#A31515;">&quot;awful:types&quot;</span>, <span style="color:#A31515;">&quot;We don&#39;t handle this input type combo: %s, %s&quot;</span>, 
+           mxGetClassName(<span style="color:Blue;">in</span>[0]), mxGetClassName(<span style="color:Blue;">in</span>[1]));
+}
+</pre></div>
+<h2>Additional goodies</h2>
+Various type traits, which should arguably go somewhere else.  fixme<br />

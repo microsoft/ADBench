@@ -1,0 +1,343 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Checking ADiMat (first order) derivatives for correctness</title><meta name="generator" content="MATLAB 7.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-05-10"><meta name="DC.source" content="check_derivatives.m"><style type="text/css">
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows. */ 
+p,h1,h2,div.content div {
+  max-width: 600px;
+  /* Hack for IE6 */
+  width: auto !important; width: 600px;
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 10px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 10px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+  </style></head><body><div class="content"><h1>Checking ADiMat (first order) derivatives for correctness</h1><!--introduction--><p>When computing derivatives with ADiMat you should always test whether the AD derivatives that come out of ADiMat are plausible and correct. This because there are many builtin functions and toolbox functions that ADiMat does not support yet. While you should get an error message or even a runtime error in these cases, this also hinges on the correct configuration for that builtin in our data base of builtins. Specifically, we mark builtin function that we think have a derivative but that we have not implemented yet. So this markation might be wrong or you might just hit a bug in ADiMat.</p><p>Methods for checking derivatives are:</p><div><ol><li>comparison of the ADiMat AD derivatives among each other</li><li>comparing the AD derivatives against finite differences</li><li>comparing the AD derivatives against the complex variables method</li><li>comparing the ADiMat AD derivatives against other AD tools</li></ol></div><p>In this notebook we will discuss the first three of these in detail for the case of first order derivatives.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Comparing AD derivatives among each other</a></li><li><a href="#7">Comparing against finite differences</a></li><li><a href="#10">Comparing against the complex variable method</a></li><li><a href="#15">Creating assertions</a></li><li><a href="#17">All of the above in one line</a></li></ul></div><h2>Comparing AD derivatives among each other<a name="1"></a></h2><p>ADiMat has three driver functions for AD, which are <b>admDiffFor</b>, <b>admDiffVFor</b>, and <b>admDiffRev</b>. Let's consider the example function polynom:</p><pre class="codeinput">type <span class="string">polynom</span>
+</pre><pre class="codeoutput">
+function r = polynom(x, c)
+  r = 0;
+  powerOfX = 1;
+  for i=1:length(c)
+    r = r + c(i) * powerOfX;
+    powerOfX = powerOfX * x;
+  end
+
+  
+</pre><p>This can for example be used to compute a matrix polynomial:</p><pre class="codeinput">x = magic(3);
+c = (1:10) .* 0.1;
+z = polynom(x, c);
+</pre><p>Now compute the derivatives with all three AD drivers:</p><pre class="codeinput">adopts = admOptions();
+adopts.functionResults = {z}; <span class="comment">% for admDiffRev</span>
+
+[JF, zF] = admDiffFor(@polynom, 1, x, c, adopts);
+
+[Jf, zf] = admDiffVFor(@polynom, 1, x, c, adopts);
+
+[Jr, zr] = admDiffRev(@polynom, 1, x, c, adopts);
+</pre><p>Now we have three Jacobian matrices that are hopefully identical. We shall check this by computing the relative error using the norm function.</p><pre class="codeinput">norm(JF - Jf) ./ norm(JF)
+norm(JF - Jr) ./ norm(JF)
+norm(Jf - Jr) ./ norm(Jf)
+</pre><pre class="codeoutput">
+ans =
+
+     0
+
+
+ans =
+
+   3.1911e-17
+
+
+ans =
+
+   3.1911e-17
+
+</pre><p>As you see, JF and Jf are absolutely identical. This is quite often the case. However the Jacobian computed by the reverse mode driver differs very slightly. The exponent in the relative error, -17, directly tells you the number of digits by which the results coincide. So the results coincide by at least 16 digits, which for all practical purposes means that they are identical, since the precision of double floats is just about that, slightly larger even:</p><pre class="codeinput">eps
+</pre><pre class="codeoutput">
+ans =
+
+   2.2204e-16
+
+</pre><p>This example also shows that it is important to use the relative error. The absolute error is much larger in this case, but this is just because the values in the Jacobian are very large:</p><pre class="codeinput">norm(JF - Jr)
+norm(JF)
+</pre><pre class="codeoutput">
+ans =
+
+   1.4547e-06
+
+
+ans =
+
+   4.5586e+10
+
+</pre><h2>Comparing against finite differences<a name="7"></a></h2><p>Finite differences (FD) are an often-used method for numerically approximating derivatives. While it is easy to write your own FD approximation, even easier it is to use the <b>admDiffFD</b> driver that comes with ADiMat, as it comfortably combines the derivatives w.r.t. x and c into a single Jacobian:</p><pre class="codeinput">[Jd, zd] = admDiffFD(@polynom, 1, x, c, adopts);
+</pre><p>In principle you cannot achieve more than half of the machine precision with FD., so in this case the relative error to the AD derivative will be about 1e-8, which is about the square root of eps.</p><pre class="codeinput">norm(JF - Jd) ./ norm(JF)
+sqrt(eps)
+</pre><pre class="codeoutput">
+ans =
+
+   1.1418e-08
+
+
+ans =
+
+   1.4901e-08
+
+</pre><p>In practice you must put consideration into using the correct step size, which you can set via the field fdStep of <b>admOptions</b>. The default is actually sqrt(eps), which in many cases works well enough.</p><h2>Comparing against the complex variable method<a name="10"></a></h2><p>The complex variable (CV) method conceived by Cleve Moler et al. is a very interesting method for numerically approximating derivatives. It uses the approximation</p><p><img src="check_derivatives_eq94657.png" alt="$$ \frac{{\rm d} f}{{\rm d} x} \approx \frac{ \Im\left\{ f(x + ih) \right\} }{ h } $$">,</p><p>where <img src="check_derivatives_eq28128.png" alt="$i$"> is the imaginary unit and <img src="check_derivatives_eq60012.png" alt="$h$"> is some very small value, e.g. 1e-40. There is also a driver for the CV method6 included in ADiMat:</p><pre class="codeinput">[Jc, zc] = admDiffComplex(@polynom, 1, x, c, adopts);
+</pre><p>The CV method is interesting because the derivatives are computed to a very high accuracy, basically up to the machine precision, just as with AD.</p><pre class="codeinput">norm(JF - Jc) ./ norm(JF)
+</pre><pre class="codeoutput">
+ans =
+
+   3.2364e-17
+
+</pre><p>Note that CV is only applicable when the function is real analytic, but in our experience a surprisingly large amount of functions that we see actually is. One common issue however is that people tend to use the ctranspose operator ' instead of the transpose operator .' While this does not hurt the results in a real anayltic function, it breaks the CV method. So when the CV method does not give the expected result for you, you first see if this problem affects you.</p><h2>Creating assertions<a name="15"></a></h2><p>In order to turn the insights above into programmatic assertions, it is usually a good idea to be not too strict in our demands. The actual relative errors may differ depending on the function and its arguments, and you don't want your assertions to nag you all the time because of errors that are just slightly larger than expected. We suggest do use assertions like this:</p><pre class="codeinput">assert(norm(JF - Jr) ./ norm(JF) &lt; 1e-14); <span class="comment">% comparing AD vs. AD</span>
+assert(norm(JF - Jd) ./ norm(JF) &lt; 1e-5);  <span class="comment">% comparing AD vs. FD</span>
+assert(norm(JF - Jc) ./ norm(JF) &lt; 1e-14); <span class="comment">% comparing AD vs. CV</span>
+</pre><p>Especially with the FD method you often have to be extra lenient. When the Jacobians can also become all zero you may run into trouble because of divisions by zero. In these cases you can switch to use the relative-max metric:</p><pre class="codeinput">type <span class="string">metric</span>
+</pre><pre class="codeoutput">
+function n = metric(J1, J2)
+  maxn = max(norm(J1), norm(J2));
+  n = norm(J1 - J2);
+  if maxn &gt; 0
+    n = n ./ maxn;
+  end
+end
+
+</pre><h2>All of the above in one line<a name="17"></a></h2><p>ADiMat provides the function <b>admAllDiff</b> which calls all of the five drivers above and returns the five Jacobians. The calling syntax is similar to the drivers except that it does not accept a seed matrix.</p><pre class="codeinput">[JF Jf Jr Jd Jc] = admAllDiff(@polynom, x, c, adopts);
+</pre><p>On top of that we also provide the function <b>admAllDiffMatrix</b>, which computes the relative errors using the relative-max metric shown above of all results against each other and returns that in a lower triangular five-by-five matrix. This can help a lot in identifying the one who is wrong (if there is just one). You should turn on engineering format, because otherwise everything except the FD-related errors would be shown as zero.</p><pre class="codeinput">format <span class="string">short</span> <span class="string">e</span>
+diffMatrix = admAllDiffMatrix(@polynom, x, c, adopts)
+</pre><pre class="codeoutput">
+diffMatrix =
+
+            0            0            0            0            0
+            0            0            0            0            0
+   3.1911e-17   3.1911e-17            0            0            0
+   1.1418e-08   1.1418e-08   1.1418e-08            0            0
+   3.2364e-17   3.2364e-17   3.6835e-17   1.1418e-08            0
+
+</pre><p class="footer"><br>
+      Published with MATLAB&reg; 7.12<br></p></div><!--
+##### SOURCE BEGIN #####
+%% Checking ADiMat (first order) derivatives for correctness
+% When computing derivatives with ADiMat you should always test
+% whether the AD derivatives that come out of ADiMat are plausible and
+% correct. This because there are many builtin functions and toolbox
+% functions that ADiMat does not support yet. While you should get an
+% error message or even a runtime error in these cases, this also
+% hinges on the correct configuration for that builtin in our data
+% base of builtins. Specifically, we mark builtin function that we
+% think have a derivative but that we have not implemented yet. So
+% this markation might be wrong or you might just hit a bug in
+% ADiMat.
+%
+% Methods for checking derivatives are:
+%
+% # comparison of the ADiMat AD derivatives among each other
+% # comparing the AD derivatives against finite differences
+% # comparing the AD derivatives against the complex variables method
+% # comparing the ADiMat AD derivatives against other AD tools
+%
+% In this notebook we will discuss the first three of these in detail
+% for the case of first order derivatives.
+%
+%% Comparing AD derivatives among each other
+% ADiMat has three driver functions for AD, which are *admDiffFor*,
+% *admDiffVFor*, and *admDiffRev*. Let's consider the example function
+% polynom:
+
+type polynom
+
+%%
+% This can for example be used to compute a matrix polynomial:
+
+x = magic(3);
+c = (1:10) .* 0.1;
+z = polynom(x, c);
+
+%%
+% Now compute the derivatives with all three AD drivers: 
+adopts = admOptions();
+adopts.functionResults = {z}; % for admDiffRev
+
+[JF, zF] = admDiffFor(@polynom, 1, x, c, adopts);
+
+[Jf, zf] = admDiffVFor(@polynom, 1, x, c, adopts);
+
+[Jr, zr] = admDiffRev(@polynom, 1, x, c, adopts);
+
+%%
+% Now we have three Jacobian matrices that are hopefully identical. We
+% shall check this by computing the relative error using the norm
+% function.
+
+norm(JF - Jf) ./ norm(JF)
+norm(JF - Jr) ./ norm(JF)
+norm(Jf - Jr) ./ norm(Jf)
+
+%%
+% As you see, JF and Jf are absolutely identical. This is quite often
+% the case. However the Jacobian computed by the reverse mode driver
+% differs very slightly. The exponent in the relative error, -17,
+% directly tells you the number of digits by which the results
+% coincide. So the results coincide by at least 16 digits, which for
+% all practical purposes means that they are identical, since the
+% precision of double floats is just about that, slightly larger even:
+
+eps
+
+%%
+% This example also shows that it is important to use the relative
+% error. The absolute error is much larger in this case, but this
+% is just because the values in the Jacobian are very large:
+
+norm(JF - Jr)
+norm(JF)
+
+%% Comparing against finite differences
+% Finite differences (FD) are an often-used method for numerically
+% approximating derivatives. While it is easy to write your own FD
+% approximation, even easier it is to use the *admDiffFD* driver that
+% comes with ADiMat, as it comfortably combines the derivatives
+% w.r.t. x and c into a single Jacobian:
+
+[Jd, zd] = admDiffFD(@polynom, 1, x, c, adopts);
+
+%%
+% In principle you cannot achieve more than half of the machine
+% precision with FD., so in this case the relative error to the AD
+% derivative will be about 1e-8, which is
+% about the square root of eps. 
+
+norm(JF - Jd) ./ norm(JF)
+sqrt(eps)
+
+%%
+% In practice you must put consideration into using the correct step
+% size, which you can set via the field fdStep of *admOptions*. The
+% default is actually sqrt(eps), which in many cases works well
+% enough.
+
+%% Comparing against the complex variable method
+% The complex variable (CV) method conceived by Cleve Moler et al. is
+% a very interesting method for numerically approximating
+% derivatives. It uses the approximation
+
+%%
+% $$ \frac{{\rm d} f}{{\rm d} x} \approx \frac{ \Im\left\{ f(x + ih)
+% \right\} }{ h } $$,
+
+%%
+% where $i$ is the imaginary unit and $h$ is some very small value,
+% e.g. 1e-40. There is also a driver for the CV method6 included in
+% ADiMat:
+
+[Jc, zc] = admDiffComplex(@polynom, 1, x, c, adopts);
+
+%%
+% The CV method is interesting because the derivatives are computed to
+% a very high accuracy, basically up to the machine precision, just as
+% with AD.
+
+norm(JF - Jc) ./ norm(JF)
+
+%%
+% Note that CV is only applicable when the function is real analytic,
+% but in our experience a surprisingly large amount of functions that
+% we see actually is. One common issue however is that people tend to
+% use the ctranspose operator ' instead of the transpose operator .'
+% While this does not hurt the results in a real anayltic function, it
+% breaks the CV method. So when the CV method does not give the
+% expected result for you, you first see if this problem affects you.
+
+%% Creating assertions
+% In order to turn the insights above into programmatic assertions, it
+% is usually a good idea to be not too strict in our demands. The
+% actual relative errors may differ depending on the function and its
+% arguments, and you don't want your assertions to nag you all the time
+% because of errors that are just slightly larger than expected. We
+% suggest do use assertions like this:
+
+assert(norm(JF - Jr) ./ norm(JF) < 1e-14); % comparing AD vs. AD
+assert(norm(JF - Jd) ./ norm(JF) < 1e-5);  % comparing AD vs. FD
+assert(norm(JF - Jc) ./ norm(JF) < 1e-14); % comparing AD vs. CV
+
+%%
+% Especially with the FD method you often have to be extra
+% lenient. When the Jacobians can also become all zero you may run
+% into trouble because of divisions by zero. In these cases you can
+% switch to use the relative-max metric:
+
+type metric
+
+
+%% All of the above in one line
+% ADiMat provides the function *admAllDiff* which calls all of the
+% five drivers above and returns the five Jacobians. The calling
+% syntax is similar to the drivers except that it does not accept a
+% seed matrix.
+
+[JF Jf Jr Jd Jc] = admAllDiff(@polynom, x, c, adopts);
+
+%% 
+% On top of that we also provide the function *admAllDiffMatrix*,
+% which computes the relative errors using the relative-max metric
+% shown above of all results against each other and returns that in a
+% lower triangular five-by-five matrix. This can help a lot in
+% identifying the one who is wrong (if there is just one). You should
+% turn on engineering format, because otherwise everything except the
+% FD-related errors would be shown as zero.
+
+format short e
+diffMatrix = admAllDiffMatrix(@polynom, x, c, adopts)
+##### SOURCE END #####
+--></body></html>

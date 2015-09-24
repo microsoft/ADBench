@@ -35,5 +35,11 @@
     <ClInclude Include="..\light_matrix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="utils_vxl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="hand_vxl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -153,8 +153,8 @@ end
 times_f_relative = bsxfun(@rdivide,times_f,times_f(:,manual_eigen_id));
 times_f_relative(isnan(times_f_relative)) = Inf;
 times_f_relative(times_f_relative==0) = Inf;
-% times_relative = times_J./times_f;
-times_J_relative = bsxfun(@rdivide,times_J,times_J(:,manual_eigen_id));
+times_J_relative = times_J./times_f;
+% times_J_relative = bsxfun(@rdivide,times_J,times_J(:,manual_eigen_id));
 times_J_relative(isnan(times_J_relative)) = Inf;
 times_J_relative(times_J_relative==0) = Inf;
 
@@ -162,19 +162,21 @@ times_J_relative(times_J_relative==0) = Inf;
 save([data_dir 'times_' date],'times_f','times_J','params','tools');
 
 %% plot times
-x=[params{:}]; x=x(6:6:end);
+x=[params{:}]; x=x(3:6:end);
 
 plot_log_runtimes(tools,times_J,x,...
-    'Jacobian runtimes','runtime [seconds]',true);
+    'Jacobian Absolute Runtimes - Bundle Adjustment',...
+    'runtime [seconds]','# measurements',true);
 
 plot_log_runtimes(tools,times_J_relative,x,...
-    'Jacobian runtimes relative to Manual, C++','runtime',false);
+    'Jacobian Relative Runtimes wrt Objective Runtimes - Bundle Adjustment',...
+    'relative runtime','# measurements',false);
 
 plot_log_runtimes(tools,times_f,x,...
-    'objective runtimes','runtime [seconds]',true);
+    'objective runtimes','runtime [seconds]','# measurements',true);
 
 plot_log_runtimes(tools,times_f_relative,x,...
-    'objective runtimes relative to Manual, C++','runtime',false);
+    'objective runtimes relative to Manual, C++','runtime','# measurements',false);
 
 %% do 2D plots
 % tool_id = adimat_id-1;

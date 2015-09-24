@@ -1,0 +1,462 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Measuring the speed of the reverse mode</title><meta name="generator" content="MATLAB 7.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-05-10"><meta name="DC.source" content="reverse_mode_speed.m"><style type="text/css">
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows. */ 
+p,h1,h2,div.content div {
+  max-width: 600px;
+  /* Hack for IE6 */
+  width: auto !important; width: 600px;
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 10px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 10px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+  </style></head><body><div class="content"><h1>Measuring the speed of the reverse mode</h1><!--introduction--><p>In this notebook we will take a look at the time needed to compute derivatives with ADiMat's automatic differentiation (AD) drivers and also with the common methods of numerical differentiation, finite differences (FD) and the complex variable (CV) method.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Background: AD theory</a></li><li><a href="#2">Example function</a></li><li><a href="#3">Test the function</a></li><li><a href="#4">Compute the gradient</a></li><li><a href="#5">Verify the gradient</a></li><li><a href="#6">Measure the speed</a></li><li><a href="#7">Plot timing results</a></li><li><a href="#9">Modifying the test</a></li><li><a href="#11">Plot timing results</a></li></ul></div><h2>Background: AD theory<a name="1"></a></h2><p>Let's consider a vector function <img src="reverse_mode_speed_eq53787.png" alt="$F: R^n \to R^m$"> of <img src="reverse_mode_speed_eq25947.png" alt="$n$"> inputs and <img src="reverse_mode_speed_eq81831.png" alt="$m$"> outputs. Let <img src="reverse_mode_speed_eq73673.png" alt="$t_F$"> be the run time of that function for fixed <img src="reverse_mode_speed_eq81831.png" alt="$m$"> and <img src="reverse_mode_speed_eq25947.png" alt="$n$">. According to AD theory the time needed to compute the full <img src="reverse_mode_speed_eq49857.png" alt="$m \times n$"> Jacobian matrix will take <img src="reverse_mode_speed_eq68150.png" alt="$O(n\cdot t_F)$"> when using the forward mode (FM) of AD. Using the two numerical methods FD and CV will result in times of the same order. On the other hand, using the reverse mode (RM) of AD will require <img src="reverse_mode_speed_eq15152.png" alt="$O(m\cdot t_F)$">, so the run time overhead does not depend on the number of inputs but on the number of outputs. More precisely, FM AD requires <img src="reverse_mode_speed_eq62393.png" alt="$O(t_F)$"> for each derivative direction, which is equivalent to one Jacobian-vector product, while RM AD requires <img src="reverse_mode_speed_eq62393.png" alt="$O(t_F)$"> for each reverse derivative direction, equivalent to one vector-Jacobian product. The drawback of the RM is that it requires <img src="reverse_mode_speed_eq62393.png" alt="$O(t_F)$"> memory, which is needed for a stack of program values.</p><h2>Example function<a name="2"></a></h2><p>Consider the very simple function fprod, that just calls prod on it's input.</p><pre class="codeinput">type <span class="string">fprod</span>
+</pre><pre class="codeoutput">
+function z = fprod(a)
+  z = myprod(a, 1);
+
+</pre><h2>Test the function<a name="3"></a></h2><p>When the input is a vector, then the result will be a scalar.</p><pre class="codeinput">x = (1:5).';
+
+p = fprod(x)
+</pre><pre class="codeoutput">
+p =
+
+   120
+
+</pre><h2>Compute the gradient<a name="4"></a></h2><p>Now let's compute the gradient using ADiMat's AD drivers <b>admDiffFor</b>, <b>admDiffVFor</b> and <b>admDiffRev</b>.</p><pre class="codeinput">adopts = admOptions();
+adopts.functionResults = {p}; <span class="comment">% for admDiffRev</span>
+
+[JF] = admDiffFor(@fprod, 1, x, adopts)
+
+[Jf] = admDiffVFor(@fprod, 1, x, adopts)
+
+[Jr] = admDiffRev(@fprod, 1, x, adopts)
+</pre><pre class="codeoutput">
+JF =
+
+   120    60    40    30    24
+
+
+Jf =
+
+   120    60    40    30    24
+
+
+Jr =
+
+   120    60    40    30    24
+
+</pre><h2>Verify the gradient<a name="5"></a></h2><p>Since the function in question is real analytic (because the argument is real), we can verify the derivative against the complex variable method, which is implemented in the <b>admDiffComplex</b> driver. This returns very precise results, but as you will see already from the output formatting, it does not return the exact same integer numbers that AD returns in this case.  Also, because the function is simple enough, the three AD results are identical.</p><pre class="codeinput">[Jc] = admDiffComplex(@fprod, 1, x)
+
+assert(norm(JF - Jc) ./ norm(JF) &lt; 1e-13);
+assert(norm(Jf - Jc) ./ norm(JF) &lt; 1e-13);
+assert(norm(Jr - Jc) ./ norm(Jr) &lt; 1e-13);
+assert(isequal(JF, Jf));
+assert(isequal(JF, Jr));
+</pre><pre class="codeoutput">
+Jc =
+
+  120.0000   60.0000   40.0000   30.0000   24.0000
+
+</pre><h2>Measure the speed<a name="6"></a></h2><p>Now let's run the gradient computations with random vectors of length <img src="reverse_mode_speed_eq25947.png" alt="$n$"> increasing up to 1e4 and measure the run times. We impose a limit on the maximum runtime.</p><pre class="codeinput">limit = 30;
+ns = ceil(logspace(1, 6));
+times = nan(5, length(ns));
+times(:,1) = 0;
+
+<span class="keyword">for</span> i=1:length(ns)
+  n = ns(i);
+
+  x = rand(n, 1);
+
+  <span class="keyword">if</span> max(times(1,:)) &lt; limit
+    tic, p = fprod(x); times(1,i) = toc;
+  <span class="keyword">end</span>
+
+  <span class="keyword">if</span> max(times(2,:)) &lt; limit
+    tic, [J] = admDiffFor(@fprod, 1, x, adopts); times(2,i) = toc;
+  <span class="keyword">end</span>
+
+  <span class="keyword">if</span> max(times(3,:)) &lt; limit
+    tic, [J] = admDiffVFor(@fprod, 1, x, adopts); times(3,i) = toc;
+  <span class="keyword">end</span>
+
+  <span class="keyword">if</span> max(times(4,:)) &lt; limit
+    <span class="comment">% Tell admDiffRev in advance what type the function's results will have.</span>
+    adopts.functionResults = {p};
+    tic, [J] = admDiffRev(@fprod, 1, x, adopts); times(4,i) = toc;
+  <span class="keyword">end</span>
+
+  <span class="keyword">if</span> max(times(5,:)) &lt; limit
+    tic, [J] = admDiffComplex(@fprod, 1, x); times(5,i) = toc;
+  <span class="keyword">end</span>
+
+<span class="keyword">end</span>
+</pre><h2>Plot timing results<a name="7"></a></h2><p>Let us now plot the results on a log-log scaled plot. As is customary in AD, we also compute the AD overhead factors, that is the time <img src="reverse_mode_speed_eq40648.png" alt="$t_{\rm AD}$"> needed to compute the gradient divided by the time <img src="reverse_mode_speed_eq73673.png" alt="$t_F$"> to compute the original function. According to AD theory this factor should be <img src="reverse_mode_speed_eq33956.png" alt="$O(n)$"> for the FM and numerical differentiation, but <img src="reverse_mode_speed_eq37104.png" alt="$O(1)$"> for the RM, i.e. with just a constant overhead that does not depend on the length of the gradient. To illustrate this we also plot the functions <img src="reverse_mode_speed_eq96864.png" alt="$f(n) = 100$"> and <img src="reverse_mode_speed_eq16911.png" alt="$f(n) = n$">.</p><pre class="codeinput">figure
+plot(ns, times(2:5, :), <span class="string">'+'</span>, ns, times(1,:), <span class="string">'+'</span>);
+set(gca, <span class="string">'xscale'</span>, <span class="string">'log'</span>);
+set(gca, <span class="string">'yscale'</span>, <span class="string">'log'</span>);
+xlabel(<span class="string">'$n$'</span>, <span class="string">'interpreter'</span>, <span class="string">'latex'</span>);
+ylabel(<span class="string">'$t ({\rm s})$'</span>, <span class="string">'interpreter'</span>, <span class="string">'latex'</span>);
+legends = {<span class="string">'admDiffFor'</span>, <span class="string">'admDiffVFor'</span>, <span class="string">'admDiffRev'</span>, <span class="string">'admDiffComplex'</span>, <span class="string">'fprod'</span>};
+legend(legends, <span class="string">'location'</span>, <span class="string">'best'</span>);
+
+factors = times(2:5,:) ./ repmat(times(1,:), [4, 1]);
+
+figure
+plot(ns, factors, <span class="string">'+'</span>, ns, 100.*ones(length(ns),1), <span class="string">'-'</span>, ns, ns, <span class="string">'-'</span>);
+set(gca, <span class="string">'xscale'</span>, <span class="string">'log'</span>);
+set(gca, <span class="string">'yscale'</span>, <span class="string">'log'</span>);
+xlabel(<span class="string">'$n$'</span>, <span class="string">'interpreter'</span>, <span class="string">'latex'</span>);
+ylabel(<span class="string">'$t_{\rm AD} / t_F$'</span>, <span class="string">'interpreter'</span>, <span class="string">'latex'</span>);
+legend({legends{1:4}, <span class="string">'100'</span>, <span class="string">'n'</span>}, <span class="string">'location'</span>, <span class="string">'best'</span>);
+drawnow
+</pre><img vspace="5" hspace="5" src="reverse_mode_speed_01.png" alt=""> <img vspace="5" hspace="5" src="reverse_mode_speed_02.png" alt=""> <p>As you can see the overhead of the reverse mode is about 100. While this may seem a lot at first you have to consider two things:</p><div><ol><li>The function fprod has just one line and MATLAB's prod is a MEX function, while ADiMat's a_prod is an m-file. When your function is also an m-file, the overhead can become as low as 20 or even 10.</li></ol></div><div><ol><li>The overhead is independent of <img src="reverse_mode_speed_eq25947.png" alt="$n$">, at some point the RM will become faster than all the other methods.</li></ol></div><p>You can also see that for very small problems the driver functions require a very large amount of time compared to the original function. If you have problems of that type you should definitely consider to use the lower level interface of ADiMat and call the transformed functions directly, as it is explained in the documentation.</p><h2>Modifying the test<a name="9"></a></h2><p>When the input to fprod is a matrix, then the result will be a vector.</p><pre class="codeinput">x = magic(3);
+p = fprod(x)
+</pre><pre class="codeoutput">
+p =
+
+    96    45    84
+
+</pre><p>Hence we are now computing a function mapping <img src="reverse_mode_speed_eq26263.png" alt="$n^2$"> inputs to <img src="reverse_mode_speed_eq25947.png" alt="$n$"> outputs. Accordingly, computing the full Jacobian in FM should take <img src="reverse_mode_speed_eq94123.png" alt="$O(n^2)$"> times longer than the original function and in RM it should take <img src="reverse_mode_speed_eq33956.png" alt="$O(n)$"> times longer. Let's try this out.</p><pre class="codeinput">ns = ceil(logspace(1, 4));
+times = nan(5, length(ns));
+times(:,1) = 0;
+
+<span class="keyword">for</span> i=1:length(ns)
+  n = ns(i);
+
+  x = rand(n, n);
+
+  <span class="keyword">if</span> max(times(1,:)) &lt; limit
+    tic, p = fprod(x); times(1,i) = toc;
+  <span class="keyword">end</span>
+
+  <span class="keyword">if</span> max(times(2,:)) &lt; limit
+    tic, [J] = admDiffFor(@fprod, 1, x, adopts); times(2,i) = toc;
+  <span class="keyword">end</span>
+
+  <span class="keyword">if</span> max(times(3,:)) &lt; limit
+    tic, [J] = admDiffVFor(@fprod, 1, x, adopts); times(3,i) = toc;
+  <span class="keyword">end</span>
+
+  <span class="keyword">if</span> max(times(4,:)) &lt; limit
+    adopts.functionResults = {p};
+    tic, [J] = admDiffRev(@fprod, 1, x, adopts); times(4,i) = toc;
+  <span class="keyword">end</span>
+
+  <span class="keyword">if</span> max(times(5,:)) &lt; limit
+    tic, [J] = admDiffComplex(@fprod, 1, x); times(5,i) = toc;
+  <span class="keyword">end</span>
+
+<span class="keyword">end</span>
+</pre><h2>Plot timing results<a name="11"></a></h2><p>Let us now plot the results on a log-log scaled plot. This time we add to the derivative overhead plot the functions <img src="reverse_mode_speed_eq16911.png" alt="$f(n) = n$"> and <img src="reverse_mode_speed_eq44421.png" alt="$f(n) = n^2$">, both of which appear in the loglog plot as straight lines with different slopes.</p><pre class="codeinput">figure
+plot(ns, times(2:5, :), <span class="string">'+'</span>, ns, times(1,:), <span class="string">'+'</span>);
+set(gca, <span class="string">'xscale'</span>, <span class="string">'log'</span>);
+set(gca, <span class="string">'yscale'</span>, <span class="string">'log'</span>);
+xlabel(<span class="string">'$n$'</span>, <span class="string">'interpreter'</span>, <span class="string">'latex'</span>);
+ylabel(<span class="string">'$t ({\rm s})$'</span>, <span class="string">'interpreter'</span>, <span class="string">'latex'</span>);
+legend(legends, <span class="string">'location'</span>, <span class="string">'best'</span>);
+
+factors = times(2:5,:) ./ repmat(times(1,:), [4, 1]);
+
+figure
+plot(ns, factors, <span class="string">'+'</span>, ns, ns, <span class="string">'-'</span>, ns, ns.^2, <span class="string">'-'</span>);
+set(gca, <span class="string">'xscale'</span>, <span class="string">'log'</span>);
+set(gca, <span class="string">'yscale'</span>, <span class="string">'log'</span>);
+xlabel(<span class="string">'$n$'</span>, <span class="string">'interpreter'</span>, <span class="string">'latex'</span>);
+ylabel(<span class="string">'$t ({\rm s})$'</span>, <span class="string">'interpreter'</span>, <span class="string">'latex'</span>);
+legend({legends{1:4}, <span class="string">'n'</span>, <span class="string">'n^2'</span>}, <span class="string">'location'</span>, <span class="string">'southeast'</span>);
+set(gca, <span class="string">'ylim'</span>, [min(ns) max(ns)]);
+</pre><img vspace="5" hspace="5" src="reverse_mode_speed_03.png" alt=""> <img vspace="5" hspace="5" src="reverse_mode_speed_04.png" alt=""> <p>
+<small>Published with ADiMat version</small>
+</p><pre class="codeinput">adimat_version(2)
+</pre><pre class="codeoutput">
+ans =
+
+ADiMat 0.5.9-3636
+
+</pre><p class="footer"><br>
+      Published with MATLAB&reg; 7.12<br></p></div><!--
+##### SOURCE BEGIN #####
+%% Measuring the speed of the reverse mode
+% In this notebook we will take a look at the time needed to compute
+% derivatives with ADiMat's automatic differentiation (AD) drivers and
+% also with the common methods of numerical differentiation, finite
+% differences (FD) and the complex variable (CV) method.
+
+%% Background: AD theory
+% Let's consider a vector function $F: R^n \to R^m$
+% of $n$ inputs and $m$ outputs. Let $t_F$ be the run time of that
+% function for fixed $m$ and $n$. According to AD theory the time
+% needed to compute the full $m \times n$ Jacobian matrix will take
+% $O(n\cdot t_F)$ when using the forward mode (FM) of AD. Using the
+% two numerical methods FD and CV will result in times of the same
+% order. On the other hand, using the reverse mode (RM) of AD will
+% require $O(m\cdot t_F)$, so the run time overhead does not depend on
+% the number of inputs but on the number of outputs. More precisely,
+% FM AD requires $O(t_F)$ for each derivative direction, which is
+% equivalent to one Jacobian-vector product, while RM AD requires
+% $O(t_F)$ for each reverse derivative direction, equivalent to one
+% vector-Jacobian product. The drawback of the RM is that it requires
+% $O(t_F)$ memory, which is needed for a stack of program values.
+
+%% Example function
+% Consider the very simple function fprod, that just calls prod on
+% it's input.
+
+type fprod
+
+%% Test the function
+% When the input is a vector, then the result will be a scalar.
+
+x = (1:5).';
+
+p = fprod(x)
+
+%% Compute the gradient
+% Now let's compute the gradient using ADiMat's AD drivers
+% *admDiffFor*, *admDiffVFor* and *admDiffRev*.
+
+adopts = admOptions();
+adopts.functionResults = {p}; % for admDiffRev
+
+[JF] = admDiffFor(@fprod, 1, x, adopts)
+
+[Jf] = admDiffVFor(@fprod, 1, x, adopts)
+
+[Jr] = admDiffRev(@fprod, 1, x, adopts)
+
+%% Verify the gradient
+% Since the function in question is real analytic (because the
+% argument is real), we can verify the derivative against the complex
+% variable method, which is implemented in the *admDiffComplex*
+% driver. This returns very precise results, but as you will see
+% already from the output formatting, it does not return the exact
+% same integer numbers that AD returns in this case.  Also, because
+% the function is simple enough, the three AD results are identical.
+
+[Jc] = admDiffComplex(@fprod, 1, x)
+
+assert(norm(JF - Jc) ./ norm(JF) < 1e-13);
+assert(norm(Jf - Jc) ./ norm(JF) < 1e-13);
+assert(norm(Jr - Jc) ./ norm(Jr) < 1e-13);
+assert(isequal(JF, Jf));
+assert(isequal(JF, Jr));
+
+%% Measure the speed
+% Now let's run the gradient computations with random vectors of
+% length $n$ increasing up to 1e4 and measure the run times. We impose
+% a limit on the maximum runtime. 
+
+limit = 30;
+ns = ceil(logspace(1, 6));
+times = nan(5, length(ns));
+times(:,1) = 0;
+
+for i=1:length(ns)
+  n = ns(i);
+
+  x = rand(n, 1);
+
+  if max(times(1,:)) < limit
+    tic, p = fprod(x); times(1,i) = toc;
+  end
+    
+  if max(times(2,:)) < limit
+    tic, [J] = admDiffFor(@fprod, 1, x, adopts); times(2,i) = toc;
+  end
+
+  if max(times(3,:)) < limit
+    tic, [J] = admDiffVFor(@fprod, 1, x, adopts); times(3,i) = toc;
+  end
+
+  if max(times(4,:)) < limit
+    % Tell admDiffRev in advance what type the function's results will have.
+    adopts.functionResults = {p};
+    tic, [J] = admDiffRev(@fprod, 1, x, adopts); times(4,i) = toc;
+  end
+    
+  if max(times(5,:)) < limit
+    tic, [J] = admDiffComplex(@fprod, 1, x); times(5,i) = toc;
+  end
+  
+end
+
+%% Plot timing results
+% Let us now plot the results on a log-log scaled plot. As is
+% customary in AD, we also compute the AD overhead factors, that is
+% the time $t_{\rm AD}$ needed to compute the gradient divided by the
+% time $t_F$ to compute the original function. According to AD theory
+% this factor should be $O(n)$ for the FM and numerical
+% differentiation, but $O(1)$ for the RM, i.e. with just a constant
+% overhead that does not depend on the length of the gradient. To
+% illustrate this we also plot the functions $f(n) = 100$ and $f(n) =
+% n$.
+
+figure
+plot(ns, times(2:5, :), '+', ns, times(1,:), '+');
+set(gca, 'xscale', 'log');
+set(gca, 'yscale', 'log');
+xlabel('$n$', 'interpreter', 'latex');
+ylabel('$t ({\rm s})$', 'interpreter', 'latex');
+legends = {'admDiffFor', 'admDiffVFor', 'admDiffRev', 'admDiffComplex', 'fprod'};
+legend(legends, 'location', 'best');
+
+factors = times(2:5,:) ./ repmat(times(1,:), [4, 1]);
+
+figure
+plot(ns, factors, '+', ns, 100.*ones(length(ns),1), '-', ns, ns, '-');
+set(gca, 'xscale', 'log');
+set(gca, 'yscale', 'log');
+xlabel('$n$', 'interpreter', 'latex');
+ylabel('$t_{\rm AD} / t_F$', 'interpreter', 'latex');
+legend({legends{1:4}, '100', 'n'}, 'location', 'best');
+drawnow
+
+%%
+% As you can see the overhead of the reverse mode is about 100. While
+% this may seem a lot at first you have to consider two things:
+%
+% # The function fprod has just one line and MATLAB's prod is a MEX
+% function, while ADiMat's a_prod is an m-file. When your function is
+% also an m-file, the overhead can become as low as 20 or even 10.
+%
+% # The overhead is independent of $n$, at some point the RM will
+% become faster than all the other methods.
+%
+% You can also see that for very small problems the driver functions
+% require a very large amount of time compared to the original
+% function. If you have problems of that type you should definitely
+% consider to use the lower level interface of ADiMat and call the
+% transformed functions directly, as it is explained in the
+% documentation.
+
+%% Modifying the test
+% When the input to fprod is a matrix, then the result will be a
+% vector. 
+
+x = magic(3);
+p = fprod(x)
+
+%%
+% Hence we are now computing a function mapping $n^2$ inputs
+% to $n$ outputs. Accordingly, computing the full Jacobian in FM
+% should take $O(n^2)$ times longer than the original function and in
+% RM it should take $O(n)$ times longer. Let's try this out.
+
+ns = ceil(logspace(1, 4));
+times = nan(5, length(ns));
+times(:,1) = 0;
+
+for i=1:length(ns)
+  n = ns(i);
+
+  x = rand(n, n);
+  
+  if max(times(1,:)) < limit
+    tic, p = fprod(x); times(1,i) = toc;
+  end
+    
+  if max(times(2,:)) < limit
+    tic, [J] = admDiffFor(@fprod, 1, x, adopts); times(2,i) = toc;
+  end
+
+  if max(times(3,:)) < limit
+    tic, [J] = admDiffVFor(@fprod, 1, x, adopts); times(3,i) = toc;
+  end
+
+  if max(times(4,:)) < limit
+    adopts.functionResults = {p};
+    tic, [J] = admDiffRev(@fprod, 1, x, adopts); times(4,i) = toc;
+  end
+    
+  if max(times(5,:)) < limit
+    tic, [J] = admDiffComplex(@fprod, 1, x); times(5,i) = toc;
+  end
+
+end
+
+%% Plot timing results
+% Let us now plot the results on a log-log scaled plot. This time we
+% add to the derivative overhead plot the functions $f(n) = n$ and
+% $f(n) = n^2$, both of which appear in the loglog plot as straight
+% lines with different slopes.
+
+figure
+plot(ns, times(2:5, :), '+', ns, times(1,:), '+');
+set(gca, 'xscale', 'log');
+set(gca, 'yscale', 'log');
+xlabel('$n$', 'interpreter', 'latex');
+ylabel('$t ({\rm s})$', 'interpreter', 'latex');
+legend(legends, 'location', 'best');
+
+factors = times(2:5,:) ./ repmat(times(1,:), [4, 1]);
+
+figure
+plot(ns, factors, '+', ns, ns, '-', ns, ns.^2, '-');
+set(gca, 'xscale', 'log');
+set(gca, 'yscale', 'log');
+xlabel('$n$', 'interpreter', 'latex');
+ylabel('$t ({\rm s})$', 'interpreter', 'latex');
+legend({legends{1:4}, 'n', 'n^2'}, 'location', 'southeast');
+set(gca, 'ylim', [min(ns) max(ns)]);
+
+%%
+% <html>
+% <small>Published with ADiMat version</small>
+% </html>
+adimat_version(2)
+
+##### SOURCE END #####
+--></body></html>

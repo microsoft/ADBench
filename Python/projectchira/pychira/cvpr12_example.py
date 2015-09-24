@@ -129,10 +129,10 @@ for i in range(len(n_data_points)):
 
     # Now add some noise to the data points.
     energy.data_points += .1 * np.random.randn(*energy.data_points.shape)
-    #print('Energy with noisy data points:', energy.evaluate(theta, us))
+    print('Energy with noisy data points:', energy.evaluate(theta, us))
     
     fn_instance = data_dir + ("hand%i.txt" % (i+1))
-    save_instance(fn_instance, correspondences, data_points, theta, us);
+    #save_instance(fn_instance, correspondences, data_points, theta, us);
         
     ### simple version ###
     #correspondences = np.random.random_integers(0, model.n_vertices - 1, n_data_points[i])

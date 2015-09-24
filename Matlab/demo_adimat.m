@@ -29,7 +29,7 @@ hparams = [1 0];
 
 fn = '../gmm';
 % fn = '../gmm_instances/gmm_d2_K25';
-save_gmm_instance([fn '.txt'],gmm,x,hparams,n);
+% save_gmm_instance([fn '.txt'],gmm,x,hparams,n);
 [gmm,x,hparams] = load_gmm_instance([fn '.txt'],n~=n_);
 
 num_params = numel(gmm.alphas) + numel(gmm.means) + ...
@@ -171,9 +171,9 @@ opt2 = admOptions('independents', [1 2 3],  'functionResults', ...
 % Jexternal = load_J_sparse([fn '_J_ADOLC_eigen.txt']);
 % Jexternal = load_J_sparse([fn '_J_ADOLC_sparse.txt']);
 % Jexternal = load_J_sparse([fn '_J_ADOLC_sparse_eigen.txt']);
-Jexternal = load_J_sparse([fn '_J_Adept.txt']);
+% Jexternal = load_J_sparse([fn '_J_Adept.txt']);
 % Jexternal = load_J_sparse([fn '_J_Ceres.txt']);
-% Jexternal = load_J_sparse([fn '_J_DiffSharp.txt']);
+Jexternal = load_J_sparse([fn '_J_DiffSharp.txt']);
 [JforV, fvalforV1, fvalforV2] = ...
     admDiffVFor(@ba_objective, 1, cams, X, w, obs, opt);
 
@@ -296,7 +296,7 @@ opt = admOptions('independents', [1 2],  'functionResults', {fval});
 % compress
 J = [sum(J(:,27:2:end),2) sum(J(:,28:2:end),2) J(:,1:26)];
 %% compare
-Jexternal = load_J([fn '_J_Manual_eigen.txt']);
+% Jexternal = load_J([fn '_J_Manual_eigen.txt']);
 % Jexternal = load_J([fn '_J_ADOLC_eigen.txt']);
 % Jexternal = load_J([fn '_J_ADOLC_eigen_tapeless.txt']);
 % Jexternal = load_J([fn '_J_ADOLC_light.txt']);
@@ -305,5 +305,9 @@ Jexternal = load_J([fn '_J_Manual_eigen.txt']);
 % Jexternal = load_J([fn '_J_Ceres_eigen.txt']);
 % Jexternal = load_J([fn '_J_Ceres_light.txt']);
 % Jexternal = load_J([fn '_J_Julia_F.txt']);
+% Jexternal = load_J([fn '_J_DiffSharp.txt']);
+% Jexternal = load_J([fn '_J_DiffSharp_F.txt']);
+% Jexternal = load_J([fn '_J_Theano.txt']);
+Jexternal = load_J([fn '_J_Theano_rop.txt']);
 norm(J(:) - Jexternal(:)) / norm(J(:))
 

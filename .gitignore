@@ -1,13 +1,9 @@
-# experiments
+# results of experiments (the runtime results are then composed into .mat file which is not ignored)
 *_J_*
 *_times_*
 estimates_backup.mat
 
-.ipynb_checkpoints/*
-*.mexw64
-Plot.ipynb
-old
-packages
+/packages
 
 # User-specific files
 *.suo
@@ -25,25 +21,8 @@ ipch/
 .vs
 
 # Build results
-[Dd]ebug/
-[Dd]ebugPublic/
-[Rr]elease/
-[Rr]eleases/
-x64/
-x86/
-build/
-bld/
-[Oo]bj/
+/Debug/
+/Release/
 
-# Compiled source #
-
-###################
-
-*.com
-*.class
-*.sdf
-*.exe
-*.o
-*.so
-
-
+# Python
+__pycache__
