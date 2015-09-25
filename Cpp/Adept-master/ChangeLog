@@ -1,0 +1,20 @@
+version 1.1:
+	- Added ./configure script using autotools
+	- Added support for additional mathematical functions: asinh, acosh, atanh, expm1, log1p, cbrt, erf, erfc, exp2, log2
+	- Changed license from GNU General Public License to Apache
+	License, Version 2.0
+	- Jacobian calculation uses OpenMP parallelization 
+	- Removed multiscatter example code
+	- New benchmarking program in benchmark/ that compares to other automatic differentiation tools if available
+	- Fixed bug so that gaps in the gradient list now merge properly
+	- Provided capability to compile code without an external library, to facilitate porting to Windows
+	- Added programs in test/ demonstrating checkpointing, thread-safety and compiling without an external library
+	
+version 1.0:
+	- Very many internal changes and added features
+	- Detailed documentation in the doc/ directory
+	- Removed the LIFO requirement on the order with which aReal objects ought to be created and destroyed
+	- For users of version 0.9, the main change to the interface is that the Stack::start() member function is no longer supported; rather you should call the Stack::new_recording() member function *after* the independent variables have been initialized but *before* any mathematical operations are performed using them
+
+version 0.9:
+	- First public release
