@@ -166,15 +166,16 @@ xlabel_ = '# measurements';
 
 plot_log_runtimes(tools,times_J,x,...
     'BA - Jacobian Absolute Runtimes',...
-    'runtime [seconds]',xlabel_,true);
+    'runtime [seconds]',xlabel_);
 
 plot_log_runtimes(tools,times_J_relative,x,...
     'BA - Jacobian Relative Runtimes wrt Objective Runtimes',...
-    'relative runtime',xlabel_,false);
+    'relative runtime',xlabel_);
 
+% to_show=[1 2 3 8 11 12 13 15 16]; % unique languages for ba
 plot_log_runtimes(tools,times_f,x,...
     'BA - Absolute Objective Runtimes',...
-    'runtime [seconds]',xlabel_,true);
+    'runtime [seconds]',xlabel_);
 
 %% do 2D plots + excel output - see control_script_gmm
 % tool_id = adimat_id-1;

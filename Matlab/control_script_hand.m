@@ -3,12 +3,12 @@ exe_dir = 'C:/Users/t-filsra/Workspace/autodiff/Release/hand';
 python_dir = 'C:/Users/t-filsra/Workspace/autodiff/Python/';
 julia_dir = 'C:/Users/t-filsra/Workspace/autodiff/Julia/';
 data_dir = 'C:/Users/t-filsra/Workspace/autodiff/hand_instances/';
-% problem_level = 'simple';
-problem_level = 'complicated';
+problem_level = 'simple';
+% problem_level = 'complicated';
 data_dir = [data_dir problem_level];
 exe_dir = [exe_dir '_' problem_level '/'];
-% data_dir = [data_dir '_small/'];
-data_dir = [data_dir '_big/'];
+data_dir = [data_dir '_small/'];
+% data_dir = [data_dir '_big/'];
 data_dir_est = [data_dir 'est/'];
 replicate_point = false;
 problem_name = 'hand';
@@ -169,22 +169,20 @@ if strcmp(data_dir(end-3:end-1),'big')
 else 
     modelstr = 'Hand Model with 544 Vertices';
 end
+xlabel_ = '# correspondences';
 
 plot_log_runtimes(tools,times_J,x,...
     [levelstr 'Jacobian Absolute Runtimes - ' modelstr],...
-    'runtime [seconds]','# correspondences',true);
+    'runtime [seconds]',xlabel_);
 
 plot_log_runtimes(tools,times_J_relative,x,...
     [levelstr 'Jacobian Relative Runtimes wrt Objective Runtimes - ' modelstr],...
-    'relative runtime','# correspondences',false);
+    'relative runtime',xlabel_);
 
+% to_show=[1 2 6 10:12]; % unique languages for hand
 plot_log_runtimes(tools,times_f,x,...
     ['Objective Absolute Runtimes - ' modelstr],...
-    'runtime [seconds]','# correspondences',true);
-
-plot_log_runtimes(tools,times_f_relative,x,...
-    'objective runtimes relative to Manual, C++','runtime',...
-    '# correspondences',false);
+    'runtime [seconds]',xlabel_);
 
 %% verify results - only simple now
 addpath('adimat-0.6.0-4971');

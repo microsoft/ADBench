@@ -192,15 +192,16 @@ xlabel_ = '# parameters';
 
 plot_log_runtimes(tools,times_J,x,...
     ['GMM Gradient Absolute runtimes' title_],...
-    'runtime [seconds]',xlabel_,true);
+    'runtime [seconds]',xlabel_);
 
 plot_log_runtimes(tools,times_J_relative,x,...
     ['GMM Gradient Runtimes Relative to Objective Runtimes' title_],...
-    'relative runtime',xlabel_,false);
+    'relative runtime',xlabel_);
 
+% to_show=[1 2 3 4 10 11 14 16 18 19 20 21 22]; % unique languages for gmm
 plot_log_runtimes(tools,times_f,x,...
     ['GMM Objective Absolute Runtimes' title_],...
-    'runtime [seconds]',xlabel_,true);
+    'runtime [seconds]',xlabel_);
 
 %% verify results (except mupad and adimats)
 addpath('adimat-0.6.0-4971');
