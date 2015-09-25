@@ -418,7 +418,7 @@ void read_hand_model(const string& path, HandModelEigen *pmodel)
 }
 
 void read_hand_instance(const string& model_dir, const string& fn_in, 
-  vector<double>* params, HandDataEigen *data, vector<double> *us = nullptr)
+  vector<double>* theta, HandDataEigen *data, vector<double> *us = nullptr)
 {
   read_hand_model(model_dir, &data->model);
   std::ifstream in(fn_in);
@@ -442,10 +442,10 @@ void read_hand_instance(const string& model_dir, const string& fn_in,
       in >> (*us)[i];
     }
   }
-  params->resize(n_theta);
+  theta->resize(n_theta);
   for (int i = 0; i < n_theta; i++)
   {
-    in >> (*params)[i];
+    in >> (*theta)[i];
   }
   in.close();
 }
@@ -549,7 +549,7 @@ void read_hand_model(const string& path, HandModelLightMatrix *pmodel)
 }
 
 void read_hand_instance(const string& model_dir, const string& fn_in, 
-  vector<double>* params, HandDataLightMatrix *data, vector<double> *us = nullptr)
+  vector<double>* theta, HandDataLightMatrix *data, vector<double> *us = nullptr)
 {
   read_hand_model(model_dir, &data->model);
   std::ifstream in(fn_in);
@@ -573,10 +573,10 @@ void read_hand_instance(const string& model_dir, const string& fn_in,
       in >> (*us)[i];
     }
   }
-  params->resize(n_theta);
+  theta->resize(n_theta);
   for (int i = 0; i < n_theta; i++)
   {
-    in >> (*params)[i];
+    in >> (*theta)[i];
   }
   in.close();
 }

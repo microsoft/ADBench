@@ -22,13 +22,13 @@ size_t adtl::refcounter::refcnt = 0;
 //#define DO_GMM_SPLIT
 //#define DO_BA_BLOCK
 //#define DO_BA_SPARSE
-//#define DO_HAND
-#define DO_HAND_COMPLICATED
-//#define DO_HAND_SPARSE
+#define DO_HAND
+//#define DO_HAND_COMPLICATED
+//#define DO_HAND_SPARSE // not used - might need some fix here in main to make it work
 
 //#define DO_CPP
-#define DO_EIGEN
-//#define DO_LIGHT_MATRIX
+//#define DO_EIGEN
+#define DO_LIGHT_MATRIX
 
 #if (defined DO_GMM_FULL || defined DO_GMM_SPLIT) && defined DO_CPP
 #include "../gmm.h"
@@ -677,7 +677,7 @@ void get_hand_nnz_pattern(int n_rows,
 #endif
 
 double compute_hand_J(int nruns, 
-  vector<double>& params, 
+  vector<double>& theta, 
   const HandDataType& data,
   vector<double> *perr,
   double ***pJ,
@@ -692,17 +692,17 @@ double compute_hand_J(int nruns,
   bool doRowCompression = false;
   int tapeTag = 1;
   int Jrows = 3* (int)data.correspondences.size();
-  int Jcols = (int)params.size();
-  vector<adouble> aparams(Jcols);
+  int Jcols = (int)theta.size();
+  vector<adouble> atheta(Jcols);
   vector<adouble> aerr(Jrows);
 
   // Record on a tape
   trace_on(tapeTag);
 
-  for (size_t i = 0; i < params.size(); i++)
-    aparams[i] <<= params[i];
+  for (size_t i = 0; i < theta.size(); i++)
+    atheta[i] <<= theta[i];
 
-  hand_objective(&aparams[0], data, &aerr[0]);
+  hand_objective(&atheta[0], data, &aerr[0]);
 
   for (int i = 0; i < Jrows; i++)
     aerr[i] >>= err[i];
@@ -715,7 +715,7 @@ double compute_hand_J(int nruns,
   start = high_resolution_clock::now();
   for (int i = 0; i < nruns; i++)
   {
-    jacobian(tapeTag, Jrows, Jcols, &params[0], *pJ);
+    jacobian(tapeTag, Jrows, Jcols, &theta[0], *pJ);
   }
   *t_sparsity = 0;
 
@@ -736,7 +736,7 @@ double compute_hand_J(int nruns,
 
   double **seed = nullptr;
   int n_colors;
-  generate_seed_jac((int)err.size(), (int)params.size(), row_sparsity_pattern,//row_sparsity_pattern,
+  generate_seed_jac((int)err.size(), (int)theta.size(), row_sparsity_pattern,//row_sparsity_pattern,
     &seed, &n_colors, opt[3]);
   end = high_resolution_clock::now();
   *t_sparsity = duration_cast<duration<double>>(end - start).count() / nruns;
@@ -745,8 +745,8 @@ double compute_hand_J(int nruns,
   int samePattern = 1;
   for (int i = 0; i < nruns; i++)
   {
-    forward(tapeTag, (int)err.size(), (int)params.size(), n_colors,
-      &params[0], seed, &err[0], J);
+    forward(tapeTag, (int)err.size(), (int)theta.size(), n_colors,
+      &theta[0], seed, &err[0], J);
   }
 
   for (size_t i = 0; i < err.size(); i++)
@@ -805,7 +805,7 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
 #elif defined DO_HAND_COMPLICATED
 
 double compute_hand_J(int nruns,
-  const vector<double>& params, const vector<double>& us,
+  const vector<double>& theta, const vector<double>& us,
   const HandDataType& data,
   vector<double> *perr, vector<double> *pJ)
 {
@@ -817,19 +817,19 @@ double compute_hand_J(int nruns,
 
   int tapeTag = 1;
   int Jrows = (int)err.size();
-  int n_independents = (int)(us.size()+params.size());
+  int n_independents = (int)(us.size()+theta.size());
   size_t n_pts = err.size() / 3;
-  int ndirs = 2 + (int)params.size();
+  int ndirs = 2 + (int)theta.size();
   vector<adouble> aus(us.size());
-  vector<adouble> aparams(params.size());
+  vector<adouble> atheta(theta.size());
   vector<adouble> aerr(err.size());
 
 #ifndef ADOLC_TAPELESS
   vector<double> all_params(n_independents);
   for (size_t i = 0; i < us.size(); i++)
     all_params[i] = us[i];
-  for (size_t i = 0; i < params.size(); i++)
-    all_params[i+us.size()] = params[i];
+  for (size_t i = 0; i < theta.size(); i++)
+    all_params[i+us.size()] = theta[i];
 
   // create seed matrix
   Pointer2 seed(n_independents, ndirs);
@@ -840,7 +840,7 @@ double compute_hand_J(int nruns,
     seed[2 * i][0] = 1.;
     seed[2 * i + 1][1] = 1.;
   }
-  for (size_t i = 0; i < params.size(); i++)
+  for (size_t i = 0; i < theta.size(); i++)
     seed[us.size() + i][2 + i] = 1.;
 
   Pointer2 J_tmp(Jrows, ndirs);
@@ -853,8 +853,8 @@ double compute_hand_J(int nruns,
 #ifdef ADOLC_TAPELESS
     for (size_t i = 0; i < us.size(); i++)
       aus[i] = us[i];
-    for (size_t i = 0; i < params.size(); i++)
-      aparams[i] = params[i];
+    for (size_t i = 0; i < theta.size(); i++)
+      atheta[i] = theta[i];
 
     // Compute wrt. us
     for (size_t i = 0; i < n_pts; i++)
@@ -862,10 +862,10 @@ double compute_hand_J(int nruns,
       aus[2 * i].setADValue(0, 1.);
       aus[2 * i + 1].setADValue(1, 1.);
     }
-    for (size_t i = 0; i < params.size(); i++)
-      aparams[i].setADValue(2 + i, 1.);
+    for (size_t i = 0; i < theta.size(); i++)
+      atheta[i].setADValue(2 + i, 1.);
 
-    hand_objective(&aparams[0], &aus[0], data, &aerr[0]);
+    hand_objective(&atheta[0], &aus[0], data, &aerr[0]);
 
     for (int j = 0; j < ndirs; j++)
     {
@@ -879,10 +879,10 @@ double compute_hand_J(int nruns,
     trace_on(tapeTag);
     for (size_t i = 0; i < us.size(); i++)
       aus[i] <<= us[i];
-    for (size_t i = 0; i < params.size(); i++)
-      aparams[i] <<= params[i];
+    for (size_t i = 0; i < theta.size(); i++)
+      atheta[i] <<= theta[i];
 
-    hand_objective(&aparams[0], &aus[0], data, &aerr[0]);
+    hand_objective(&atheta[0], &aus[0], data, &aerr[0]);
 
     for (int i = 0; i < Jrows; i++)
       aerr[i] >>= err[i];
@@ -906,13 +906,13 @@ double compute_hand_J(int nruns,
 void test_hand(const string& model_dir, const string& fn_in, const string& fn_out,
   int nruns_f, int nruns_J)
 {
-  vector<double> params, us;
+  vector<double> theta, us;
   HandDataType data;
 
-  read_hand_instance(model_dir, fn_in + ".txt", &params, &data, &us);
+  read_hand_instance(model_dir, fn_in + ".txt", &theta, &data, &us);
 
   vector<double> err(3 * data.correspondences.size());
-  vector<double> J(err.size() * (2 + params.size()));
+  vector<double> J(err.size() * (2 + theta.size()));
 
   high_resolution_clock::time_point start, end;
   double tf = 0., tJ = 0;
@@ -920,12 +920,12 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   start = high_resolution_clock::now();
   for (int i = 0; i < nruns_f; i++)
   {
-    hand_objective(&params[0], &us[0], data, &err[0]);
+    hand_objective(&theta[0], &us[0], data, &err[0]);
   }
   end = high_resolution_clock::now();
   tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
 
-  tJ = compute_hand_J(nruns_J, params, us, data, &err, &J);
+  tJ = compute_hand_J(nruns_J, theta, us, data, &err, &J);
 
 #ifdef DO_EIGEN
   string name("ADOLC_eigen");
@@ -935,7 +935,7 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
 #ifdef ADOLC_TAPELESS
   name = name + "_tapeless";
 #endif
-  write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), 2 + (int)params.size(), &J[0]);
+  write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), 2 + (int)theta.size(), &J[0]);
   //write_times(tf, tJ);
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
 }

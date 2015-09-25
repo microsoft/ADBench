@@ -440,13 +440,13 @@ void to_pose_params_d(const double* const theta,
 }
 
 void hand_objective_d(
-  const double* const params,
+  const double* const theta,
   const HandDataEigen& data,
   double *perr,
   double *pJ)
 {
   Matrix3Xd pose_params;
-  to_pose_params_d(params, data.model.bone_names, &pose_params);
+  to_pose_params_d(theta, data.model.bone_names, &pose_params);
 
   Matrix3Xd vertex_positions;
   get_skinned_vertex_positions_d(data.model, pose_params, data.correspondences, &vertex_positions, pJ);
@@ -460,14 +460,14 @@ void hand_objective_d(
 }
 
 void hand_objective_d(
-  const double* const params,
+  const double* const theta,
   const double* const us,
   const HandDataEigen& data,
   double *perr,
   double *pJ)
 {
   Matrix3Xd pose_params;
-  to_pose_params_d(params, data.model.bone_names, &pose_params);
+  to_pose_params_d(theta, data.model.bone_names, &pose_params);
 
   size_t npts = data.correspondences.size();
   Matrix3Xd vertex_positions;

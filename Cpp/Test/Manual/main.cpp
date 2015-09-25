@@ -164,13 +164,13 @@ void test_ba(const string& fn_in, const string& fn_out,
 void test_hand(const string& model_dir, const string& fn_in, const string& fn_out,
   int nruns_f, int nruns_J)
 {
-  vector<double> params;
+  vector<double> theta;
   HandDataEigen data;
 
-  read_hand_instance(model_dir, fn_in + ".txt", &params, &data);
+  read_hand_instance(model_dir, fn_in + ".txt", &theta, &data);
 
   vector<double> err(3 * data.correspondences.size());
-  vector<double> J(err.size() * params.size());
+  vector<double> J(err.size() * theta.size());
 
   high_resolution_clock::time_point start, end;
   double tf = 0., tJ = 0;
@@ -178,7 +178,7 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   start = high_resolution_clock::now();
   for (int i = 0; i < nruns_f; i++)
   {
-    hand_objective(&params[0], data, &err[0]);
+    hand_objective(&theta[0], data, &err[0]);
   }
   end = high_resolution_clock::now();
   tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
@@ -186,14 +186,14 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   start = high_resolution_clock::now();
   for (int i = 0; i < nruns_J; i++)
   {
-    hand_objective_d(&params[0], data, &err[0], &J[0]);
+    hand_objective_d(&theta[0], data, &err[0], &J[0]);
   }
   end = high_resolution_clock::now();
   tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
 
   string name = "manual_eigen";
 
-  write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), (int)params.size(), &J[0]);
+  write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), (int)theta.size(), &J[0]);
   //write_times(tf, tJ);
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
 }
@@ -202,13 +202,13 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
 void test_hand(const string& model_dir, const string& fn_in, const string& fn_out,
   int nruns_f, int nruns_J)
 {
-  vector<double> params, us;
+  vector<double> theta, us;
   HandDataEigen data;
 
-  read_hand_instance(model_dir, fn_in + ".txt", &params, &data, &us);
+  read_hand_instance(model_dir, fn_in + ".txt", &theta, &data, &us);
 
   vector<double> err(3 * data.correspondences.size());
-  vector<double> J(err.size() * (2+params.size()));
+  vector<double> J(err.size() * (2+theta.size()));
 
   high_resolution_clock::time_point start, end;
   double tf = 0., tJ = 0;
@@ -216,7 +216,7 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   start = high_resolution_clock::now();
   for (int i = 0; i < nruns_f; i++)
   {
-    hand_objective(&params[0], &us[0], data, &err[0]);
+    hand_objective(&theta[0], &us[0], data, &err[0]);
   }
   end = high_resolution_clock::now();
   tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
@@ -224,14 +224,14 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   start = high_resolution_clock::now();
   for (int i = 0; i < nruns_J; i++)
   {
-    hand_objective_d(&params[0], &us[0], data, &err[0], &J[0]);
+    hand_objective_d(&theta[0], &us[0], data, &err[0], &J[0]);
   }
   end = high_resolution_clock::now();
   tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
 
   string name = "manual_eigen";
 
-  write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), 2+(int)params.size(), &J[0]);
+  write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), 2+(int)theta.size(), &J[0]);
   //write_times(tf, tJ);
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
 }

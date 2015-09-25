@@ -18,21 +18,21 @@ using ArrayX = Eigen::Array<T, -1, 1>;
 //////////////////// Declarations //////////////////////////
 ////////////////////////////////////////////////////////////
 
-// d dim
-// k number of gaussians
-// n number of points
-// alphas k logs of mixture weights (unnormalized), so
+// d: dim
+// k: number of gaussians
+// n: number of points
+// alphas: k logs of mixture weights (unnormalized), so
 //			weights = exp(log_alphas) / sum(exp(log_alphas))
-// means d*k component means
-// icf (d*(d+1)/2)*k parametrizing lower triangular 
-//					square roots of inverse covariances log of diagonal 
-//					is first d params
-// wishart wishart distribution parameters
-// x d*n points
-// err 1 output
-// To generate params in MATLAB given covariance C :
-//           L = inv(chol(C, 'lower'));
-//           inv_cov_factor = [log(diag(L)); L(au_tril_indices(d, -1))]
+// means: d*k component means
+// icf: (d*(d+1)/2)*k inverse covariance factors 
+//					every icf entry stores firstly log of diagonal and then 
+//          columnwise other entris
+//          To generate icf in MATLAB given covariance C :
+//              L = inv(chol(C, 'lower'));
+//              inv_cov_factor = [log(diag(L)); L(au_tril_indices(d, -1))]
+// wishart: wishart distribution parameters
+// x: d*n points
+// err: 1 output
 template<typename T>
 void gmm_objective(int d, int k, int n,
   const T* const alphas,
@@ -45,12 +45,12 @@ void gmm_objective(int d, int k, int n,
 template<typename T>
 double logsumexp(const ArrayX<T>& x);
 
-// p dim
-// k number of components
+// p: dim
+// k: number of components
 // wishart parameters
-// icf  (p*(p+1)/2)*k parametrizing lower triangular 
-//					square roots of inverse covariances log of diagonal 
-//					is first p params
+// sum_qs: sum of log diags of Qs
+// Qs: icf composed into matrices
+// icf: (p*(p+1)/2)*k inverse covariance factors
 template<typename T>
 double log_wishart_prior(int p, int k,
   Wishart wishart,
@@ -116,12 +116,6 @@ T logsumexp(const ArrayX<T>& x)
   return log(semx) + mx;
 }
 
-// p dim
-// k number of components
-// wishart parameters
-// icf  (p*(p+1)/2)*k parametrizing lower triangular 
-//					square roots of inverse covariances log of diagonal 
-//					is first p params
 template<typename T>
 double log_wishart_prior(int p, int k,
   Wishart wishart,

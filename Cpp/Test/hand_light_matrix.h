@@ -13,6 +13,26 @@ using std::string;
 //////////////////// Declarations //////////////////////////
 ////////////////////////////////////////////////////////////
 
+// theta: 26 [global rotation, global translation, finger parameters (4*5)]
+// data: data measurements and hand model
+// err: 3*number_of_correspondences
+template<typename T>
+void hand_objective(
+  const T* const theta,
+  const HandDataEigen& data,
+  T *err);
+
+// theta: 26 [global rotation, global translation, finger parameters (4*5)]
+// us: 2*number_of_correspondences
+// data: data measurements and hand model
+// err: 3*number_of_correspondences
+template<typename T>
+void hand_objective(
+  const T* const theta,
+  const T* const us,
+  const HandDataEigen& data,
+  T *err);
+
 ////////////////////////////////////////////////////////////
 //////////////////// Definitions ///////////////////////////
 ////////////////////////////////////////////////////////////
@@ -208,12 +228,12 @@ void to_pose_params(const T* const theta,
 
 template<typename T>
 void hand_objective(
-  const T* const params,
+  const T* const theta,
   const HandDataLightMatrix& data,
   T *err)
 {
   LightMatrix<T> pose_params;
-  to_pose_params(params, data.model.bone_names, &pose_params);
+  to_pose_params(theta, data.model.bone_names, &pose_params);
 
   LightMatrix<T> vertex_positions;
   get_skinned_vertex_positions(data.model, pose_params, &vertex_positions, true);
@@ -225,13 +245,13 @@ void hand_objective(
 
 template<typename T>
 void hand_objective(
-  const T* const params,
+  const T* const theta,
   const T* const us,
   const HandDataLightMatrix& data,
   T *err)
 {
   LightMatrix<T> pose_params;
-  to_pose_params(params, data.model.bone_names, &pose_params);
+  to_pose_params(theta, data.model.bone_names, &pose_params);
 
   LightMatrix<T> vertex_positions;
   get_skinned_vertex_positions(data.model, pose_params, &vertex_positions, true);

@@ -24,6 +24,20 @@ using Vector2 = Eigen::Matrix<T, 2, 1>;
 //////////////////// Declarations //////////////////////////
 ////////////////////////////////////////////////////////////
 
+// cam: 11 camera in format [r1 r2 r3 C1 C2 C3 f u0 v0 k1 k2]
+//            r1, r2, r3 are angle - axis rotation parameters(Rodrigues)
+//			  [C1 C2 C3]' is the camera center
+//            f is the focal length in pixels
+//			  [u0 v0]' is the principal point
+//            k1, k2 are radial distortion parameters
+// X: 3 point
+// feats: 2 feature (x,y coordinates)
+// reproj_err: 2
+// projection function: 
+// Xcam = R * (X - C)
+// distorted = radial_distort(projective2euclidean(Xcam), radial_parameters)
+// proj = distorted * f + principal_point
+// err = sqsum(proj - measurement)
 template<typename T>
 void computeReprojError(
   const T* const cam,
@@ -32,25 +46,26 @@ void computeReprojError(
   const double* const feat,
   T *err);
 
+// w: 1
+// w_err: 1
 template<typename T>
 void computeZachWeightError(const T* const w, T* err);
 
 // n number of cameras
 // m number of points
 // p number of observations
-// cams 11*n cameras in format [r1 r2 r3 C1 C2 C3 f u0 v0 k1 k2]
+// cams: 11*n cameras in format [r1 r2 r3 C1 C2 C3 f u0 v0 k1 k2]
 //            r1, r2, r3 are angle - axis rotation parameters(Rodrigues)
 //			  [C1 C2 C3]' is the camera center
 //            f is the focal length in pixels
 //			  [u0 v0]' is the principal point
 //            k1, k2 are radial distortion parameters
-// X 3*m points
-// obs 2*p observations (pairs cameraIdx, pointIdx)
-// feats 2*p features (x,y coordinates corresponding to observations)
-// reproj_err 2*p errors of observations
-// f_prior_err n-2 temporal prior on focals
-// w_err p coputes like 1-w^2
-// projection: 
+// X: 3*m points
+// obs: 2*p observations (pairs cameraIdx, pointIdx)
+// feats: 2*p features (x,y coordinates corresponding to observations)
+// reproj_err: 2*p errors of observations
+// w_err: p weight "error" terms
+// projection function: 
 // Xcam = R * (X - C)
 // distorted = radial_distort(projective2euclidean(Xcam), radial_parameters)
 // proj = distorted * f + principal_point
@@ -82,16 +97,6 @@ void cross(
   out[2] = a[0] * b[1] - a[1] * b[0];
 }
 
-// rot 3 rotation parameters
-// pt 3 point to be rotated
-// rotatedPt 3 rotated point
-// this is an efficient evaluation (part of
-// the Ceres implementation)
-// easy to understand calculation in matlab:
-//	theta = sqrt(sum(w. ^ 2));
-//	n = w / theta;
-//	n_x = au_cross_matrix(n);
-//	R = eye(3) + n_x*sin(theta) + n_x*n_x*(1 - cos(theta));
 template<typename T>
 void rodrigues_rotate_point(
   Map<const Vector3<T>>& rot,
@@ -150,8 +155,6 @@ void rodrigues_rotate_point(
 }
 #endif
 
-// rad_params 2 radial distortion parameters
-// proj 2 projection to be distorted
 template<typename T>
 void radial_distort(
   const T* const rad_params,
@@ -162,19 +165,6 @@ void radial_distort(
   proj *= L;
 }
 
-// cam 11 cameras in format [r1 r2 r3 C1 C2 C3 f u0 v0 k1 k2]
-//            r1, r2, r3 are angle - axis rotation parameters(Rodrigues)
-//			  [C1 C2 C3]' is the camera center
-//            f is the focal length in pixels
-//			  [u0 v0]' is the principal point
-//            k1, k2 are radial distortion parameters
-// X 3 point
-// proj 2 projection
-// projection: 
-// Xcam = R * (X - C)
-// distorted = radial_distort(projective2euclidean(Xcam), radial_parameters)
-// proj = distorted * f + principal_point
-// err = sqsum(proj - measurement)
 template<typename T>
 void project(const T* const cam, Map<const Vector3<T>>& X, Vector2<T>& proj)
 {

@@ -1,11 +1,17 @@
 #pragma once
 
+#include <vector>
+#include <string>
+
 #include <vnl\vnl_matrix.h>
 #include <vnl\vnl_double_4x4.h>
 
 #include <vnl/vnl_numeric_traits.h>
 
 #include "adept.h"
+
+using std::vector;
+using std::string;
 using adept::adouble;
 
 template<typename T>
@@ -202,7 +208,7 @@ void read_hand_model(const string& path, HandModelVXL *pmodel)
 }
 
 void read_hand_instance(const string& model_dir, const string& fn_in, 
-  vector<double>* params, HandDataVXL *data)
+  vector<double>* theta, HandDataVXL *data)
 {
   read_hand_model(model_dir, &data->model);
   std::ifstream in(fn_in);
@@ -218,10 +224,10 @@ void read_hand_instance(const string& model_dir, const string& fn_in,
       in >> data->points(i, j);
     }
   }
-  params->resize(n_theta);
+  theta->resize(n_theta);
   for (int i = 0; i < n_theta; i++)
   {
-    in >> (*params)[i];
+    in >> (*theta)[i];
   }
   in.close();
 }
