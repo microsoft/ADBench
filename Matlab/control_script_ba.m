@@ -1,4 +1,4 @@
-%% get tools
+%% set paths and get tools struct array
 exe_dir = 'C:/Users/t-filsra/Workspace/autodiff/Release/ba/';
 python_dir = 'C:/Users/t-filsra/Workspace/autodiff/Python/';
 julia_dir = 'C:/Users/t-filsra/Workspace/autodiff/Julia/';
@@ -25,18 +25,18 @@ end
 ntasks = numel(params);
 % save(['params_' problem_name '.mat'],'params');
 
-%% write instances into files
-addpath('awful/matlab')
-for i=1:ntasks
-    
-    n = params{i}(1);
-    m = params{i}(2);
-    p = params{i}(3);
-    
-    rng(1);
-    [cams,X,w,obs] = generate_random_ba_instance(1,1,1);
-    save_ba_instance([data_dir fns{i} '.txt'], cams, X, w, obs, n, m, p);
-end
+% %% generate and write instances into files - only once
+% addpath('awful/matlab')
+% for i=1:ntasks
+%     
+%     n = params{i}(1);
+%     m = params{i}(2);
+%     p = params{i}(3);
+%     
+%     rng(1);
+%     [cams,X,w,obs] = generate_random_ba_instance(1,1,1);
+%     save_ba_instance([data_dir fns{i} '.txt'], cams, X, w, obs, n, m, p);
+% end
 
 %% write script for running tools once
 fn_run_once = 'run_tools_once.mk';
@@ -105,16 +105,16 @@ for i=1:ntools
    end    
 end
 
-%% Transport runtimes
-load([data_dir_est 'estimates_backup.mat']);
-[times_fixed_f,times_fixed_J] = ...
-    read_times(data_dir,'-',fns,tools,problem_name);
-mask_f = (nruns_f==0) & ~up_to_date_mask & ~isinf(times_est_f);
-mask_J = (nruns_J==0) & ~up_to_date_mask & ~isinf(times_est_J);
-times_fixed_f(mask_f) = times_est_f(mask_f);
-times_fixed_J(mask_J) = times_est_J(mask_J);
-for i=1:ntools
-    if tools(i).call_type < 3
+% %% transport missing runtimes (from data_dir_est to data_dir)
+% load([data_dir_est 'estimates_backup.mat']);
+% [times_fixed_f,times_fixed_J] = ...
+%     read_times(data_dir,'-',fns,tools,problem_name);
+% mask_f = (nruns_f==0) & ~up_to_date_mask & ~isinf(times_est_f);
+% mask_J = (nruns_J==0) & ~up_to_date_mask & ~isinf(times_est_J);
+% times_fixed_f(mask_f) = times_est_f(mask_f);
+% times_fixed_J(mask_J) = times_est_J(mask_J);
+% for i=1:ntools
+%     if tools(i).call_type < 3
 %         postfix = ['_times_' tools(i).ext '.txt'];
 %         for j=1:ntasks
 %             if any([mask_f(j,i) mask_J(j,i)])
@@ -125,17 +125,16 @@ for i=1:ntools
 %                 fclose(fid);
 %             end
 %         end
-    else
-        fn = [data_dir problem_name '_times_' tools(i).ext '.mat'];
-        if exist(fn,'file')
-            ld=load(fn);
-            ld.times_f = times_fixed_f(:,i);
-            ld.times_J = times_fixed_J(:,i);
-            save(fn,'-struct','ld')
-        end
-    end
-end
-
+%     else
+%         fn = [data_dir problem_name '_times_' tools(i).ext '.mat'];
+%         if exist(fn,'file')
+%             ld=load(fn);
+%             ld.times_f = times_fixed_f(:,i);
+%             ld.times_J = times_fixed_J(:,i);
+%             save(fn,'-struct','ld')
+%         end
+%     end
+% end
 
 %% read final times
 [times_f,times_J] = ...
@@ -150,9 +149,9 @@ for i=1:ntools
     end
 end
 
-times_f_relative = bsxfun(@rdivide,times_f,times_f(:,manual_eigen_id));
-times_f_relative(isnan(times_f_relative)) = Inf;
-times_f_relative(times_f_relative==0) = Inf;
+% times_f_relative = bsxfun(@rdivide,times_f,times_f(:,manual_eigen_id));
+% times_f_relative(isnan(times_f_relative)) = Inf;
+% times_f_relative(times_f_relative==0) = Inf;
 times_J_relative = times_J./times_f;
 % times_J_relative = bsxfun(@rdivide,times_J,times_J(:,manual_eigen_id));
 times_J_relative(isnan(times_J_relative)) = Inf;
@@ -163,22 +162,21 @@ save([data_dir 'times_' date],'times_f','times_J','params','tools');
 
 %% plot times
 x=[params{:}]; x=x(3:6:end);
+xlabel_ = '# measurements';
 
 plot_log_runtimes(tools,times_J,x,...
-    'Jacobian Absolute Runtimes - Bundle Adjustment',...
-    'runtime [seconds]','# measurements',true);
+    'BA - Jacobian Absolute Runtimes',...
+    'runtime [seconds]',xlabel_,true);
 
 plot_log_runtimes(tools,times_J_relative,x,...
-    'Jacobian Relative Runtimes wrt Objective Runtimes - Bundle Adjustment',...
-    'relative runtime','# measurements',false);
+    'BA - Jacobian Relative Runtimes wrt Objective Runtimes',...
+    'relative runtime',xlabel_,false);
 
 plot_log_runtimes(tools,times_f,x,...
-    'objective runtimes','runtime [seconds]','# measurements',true);
+    'BA - Absolute Objective Runtimes',...
+    'runtime [seconds]',xlabel_,true);
 
-plot_log_runtimes(tools,times_f_relative,x,...
-    'objective runtimes relative to Manual, C++','runtime','# measurements',false);
-
-%% do 2D plots
+%% do 2D plots + excel output - see control_script_gmm
 % tool_id = adimat_id-1;
 % vals_J = zeros(numel(d_all),numel(k_all));
 % vals_relative = vals_J;
@@ -212,31 +210,3 @@ plot_log_runtimes(tools,times_f_relative,x,...
 % end
 % xlswrite('tmp.xlsx',labels')
 % xlswrite('tmp.xlsx',tools,1,'B1')
-% 
-% %% mupad compilation
-% mupad_compile_times = Inf(1,ntasks);
-% mupad_compile_times(1:13) = [0.0014, 0.0019, 0.014, 0.15, 0.089,...
-%     0.6, 0.5, 3.3, 4.25, 8.7, 15.1, 26, 50];
-% 
-% vals = zeros(numel(d_all),numel(k_all));
-% for i=1:ntasks
-%     d = params{i}(1);
-%     k = params{i}(2);
-%     vals(d_all==d,k_all==k) = mupad_compile_times(i);
-% end
-% [x,y]=meshgrid(k_all,d_all);
-% figure
-% surf(x,y,vals);
-% xlabel('d')
-% ylabel('K')
-% set(gca,'FontSize',14,'ZScale','log')
-% title('Compile time (hours): MuPAD')
-% 
-% figure
-% x=[params{:}]; x=x(3:3:end);
-% loglog(x,mupad_compile_times,'linewidth',2)
-% xmax = find(~isinf(mupad_compile_times)); xmax=x(xmax(end));
-% xlim([x(1) xmax])
-% xlabel('# parameters')
-% ylabel('compile time [hours]')
-% title('Compile time (hours): MuPAD')

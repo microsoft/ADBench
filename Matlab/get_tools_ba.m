@@ -15,14 +15,6 @@ markers = generate_symbols();
 tools = {};
 cpp_objective_ids = [];
 
-% tools(end+1).name = 'manual, C++';
-% tools(end).exe = [exe_dir,'Manual_cpp.exe'];
-% tools(end).run_cmd = tools(end).exe;
-% tools(end).ext = 'manual_cpp';
-% tools(end).col = cols(unused_col_id,:); unused_col_id = unused_col_id+1;
-% tools(end).marker = markers{1};
-% tools(end).call_type = 0;
-
 tools(end+1).name = 'manual | C++ Eigen';
 tools(end).exe = [exe_dir,'Manual_eigen.exe'];
 tools(end).run_cmd = tools(end).exe;

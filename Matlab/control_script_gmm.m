@@ -1,19 +1,21 @@
-%% get tools
+%% set paths and get tools struct array
 exe_dir = 'C:/Users/t-filsra/Workspace/autodiff/Release/gmm/';
 python_dir = 'C:/Users/t-filsra/Workspace/autodiff/Python/';
 julia_dir = 'C:/Users/t-filsra/Workspace/autodiff/Julia/';
-% data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/1k/'; replicate_point = false;
-% data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/10k/'; replicate_point = false;
-data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/2.5M/'; replicate_point = true;
+data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/';
+npts_str = '1k'; replicate_point = false;
+% npts_str = '10k'; replicate_point = false;
+% npts_str = '2.5M'; replicate_point = true;
+data_dir = [data_dir npts_str '/'];
 data_dir_est = [data_dir 'est/'];
 npoints = 2.5e6;
 problem_name='gmm';
 
-tools = get_tools(exe_dir,python_dir,julia_dir);
+tools = get_tools_gmm(exe_dir,python_dir,julia_dir);
 manual_cpp_id = 1;
 ntools = numel(tools);
 
-%% generate parameters and order them
+%% generate parameters (instance sizes) and order them
 d_all = [2 10 20 32 64];
 k_all = [5 10 25 50 100 200];
 params = {};
@@ -43,29 +45,29 @@ end
 ntasks = numel(params);
 % save('params_' problem_name '.mat','params');
 
-%% write instances into files
-addpath('awful/matlab')
-for i=1:ntasks
-    disp(['runnning: ' num2str(i) '; params: ' num2str(params{i})]);
-    
-    d = params{i}(1);
-    k = params{i}(2);
-    
-    rng(1);
-    paramsGMM.alphas = randn(1,k);
-    paramsGMM.means = au_map(@(i) rand(d,1), cell(k,1));
-    paramsGMM.means = [paramsGMM.means{:}];
-    paramsGMM.inv_cov_factors = au_map(@(i) randn(d*(d+1)/2,1), cell(k,1));
-    paramsGMM.inv_cov_factors = [paramsGMM.inv_cov_factors{:}];
-    if replicate_point
-        x = randn(d,1);
-    else
-        x = randn(d,npoints);
-    end
-    hparams = [1 0];
-    
-    save_gmm_instance([data_dir fns{i} '.txt'], paramsGMM, x, hparams, npoints);
-end
+% %% generate new instances and write into files - do only once
+% addpath('awful/matlab')
+% for i=1:ntasks
+%     disp(['runnning: ' num2str(i) '; params: ' num2str(params{i})]);
+%     
+%     d = params{i}(1);
+%     k = params{i}(2);
+%     
+%     rng(1);
+%     paramsGMM.alphas = randn(1,k);
+%     paramsGMM.means = au_map(@(i) rand(d,1), cell(k,1));
+%     paramsGMM.means = [paramsGMM.means{:}];
+%     paramsGMM.inv_cov_factors = au_map(@(i) randn(d*(d+1)/2,1), cell(k,1));
+%     paramsGMM.inv_cov_factors = [paramsGMM.inv_cov_factors{:}];
+%     if replicate_point
+%         x = randn(d,1);
+%     else
+%         x = randn(d,npoints);
+%     end
+%     hparams = [1 0];
+%     
+%     save_gmm_instance([data_dir fns{i} '.txt'], paramsGMM, x, hparams, npoints);
+% end
 
 %% write script for running tools once
 fn_run_once = 'run_tools_once.mk';
@@ -136,28 +138,69 @@ for i=1:ntools
    end    
 end
 
-%% Transport runtimes
-load([data_dir_est 'estimates_backup.mat']);
-[times_fixed_f,times_fixed_J] = ...
-    read_times(data_dir,'-',fns,tools,problem_name);
-mask_f = (nruns_f==0) & ~up_to_date_mask & ~isinf(times_est_f);
-mask_J = (nruns_J==0) & ~up_to_date_mask & ~isinf(times_est_J);
-times_fixed_f(mask_f) = times_est_f(mask_f);
-times_fixed_J(mask_J) = times_est_J(mask_J);
+% %% transport missing runtimes (from data_dir_est to data_dir)
+% load([data_dir_est 'estimates_backup.mat']);
+% [times_fixed_f,times_fixed_J] = ...
+%     read_times(data_dir,'-',fns,tools,problem_name);
+% mask_f = (nruns_f==0) & ~up_to_date_mask & ~isinf(times_est_f);
+% mask_J = (nruns_J==0) & ~up_to_date_mask & ~isinf(times_est_J);
+% times_fixed_f(mask_f) = times_est_f(mask_f);
+% times_fixed_J(mask_J) = times_est_J(mask_J);
+% for i=1:ntools
+%     if tools(i).call_type < 3
+%         postfix = ['_times_' tools(i).ext '.txt'];
+%         for j=1:ntasks
+%             if any([mask_f(j,i) mask_J(j,i)])
+%                 fn = [data_dir fns{j} postfix];
+%                 fid = fopen(fn,'w');
+%                 fprintf(fid,'%f %f\n',times_fixed_f(j,i),times_fixed_J(j,i));
+%                 fprintf(fid,'tf tJ');
+%                 fclose(fid);
+%             end
+%         end
+%     end
+% end
+
+%% read final times
+[times_f,times_J] = ...
+    read_times(data_dir,data_dir,fns,tools,problem_name);
+
+% add finite differences times
 for i=1:ntools
-    if tools(i).call_type < 3
-        postfix = ['_times_' tools(i).ext '.txt'];
-        for j=1:ntasks
-            if any([mask_f(j,i) mask_J(j,i)])
-                fn = [data_dir fns{j} postfix];
-                fid = fopen(fn,'w');
-                fprintf(fid,'%f %f\n',times_fixed_f(j,i),times_fixed_J(j,i));
-                fprintf(fid,'tf tJ');
-                fclose(fid);
-            end
-        end
+    if tools(i).call_type == 6
+        nparams=[params{:}]; nparams=nparams(3:3:end);
+        [times_f(:,i), times_J(:,i)] = compute_finite_diff_times_J(tools(i),...
+            nparams,times_f);
     end
 end
+
+% times_f_relative = bsxfun(@rdivide,times_f,times_f(:,manual_cpp_id));
+% times_f_relative(isnan(times_f_relative)) = Inf;
+% times_f_relative(times_f_relative==0) = Inf;
+times_J_relative = times_J./times_f;
+% times_J_relative = bsxfun(@rdivide,times_J,times_J(:,manual_cpp_id));
+times_J_relative(isnan(times_J_relative)) = Inf;
+times_J_relative(times_J_relative==0) = Inf;
+
+%% output results
+save([data_dir 'times_' date],'times_f','times_J','params','tools');
+
+%% plot times
+x=[params{:}]; x=x(3:3:end);
+title_ = [' - ' npts_str ' data points'];
+xlabel_ = '# parameters';
+
+plot_log_runtimes(tools,times_J,x,...
+    ['GMM Gradient Absolute runtimes' title_],...
+    'runtime [seconds]',xlabel_,true);
+
+plot_log_runtimes(tools,times_J_relative,x,...
+    ['GMM Gradient Runtimes Relative to Objective Runtimes' title_],...
+    'relative runtime',xlabel_,false);
+
+plot_log_runtimes(tools,times_f,x,...
+    ['GMM Objective Absolute Runtimes' title_],...
+    'runtime [seconds]',xlabel_,true);
 
 %% verify results (except mupad and adimats)
 addpath('adimat-0.6.0-4971');
@@ -201,55 +244,14 @@ for i=1:numel(bad)
     disp([bad{i}{1} ' : ' num2str(bad{i}{2})]);
 end
 
-%% read final times
-[times_f,times_J] = ...
-    read_times(data_dir,data_dir,fns,tools,problem_name);
-
-% add finite differences times
-for i=1:ntools
-    if tools(i).call_type == 6
-        nparams=[params{:}]; nparams=nparams(3:3:end);
-        [times_f(:,i), times_J(:,i)] = compute_finite_diff_times_J(tools(i),...
-            nparams,times_f);
-    end
-end
-
-times_f_relative = bsxfun(@rdivide,times_f,times_f(:,manual_cpp_id));
-times_f_relative(isnan(times_f_relative)) = Inf;
-times_f_relative(times_f_relative==0) = Inf;
-times_J_relative = times_J./times_f;
-% times_J_relative = bsxfun(@rdivide,times_J,times_J(:,manual_cpp_id));
-times_J_relative(isnan(times_J_relative)) = Inf;
-times_J_relative(times_J_relative==0) = Inf;
-
-%% output results
-save([data_dir 'times_' date],'times_f','times_J','params','tools');
-
-%% plot times
-x=[params{:}]; x=x(3:3:end);
-
-plot_log_runtimes(tools,times_J,x,...
-    'Jacobian runtimes','runtime [seconds]','# parameters',true);
-
-plot_log_runtimes(tools,times_J_relative,x,...
-    'Jacobian runtimes relative to Manual, C++',...
-    'relative runtime','# parameters',false);
-
-plot_log_runtimes(tools,times_f,x,...
-    'objective runtimes','runtime [seconds]','# parameters',true);
-
-plot_log_runtimes(tools,times_f_relative,x,...
-    'objective runtimes relative to Manual, C++',...
-    'relative runtime','# parameters',false);
-
 %% do 2D plots
-tool_id = adimat_id-1;
+tool_id = 1;
 vals_J = zeros(numel(d_all),numel(k_all));
 vals_relative = vals_J;
 for i=1:ntasks
     d = params{i}(1);
     k = params{i}(2);
-    vals_relative(d_all==d,k_all==k) = times_relative(i,tool_id);
+    vals_relative(d_all==d,k_all==k) = times_J_relative(i,tool_id);
     vals_J(d_all==d,k_all==k) = times_J(i,tool_id);
 end
 [x,y]=meshgrid(k_all,d_all);
@@ -258,13 +260,13 @@ surf(x,y,vals_J);
 xlabel('d')
 ylabel('K')
 set(gca,'FontSize',14,'ZScale','log')
-title(['Runtime (seconds): ' tools{tool_id}])
+title(['Runtime (seconds): ' tools(tool_id).name])
 figure
 surf(x,y,vals_relative);
 xlabel('d')
 ylabel('K')
 set(gca,'FontSize',14)
-title(['Runtime (relative): ' tools{tool_id}])
+title(['Runtime (relative): ' tools(tool_id).name])
 
 %% output into excel/csv
 csvwrite('tmp.csv',times_J*1000,2,1);

@@ -98,7 +98,7 @@ end
 
 fclose(fid);
 
-% % batch
+% % .bat file
 % ntasks = numel(tasks_fns);
 % 
 % fid = fopen(script_fn,'w');

@@ -1,4 +1,4 @@
-function tools = get_tools(exe_dir,python_dir,julia_dir)
+function tools = get_tools_gmm(exe_dir,python_dir,julia_dir)
 % call_type:
 %   0 standard - tools(id).run_cmd
 %   1 theano - tools(id).run_cmd

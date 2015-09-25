@@ -1,4 +1,4 @@
-%% get tools
+%% set paths and get tools struct array
 exe_dir = 'C:/Users/t-filsra/Workspace/autodiff/Release/hand';
 python_dir = 'C:/Users/t-filsra/Workspace/autodiff/Python/';
 julia_dir = 'C:/Users/t-filsra/Workspace/autodiff/Julia/';
@@ -106,28 +106,28 @@ for i=1:ntools
    end    
 end
 
-%% Transport runtimes
-load([data_dir_est 'estimates_backup.mat']);
-[times_fixed_f,times_fixed_J] = ...
-    read_times(data_dir,'-',fns,tools,problem_name);
-mask_f = (nruns_f==0) & ~up_to_date_mask & ~isinf(times_est_f);
-mask_J = (nruns_J==0) & ~up_to_date_mask & ~isinf(times_est_J);
-times_fixed_f(mask_f) = times_est_f(mask_f);
-times_fixed_J(mask_J) = times_est_J(mask_J);
-for i=1:ntools
-    if tools(i).call_type < 3
-        postfix = ['_times_' tools(i).ext '.txt'];
-        for j=1:ntasks
-            if any([mask_f(j,i) mask_J(j,i)])
-                fn = [data_dir fns{j} postfix];
-                fid = fopen(fn,'w');
-                fprintf(fid,'%f %f\n',times_fixed_f(j,i),times_fixed_J(j,i));
-                fprintf(fid,'tf tJ');
-                fclose(fid);
-            end
-        end
-    end
-end
+% %% transport missing runtimes (from data_dir_est to data_dir)
+% load([data_dir_est 'estimates_backup.mat']);
+% [times_fixed_f,times_fixed_J] = ...
+%     read_times(data_dir,'-',fns,tools,problem_name);
+% mask_f = (nruns_f==0) & ~up_to_date_mask & ~isinf(times_est_f);
+% mask_J = (nruns_J==0) & ~up_to_date_mask & ~isinf(times_est_J);
+% times_fixed_f(mask_f) = times_est_f(mask_f);
+% times_fixed_J(mask_J) = times_est_J(mask_J);
+% for i=1:ntools
+%     if tools(i).call_type < 3
+%         postfix = ['_times_' tools(i).ext '.txt'];
+%         for j=1:ntasks
+%             if any([mask_f(j,i) mask_J(j,i)])
+%                 fn = [data_dir fns{j} postfix];
+%                 fid = fopen(fn,'w');
+%                 fprintf(fid,'%f %f\n',times_fixed_f(j,i),times_fixed_J(j,i));
+%                 fprintf(fid,'tf tJ');
+%                 fclose(fid);
+%             end
+%         end
+%     end
+% end
 
 %% read final times
 [times_f,times_J] = ...
@@ -146,36 +146,36 @@ for i=1:ntools
     end
 end
 
-times_f_relative = bsxfun(@rdivide,times_f,times_f(:,manual_eigen_id));
-times_f_relative(isnan(times_f_relative)) = Inf;
-times_f_relative(times_f_relative==0) = Inf;
+% times_f_relative = bsxfun(@rdivide,times_f,times_f(:,manual_eigen_id));
+% times_f_relative(isnan(times_f_relative)) = Inf;
+% times_f_relative(times_f_relative==0) = Inf;
 times_J_relative = times_J./times_f;
 % times_J_relative = bsxfun(@rdivide,times_J,times_J(:,manual_eigen_id));
 times_J_relative(isnan(times_J_relative)) = Inf;
 times_J_relative(times_J_relative==0) = Inf;
-
-if strcmp(problem_level,'simple')
-    levelstr = 'Hand Tracking';
-else 
-    levelstr = 'Hand Tracking';
-end
-if strcmp(data_dir(end-3:end-1),'big')
-    modelstr = 'Hand Model with 10k Vertices';
-else 
-    modelstr = 'Hand Model with 544 Vertices';
-end
 %% output results
 save([data_dir 'times_' date],'times_f','times_J','params','tools');
 
 %% plot times
 x=[params{:}];
 
+if strcmp(problem_level,'simple')
+    levelstr = 'Hand Tracking Simple - ';
+else 
+    levelstr = 'Hand Tracking Complicated - ';
+end
+if strcmp(data_dir(end-3:end-1),'big')
+    modelstr = 'Hand Model with 10k Vertices';
+else 
+    modelstr = 'Hand Model with 544 Vertices';
+end
+
 plot_log_runtimes(tools,times_J,x,...
-    ['Jacobian Absolute Runtimes - ' modelstr],...
+    [levelstr 'Jacobian Absolute Runtimes - ' modelstr],...
     'runtime [seconds]','# correspondences',true);
 
 plot_log_runtimes(tools,times_J_relative,x,...
-    ['Jacobian Relative Runtimes wrt Objective Runtimes - ' modelstr],...
+    [levelstr 'Jacobian Relative Runtimes wrt Objective Runtimes - ' modelstr],...
     'relative runtime','# correspondences',false);
 
 plot_log_runtimes(tools,times_f,x,...
