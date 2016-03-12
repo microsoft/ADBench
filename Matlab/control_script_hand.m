@@ -1,10 +1,9 @@
 %% set paths and get tools struct array
-exe_dir = 'C:/Users/t-filsra/Workspace/autodiff/Release/hand';
-python_dir = 'C:/Users/t-filsra/Workspace/autodiff/Python/';
-julia_dir = 'C:/Users/t-filsra/Workspace/autodiff/Julia/';
-data_dir = 'C:/Users/t-filsra/Workspace/autodiff/hand_instances/';
-problem_level = 'simple';
-% problem_level = 'complicated';
+root_dir = 'C:/Users/Filip/Dropbox/MSR/autodiff/';
+exe_dir = [root_dir 'Release/hand'];
+python_dir = [root_dir 'Python/'];
+julia_dir = [root_dir 'Julia/'];
+data_dir = [root_dir 'hand_instances/'];
 data_dir = [data_dir problem_level];
 exe_dir = [exe_dir '_' problem_level '/'];
 data_dir = [data_dir '_small/'];

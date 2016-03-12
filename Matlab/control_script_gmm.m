@@ -1,10 +1,9 @@
 %% set paths and get tools struct array
-exe_dir = 'C:/Users/t-filsra/Workspace/autodiff/Release/gmm/';
-python_dir = 'C:/Users/t-filsra/Workspace/autodiff/Python/';
-julia_dir = 'C:/Users/t-filsra/Workspace/autodiff/Julia/';
-data_dir = 'C:/Users/t-filsra/Workspace/autodiff/gmm_instances/';
-npts_str = '1k'; replicate_point = false;
-% npts_str = '10k'; replicate_point = false;
+root_dir = 'C:/Users/Filip/Dropbox/MSR/autodiff/';
+exe_dir = [root_dir 'Release/gmm/'];
+python_dir = [root_dir 'Python/'];
+julia_dir = [root_dir 'Julia/'];
+data_dir = [root_dir 'gmm_instances/'];
 % npts_str = '2.5M'; replicate_point = true;
 data_dir = [data_dir npts_str '/'];
 data_dir_est = [data_dir 'est/'];
