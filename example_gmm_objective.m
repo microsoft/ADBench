@@ -42,8 +42,8 @@ if nargin == 0
   %%
   
   % Make a small random GMM
-  d = 20;
-  K = 5;
+  d = 2;
+  K = 30;
   params.log_alphas = randn(K,1);
   params.means = au_map(@(i) rand(d,1), cell(K,1));
   params.inv_cov_factors = au_map(@(i) randn(d*(d+1)/2,1), cell(K,1));
@@ -75,6 +75,13 @@ if nargin == 0
     fprintf('example_gmm: making mex file %s\n', mexname);
     au_autodiff_generate(f, x, data, [mexname '.cxx']);
   end
+  
+  %%
+  f = @(x) getrows(autogen_example_gmm_objective_mex_d2_K30(x, data, false), 1);
+  J = autogen_example_gmm_objective_mex_d2_K30(x, data, true);
+  J = J(2:end)';
+  % k = full(au_jacobian_fd(f, x));
+  au_check_derivatives(f, x, J, 'delta=1e-5;tol=1e-4');
   
   %%
   n=1000;
