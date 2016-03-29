@@ -1,0 +1,17 @@
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharp\obj\Debug\DiffSharp.fsprojResolveAssemblyReference.cache
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharp\bin\Debug\DiffSharpTest.exe.config
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharp\bin\Debug\Tests.XML
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharp\bin\Debug\DiffSharpTest.exe
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharp\bin\Debug\DiffSharpTest.pdb
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharp\bin\Debug\DiffSharp.dll
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharp\bin\Debug\FsAlg.dll
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharp\bin\Debug\FSharp.Core.dll
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharp\bin\Debug\FSharp.Quotations.Evaluator.dll
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharp\bin\Debug\MathNet.Numerics.dll
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharp\bin\Debug\DiffSharp.xml
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharp\bin\Debug\FsAlg.xml
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharp\bin\Debug\FSharp.Quotations.Evaluator.pdb
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharp\bin\Debug\MathNet.Numerics.xml
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharp\bin\Debug\FSharp.Core.xml
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharp\obj\Debug\DiffSharpTest.exe
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharp\obj\Debug\DiffSharpTest.pdb

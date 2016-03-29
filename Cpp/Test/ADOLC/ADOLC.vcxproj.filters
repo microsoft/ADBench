@@ -18,22 +18,19 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ba.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="gmm.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ba.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\defs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\hand_eigen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

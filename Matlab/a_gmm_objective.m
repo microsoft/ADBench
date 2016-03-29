@@ -23,9 +23,11 @@
 %  - inputEncoding=ISO-8859-1
 %
 % Functions in this file: a_gmm_objective, rec_gmm_objective,
-%  ret_gmm_objective, a_log_wishart_prior, rec_log_wishart_prior,
-%  ret_log_wishart_prior, log_wishart_prior, log_gamma_distrib,
-%  a_logsumexp_repmat, rec_logsumexp_repmat, ret_logsumexp_repmat
+%  ret_gmm_objective, a_sqnorm, rec_sqnorm,
+%  ret_sqnorm, sqnorm, a_log_wishart_prior,
+%  rec_log_wishart_prior, ret_log_wishart_prior, log_wishart_prior,
+%  log_gamma_distrib, a_logsumexp, rec_logsumexp,
+%  ret_logsumexp
 %
 
 function [a_alphas a_means a_inv_cov_factors nr_err] = a_gmm_objective(alphas, means, inv_cov_factors, x, hparams, a_err)
@@ -48,72 +50,79 @@ function [a_alphas a_means a_inv_cov_factors nr_err] = a_gmm_objective(alphas, m
 %           L = inv(chol(C,'lower'));
 %           inv_cov_factor = [log(diag(L)); L(au_tril_indices(d,-1))]
    tmpca1 = 0;
-   tmpca2 = 0;
-   tmpca3 = 0;
-   tmpca4 = 0;
    tmpda1 = 0;
    tmplia1 = 0;
-   Lparams = 0;
+   icf = 0;
    logLdiag = 0;
-   L = 0;
-   mahal = 0;
+   main_term = 0;
+   Qxcentered = 0;
    d = size(x, 1);
    k = size(alphas, 2);
    n = size(x, 2);
    lower_triangle_indices = tril(ones(d, d), -1) ~= 0;
-   lse = zeros(k, n, 'like', alphas);
+   sum_qs = sum(inv_cov_factors(1 : d, :), 1);
+   Qs = cell(1, k);
+   Qdiags = zeros(d, k);
    tmpfra1_2 = k;
    for ik=1 : tmpfra1_2
-      adimat_push1(Lparams);
-      Lparams = inv_cov_factors(:, ik);
+      adimat_push1(icf);
+      icf = inv_cov_factors(:, ik);
       adimat_push1(logLdiag);
-      logLdiag = Lparams(1 : d);
-      adimat_push1(tmpca1);
-      tmpca1 = exp(logLdiag);
-      adimat_push1(L);
-      L = diag(tmpca1);
+      logLdiag = icf(1 : d);
+      adimat_push1(tmplia1);
+      tmplia1 = exp(logLdiag);
+      adimat_push_index2(Qdiags, ':', ik);
+      Qdiags(:, ik) = tmplia1;
+      adimat_push1(tmplia1);
+      tmplia1 = diag(Qdiags(:, ik));
+      adimat_push_cell_index(Qs, ik);
+      Qs{ik} = tmplia1;
       adimat_push1(tmpda1);
       tmpda1 = d + 1;
       adimat_push1(tmplia1);
-      tmplia1 = Lparams(tmpda1 : end);
-      adimat_push_index1(L, lower_triangle_indices);
-      L(lower_triangle_indices) = tmplia1;
-      adimat_push1(tmpca2);
-      tmpca2 = repmat(means(:, ik), 1, n);
+      tmplia1 = icf(tmpda1 : end);
+      adimat_push_index1(Qs{ik}, lower_triangle_indices);
+      Qs{ik}(lower_triangle_indices) = tmplia1;
+   end
+   adimat_push1(tmpfra1_2);
+   slse = 0;
+   tmpfra1_2 = n;
+   for ix=1 : tmpfra1_2
+      adimat_push1(main_term);
+      main_term = zeros(1, k);
+      tmpfra2_2 = k;
+      adimat_push1(ik);
+      for ik=1 : tmpfra2_2
+         adimat_push1(tmpca1);
+         tmpca1 = x(:, ix) - means(:, ik);
+         adimat_push1(Qxcentered);
+         Qxcentered = Qs{ik} * tmpca1;
+         adimat_push1(tmpca1);
+         tmpca1 = rec_sqnorm(Qxcentered);
+         adimat_push1(tmplia1);
+         tmplia1 = -0.5 * tmpca1;
+         adimat_push_index1(main_term, ik);
+         main_term(ik) = tmplia1;
+      end
+      adimat_push(tmpfra2_2, main_term);
+      main_term = main_term + alphas + sum_qs;
       adimat_push1(tmpca1);
-      tmpca1 = x - tmpca2;
-      adimat_push1(mahal);
-      mahal = L * tmpca1;
-      adimat_push1(tmpca4);
-      tmpca4 = mahal .^ 2;
-      adimat_push1(tmpca3);
-      tmpca3 = sum(tmpca4, 1);
-      adimat_push1(tmpca2);
-      tmpca2 = 0.5 * tmpca3;
-      adimat_push1(tmpca1);
-      tmpca1 = sum(logLdiag);
-      adimat_push1(tmplia1);
-      tmplia1 = alphas(ik) + tmpca1 - tmpca2;
-      adimat_push_index2(lse, ik, ':');
-      lse(ik, :) = tmplia1;
+      tmpca1 = rec_logsumexp(main_term);
+      adimat_push1(slse);
+      slse = slse + tmpca1;
    end
    adimat_push1(tmpfra1_2);
    constant = -n * d * 0.5 * log(2 * pi);
-   adimat_push1(tmpca4);
-   tmpca4 = rec_logsumexp_repmat(alphas);
-   adimat_push1(tmpca3);
-   tmpca3 = n * tmpca4;
-   adimat_push1(tmpca2);
-   tmpca2 = rec_logsumexp_repmat(lse);
+   tmpca2 = rec_logsumexp(alphas);
    adimat_push1(tmpca1);
-   tmpca1 = sum(tmpca2);
-   err = constant + tmpca1 - tmpca3;
+   tmpca1 = n * tmpca2;
+   err = constant + slse - tmpca1;
    adimat_push1(tmpca1);
-   tmpca1 = rec_log_wishart_prior(hparams, d, inv_cov_factors);
+   tmpca1 = rec_log_wishart_prior(hparams, d, sum_qs, Qdiags, inv_cov_factors);
    adimat_push1(err);
    err = err + tmpca1;
    nr_err = err;
-   [a_lse a_Lparams a_logLdiag a_L a_mahal a_tmpca1 a_tmpca2 a_tmpca3 a_tmpca4 a_tmplia1 a_alphas a_means a_inv_cov_factors] = a_zeros(lse, Lparams, logLdiag, L, mahal, tmpca1, tmpca2, tmpca3, tmpca4, tmplia1, alphas, means, inv_cov_factors);
+   [a_sum_qs a_Qs a_Qdiags a_icf a_logLdiag a_slse a_main_term a_Qxcentered a_tmpca1 a_tmpca2 a_tmplia1 a_alphas a_means a_inv_cov_factors] = a_zeros(sum_qs, Qs, Qdiags, icf, logLdiag, slse, main_term, Qxcentered, tmpca1, tmpca2, tmplia1, alphas, means, inv_cov_factors);
    if nargin < 6
       a_err = a_zeros1(err);
    end
@@ -122,146 +131,164 @@ function [a_alphas a_means a_inv_cov_factors nr_err] = a_gmm_objective(alphas, m
    tmpsa1 = a_err;
    a_err = a_zeros1(err);
    a_err = adimat_adjsum(a_err, adimat_adjred(err, tmpsa1));
-   [tmpadjc3] = ret_log_wishart_prior(a_tmpca1);
+   [tmpadjc3 tmpadjc4 tmpadjc5] = ret_log_wishart_prior(a_tmpca1);
    tmpca1 = adimat_pop1;
-   a_inv_cov_factors = adimat_adjsum(a_inv_cov_factors, tmpadjc3);
+   a_sum_qs = adimat_adjsum(a_sum_qs, tmpadjc3);
+   a_Qdiags = adimat_adjsum(a_Qdiags, tmpadjc4);
+   a_inv_cov_factors = adimat_adjsum(a_inv_cov_factors, tmpadjc5);
    a_tmpca1 = a_zeros1(tmpca1);
-   a_tmpca1 = adimat_adjsum(a_tmpca1, adimat_adjred(tmpca1, a_err));
-   a_tmpca3 = adimat_adjsum(a_tmpca3, adimat_adjred(tmpca3, -a_err));
+   a_slse = adimat_adjsum(a_slse, adimat_adjred(slse, a_err));
+   a_tmpca1 = adimat_adjsum(a_tmpca1, adimat_adjred(tmpca1, -a_err));
    tmpca1 = adimat_pop1;
-   a_tmpca2 = adimat_adjsum(a_tmpca2, a_sum(a_tmpca1, tmpca2));
+   a_tmpca2 = adimat_adjsum(a_tmpca2, adimat_adjmultr(tmpca2, n, a_tmpca1));
    a_tmpca1 = a_zeros1(tmpca1);
-   [tmpadjc1] = ret_logsumexp_repmat(a_tmpca2);
-   tmpca2 = adimat_pop1;
-   a_lse = adimat_adjsum(a_lse, tmpadjc1);
-   a_tmpca2 = a_zeros1(tmpca2);
-   tmpca3 = adimat_pop1;
-   a_tmpca4 = adimat_adjsum(a_tmpca4, adimat_adjmultr(tmpca4, n, a_tmpca3));
-   a_tmpca3 = a_zeros1(tmpca3);
-   [tmpadjc1] = ret_logsumexp_repmat(a_tmpca4);
-   tmpca4 = adimat_pop1;
+   [tmpadjc1] = ret_logsumexp(a_tmpca2);
    a_alphas = adimat_adjsum(a_alphas, tmpadjc1);
-   a_tmpca4 = a_zeros1(tmpca4);
+   tmpfra1_2 = adimat_pop1;
+   for ix=fliplr(1 : tmpfra1_2)
+      slse = adimat_pop1;
+      a_tmpca1 = adimat_adjsum(a_tmpca1, adimat_adjred(tmpca1, a_slse));
+      tmpsa1 = a_slse;
+      a_slse = a_zeros1(slse);
+      a_slse = adimat_adjsum(a_slse, adimat_adjred(slse, tmpsa1));
+      [tmpadjc1] = ret_logsumexp(a_tmpca1);
+      tmpca1 = adimat_pop1;
+      a_main_term = adimat_adjsum(a_main_term, tmpadjc1);
+      a_tmpca1 = a_zeros1(tmpca1);
+      main_term = adimat_pop1;
+      a_alphas = adimat_adjsum(a_alphas, adimat_adjred(alphas, a_main_term));
+      a_sum_qs = adimat_adjsum(a_sum_qs, adimat_adjred(sum_qs, a_main_term));
+      tmpsa1 = a_main_term;
+      a_main_term = a_zeros1(main_term);
+      a_main_term = adimat_adjsum(a_main_term, adimat_adjred(main_term, tmpsa1));
+      tmpfra2_2 = adimat_pop1;
+      for ik=fliplr(1 : tmpfra2_2)
+         main_term = adimat_pop_index1(main_term, ik);
+         a_tmplia1 = adimat_adjsum(a_tmplia1, adimat_adjred(tmplia1, adimat_adjreshape(tmplia1, a_main_term(ik))));
+         a_main_term = a_zeros_index1(a_main_term, main_term, ik);
+         tmplia1 = adimat_pop1;
+         a_tmpca1 = adimat_adjsum(a_tmpca1, adimat_adjmultr(tmpca1, -0.5, a_tmplia1));
+         a_tmplia1 = a_zeros1(tmplia1);
+         [tmpadjc1] = ret_sqnorm(a_tmpca1);
+         tmpca1 = adimat_pop1;
+         a_Qxcentered = adimat_adjsum(a_Qxcentered, tmpadjc1);
+         a_tmpca1 = a_zeros1(tmpca1);
+         Qxcentered = adimat_pop1;
+         a_Qs{ik} = adimat_adjsum(a_Qs{ik}, adimat_adjmultl(Qs{ik}, a_Qxcentered, tmpca1));
+         a_tmpca1 = adimat_adjsum(a_tmpca1, adimat_adjmultr(tmpca1, Qs{ik}, a_Qxcentered));
+         a_Qxcentered = a_zeros1(Qxcentered);
+         tmpca1 = adimat_pop1;
+         a_means(:, ik) = adimat_adjsum(a_means(:, ik), adimat_adjred(means(:, ik), -a_tmpca1));
+         a_tmpca1 = a_zeros1(tmpca1);
+      end
+      [ik main_term] = adimat_pop;
+      a_main_term = a_zeros1(main_term);
+   end
    tmpfra1_2 = adimat_pop1;
    for ik=fliplr(1 : tmpfra1_2)
-      lse = adimat_pop_index2(lse, ik, ':');
-      a_tmplia1 = adimat_adjsum(a_tmplia1, adimat_adjred(tmplia1, adimat_adjreshape(tmplia1, a_lse(ik, :))));
-      a_lse = a_zeros_index2(a_lse, lse, ik, ':');
+      Qs{ik} = adimat_pop_index1(Qs{ik}, lower_triangle_indices);
+      a_tmplia1 = adimat_adjsum(a_tmplia1, adimat_adjred(tmplia1, adimat_adjreshape(tmplia1, a_Qs{ik}(lower_triangle_indices))));
+      a_Qs{ik} = a_zeros_index1(a_Qs{ik}, Qs{ik}, lower_triangle_indices);
       tmplia1 = adimat_pop1;
-      a_alphas(ik) = adimat_adjsum(a_alphas(ik), adimat_adjred(alphas(ik), a_tmplia1));
-      a_tmpca1 = adimat_adjsum(a_tmpca1, adimat_adjred(tmpca1, a_tmplia1));
-      a_tmpca2 = adimat_adjsum(a_tmpca2, adimat_adjred(tmpca2, -a_tmplia1));
+      a_icf(tmpda1 : end) = adimat_adjsum(a_icf(tmpda1 : end), a_tmplia1);
       a_tmplia1 = a_zeros1(tmplia1);
-      tmpca1 = adimat_pop1;
-      a_logLdiag = adimat_adjsum(a_logLdiag, a_sum(a_tmpca1, logLdiag));
-      a_tmpca1 = a_zeros1(tmpca1);
-      tmpca2 = adimat_pop1;
-      a_tmpca3 = adimat_adjsum(a_tmpca3, adimat_adjmultr(tmpca3, 0.5, a_tmpca2));
-      a_tmpca2 = a_zeros1(tmpca2);
-      tmpca3 = adimat_pop1;
-      a_tmpca4 = adimat_adjsum(a_tmpca4, a_sum(a_tmpca3, tmpca4, 1));
-      a_tmpca3 = a_zeros1(tmpca3);
-      tmpca4 = adimat_pop1;
-      a_mahal = adimat_adjsum(a_mahal, adimat_adjred(mahal, 2 .* mahal.^1 .* a_tmpca4));
-      a_tmpca4 = a_zeros1(tmpca4);
-      mahal = adimat_pop1;
-      a_L = adimat_adjsum(a_L, adimat_adjmultl(L, a_mahal, tmpca1));
-      a_tmpca1 = adimat_adjsum(a_tmpca1, adimat_adjmultr(tmpca1, L, a_mahal));
-      a_mahal = a_zeros1(mahal);
-      tmpca1 = adimat_pop1;
-      a_tmpca2 = adimat_adjsum(a_tmpca2, adimat_adjred(tmpca2, -a_tmpca1));
-      a_tmpca1 = a_zeros1(tmpca1);
-      tmpca2 = adimat_pop1;
-      a_means(:, ik) = adimat_adjsum(a_means(:, ik), a_repmat(a_tmpca2, means(:, ik), 1, n));
-      a_tmpca2 = a_zeros1(tmpca2);
-      L = adimat_pop_index1(L, lower_triangle_indices);
-      a_tmplia1 = adimat_adjsum(a_tmplia1, adimat_adjred(tmplia1, adimat_adjreshape(tmplia1, a_L(lower_triangle_indices))));
-      a_L = a_zeros_index1(a_L, L, lower_triangle_indices);
+      tmpda1 = adimat_pop1;
+      Qs = adimat_pop_cell_index(Qs, ik);
+      a_tmplia1 = adimat_adjsum(a_tmplia1, adimat_adjred(tmplia1, adimat_adjreshape(tmplia1, a_Qs{ik})));
+      a_Qs = a_zeros_cell_index(a_Qs, Qs, ik);
       tmplia1 = adimat_pop1;
-      a_Lparams(tmpda1 : end) = adimat_adjsum(a_Lparams(tmpda1 : end), a_tmplia1);
+      a_Qdiags(:, ik) = adimat_adjsum(a_Qdiags(:, ik), a_diag(a_tmplia1, Qdiags(:, ik)));
       a_tmplia1 = a_zeros1(tmplia1);
-      [tmpda1 L] = adimat_pop;
-      a_tmpca1 = adimat_adjsum(a_tmpca1, a_diag(a_L, tmpca1));
-      a_L = a_zeros1(L);
-      tmpca1 = adimat_pop1;
-      a_logLdiag = adimat_adjsum(a_logLdiag, exp(logLdiag) .* a_tmpca1);
-      a_tmpca1 = a_zeros1(tmpca1);
+      Qdiags = adimat_pop_index2(Qdiags, ':', ik);
+      a_tmplia1 = adimat_adjsum(a_tmplia1, adimat_adjred(tmplia1, adimat_adjreshape(tmplia1, a_Qdiags(:, ik))));
+      a_Qdiags = a_zeros_index2(a_Qdiags, Qdiags, ':', ik);
+      tmplia1 = adimat_pop1;
+      a_logLdiag = adimat_adjsum(a_logLdiag, exp(logLdiag) .* a_tmplia1);
+      a_tmplia1 = a_zeros1(tmplia1);
       logLdiag = adimat_pop1;
-      a_Lparams(1 : d) = adimat_adjsum(a_Lparams(1 : d), a_logLdiag);
+      a_icf(1 : d) = adimat_adjsum(a_icf(1 : d), a_logLdiag);
       a_logLdiag = a_zeros1(logLdiag);
-      Lparams = adimat_pop1;
-      a_inv_cov_factors(:, ik) = adimat_adjsum(a_inv_cov_factors(:, ik), a_Lparams);
-      a_Lparams = a_zeros1(Lparams);
+      icf = adimat_pop1;
+      a_inv_cov_factors(:, ik) = adimat_adjsum(a_inv_cov_factors(:, ik), a_icf);
+      a_icf = a_zeros1(icf);
    end
+   a_inv_cov_factors(1 : d, :) = adimat_adjsum(a_inv_cov_factors(1 : d, :), a_sum(a_sum_qs, inv_cov_factors(1 : d, :), 1));
 end
 
 function err = rec_gmm_objective(alphas, means, inv_cov_factors, x, hparams)
    tmpca1 = 0;
-   tmpca2 = 0;
-   tmpca3 = 0;
-   tmpca4 = 0;
    tmpda1 = 0;
    tmplia1 = 0;
-   Lparams = 0;
+   icf = 0;
    logLdiag = 0;
-   L = 0;
-   mahal = 0;
+   main_term = 0;
+   Qxcentered = 0;
    d = size(x, 1);
    k = size(alphas, 2);
    n = size(x, 2);
    lower_triangle_indices = tril(ones(d, d), -1) ~= 0;
-   lse = zeros(k, n, 'like', alphas);
+   sum_qs = sum(inv_cov_factors(1 : d, :), 1);
+   Qs = cell(1, k);
+   Qdiags = zeros(d, k);
    tmpfra1_2 = k;
    for ik=1 : tmpfra1_2
-      adimat_push1(Lparams);
-      Lparams = inv_cov_factors(:, ik);
+      adimat_push1(icf);
+      icf = inv_cov_factors(:, ik);
       adimat_push1(logLdiag);
-      logLdiag = Lparams(1 : d);
-      adimat_push1(tmpca1);
-      tmpca1 = exp(logLdiag);
-      adimat_push1(L);
-      L = diag(tmpca1);
+      logLdiag = icf(1 : d);
+      adimat_push1(tmplia1);
+      tmplia1 = exp(logLdiag);
+      adimat_push_index2(Qdiags, ':', ik);
+      Qdiags(:, ik) = tmplia1;
+      adimat_push1(tmplia1);
+      tmplia1 = diag(Qdiags(:, ik));
+      adimat_push_cell_index(Qs, ik);
+      Qs{ik} = tmplia1;
       adimat_push1(tmpda1);
       tmpda1 = d + 1;
       adimat_push1(tmplia1);
-      tmplia1 = Lparams(tmpda1 : end);
-      adimat_push_index1(L, lower_triangle_indices);
-      L(lower_triangle_indices) = tmplia1;
-      adimat_push1(tmpca2);
-      tmpca2 = repmat(means(:, ik), 1, n);
+      tmplia1 = icf(tmpda1 : end);
+      adimat_push_index1(Qs{ik}, lower_triangle_indices);
+      Qs{ik}(lower_triangle_indices) = tmplia1;
+   end
+   adimat_push1(tmpfra1_2);
+   slse = 0;
+   tmpfra1_2 = n;
+   for ix=1 : tmpfra1_2
+      adimat_push1(main_term);
+      main_term = zeros(1, k);
+      tmpfra2_2 = k;
+      adimat_push1(ik);
+      for ik=1 : tmpfra2_2
+         adimat_push1(tmpca1);
+         tmpca1 = x(:, ix) - means(:, ik);
+         adimat_push1(Qxcentered);
+         Qxcentered = Qs{ik} * tmpca1;
+         adimat_push1(tmpca1);
+         tmpca1 = rec_sqnorm(Qxcentered);
+         adimat_push1(tmplia1);
+         tmplia1 = -0.5 * tmpca1;
+         adimat_push_index1(main_term, ik);
+         main_term(ik) = tmplia1;
+      end
+      adimat_push(tmpfra2_2, main_term);
+      main_term = main_term + alphas + sum_qs;
       adimat_push1(tmpca1);
-      tmpca1 = x - tmpca2;
-      adimat_push1(mahal);
-      mahal = L * tmpca1;
-      adimat_push1(tmpca4);
-      tmpca4 = mahal .^ 2;
-      adimat_push1(tmpca3);
-      tmpca3 = sum(tmpca4, 1);
-      adimat_push1(tmpca2);
-      tmpca2 = 0.5 * tmpca3;
-      adimat_push1(tmpca1);
-      tmpca1 = sum(logLdiag);
-      adimat_push1(tmplia1);
-      tmplia1 = alphas(ik) + tmpca1 - tmpca2;
-      adimat_push_index2(lse, ik, ':');
-      lse(ik, :) = tmplia1;
+      tmpca1 = rec_logsumexp(main_term);
+      adimat_push1(slse);
+      slse = slse + tmpca1;
    end
    adimat_push1(tmpfra1_2);
    constant = -n * d * 0.5 * log(2 * pi);
-   adimat_push1(tmpca4);
-   tmpca4 = rec_logsumexp_repmat(alphas);
-   adimat_push1(tmpca3);
-   tmpca3 = n * tmpca4;
-   adimat_push1(tmpca2);
-   tmpca2 = rec_logsumexp_repmat(lse);
+   tmpca2 = rec_logsumexp(alphas);
    adimat_push1(tmpca1);
-   tmpca1 = sum(tmpca2);
-   err = constant + tmpca1 - tmpca3;
+   tmpca1 = n * tmpca2;
+   err = constant + slse - tmpca1;
    adimat_push1(tmpca1);
-   tmpca1 = rec_log_wishart_prior(hparams, d, inv_cov_factors);
+   tmpca1 = rec_log_wishart_prior(hparams, d, sum_qs, Qdiags, inv_cov_factors);
    adimat_push1(err);
    err = err + tmpca1;
-   adimat_push(d, k, n, lower_triangle_indices, lse, ik, Lparams, logLdiag, L, mahal, constant, tmpca1, tmpca2, tmpca3, tmpca4, tmpda1, tmplia1, err, alphas, means, inv_cov_factors);
+   adimat_push(d, k, n, lower_triangle_indices, sum_qs, Qs, Qdiags, ik, icf, logLdiag, slse, ix, main_term, Qxcentered, constant, tmpca1, tmpca2, tmpda1, tmplia1, err, alphas, means, inv_cov_factors);
    if nargin > 3
       adimat_push1(x);
    end
@@ -279,8 +306,8 @@ function [a_alphas a_means a_inv_cov_factors] = ret_gmm_objective(a_err)
    if tmpnargin > 3
       x = adimat_pop1;
    end
-   [inv_cov_factors means alphas err tmplia1 tmpda1 tmpca4 tmpca3 tmpca2 tmpca1 constant mahal L logLdiag Lparams ik lse lower_triangle_indices n k d] = adimat_pop;
-   [a_lse a_Lparams a_logLdiag a_L a_mahal a_tmpca1 a_tmpca2 a_tmpca3 a_tmpca4 a_tmplia1 a_alphas a_means a_inv_cov_factors] = a_zeros(lse, Lparams, logLdiag, L, mahal, tmpca1, tmpca2, tmpca3, tmpca4, tmplia1, alphas, means, inv_cov_factors);
+   [inv_cov_factors means alphas err tmplia1 tmpda1 tmpca2 tmpca1 constant Qxcentered main_term ix slse logLdiag icf ik Qdiags Qs sum_qs lower_triangle_indices n k d] = adimat_pop;
+   [a_sum_qs a_Qs a_Qdiags a_icf a_logLdiag a_slse a_main_term a_Qxcentered a_tmpca1 a_tmpca2 a_tmplia1 a_alphas a_means a_inv_cov_factors] = a_zeros(sum_qs, Qs, Qdiags, icf, logLdiag, slse, main_term, Qxcentered, tmpca1, tmpca2, tmplia1, alphas, means, inv_cov_factors);
    if nargin < 1
       a_err = a_zeros1(err);
    end
@@ -289,80 +316,124 @@ function [a_alphas a_means a_inv_cov_factors] = ret_gmm_objective(a_err)
    tmpsa1 = a_err;
    a_err = a_zeros1(err);
    a_err = adimat_adjsum(a_err, adimat_adjred(err, tmpsa1));
-   [tmpadjc3] = ret_log_wishart_prior(a_tmpca1);
+   [tmpadjc3 tmpadjc4 tmpadjc5] = ret_log_wishart_prior(a_tmpca1);
    tmpca1 = adimat_pop1;
-   a_inv_cov_factors = adimat_adjsum(a_inv_cov_factors, tmpadjc3);
+   a_sum_qs = adimat_adjsum(a_sum_qs, tmpadjc3);
+   a_Qdiags = adimat_adjsum(a_Qdiags, tmpadjc4);
+   a_inv_cov_factors = adimat_adjsum(a_inv_cov_factors, tmpadjc5);
    a_tmpca1 = a_zeros1(tmpca1);
-   a_tmpca1 = adimat_adjsum(a_tmpca1, adimat_adjred(tmpca1, a_err));
-   a_tmpca3 = adimat_adjsum(a_tmpca3, adimat_adjred(tmpca3, -a_err));
+   a_slse = adimat_adjsum(a_slse, adimat_adjred(slse, a_err));
+   a_tmpca1 = adimat_adjsum(a_tmpca1, adimat_adjred(tmpca1, -a_err));
    tmpca1 = adimat_pop1;
-   a_tmpca2 = adimat_adjsum(a_tmpca2, a_sum(a_tmpca1, tmpca2));
+   a_tmpca2 = adimat_adjsum(a_tmpca2, adimat_adjmultr(tmpca2, n, a_tmpca1));
    a_tmpca1 = a_zeros1(tmpca1);
-   [tmpadjc1] = ret_logsumexp_repmat(a_tmpca2);
-   tmpca2 = adimat_pop1;
-   a_lse = adimat_adjsum(a_lse, tmpadjc1);
-   a_tmpca2 = a_zeros1(tmpca2);
-   tmpca3 = adimat_pop1;
-   a_tmpca4 = adimat_adjsum(a_tmpca4, adimat_adjmultr(tmpca4, n, a_tmpca3));
-   a_tmpca3 = a_zeros1(tmpca3);
-   [tmpadjc1] = ret_logsumexp_repmat(a_tmpca4);
-   tmpca4 = adimat_pop1;
+   [tmpadjc1] = ret_logsumexp(a_tmpca2);
    a_alphas = adimat_adjsum(a_alphas, tmpadjc1);
-   a_tmpca4 = a_zeros1(tmpca4);
+   tmpfra1_2 = adimat_pop1;
+   for ix=fliplr(1 : tmpfra1_2)
+      slse = adimat_pop1;
+      a_tmpca1 = adimat_adjsum(a_tmpca1, adimat_adjred(tmpca1, a_slse));
+      tmpsa1 = a_slse;
+      a_slse = a_zeros1(slse);
+      a_slse = adimat_adjsum(a_slse, adimat_adjred(slse, tmpsa1));
+      [tmpadjc1] = ret_logsumexp(a_tmpca1);
+      tmpca1 = adimat_pop1;
+      a_main_term = adimat_adjsum(a_main_term, tmpadjc1);
+      a_tmpca1 = a_zeros1(tmpca1);
+      main_term = adimat_pop1;
+      a_alphas = adimat_adjsum(a_alphas, adimat_adjred(alphas, a_main_term));
+      a_sum_qs = adimat_adjsum(a_sum_qs, adimat_adjred(sum_qs, a_main_term));
+      tmpsa1 = a_main_term;
+      a_main_term = a_zeros1(main_term);
+      a_main_term = adimat_adjsum(a_main_term, adimat_adjred(main_term, tmpsa1));
+      tmpfra2_2 = adimat_pop1;
+      for ik=fliplr(1 : tmpfra2_2)
+         main_term = adimat_pop_index1(main_term, ik);
+         a_tmplia1 = adimat_adjsum(a_tmplia1, adimat_adjred(tmplia1, adimat_adjreshape(tmplia1, a_main_term(ik))));
+         a_main_term = a_zeros_index1(a_main_term, main_term, ik);
+         tmplia1 = adimat_pop1;
+         a_tmpca1 = adimat_adjsum(a_tmpca1, adimat_adjmultr(tmpca1, -0.5, a_tmplia1));
+         a_tmplia1 = a_zeros1(tmplia1);
+         [tmpadjc1] = ret_sqnorm(a_tmpca1);
+         tmpca1 = adimat_pop1;
+         a_Qxcentered = adimat_adjsum(a_Qxcentered, tmpadjc1);
+         a_tmpca1 = a_zeros1(tmpca1);
+         Qxcentered = adimat_pop1;
+         a_Qs{ik} = adimat_adjsum(a_Qs{ik}, adimat_adjmultl(Qs{ik}, a_Qxcentered, tmpca1));
+         a_tmpca1 = adimat_adjsum(a_tmpca1, adimat_adjmultr(tmpca1, Qs{ik}, a_Qxcentered));
+         a_Qxcentered = a_zeros1(Qxcentered);
+         tmpca1 = adimat_pop1;
+         a_means(:, ik) = adimat_adjsum(a_means(:, ik), adimat_adjred(means(:, ik), -a_tmpca1));
+         a_tmpca1 = a_zeros1(tmpca1);
+      end
+      [ik main_term] = adimat_pop;
+      a_main_term = a_zeros1(main_term);
+   end
    tmpfra1_2 = adimat_pop1;
    for ik=fliplr(1 : tmpfra1_2)
-      lse = adimat_pop_index2(lse, ik, ':');
-      a_tmplia1 = adimat_adjsum(a_tmplia1, adimat_adjred(tmplia1, adimat_adjreshape(tmplia1, a_lse(ik, :))));
-      a_lse = a_zeros_index2(a_lse, lse, ik, ':');
+      Qs{ik} = adimat_pop_index1(Qs{ik}, lower_triangle_indices);
+      a_tmplia1 = adimat_adjsum(a_tmplia1, adimat_adjred(tmplia1, adimat_adjreshape(tmplia1, a_Qs{ik}(lower_triangle_indices))));
+      a_Qs{ik} = a_zeros_index1(a_Qs{ik}, Qs{ik}, lower_triangle_indices);
       tmplia1 = adimat_pop1;
-      a_alphas(ik) = adimat_adjsum(a_alphas(ik), adimat_adjred(alphas(ik), a_tmplia1));
-      a_tmpca1 = adimat_adjsum(a_tmpca1, adimat_adjred(tmpca1, a_tmplia1));
-      a_tmpca2 = adimat_adjsum(a_tmpca2, adimat_adjred(tmpca2, -a_tmplia1));
+      a_icf(tmpda1 : end) = adimat_adjsum(a_icf(tmpda1 : end), a_tmplia1);
       a_tmplia1 = a_zeros1(tmplia1);
-      tmpca1 = adimat_pop1;
-      a_logLdiag = adimat_adjsum(a_logLdiag, a_sum(a_tmpca1, logLdiag));
-      a_tmpca1 = a_zeros1(tmpca1);
-      tmpca2 = adimat_pop1;
-      a_tmpca3 = adimat_adjsum(a_tmpca3, adimat_adjmultr(tmpca3, 0.5, a_tmpca2));
-      a_tmpca2 = a_zeros1(tmpca2);
-      tmpca3 = adimat_pop1;
-      a_tmpca4 = adimat_adjsum(a_tmpca4, a_sum(a_tmpca3, tmpca4, 1));
-      a_tmpca3 = a_zeros1(tmpca3);
-      tmpca4 = adimat_pop1;
-      a_mahal = adimat_adjsum(a_mahal, adimat_adjred(mahal, 2 .* mahal.^1 .* a_tmpca4));
-      a_tmpca4 = a_zeros1(tmpca4);
-      mahal = adimat_pop1;
-      a_L = adimat_adjsum(a_L, adimat_adjmultl(L, a_mahal, tmpca1));
-      a_tmpca1 = adimat_adjsum(a_tmpca1, adimat_adjmultr(tmpca1, L, a_mahal));
-      a_mahal = a_zeros1(mahal);
-      tmpca1 = adimat_pop1;
-      a_tmpca2 = adimat_adjsum(a_tmpca2, adimat_adjred(tmpca2, -a_tmpca1));
-      a_tmpca1 = a_zeros1(tmpca1);
-      tmpca2 = adimat_pop1;
-      a_means(:, ik) = adimat_adjsum(a_means(:, ik), a_repmat(a_tmpca2, means(:, ik), 1, n));
-      a_tmpca2 = a_zeros1(tmpca2);
-      L = adimat_pop_index1(L, lower_triangle_indices);
-      a_tmplia1 = adimat_adjsum(a_tmplia1, adimat_adjred(tmplia1, adimat_adjreshape(tmplia1, a_L(lower_triangle_indices))));
-      a_L = a_zeros_index1(a_L, L, lower_triangle_indices);
+      tmpda1 = adimat_pop1;
+      Qs = adimat_pop_cell_index(Qs, ik);
+      a_tmplia1 = adimat_adjsum(a_tmplia1, adimat_adjred(tmplia1, adimat_adjreshape(tmplia1, a_Qs{ik})));
+      a_Qs = a_zeros_cell_index(a_Qs, Qs, ik);
       tmplia1 = adimat_pop1;
-      a_Lparams(tmpda1 : end) = adimat_adjsum(a_Lparams(tmpda1 : end), a_tmplia1);
+      a_Qdiags(:, ik) = adimat_adjsum(a_Qdiags(:, ik), a_diag(a_tmplia1, Qdiags(:, ik)));
       a_tmplia1 = a_zeros1(tmplia1);
-      [tmpda1 L] = adimat_pop;
-      a_tmpca1 = adimat_adjsum(a_tmpca1, a_diag(a_L, tmpca1));
-      a_L = a_zeros1(L);
-      tmpca1 = adimat_pop1;
-      a_logLdiag = adimat_adjsum(a_logLdiag, exp(logLdiag) .* a_tmpca1);
-      a_tmpca1 = a_zeros1(tmpca1);
+      Qdiags = adimat_pop_index2(Qdiags, ':', ik);
+      a_tmplia1 = adimat_adjsum(a_tmplia1, adimat_adjred(tmplia1, adimat_adjreshape(tmplia1, a_Qdiags(:, ik))));
+      a_Qdiags = a_zeros_index2(a_Qdiags, Qdiags, ':', ik);
+      tmplia1 = adimat_pop1;
+      a_logLdiag = adimat_adjsum(a_logLdiag, exp(logLdiag) .* a_tmplia1);
+      a_tmplia1 = a_zeros1(tmplia1);
       logLdiag = adimat_pop1;
-      a_Lparams(1 : d) = adimat_adjsum(a_Lparams(1 : d), a_logLdiag);
+      a_icf(1 : d) = adimat_adjsum(a_icf(1 : d), a_logLdiag);
       a_logLdiag = a_zeros1(logLdiag);
-      Lparams = adimat_pop1;
-      a_inv_cov_factors(:, ik) = adimat_adjsum(a_inv_cov_factors(:, ik), a_Lparams);
-      a_Lparams = a_zeros1(Lparams);
+      icf = adimat_pop1;
+      a_inv_cov_factors(:, ik) = adimat_adjsum(a_inv_cov_factors(:, ik), a_icf);
+      a_icf = a_zeros1(icf);
    end
+   a_inv_cov_factors(1 : d, :) = adimat_adjsum(a_inv_cov_factors(1 : d, :), a_sum(a_sum_qs, inv_cov_factors(1 : d, :), 1));
 end
 
-function [a_inv_cov_factors nr_out] = a_log_wishart_prior(hparams, p, inv_cov_factors, a_out)
+function [a_x nr_out] = a_sqnorm(x, a_out)
+   tmpca1 = x .^ 2;
+   out = sum(tmpca1, 1);
+   nr_out = out;
+   [a_tmpca1 a_x] = a_zeros(tmpca1, x);
+   if nargin < 2
+      a_out = a_zeros1(out);
+   end
+   a_tmpca1 = adimat_adjsum(a_tmpca1, a_sum(a_out, tmpca1, 1));
+   a_x = adimat_adjsum(a_x, adimat_adjred(x, 2 .* x.^1 .* a_tmpca1));
+end
+
+function out = rec_sqnorm(x)
+   tmpca1 = x .^ 2;
+   out = sum(tmpca1, 1);
+   adimat_push(tmpca1, out, x);
+end
+
+function a_x = ret_sqnorm(a_out)
+   [x out tmpca1] = adimat_pop;
+   [a_tmpca1 a_x] = a_zeros(tmpca1, x);
+   if nargin < 1
+      a_out = a_zeros1(out);
+   end
+   a_tmpca1 = adimat_adjsum(a_tmpca1, a_sum(a_out, tmpca1, 1));
+   a_x = adimat_adjsum(a_x, adimat_adjred(x, 2 .* x.^1 .* a_tmpca1));
+end
+
+function out = sqnorm(x)
+   tmpca1 = x .^ 2;
+   out = sum(tmpca1, 1);
+end
+
+function [a_sum_qs a_Qdiags a_inv_cov_factors nr_out] = a_log_wishart_prior(hparams, p, sum_qs, Qdiags, inv_cov_factors, a_out)
 % LOG_WISHART_PRIOR  
 %               HPARAMS = [gamma m]
 %               P data dimension
@@ -373,91 +444,73 @@ function [a_inv_cov_factors nr_out] = a_log_wishart_prior(hparams, p, inv_cov_fa
    gamma = hparams(1);
    m = hparams(2);
    n = p + m + 1;
-   tmpda9 = p + 1;
-   tmpca8 = inv_cov_factors(tmpda9 : end, :) .^ 2;
-   tmpca7 = sum(tmpca8, 1);
-   tmpca6 = exp(inv_cov_factors(1 : p, :));
-   tmpca5 = tmpca6 .^ 2;
-   tmpca4 = sum(tmpca5, 1);
-   tmpca3 = tmpca4 + tmpca7;
+   tmpda6 = p + 1;
+   tmpca5 = rec_sqnorm(inv_cov_factors(tmpda6 : end, :));
+   tmpca4 = rec_sqnorm(Qdiags);
+   tmpca3 = tmpca4 + tmpca5;
    tmpda2 = gamma ^ 2;
    tmpda1 = 0.5 * tmpda2;
    term1 = tmpda1 * tmpca3;
-   tmpca1 = sum(inv_cov_factors(1 : p, :), 1);
-   term2 = m * tmpca1;
+   term2 = m * sum_qs;
    C = n*p*(log(gamma) - 0.5*log(2)) - log_gamma_distrib(0.5 * n, p);
-   adimat_push1(tmpca1);
    tmpca1 = term1 - term2 - C;
    out = sum(tmpca1);
    nr_out = out;
-   [a_term1 a_term2 a_tmpca1 a_tmpca3 a_tmpca4 a_tmpca5 a_tmpca6 a_tmpca7 a_tmpca8 a_inv_cov_factors] = a_zeros(term1, term2, tmpca1, tmpca3, tmpca4, tmpca5, tmpca6, tmpca7, tmpca8, inv_cov_factors);
-   if nargin < 4
+   [a_term1 a_term2 a_tmpca1 a_tmpca3 a_tmpca4 a_tmpca5 a_sum_qs a_Qdiags a_inv_cov_factors] = a_zeros(term1, term2, tmpca1, tmpca3, tmpca4, tmpca5, sum_qs, Qdiags, inv_cov_factors);
+   if nargin < 6
       a_out = a_zeros1(out);
    end
    a_tmpca1 = adimat_adjsum(a_tmpca1, a_sum(a_out, tmpca1));
-   tmpca1 = adimat_pop1;
    a_term1 = adimat_adjsum(a_term1, adimat_adjred(term1, a_tmpca1));
    a_term2 = adimat_adjsum(a_term2, adimat_adjred(term2, -a_tmpca1));
-   a_tmpca1 = a_zeros1(tmpca1);
-   a_tmpca1 = adimat_adjsum(a_tmpca1, adimat_adjmultr(tmpca1, m, a_term2));
-   a_inv_cov_factors(1 : p, :) = adimat_adjsum(a_inv_cov_factors(1 : p, :), a_sum(a_tmpca1, inv_cov_factors(1 : p, :), 1));
+   a_sum_qs = adimat_adjsum(a_sum_qs, adimat_adjmultr(sum_qs, m, a_term2));
    a_tmpca3 = adimat_adjsum(a_tmpca3, adimat_adjmultr(tmpca3, tmpda1, a_term1));
    a_tmpca4 = adimat_adjsum(a_tmpca4, adimat_adjred(tmpca4, a_tmpca3));
-   a_tmpca7 = adimat_adjsum(a_tmpca7, adimat_adjred(tmpca7, a_tmpca3));
-   a_tmpca5 = adimat_adjsum(a_tmpca5, a_sum(a_tmpca4, tmpca5, 1));
-   a_tmpca6 = adimat_adjsum(a_tmpca6, adimat_adjred(tmpca6, 2 .* tmpca6.^1 .* a_tmpca5));
-   a_inv_cov_factors(1 : p, :) = adimat_adjsum(a_inv_cov_factors(1 : p, :), exp(inv_cov_factors(1 : p, :)) .* a_tmpca6);
-   a_tmpca8 = adimat_adjsum(a_tmpca8, a_sum(a_tmpca7, tmpca8, 1));
-   a_inv_cov_factors(tmpda9 : end, :) = adimat_adjsum(a_inv_cov_factors(tmpda9 : end, :), adimat_adjred(inv_cov_factors(tmpda9 : end, :), 2 .* inv_cov_factors(tmpda9 : end, :).^1 .* a_tmpca8));
+   a_tmpca5 = adimat_adjsum(a_tmpca5, adimat_adjred(tmpca5, a_tmpca3));
+   [tmpadjc1] = ret_sqnorm(a_tmpca4);
+   a_Qdiags = adimat_adjsum(a_Qdiags, tmpadjc1);
+   [tmpadjc1] = ret_sqnorm(a_tmpca5);
+   a_inv_cov_factors(tmpda6 : end, :) = adimat_adjsum(a_inv_cov_factors(tmpda6 : end, :), tmpadjc1);
 end
 
-function out = rec_log_wishart_prior(hparams, p, inv_cov_factors)
+function out = rec_log_wishart_prior(hparams, p, sum_qs, Qdiags, inv_cov_factors)
    gamma = hparams(1);
    m = hparams(2);
    n = p + m + 1;
-   tmpda9 = p + 1;
-   tmpca8 = inv_cov_factors(tmpda9 : end, :) .^ 2;
-   tmpca7 = sum(tmpca8, 1);
-   tmpca6 = exp(inv_cov_factors(1 : p, :));
-   tmpca5 = tmpca6 .^ 2;
-   tmpca4 = sum(tmpca5, 1);
-   tmpca3 = tmpca4 + tmpca7;
+   tmpda6 = p + 1;
+   tmpca5 = rec_sqnorm(inv_cov_factors(tmpda6 : end, :));
+   tmpca4 = rec_sqnorm(Qdiags);
+   tmpca3 = tmpca4 + tmpca5;
    tmpda2 = gamma ^ 2;
    tmpda1 = 0.5 * tmpda2;
    term1 = tmpda1 * tmpca3;
-   tmpca1 = sum(inv_cov_factors(1 : p, :), 1);
-   term2 = m * tmpca1;
+   term2 = m * sum_qs;
    C = n*p*(log(gamma) - 0.5*log(2)) - log_gamma_distrib(0.5 * n, p);
-   adimat_push1(tmpca1);
    tmpca1 = term1 - term2 - C;
    out = sum(tmpca1);
-   adimat_push(gamma, m, n, term1, term2, C, tmpca1, tmpca3, tmpca4, tmpca5, tmpca6, tmpca7, tmpca8, tmpda1, tmpda2, tmpda9, out, hparams, p, inv_cov_factors);
+   adimat_push(gamma, m, n, term1, term2, C, tmpca1, tmpca3, tmpca4, tmpca5, tmpda1, tmpda2, tmpda6, out, hparams, p, sum_qs, Qdiags, inv_cov_factors);
 end
 
-function a_inv_cov_factors = ret_log_wishart_prior(a_out)
-   [inv_cov_factors p hparams out tmpda9 tmpda2 tmpda1 tmpca8 tmpca7 tmpca6 tmpca5 tmpca4 tmpca3 tmpca1 C term2 term1 n m gamma] = adimat_pop;
-   [a_term1 a_term2 a_tmpca1 a_tmpca3 a_tmpca4 a_tmpca5 a_tmpca6 a_tmpca7 a_tmpca8 a_inv_cov_factors] = a_zeros(term1, term2, tmpca1, tmpca3, tmpca4, tmpca5, tmpca6, tmpca7, tmpca8, inv_cov_factors);
+function [a_sum_qs a_Qdiags a_inv_cov_factors] = ret_log_wishart_prior(a_out)
+   [inv_cov_factors Qdiags sum_qs p hparams out tmpda6 tmpda2 tmpda1 tmpca5 tmpca4 tmpca3 tmpca1 C term2 term1 n m gamma] = adimat_pop;
+   [a_term1 a_term2 a_tmpca1 a_tmpca3 a_tmpca4 a_tmpca5 a_sum_qs a_Qdiags a_inv_cov_factors] = a_zeros(term1, term2, tmpca1, tmpca3, tmpca4, tmpca5, sum_qs, Qdiags, inv_cov_factors);
    if nargin < 1
       a_out = a_zeros1(out);
    end
    a_tmpca1 = adimat_adjsum(a_tmpca1, a_sum(a_out, tmpca1));
-   tmpca1 = adimat_pop1;
    a_term1 = adimat_adjsum(a_term1, adimat_adjred(term1, a_tmpca1));
    a_term2 = adimat_adjsum(a_term2, adimat_adjred(term2, -a_tmpca1));
-   a_tmpca1 = a_zeros1(tmpca1);
-   a_tmpca1 = adimat_adjsum(a_tmpca1, adimat_adjmultr(tmpca1, m, a_term2));
-   a_inv_cov_factors(1 : p, :) = adimat_adjsum(a_inv_cov_factors(1 : p, :), a_sum(a_tmpca1, inv_cov_factors(1 : p, :), 1));
+   a_sum_qs = adimat_adjsum(a_sum_qs, adimat_adjmultr(sum_qs, m, a_term2));
    a_tmpca3 = adimat_adjsum(a_tmpca3, adimat_adjmultr(tmpca3, tmpda1, a_term1));
    a_tmpca4 = adimat_adjsum(a_tmpca4, adimat_adjred(tmpca4, a_tmpca3));
-   a_tmpca7 = adimat_adjsum(a_tmpca7, adimat_adjred(tmpca7, a_tmpca3));
-   a_tmpca5 = adimat_adjsum(a_tmpca5, a_sum(a_tmpca4, tmpca5, 1));
-   a_tmpca6 = adimat_adjsum(a_tmpca6, adimat_adjred(tmpca6, 2 .* tmpca6.^1 .* a_tmpca5));
-   a_inv_cov_factors(1 : p, :) = adimat_adjsum(a_inv_cov_factors(1 : p, :), exp(inv_cov_factors(1 : p, :)) .* a_tmpca6);
-   a_tmpca8 = adimat_adjsum(a_tmpca8, a_sum(a_tmpca7, tmpca8, 1));
-   a_inv_cov_factors(tmpda9 : end, :) = adimat_adjsum(a_inv_cov_factors(tmpda9 : end, :), adimat_adjred(inv_cov_factors(tmpda9 : end, :), 2 .* inv_cov_factors(tmpda9 : end, :).^1 .* a_tmpca8));
+   a_tmpca5 = adimat_adjsum(a_tmpca5, adimat_adjred(tmpca5, a_tmpca3));
+   [tmpadjc1] = ret_sqnorm(a_tmpca4);
+   a_Qdiags = adimat_adjsum(a_Qdiags, tmpadjc1);
+   [tmpadjc1] = ret_sqnorm(a_tmpca5);
+   a_inv_cov_factors(tmpda6 : end, :) = adimat_adjsum(a_inv_cov_factors(tmpda6 : end, :), tmpadjc1);
 end
 
-function out = log_wishart_prior(hparams, p, inv_cov_factors)
+function out = log_wishart_prior(hparams, p, sum_qs, Qdiags, inv_cov_factors)
 % LOG_WISHART_PRIOR  
 %               HPARAMS = [gamma m]
 %               P data dimension
@@ -468,45 +521,39 @@ function out = log_wishart_prior(hparams, p, inv_cov_factors)
    gamma = hparams(1);
    m = hparams(2);
    n = p + m + 1;
-   tmpda9 = p + 1;
-   tmpca8 = inv_cov_factors(tmpda9 : end, :) .^ 2;
-   tmpca7 = sum(tmpca8, 1);
-   tmpca6 = exp(inv_cov_factors(1 : p, :));
-   tmpca5 = tmpca6 .^ 2;
-   tmpca4 = sum(tmpca5, 1);
-   tmpca3 = tmpca4 + tmpca7;
+   tmpda6 = p + 1;
+   tmpca5 = sqnorm(inv_cov_factors(tmpda6 : end, :));
+   tmpca4 = sqnorm(Qdiags);
+   tmpca3 = tmpca4 + tmpca5;
    tmpda2 = gamma ^ 2;
    tmpda1 = 0.5 * tmpda2;
    term1 = tmpda1 * tmpca3;
-   tmpca1 = sum(inv_cov_factors(1 : p, :), 1);
-   term2 = m * tmpca1;
+   term2 = m * sum_qs;
    C = n*p*(log(gamma) - 0.5*log(2)) - log_gamma_distrib(0.5 * n, p);
    tmpca1 = term1 - term2 - C;
    out = sum(tmpca1);
 end
 
 function out = log_gamma_distrib(a, p)
-   out = log(pi ^ (0.25 * p * (p - 1)));
+   out = 0.25 * p * (p - 1) * log(pi);
    for j=1 : p
       out = out + gammaln(a + 0.5*(1 - j));
    end
 end
 
-function [a_x nr_out] = a_logsumexp_repmat(x, a_out)
+function [a_x nr_out] = a_logsumexp(x, a_out)
 % LOGSUMEXP  Compute log(sum(exp(x))) stably.
 %               X is k x n
 %               OUT is 1 x n
    mx = max(x);
-   tmpda3 = size(x, 1);
-   tmpca2 = repmat(mx, tmpda3, 1);
-   tmpca1 = x - tmpca2;
+   tmpca1 = x - mx;
    emx = exp(tmpca1);
    semx = sum(emx);
    adimat_push1(tmpca1);
    tmpca1 = log(semx);
    out = tmpca1 + mx;
    nr_out = out;
-   [a_mx a_emx a_semx a_tmpca1 a_tmpca2 a_x] = a_zeros(mx, emx, semx, tmpca1, tmpca2, x);
+   [a_mx a_emx a_semx a_tmpca1 a_x] = a_zeros(mx, emx, semx, tmpca1, x);
    if nargin < 2
       a_out = a_zeros1(out);
    end
@@ -518,27 +565,24 @@ function [a_x nr_out] = a_logsumexp_repmat(x, a_out)
    a_emx = adimat_adjsum(a_emx, a_sum(a_semx, emx));
    a_tmpca1 = adimat_adjsum(a_tmpca1, exp(tmpca1) .* a_emx);
    a_x = adimat_adjsum(a_x, adimat_adjred(x, a_tmpca1));
-   a_tmpca2 = adimat_adjsum(a_tmpca2, adimat_adjred(tmpca2, -a_tmpca1));
-   a_mx = adimat_adjsum(a_mx, a_repmat(a_tmpca2, mx, tmpda3, 1));
+   a_mx = adimat_adjsum(a_mx, adimat_adjred(mx, -a_tmpca1));
    a_x = adimat_adjsum(a_x, adimat_max1(x, a_mx));
 end
 
-function out = rec_logsumexp_repmat(x)
+function out = rec_logsumexp(x)
    mx = max(x);
-   tmpda3 = size(x, 1);
-   tmpca2 = repmat(mx, tmpda3, 1);
-   tmpca1 = x - tmpca2;
+   tmpca1 = x - mx;
    emx = exp(tmpca1);
    semx = sum(emx);
    adimat_push1(tmpca1);
    tmpca1 = log(semx);
    out = tmpca1 + mx;
-   adimat_push(mx, emx, semx, tmpca1, tmpca2, tmpda3, out, x);
+   adimat_push(mx, emx, semx, tmpca1, out, x);
 end
 
-function a_x = ret_logsumexp_repmat(a_out)
-   [x out tmpda3 tmpca2 tmpca1 semx emx mx] = adimat_pop;
-   [a_mx a_emx a_semx a_tmpca1 a_tmpca2 a_x] = a_zeros(mx, emx, semx, tmpca1, tmpca2, x);
+function a_x = ret_logsumexp(a_out)
+   [x out tmpca1 semx emx mx] = adimat_pop;
+   [a_mx a_emx a_semx a_tmpca1 a_x] = a_zeros(mx, emx, semx, tmpca1, x);
    if nargin < 1
       a_out = a_zeros1(out);
    end
@@ -550,7 +594,6 @@ function a_x = ret_logsumexp_repmat(a_out)
    a_emx = adimat_adjsum(a_emx, a_sum(a_semx, emx));
    a_tmpca1 = adimat_adjsum(a_tmpca1, exp(tmpca1) .* a_emx);
    a_x = adimat_adjsum(a_x, adimat_adjred(x, a_tmpca1));
-   a_tmpca2 = adimat_adjsum(a_tmpca2, adimat_adjred(tmpca2, -a_tmpca1));
-   a_mx = adimat_adjsum(a_mx, a_repmat(a_tmpca2, mx, tmpda3, 1));
+   a_mx = adimat_adjsum(a_mx, adimat_adjred(mx, -a_tmpca1));
    a_x = adimat_adjsum(a_x, adimat_max1(x, a_mx));
 end

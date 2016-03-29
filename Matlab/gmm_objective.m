@@ -24,31 +24,43 @@ n = size(x,2);
 
 lower_triangle_indices = tril(ones(d,d), -1) ~= 0;
 
-lse = zeros(k,n,'like',alphas);
+sum_qs = sum(inv_cov_factors(1:d,:),1);
+Qs = cell(1,k);
+Qdiags = zeros(d,k);
 for ik=1:k
-    % Unpack L parameters into d*d matrix.
-    Lparams = inv_cov_factors(:,ik);
+    % Unpack parameters into d*d matrix.
+    icf = inv_cov_factors(:,ik);
     % Set L's diagonal
-    logLdiag = Lparams(1:d);
-    L = diag(exp(logLdiag));
+    logLdiag = icf(1:d);
+    Qdiags(:,ik) = exp(logLdiag);
+    Qs{ik} = diag(Qdiags(:,ik));
     % And set lower triangle
-    L(lower_triangle_indices) = Lparams(d+1:end);
-    
-    mahal = L*(x - repmat(means(:,ik),1,n));
-%     mahal = L*bsxfun(@minus,means(:,ik),x); % bsxfun does not work with AdiMat
-    
-    lse(ik,:) = alphas(ik) + sum(logLdiag) - 0.5 * sum(mahal.^2,1);
+    Qs{ik}(lower_triangle_indices) = icf(d+1:end);
+end
+
+slse = 0;
+for ix=1:n
+    main_term = zeros(1,k);
+    for ik=1:k
+        Qxcentered = Qs{ik}*(x(:,ix) - means(:,ik));
+        main_term(ik) = -0.5*sqnorm(Qxcentered);
+    end
+    main_term = main_term + alphas + sum_qs;
+    slse = slse + logsumexp(main_term);
 end
 
 constant = -n*d*0.5*log(2*pi);
-err = constant + sum(logsumexp_repmat(lse)) - n*logsumexp_repmat(alphas);
+err = constant + slse - n*logsumexp(alphas);
 
 % apply the prior on covariance
-err = err + log_wishart_prior(hparams,d,inv_cov_factors);
-
+err = err + log_wishart_prior(hparams,d,sum_qs,Qdiags,inv_cov_factors);
 end
 
-function out = log_wishart_prior(hparams,p,inv_cov_factors)
+function out = sqnorm(x)
+out = sum(x.^2,1);
+end
+
+function out = log_wishart_prior(hparams,p,sum_qs,Qdiags,inv_cov_factors)
 % LOG_WISHART_PRIOR  
 %               HPARAMS = [gamma m]
 %               P data dimension
@@ -61,17 +73,16 @@ gamma = hparams(1);
 m = hparams(2);
 n = p+m+1;
 
-term1 = 0.5*gamma^2*(sum(exp(inv_cov_factors(1:p,:)).^2,1) + ...
-    sum(inv_cov_factors((p+1):end,:).^2,1));
-term2 = m*sum(inv_cov_factors(1:p,:),1);
+term1 = 0.5*gamma^2*(sqnorm(Qdiags) + ...
+    sqnorm(inv_cov_factors((p+1):end,:)));
+term2 = m*sum_qs;
 C = n*p*(log(gamma) - 0.5*log(2)) - log_gamma_distrib(0.5*n,p);
 
 out = sum(term1 - term2 - C);
-
 end
 
 function out = log_gamma_distrib(a,p)
-out = log(pi^(0.25*p*(p-1)));
+out = (0.25*p*(p-1))*log(pi);
 for j=1:p
     out = out + gammaln(a + 0.5*(1-j));
 end

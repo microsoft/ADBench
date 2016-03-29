@@ -1,0 +1,24 @@
+﻿Build started 17/08/2015 14:23:41.
+     1>Project "C:\Users\t-filsra\Workspace\autodiff\Cpp\Adept-master\VS\Adept.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\x86_amd64\CL.exe /c /I..\include /ZI /nologo /W3 /WX- /sdl /Od /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"x64\Debug\\" /Fd"x64\Debug\Adept.pdb" /Gd /TP /errorReport:prompt ..\adept\adept.cpp ..\adept\adept_openmp.cpp
+         adept_openmp.cpp
+     1>c:\users\t-filsra\workspace\autodiff\cpp\adept-master\include\adept.h(606): warning C4267: 'return': conversion from 'size_t' to 'adept::Offset', possible loss of data
+     1>c:\users\t-filsra\workspace\autodiff\cpp\adept-master\include\adept.h(607): warning C4267: 'return': conversion from 'size_t' to 'adept::Offset', possible loss of data
+     1>c:\users\t-filsra\workspace\autodiff\cpp\adept-master\include\adept.h(812): warning C4267: 'return': conversion from 'size_t' to 'adept::Offset', possible loss of data
+     1>c:\users\t-filsra\workspace\autodiff\cpp\adept-master\include\adept.h(813): warning C4267: 'return': conversion from 'size_t' to 'adept::Offset', possible loss of data
+         adept.cpp
+     1>c:\users\t-filsra\workspace\autodiff\cpp\adept-master\include\adept.h(606): warning C4267: 'return': conversion from 'size_t' to 'adept::Offset', possible loss of data
+     1>c:\users\t-filsra\workspace\autodiff\cpp\adept-master\include\adept.h(607): warning C4267: 'return': conversion from 'size_t' to 'adept::Offset', possible loss of data
+     1>c:\users\t-filsra\workspace\autodiff\cpp\adept-master\include\adept.h(812): warning C4267: 'return': conversion from 'size_t' to 'adept::Offset', possible loss of data
+     1>c:\users\t-filsra\workspace\autodiff\cpp\adept-master\include\adept.h(813): warning C4267: 'return': conversion from 'size_t' to 'adept::Offset', possible loss of data
+         Generating Code...
+       Lib:
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\x86_amd64\Lib.exe /OUT:"..\lib\Adeptd.lib" /NOLOGO /MACHINE:X64 x64\Debug\adept.obj
+         x64\Debug\adept_openmp.obj
+         Adept.vcxproj -> C:\Users\t-filsra\Workspace\autodiff\Cpp\Adept-master\VS\..\lib\Adeptd.lib
+     1>Done Building Project "C:\Users\t-filsra\Workspace\autodiff\Cpp\Adept-master\VS\Adept.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:01.45

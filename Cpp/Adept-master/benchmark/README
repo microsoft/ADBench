@@ -1,0 +1,45 @@
+This directory contains the code to run benchmarks for the
+Lax-Wendroff and Toon advection schemes described in the Adept
+paper. Type "make check" a directory above to compile the program
+"autodiff_benchmark".  A second executable "animate" is also compiled
+that allows the 1D advection to be visualized (you may need to expand
+the size of your terminal).
+
+Reverse-mode and Jacobian calculations are compared for hand-coded
+differentiation, Adept, and if found by the configure script, also the
+ADOL-C, Sacado and CppAD libraries. The numerical values are compared
+as well as the computational speed.
+
+For a very basic run, just type
+
+    ./autodiff_benchmark
+
+For a proper benchmark you will need to carry out more repeats.  Type
+
+    ./autodiff_benchmark --help
+
+to see the full list of options.  You will probably need at least
+10000 repeats ("-r 10000") for a reliable benchmark, and repeated
+calls to the program will also be needed to verify the consistency, on
+a machine that is otherwise idle.  By default, for Jacobian
+calculations Adept uses as many OpenMP threads as there are processing
+cores available, which gives it an advantage over the other libraries
+that are single-threaded only. You can turn off OpenMP with the
+"--no-openmp" option.
+
+There are caveats you should be aware of, the main being that while
+these algorithms are different (Lax-Wendroff uses no mathematical
+functions while Toon uses exp and log), both are rather small in terms
+of number of operations and memory required.  Some automatic
+differentiation libraries scale better than others to larger problems,
+so do test more than one library on your own code.  Hopefully the code
+in this directory demonstrates that it is fairly straightforward to
+apply different automatic differentiation libraries to the same
+code.
+
+Note that that these two algorithms both have 100 inputs or
+independent variables x, and 100 outputs or dependent variables y, so
+the Jacobian matrix is square. More commonly, x and y are
+different. Note that forward-mode Jacobian calculation is generally
+faster if y > x while reverse-mode Jacobian calculation is generally
+faster if y < x, and not all libraries can do both modes.

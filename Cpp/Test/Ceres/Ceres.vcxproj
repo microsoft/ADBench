@@ -21,6 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2CF9CDC0-3E44-441F-B837-87B5DF342B4A}</ProjectGuid>
     <RootNamespace>Ceres</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -65,7 +66,12 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -81,11 +87,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>Z:\autodiff\Cpp\ceres\ceres-solver-1.10.0\include;Z:\autodiff\Cpp\ceres\ceres-solver-1.10.0\internal;Z:\autodiff\Cpp\ceres\ceres-solver-1.10.0\internal\ceres;Z:\autodiff\Cpp\ceres\glog-master\src\windows;Z:\autodiff\Cpp\ceres\eigen-3.2.5;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\install\include\suitesparse;Z:\autodiff\Cpp\ceres\ceres-solver-1.10.0\build3\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;Z:\autodiff\Cpp\ceres\install\lib\ceres-debug.lib;Z:\autodiff\Cpp\ceres\glog-master\x64\Release\libglog.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\lib\Release\spqr.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\lib\Release\cholmod.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\lib\Release\ccolamd.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\lib\Release\camd.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\lib\Release\colamd.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\install\lib64\amd.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\install\lib64\lapack_blas_windows\liblapack.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\install\lib64\lapack_blas_windows\libblas.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\install\lib64\suitesparseconfig.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ceres-debug.lib;libglog.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -109,13 +117,15 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>Z:\autodiff\Cpp\ceres\ceres-solver-1.10.0\include;Z:\autodiff\Cpp\ceres\ceres-solver-1.10.0\internal;Z:\autodiff\Cpp\ceres\ceres-solver-1.10.0\internal\ceres;Z:\autodiff\Cpp\ceres\glog-master\src\windows;Z:\autodiff\Cpp\ceres\eigen-3.2.5;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\install\include\suitesparse;Z:\autodiff\Cpp\ceres\ceres-solver-1.10.0\build3\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;Z:\autodiff\Cpp\ceres\install\lib\ceres.lib;Z:\autodiff\Cpp\ceres\glog-master\x64\Release\libglog.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\lib\Release\spqr.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\lib\Release\cholmod.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\lib\Release\ccolamd.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\lib\Release\camd.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\lib\Release\colamd.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\install\lib64\amd.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\install\lib64\lapack_blas_windows\liblapack.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\install\lib64\lapack_blas_windows\libblas.lib;Z:\autodiff\Cpp\ceres\suitesparse-metis-for-windows-master\build\install\lib64\suitesparseconfig.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ceres.lib;libglog.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -126,8 +136,20 @@
     <ClInclude Include="..\utils.h" />
     <ClInclude Include="ba.h" />
     <ClInclude Include="gmm.h" />
+    <ClInclude Include="hand_eigen.h" />
+    <ClInclude Include="hand_light_matrix.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\..\..\packages\Eigen.3.2.5\build\native\Eigen.targets" Condition="Exists('..\..\..\packages\Eigen.3.2.5\build\native\Eigen.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\..\..\packages\Eigen.3.2.5\build\native\Eigen.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\packages\Eigen.3.2.5\build\native\Eigen.targets'))" />
+  </Target>
 </Project>

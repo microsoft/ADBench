@@ -6,6 +6,33 @@ Tapenade 3.10 (r5498) - 20 Jan 2015 09:48
 
 #define NB_DIRS_REPROJ_BV 2
 
+/*
+Differentiation of sqsum in reverse (adjoint) mode:
+gradient     of useful results: *x sqsum
+with respect to varying inputs: *x
+Plus diff mem management of: x:in
+*/
+void sqsum_bv(int n,
+  double *x,
+  double(*xb)[NBDirsMaxReproj_BV],
+  double sqsumb[NBDirsMaxReproj_BV],
+  int nbdirs);
+
+/*
+Differentiation of cross in reverse (adjoint) mode:
+gradient     of useful results: *out *a *b
+with respect to varying inputs: *a *b
+Plus diff mem management of: out:in a:in b:in
+*/
+void cross_bv(
+  double *a,
+  double(*ab)[NBDirsMaxReproj_BV],
+  double *b,
+  double(*bb)[NBDirsMaxReproj_BV],
+  double *out,
+  double(*outb)[NBDirsMaxReproj_BV],
+  int nbdirs);
+
 // rot 3 rotation parameters
 // pt 3 point to be rotated
 // rotatedPt 3 rotated point
@@ -16,15 +43,36 @@ Tapenade 3.10 (r5498) - 20 Jan 2015 09:48
 //	n = w / theta;
 //	n_x = au_cross_matrix(n);
 //	R = eye(3) + n_x*sin(theta) + n_x*n_x*(1 - cos(theta));
-void rodrigues_rotate_point(double *rot, double *pt, double *rotatedPt);
-void rodrigues_rotate_point_bv(double *rot, double(*rotb)[NB_DIRS_REPROJ_BV], double
-  *pt, double(*ptb)[NB_DIRS_REPROJ_BV], double *rotatedPt, double(*rotatedPtb)[
-    NB_DIRS_REPROJ_BV], int nbdirs);
+/*
+Differentiation of rodrigues_rotate_point in reverse (adjoint) mode:
+gradient     of useful results: *rot *rotatedPt
+with respect to varying inputs: *rot *pt
+Plus diff mem management of: rot:in rotatedPt:in pt:in
+*/
+void rodrigues_rotate_point_bv(
+  double *rot,
+  double(*rotb)[NBDirsMaxReproj_BV],
+  double *pt,
+  double(*ptb)[NBDirsMaxReproj_BV],
+  double *rotatedPt,
+  double(*rotatedPtb)[NBDirsMaxReproj_BV],
+  int nbdirs);
+
 // rad_params 2 radial distortion parameters
 // proj 2 projection to be distorted
-void radial_distort(double *rad_params, double *proj);
-void radial_distort_bv(double *rad_params, double(*rad_paramsb)[NB_DIRS_REPROJ_BV],
-  double *proj, double(*projb)[NB_DIRS_REPROJ_BV], int nbdirs);
+/*
+Differentiation of radial_distort in reverse (adjoint) mode:
+gradient     of useful results: *rad_params *proj
+with respect to varying inputs: *rad_params *proj
+Plus diff mem management of: rad_params:in proj:in
+*/
+void radial_distort_bv(
+  double *rad_params,
+  double(*rad_paramsb)[NBDirsMaxReproj_BV],
+  double *proj,
+  double(*projb)[NBDirsMaxReproj_BV],
+  int nbdirs);
+
 // cam 11 cameras in format [r1 r2 r3 C1 C2 C3 f u0 v0 k1 k2]
 //            r1, r2, r3 are angle - axis rotation parameters(Rodrigues)
 //			  [C1 C2 C3]' is the camera center
@@ -38,42 +86,38 @@ void radial_distort_bv(double *rad_params, double(*rad_paramsb)[NB_DIRS_REPROJ_B
 // distorted = radial_distort(projective2euclidean(Xcam), radial_parameters)
 // proj = distorted * f + principal_point
 // err = sqsum(proj - measurement)
-void project(double *cam, double *X, double *proj);
-void project_bv(double *cam, double(*camb)[NB_DIRS_REPROJ_BV], double *X, double(*Xb
-  )[NB_DIRS_REPROJ_BV], double *proj, double(*projb)[NB_DIRS_REPROJ_BV], int nbdirs);
-void computeReprojError(double *cam, double *X, double *w, double feat_x,
-  double feat_y, double *err);
-void computeReprojError_bv(double *cam, double(*camb)[NB_DIRS_REPROJ_BV], double *X,
-  double(*Xb)[NB_DIRS_REPROJ_BV], double *w, double(*wb)[NB_DIRS_REPROJ_BV], double feat_x
-  , double feat_y, double *err, double(*errb)[NB_DIRS_REPROJ_BV], int nbdirs);
-// temporal prior
-void computeFocalPriorError(double *cam1, double *cam2, double *cam3, double *
-  err);
-void computeFocalPriorError_b(double *cam1, double *cam1b, double *cam2,
-  double *cam2b, double *cam3, double *cam3b, double *err, double *errb);
-void computeZachWeightError(double *w, double *err);
-void computeZachWeightError_b(double *w, double *wb, double *err, double *errb
-  );
-// n number of cameras
-// m number of points
-// p number of observations
-// cams 11*n cameras in format [r1 r2 r3 C1 C2 C3 f u0 v0 k1 k2]
-//            r1, r2, r3 are angle - axis rotation parameters(Rodrigues)
-//			  [C1 C2 C3]' is the camera center
-//            f is the focal length in pixels
-//			  [u0 v0]' is the principal point
-//            k1, k2 are radial distortion parameters
-// X 3*m points
-// obs 2*p observations (pairs cameraIdx, pointIdx)
-// feats 2*p features (x,y coordinates corresponding to observations)
-// reproj_err 2*p errors of observations
-// f_prior_err n-2 temporal prior on focals
-// w_err p coputes like 1-w^2
-// projection: 
-// Xcam = R * (X - C)
-// distorted = radial_distort(projective2euclidean(Xcam), radial_parameters)
-// proj = distorted * f + principal_point
-// err = sqsum(proj - measurement)
-void ba_objective(int n, int m, int p, double *cams, double *X, double *w, int
-  *obs, double *feats, double *reproj_err, double *f_prior_err, double *
-  w_err);
+/*
+Differentiation of project in reverse (adjoint) mode:
+gradient     of useful results: *cam *X *proj
+with respect to varying inputs: *cam *X
+Plus diff mem management of: cam:in X:in proj:in-out
+*/
+void project_bv(
+  double *cam,
+  double(*camb)[NBDirsMaxReproj_BV],
+  double *X,
+  double(*Xb)[NBDirsMaxReproj_BV],
+  double *proj,
+  double(*projb)[NBDirsMaxReproj_BV],
+  int nbdirs);
+
+/*
+Differentiation of computeReprojError in reverse (adjoint) mode:
+gradient     of useful results: *err
+with respect to varying inputs: *err *w *cam *X
+RW status of diff variables: *err:in-out *w:out *cam:out *X:out
+Plus diff mem management of: err:in w:in cam:in X:in
+*/
+void computeReprojError_bv(
+  double *cam,
+  double(*camb)[NBDirsMaxReproj_BV],
+  double *X,
+  double(*Xb)[NBDirsMaxReproj_BV],
+  double *w,
+  double(*wb)[NBDirsMaxReproj_BV],
+  double feat_x, double feat_y,
+  double *err,
+  double(*errb)[NBDirsMaxReproj_BV],
+  int nbdirs);
+
+void computeZachWeightError_b(double *w, double *wb, double *err, double *errb);

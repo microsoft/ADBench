@@ -1,0 +1,1068 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doc>
+<assembly><name>FsAlg</name></assembly>
+<members>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="P:FsAlg.Generic.Matrix`1.Item(System.Int32,System.Int32,`0)">
+<summary>
+ The entry of this matrix at row `i` and column `j`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.op_UnaryNegation(FsAlg.Generic.Matrix{`0})">
+<summary>
+ Gets the negative of matrix `a`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.op_Subtraction(`0,FsAlg.Generic.Matrix{`0})">
+<summary>
+ Subtracts each element of of matrix `b` from scalar `a`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.op_Subtraction(FsAlg.Generic.Matrix{`0},`0)">
+<summary>
+ Subtracts scalar `b` from each element of matrix `a`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.op_Subtraction(FsAlg.Generic.Matrix{`0},FsAlg.Generic.Matrix{`0})">
+<summary>
+ Subtracts matrix `b` from matrix `a`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.op_Multiply(`0,FsAlg.Generic.Matrix{`0})">
+<summary>
+ Multiplies each element of matrix `b` by scalar `a`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.op_Multiply(FsAlg.Generic.Matrix{`0},`0)">
+<summary>
+ Multiplies each element of matrix `a` by scalar `b`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.op_Multiply(FsAlg.Generic.Vector{`0},FsAlg.Generic.Matrix{`0})">
+<summary>
+ Computes the vector-matrix product of vector `a` and matrix `b`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.op_Multiply(FsAlg.Generic.Matrix{`0},FsAlg.Generic.Vector{`0})">
+<summary>
+ Computes the matrix-vector product of matrix `a` and vector `b`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.op_Multiply(FsAlg.Generic.Matrix{`0},FsAlg.Generic.Matrix{`0})">
+<summary>
+ Multiplies matrix `a` and matrix `b` (matrix product)
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.op_Explicit(FsAlg.Generic.Matrix{`0})">
+<summary>
+ Converts Matrix `m` to float[,]
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.op_DotMultiply(FsAlg.Generic.Matrix{`0},FsAlg.Generic.Matrix{`0})">
+<summary>
+ Multiplies matrix `a` and matrix `b` element-wise (Hadamard product)
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.op_DotDivide(FsAlg.Generic.Matrix{`0},FsAlg.Generic.Matrix{`0})">
+<summary>
+ Divides matrix `a` by matrix `b` element-wise (Hadamard division)
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.op_Division(`0,FsAlg.Generic.Matrix{`0})">
+<summary>
+ Creates a matrix whose elements are scalar `a` divided by each element of matrix `b`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.op_Division(FsAlg.Generic.Matrix{`0},`0)">
+<summary>
+ Divides each element of matrix `a` by scalar `b`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.op_Addition(`0,FsAlg.Generic.Matrix{`0})">
+<summary>
+ Adds scalar `a` to each element of matrix `b`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.op_Addition(FsAlg.Generic.Matrix{`0},`0)">
+<summary>
+ Adds scalar `b` to each element of matrix `a`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.op_Addition(FsAlg.Generic.Matrix{`0},FsAlg.Generic.Matrix{`0})">
+<summary>
+ Adds matrix `a` to matrix `b`
+</summary>
+</member>
+<member name="P:FsAlg.Generic.Matrix`1.Zero">
+<summary>
+ ZeroMatrix
+</summary>
+</member>
+<member name="P:FsAlg.Generic.Matrix`1.Rows">
+<summary>
+ Gets the number of rows of this matrix
+</summary>
+</member>
+<member name="P:FsAlg.Generic.Matrix`1.Item(System.Int32,System.Int32)">
+<summary>
+ The entry of this matrix at row `i` and column `j`
+</summary>
+</member>
+<member name="P:FsAlg.Generic.Matrix`1.Cols">
+<summary>
+ Gets the number of columns of this matrix
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.ToSeq">
+<summary>
+ Converts this matrix into a one dimensional sequence, scanning columns from left to right and rows from top to bottom
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.ToMatlabString">
+<summary>
+ Gets a string representation of this matrix that can be pasted into MATLAB
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.ToMathematicaString">
+<summary>
+ Gets a string representation of this matrix that can be pasted into a Mathematica notebook
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.ToArray2D">
+<summary>
+ Converts this matrix into a 2d array
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.ToArray">
+<summary>
+ Converts this matrix into a jagged array, e.g. from Matrix&lt;float&gt; to float[][]
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.GetTranspose">
+<summary>
+ Gets the transpose of this matrix
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.GetTrace">
+<summary>
+ Gets the trace of this matrix
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.GetSlice(Microsoft.FSharp.Core.FSharpOption{System.Int32},Microsoft.FSharp.Core.FSharpOption{System.Int32},System.Int32)">
+<summary>
+ Gets a column of this matrix with the given column index `col` and row bounds `rowStart` and `rowFinish`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.GetSlice(System.Int32,Microsoft.FSharp.Core.FSharpOption{System.Int32},Microsoft.FSharp.Core.FSharpOption{System.Int32})">
+<summary>
+ Gets a row of this matrix with the given row index `row` and column bounds `colStart` and `colFinish`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.GetSlice(Microsoft.FSharp.Core.FSharpOption{System.Int32},Microsoft.FSharp.Core.FSharpOption{System.Int32},Microsoft.FSharp.Core.FSharpOption{System.Int32},Microsoft.FSharp.Core.FSharpOption{System.Int32})">
+<summary>
+ Gets a submatrix of this matrix with the bounds given in `rowStart`, `rowFinish`, `colStart`, `colFinish`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.GetQRDecomposition">
+<summary>
+ Returns the QR decomposition of this matrix
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.GetLUDecomposition">
+<summary>
+ Returns the LU decomposition of this matrix. The return values are the LU matrix, pivot indices, and a toggle value indicating the number of row exchanges during the decomposition, which is +1 if the number of exchanges were even, -1 if odd.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.GetInverse">
+<summary>
+ Gets the inverse of this matrix
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.GetEnumerator">
+<summary>
+ Returns an enumerator that iterates through this matrix
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.GetEigenvalues">
+<summary>
+ Returns the eigenvalues of this matrix. (Experimental code, complex eigenvalues are not supported.)
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.GetDiagonal">
+<summary>
+ Gets a vector of the diagonal elements of this matrix
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.GetDeterminant">
+<summary>
+ Gets the determinant of this matrix
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix`1.Copy">
+<summary>
+ Creates a copy of this matrix
+</summary>
+</member>
+<member name="T:FsAlg.Generic.Matrix`1">
+<summary>
+ Generic matrix type
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="P:FsAlg.Generic.Vector`1.Item(System.Int32,`0)">
+<summary>
+ The element of this vector at the given position `i`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.op_UnaryNegation(FsAlg.Generic.Vector{`0})">
+<summary>
+ Gets the negative of Vector `a`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.op_Subtraction(`0,FsAlg.Generic.Vector{`0})">
+<summary>
+ Subtracts each element of vector `b` from scalar `a`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.op_Subtraction(FsAlg.Generic.Vector{`0},`0)">
+<summary>
+ Subtracts scalar `b` from each element of vector `a`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.op_Subtraction(FsAlg.Generic.Vector{`0},FsAlg.Generic.Vector{`0})">
+<summary>
+ Subtracts vector `b` from vector `a`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.op_PercentMultiply(FsAlg.Generic.Vector{`0},FsAlg.Generic.Vector{`0})">
+<summary>
+ Computes the cross product of vector `a` and vector `b` (three-dimensional)
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.op_Multiply(`0,FsAlg.Generic.Vector{`0})">
+<summary>
+ Multiplies each element of vector `b` by scalar `a`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.op_Multiply(FsAlg.Generic.Vector{`0},`0)">
+<summary>
+ Multiplies each element of vector `a` by scalar `b`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.op_Multiply(FsAlg.Generic.Vector{`0},FsAlg.Generic.Vector{`0})">
+<summary>
+ Computes the inner product (dot / scalar product) of vector `a` and vector `b`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.op_Explicit(FsAlg.Generic.Vector{`0})">
+<summary>
+ Converts vector `v` to float[]
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.op_DotMultiply(FsAlg.Generic.Vector{`0},FsAlg.Generic.Vector{`0})">
+<summary>
+ Multiplies vector `a` and vector `b` element-wise (Hadamard product)
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.op_DotDivide(FsAlg.Generic.Vector{`0},FsAlg.Generic.Vector{`0})">
+<summary>
+ Divides vector `a` by vector `b` element-wise (Hadamard division)
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.op_Division(`0,FsAlg.Generic.Vector{`0})">
+<summary>
+ Divides scalar `a` by each element of vector `b`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.op_Division(FsAlg.Generic.Vector{`0},`0)">
+<summary>
+ Divides each element of vector `a` by scalar `b`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.op_Addition(`0,FsAlg.Generic.Vector{`0})">
+<summary>
+ Adds scalar `a` to each element of vector `b`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.op_Addition(FsAlg.Generic.Vector{`0},`0)">
+<summary>
+ Adds scalar `b` to each element of vector `a`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.op_Addition(FsAlg.Generic.Vector{`0},FsAlg.Generic.Vector{`0})">
+<summary>
+ Adds vector `a` to vector `b`
+</summary>
+</member>
+<member name="P:FsAlg.Generic.Vector`1.Zero">
+<summary>
+ ZeroVector
+</summary>
+</member>
+<member name="P:FsAlg.Generic.Vector`1.Length">
+<summary>
+ Gets the total number of elements of this vector
+</summary>
+</member>
+<member name="P:FsAlg.Generic.Vector`1.Item(System.Int32)">
+<summary>
+ The element of this vector at the given position `i`
+</summary>
+</member>
+<member name="P:FsAlg.Generic.Vector`1.FirstItem">
+<summary>
+ Gets the first element of this vector
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.ToSeq">
+<summary>
+ Converts this vector to a sequence
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.ToMatlabString">
+<summary>
+ Gets a string representation of this vector that can be pasted into MATLAB
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.ToMathematicaString">
+<summary>
+ Gets a string representation of this vector that can be pasted into a Mathematica notebook
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.ToArray">
+<summary>
+ Converts this vector to an array
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.SplitEqual(System.Int32)">
+<summary>
+ Returns a sequence of vectors that are obtained by splitting this vector into `n` subvectors of equal length. The length of this vector must be an integer multiple of `n`, otherwise ArgumentException is raised.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.Split(System.Collections.Generic.IEnumerable{System.Int32})">
+<summary>
+ Returns a sequence of vectors that are obtained by splitting this vector into subvectors whose lengths are given in sequence `n`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.GetUnitVector">
+<summary>
+ Gets the unit vector codirectional with this vector
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.GetSubVector(System.Int32,System.Int32)">
+<summary>
+ Creates a new vector that contains the given subrange of elements, specified by start index `s` and count `c`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.GetSlice(Microsoft.FSharp.Core.FSharpOption{System.Int32},Microsoft.FSharp.Core.FSharpOption{System.Int32})">
+<summary>
+ Gets a subvector between bounds `lower` and `upper`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.GetMinBy``1(Microsoft.FSharp.Core.FSharpFunc{`0,``0})">
+<summary>
+ Gets the minimum element of this vector, compared by using Operators.min on the result of function `f`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.GetMin">
+<summary>
+ Gets the minimum element of this vector
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.GetMaxBy``1(Microsoft.FSharp.Core.FSharpFunc{`0,``0})">
+<summary>
+ Gets the maximum element of this vector, compared by using Operators.max on the result of function `f`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.GetMax">
+<summary>
+ Gets the maximum element of this vector
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.GetLPNorm(`0)">
+<summary>
+ Gets the Lp norm (or p-norm) of this vector, with the given `p`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.GetL2NormSq">
+<summary>
+ Gets the squared L2 (Euclidean) norm of this vector
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.GetL2Norm">
+<summary>
+ Gets the L2 (Euclidean) norm of this vector
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.GetL1Norm">
+<summary>
+ Gets the L1 (Manhattan) norm of this vector
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.GetEnumerator">
+<summary>
+ Returns an enumerator that iterates through the elements of this vector
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.Copy">
+<summary>
+ Creates a copy of this vector
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector`1.Convert``1(Microsoft.FSharp.Core.FSharpFunc{`0,``0})">
+<summary>
+ Converts the elements of this vector to another type, using the given conversion function `f`
+</summary>
+</member>
+<member name="T:FsAlg.Generic.Vector`1">
+<summary>
+ Generic vector type
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.initRows``1(System.Int32,Microsoft.FSharp.Core.FSharpFunc{System.Int32,FsAlg.Generic.Vector{``0}})">
+<summary>
+ Creates a matrix with `m` rows and a generator function `f` that gives each row as a a vector
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.initCols``1(System.Int32,Microsoft.FSharp.Core.FSharpFunc{System.Int32,FsAlg.Generic.Vector{``0}})">
+<summary>
+ Creates a matrix with `n` columns and a generator function `f` that gives each column as a vector
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.prependCol``1(FsAlg.Generic.Vector{``0},FsAlg.Generic.Matrix{``0})">
+<summary>
+ Returns a matrix where vector `v` is prepended as a new column to matrix `m`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.prependRow``1(FsAlg.Generic.Vector{``0},FsAlg.Generic.Matrix{``0})">
+<summary>
+ Returns a matrix where vector `v` is appended as a new row to matrix `m`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.appendCol``1(FsAlg.Generic.Vector{``0},FsAlg.Generic.Matrix{``0})">
+<summary>
+ Returns a matrix where vector `v` is appended as a new column to matrix `m`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.appendRow``1(FsAlg.Generic.Vector{``0},FsAlg.Generic.Matrix{``0})">
+<summary>
+ Returns a matrix where vector `v` is appended as a new row to matrix `m`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.toCols``1(FsAlg.Generic.Matrix{``0})">
+<summary>
+ Returns the columns of matrix `m` as a sequence of matrices
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.ofCols``1(System.Collections.Generic.IEnumerable{FsAlg.Generic.Vector{``0}})">
+<summary>
+ Constructs a matrix out of a sequence of column vectors `v`. The column vectors should be of equal length.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.toRows``1(FsAlg.Generic.Matrix{``0})">
+<summary>
+ Returns the rows of matrix `m` as a sequence of matrices
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.ofRows``1(System.Collections.Generic.IEnumerable{FsAlg.Generic.Vector{``0}})">
+<summary>
+ Constructs a matrix out of a sequence of row vectors `v`. The row vectors should be of equal length.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.transpose``1(FsAlg.Generic.Matrix{``0})">
+<summary>
+ Gets the transpose of matrix `m`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.trace``1(FsAlg.Generic.Matrix{``0})">
+<summary>
+ Gets the trace of matrix `m`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.solve``1(FsAlg.Generic.Matrix{``0},FsAlg.Generic.Vector{``0})">
+<summary>
+ Solves a system of linear equations ax = b, where the coefficients are given in matrix `a` and the result vector is vector `b`. The returned vector will correspond to x.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.set``1(FsAlg.Generic.Matrix{``0},System.Int32,System.Int32,``0)">
+<summary>
+ Sets the entry of matrix `m` with indices `i` and `j` to value `a`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.rows``1(FsAlg.Generic.Matrix{``0})">
+<summary>
+ Returns the number of rows in matrix `m`. This is the same with `Matrix.length1`.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.row``1(System.Int32,FsAlg.Generic.Matrix{``0})">
+<summary>
+ Returns the i-th row of matrix `m`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.replaceWith``1(FsAlg.Generic.Matrix{``0},FsAlg.Generic.Matrix{``0})">
+<summary>
+ Replaces the elements of matrix `m1` with the elements of matrix `m2`, by mutating them in place. The two input matrices should have the same dimensions, otherwise ArgumentException is raised.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.replacei2``2(Microsoft.FSharp.Core.FSharpFunc{System.Int32,Microsoft.FSharp.Core.FSharpFunc{System.Int32,Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``1,``0}}}},FsAlg.Generic.Matrix{``0},FsAlg.Generic.Matrix{``1})">
+<summary>
+ Replaces the elements of matrix `m1` by mutating them in place. The new values are computed by applying function `f` to the corresponding elements of matrices `m1` and `m2` pairwise. Element indices are also supplied to function `f`. The two input matrices should have the same dimensions, otherwise ArgumentException is raised.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.replacei``1(Microsoft.FSharp.Core.FSharpFunc{System.Int32,Microsoft.FSharp.Core.FSharpFunc{System.Int32,Microsoft.FSharp.Core.FSharpFunc{``0,``0}}},FsAlg.Generic.Matrix{``0})">
+<summary>
+ Replaces the elements of matrix `m` by mutating them in place, passing them through function` f`. Element indices are also supplied to function `f`.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.replace2``2(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``1,``0}},FsAlg.Generic.Matrix{``0},FsAlg.Generic.Matrix{``1})">
+<summary>
+ Replaces the elements of matrix `m1` by mutating them in place. The new values are computed by applying function `f` to the corresponding elements of matrices `m1` and `m2` pairwise. The two input matrices should have the same dimensions, otherwise ArgumentException is raised.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.replace``1(Microsoft.FSharp.Core.FSharpFunc{``0,``0},FsAlg.Generic.Matrix{``0})">
+<summary>
+ Replaces the elements of matrix `m` by mutating them in place, passing them through function `f`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.mapi``2(Microsoft.FSharp.Core.FSharpFunc{System.Int32,Microsoft.FSharp.Core.FSharpFunc{System.Int32,Microsoft.FSharp.Core.FSharpFunc{``0,``1}}},FsAlg.Generic.Matrix{``0})">
+<summary>
+ Creates a matrix whose entries are the results of applying function `f` to each entry of matrix `m`. Element indices are also supplied to function `f`.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.map``2(Microsoft.FSharp.Core.FSharpFunc{``0,``1},FsAlg.Generic.Matrix{``0})">
+<summary>
+ Creates a matrix whose entries are the results of applying function `f` to each entry of matrix `m`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.length2``1(FsAlg.Generic.Matrix{``0})">
+<summary>
+ Returns the number of columns in matrix `m`. This is the same with `Matrix.cols`.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.length1``1(FsAlg.Generic.Matrix{``0})">
+<summary>
+ Returns the number of rows in matrix `m`. This is the same with `Matrix.rows`.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.iteri``1(Microsoft.FSharp.Core.FSharpFunc{System.Int32,Microsoft.FSharp.Core.FSharpFunc{System.Int32,Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.Unit}}},FsAlg.Generic.Matrix{``0})">
+<summary>
+ Applies function `f` to each element of matrix `m`. Element indices are also supplied to function `f`.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.iter``1(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.Unit},FsAlg.Generic.Matrix{``0})">
+<summary>
+ Applies function `f` to each element of matrix `m`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.inverse``1(FsAlg.Generic.Matrix{``0})">
+<summary>
+ Gets the inverse of matrix `m`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.initSymmetric``1(System.Int32,Microsoft.FSharp.Core.FSharpFunc{System.Int32,Microsoft.FSharp.Core.FSharpFunc{System.Int32,``0}})">
+<summary>
+ Creates a square matrix with `m` rows and columns and a generator function `f` to compute the elements. Function `f` is used only for populating the diagonal and the upper triangular part of the matrix, the lower triangular part will be the reflection.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.init``1(System.Int32,System.Int32,Microsoft.FSharp.Core.FSharpFunc{System.Int32,Microsoft.FSharp.Core.FSharpFunc{System.Int32,``0}})">
+<summary>
+ Creates a matrix with `m` rows, `n` columns and a generator function `f` to compute the entries
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.get``1(FsAlg.Generic.Matrix{``0},System.Int32,System.Int32)">
+<summary>
+ Gets the entry of matrix `m` with indices `i` and `j`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.eigenvalues``1(FsAlg.Generic.Matrix{``0})">
+<summary>
+ Gets the eigenvalues of matrix `m`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.identity``1(System.Int32)">
+<summary>
+ Creates the identity matrix with `m` rows and columns
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.diagonal``1(FsAlg.Generic.Matrix{``0})">
+<summary>
+ Gets the diagonal elements of matrix `m`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.det``1(FsAlg.Generic.Matrix{``0})">
+<summary>
+ Gets the determinant of matrix `m`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.decomposeQR``1(FsAlg.Generic.Matrix{``0})">
+<summary>
+ Gets the QR decomposition of matrix `m`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.decomposeLU``1(FsAlg.Generic.Matrix{``0})">
+<summary>
+ Gets the LU decomposition of matrix `m`. The return values are the LU matrix, pivot indices, and a toggle value indicating the number of row exchanges during the decomposition, which is +1 if the number of exchanges were even, -1 if odd.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.createRows``1(System.Int32,``0[])">
+<summary>
+ Creates a matrix with `m` rows and all rows equal to array `v`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.create``1(System.Int32,System.Int32,``0)">
+<summary>
+ Creates a matrix with `m` rows, `n` columns, and all entries having value `v`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.copy``1(FsAlg.Generic.Matrix{``0})">
+<summary>
+ Creates a copy of Matrix `m`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.cols``1(FsAlg.Generic.Matrix{``0})">
+<summary>
+ Returns the number of columns in matrix `m`. This is the same with `Matrix.length2`.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.col``1(System.Int32,FsAlg.Generic.Matrix{``0})">
+<summary>
+ Returns the j-th column of matrix `m`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.toVector``1(FsAlg.Generic.Matrix{``0})">
+<summary>
+ Converts matrix `m` to a vector, scanning columns from left to right and rows from top to bottom
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.ofVector``1(System.Int32,FsAlg.Generic.Vector{``0})">
+<summary>
+ Creates a matrix with `m` rows from the vector `v`, filling columns from left to right and rows from top to bottom. The number of columns will be deduced from `m` and the length of the vector `v`. The length of `v` must be an integer multiple of `m`.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.toArray``1(FsAlg.Generic.Matrix{``0})">
+<summary>
+ Converts matrix `m` to a one dimensional array, scanning columns from left to right and rows from top to bottom
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.ofArray``1(System.Int32,``0[])">
+<summary>
+ Creates a matrix with `m` rows from the one dimensional array `a`, filling columns from left to right and rows from top to bottom. The number of columns will be deduced from `m` and the length of the array `a`. The length of `a` must be an integer multiple of `m`.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.toSeq``1(FsAlg.Generic.Matrix{``0})">
+<summary>
+ Converts matrix `m` to a one dimensional sequence, scanning columns from left to right and rows from top to bottom
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.ofSeq``1(System.Int32,System.Collections.Generic.IEnumerable{``0})">
+<summary>
+ Creates a matrix with `m` rows from the one dimensional sequence `s`, filling columns from left to right and rows from top to bottom. The number of columns will be deduced from `m` and the length of the sequence `s`. The length of `s` must be an integer multiple of `m`.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.toSeqSeq``1(FsAlg.Generic.Matrix{``0})">
+<summary>
+ Converts matrix `m` to a sequence of sequences
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.ofSeqSeq``1(System.Collections.Generic.IEnumerable{System.Collections.Generic.IEnumerable{``0}})">
+<summary>
+ Creates a matrix from sequence of sequences `s`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.toArrayArray``1(FsAlg.Generic.Matrix{``0})">
+<summary>
+ Converts matrix `m` to a jagged array, e.g. from Matrix&lt;float&gt; to float[][]
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.ofArrayArray``1(``0[][])">
+<summary>
+ Creates a matrix from a jagged array, e.g. from float[][] to Matrix&lt;float&gt;
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.toArray2D``1(FsAlg.Generic.Matrix{``0})">
+<summary>
+ Converts matrix `m` to a 2d array, e.g. from Matrix&lt;float&gt; to float[,]
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Matrix.ofArray2D``1(``0[0:,0:])">
+<summary>
+ Creates a matrix from 2d array `m`
+</summary>
+</member>
+<member name="T:FsAlg.Generic.Matrix">
+<summary>
+ Operations on Matrix type. (Implementing functionality similar to Microsoft.FSharp.Collections.Array2D)
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Ops.matrixBy``2(Microsoft.FSharp.Core.FSharpFunc{``0,``1},System.Collections.Generic.IEnumerable{System.Collections.Generic.IEnumerable{``0}})">
+<summary>
+ Converts 2d array `m` into a Matrix, first passing the elements through a conversion function `f`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Ops.matrix``1(System.Collections.Generic.IEnumerable{System.Collections.Generic.IEnumerable{``0}})">
+<summary>
+ Converts 2d array `m` into a Matrix
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Ops.vectorBy``2(Microsoft.FSharp.Core.FSharpFunc{``0,``1},System.Collections.Generic.IEnumerable{``0})">
+<summary>
+ Converts array, list, or sequence `v` into a Vector, first passing the elements through a conversion function `f`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Ops.vector``1(System.Collections.Generic.IEnumerable{``0})">
+<summary>
+ Converts array, list, or sequence `v` into a Vector
+</summary>
+</member>
+<member name="T:FsAlg.Generic.Ops">
+<summary>
+ Linear algebra operations module (automatically opened)
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Util.isInteger(System.Double)">
+<summary>
+ Checks whether a float contains an integer value
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Util.matrixSolveHelper``2(``0[0:,0:],``0[])">
+<summary>
+ Finds an array that, when multiplied by an LU matrix `lu`, gives array `b`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Util.copyUpperToLower``1(``0[0:,0:])">
+<summary>
+ Copies the upper triangular elements of the square matrix given in the 2d array `m` to the lower triangular part
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Util.trace``1(``0[0:,0:])">
+<summary>
+ Gets the trace of the square matrix given in the 2d array `m`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Util.diagonal``1(``0[0:,0:])">
+<summary>
+ Gets an array containing the diagonal elements of the square 2d array `m`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Util.transpose``1(``0[0:,0:])">
+<summary>
+ Gets the transpose of the 2d array `m`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Util.|Square|``1(``0[0:,0:])">
+<summary>
+ Checks whether the 2d array `m` has the same number of elements in both dimensions
+</summary>
+</member>
+<member name="T:FsAlg.Generic.Util">
+<summary>
+ Various utility functions for internal use
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.unitVector``1(FsAlg.Generic.Vector{``0})">
+<summary>
+ Gets the unit vector codirectional with vector `v`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.sumBy``2(Microsoft.FSharp.Core.FSharpFunc{``0,``1},FsAlg.Generic.Vector{``0})">
+<summary>
+ Returns the sum of the results generated by applying function `f` to each element of vector `v`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.sum``1(FsAlg.Generic.Vector{``0})">
+<summary>
+ Returns the sum of all the elements in vector `v`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.sub``1(FsAlg.Generic.Vector{``0},System.Int32,System.Int32)">
+<summary>
+ Creates a new vector that contains the given subrange of vector `v`, specified by start index `s` and count `c`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.standardBasis``1(System.Int32,System.Int32)">
+<summary>
+ Creates a vector with `n` elements, where the `i`-th element is 1 and the rest of the elements are 0
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.splitEqual``1(System.Int32,FsAlg.Generic.Vector{``0})">
+<summary>
+ Returns a sequence of vectors that are obtained by splitting vector `v` into `n` subvectors of equal length. The length of vector `v` must be an integer multiple of `n`, otherwise ArgumentException is raised.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.split``1(System.Collections.Generic.IEnumerable{System.Int32},FsAlg.Generic.Vector{``0})">
+<summary>
+ Returns a sequence of vectors that are obtained by splitting vector `v` into subvectors whose lengths are given in the sequence `n`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.set``1(FsAlg.Generic.Vector{``0},System.Int32,``0)">
+<summary>
+ Sets the element of vector`v` with index `i` to value `a`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.scanBack``2(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``1,``1}},``1,FsAlg.Generic.Vector{``0})">
+<summary>
+ Like Vector.foldBack, but returns both the intermediate and final results
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.scan``2(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``1,``0}},``0,FsAlg.Generic.Vector{``1})">
+<summary>
+ Like Vector.fold, but returns the intermediate and final results
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.replaceWith``1(FsAlg.Generic.Vector{``0},FsAlg.Generic.Vector{``0})">
+<summary>
+ Replaces the elements of vector `v1` with the elements of vector `v2`, by mutating them in place. The two input vectors must have the same lengths, otherwise ArgumentException is raised.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.replacei2``2(Microsoft.FSharp.Core.FSharpFunc{System.Int32,Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``1,``0}}},FsAlg.Generic.Vector{``0},FsAlg.Generic.Vector{``1})">
+<summary>
+ Replaces the elements of vector `v1` by mutating them in place. The new values are computed by applying function `f` to corresponding elements of vectors `v1` and `v2` pairwise. An element index is also supplied to function `f`. The two input vectors must have the same lengths, otherwise ArgumentException is raised.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.replacei``1(Microsoft.FSharp.Core.FSharpFunc{System.Int32,Microsoft.FSharp.Core.FSharpFunc{``0,``0}},FsAlg.Generic.Vector{``0})">
+<summary>
+ Replaces the elements of vector `v` by mutating them in place, passing them through function `f`. An element index is also supplied to function `f`.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.replace2``2(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``1,``0}},FsAlg.Generic.Vector{``0},FsAlg.Generic.Vector{``1})">
+<summary>
+ Replaces the elements of vector `v1` by mutating them in place. The new values are computed by applying function `f` to corresponding elements of vectors `v1` and `v2` pairwise. The two input vectors must have the same lengths, otherwie ArgumentException is raised.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.replace``1(Microsoft.FSharp.Core.FSharpFunc{``0,``0},FsAlg.Generic.Vector{``0})">
+<summary>
+ Replaces the elements of vector `v` by mutating them in place, passing them through function `f`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.reduceBack``1(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``0,``0}},FsAlg.Generic.Vector{``0})">
+<summary>
+ Applies function `f` to each element of vector `v`, threading an accumulator argument through the computation. If the input function is f and the elements are i0...iN then computes f i0 (...(f iN-1 iN)).
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.reduce``1(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``0,``0}},FsAlg.Generic.Vector{``0})">
+<summary>
+ Applies function `f` to each element of vector `v`, threading an accumulator argument through the computation. If the input function is f and the elements are i0...iN, then computes f (... (f i0 i1)...) iN.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.normSq``1(FsAlg.Generic.Vector{``0})">
+<summary>
+ Gets the squared L2 (Euclidean) norm of vector `v`. This is the same with `Vector.l2normSq`.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.norm``1(FsAlg.Generic.Vector{``0})">
+<summary>
+ Gets the L2 (Euclidean) norm of vector `v`. This is the same with `Vector.l2norm`.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.minBy``2(Microsoft.FSharp.Core.FSharpFunc{``0,``1},FsAlg.Generic.Vector{``0})">
+<summary>
+ Returns the minimum of all elements of vector `v`, compared by using Operators.min on the result of function `f`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.min``1(FsAlg.Generic.Vector{``0})">
+<summary>
+ Returns the minimum of all elements of vector `v`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.maxBy``2(Microsoft.FSharp.Core.FSharpFunc{``0,``1},FsAlg.Generic.Vector{``0})">
+<summary>
+ Returns the maximum of all elements of vector `v`, compared by using Operators.max on the result of function `f`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.max``1(FsAlg.Generic.Vector{``0})">
+<summary>
+ Returns the maximum of all elements of vector `v`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.mapi2``3(Microsoft.FSharp.Core.FSharpFunc{System.Int32,Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``1,``2}}},FsAlg.Generic.Vector{``0},FsAlg.Generic.Vector{``1})">
+<summary>
+ Creates a vector whose elements are the results of applying function `f` to corresponding elements of vectors `v1` and `v2` pairwise. The integer passed to function `f` indicates the index of element. The two input vectors must have the same lengths, otherwise ArgumentException is raised.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.mapi``2(Microsoft.FSharp.Core.FSharpFunc{System.Int32,Microsoft.FSharp.Core.FSharpFunc{``0,``1}},FsAlg.Generic.Vector{``0})">
+<summary>
+ Creates a vector whose elements are the results of applying function `f` to each element of vector `v`. An element index is also supplied to function `f`.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.map2``3(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``1,``2}},FsAlg.Generic.Vector{``0},FsAlg.Generic.Vector{``1})">
+<summary>
+ Creates a vector whose elements are the results of applying function `f` to corresponding elements of vectors `v1` and `v2` pairwise. The two input vectors must have the same lengths, otherwise ArgumentException is raised.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.map``2(Microsoft.FSharp.Core.FSharpFunc{``0,``1},FsAlg.Generic.Vector{``0})">
+<summary>
+ Creates a vector whose elements are the results of applying function `f` to each element of vector `v`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.lpnorm``1(``0,FsAlg.Generic.Vector{``0})">
+<summary>
+ Gets the Lp norm (or p-norm) of vector `v`, with the given `p`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.length``1(FsAlg.Generic.Vector{``0})">
+<summary>
+ Returns the length of vector `v`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.l2normSq``1(FsAlg.Generic.Vector{``0})">
+<summary>
+ Gets the squared L2 (Euclidean) norm of vector `v`. This is the same with `Vector.normSq`.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.l2norm``1(FsAlg.Generic.Vector{``0})">
+<summary>
+ Gets the L2 (Euclidean) norm of vector `v`. This is the same with `Vector.norm`.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.l1norm``1(FsAlg.Generic.Vector{``0})">
+<summary>
+ Gets the L1 (Manhattan) norm of vector `v`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.iteri2``2(Microsoft.FSharp.Core.FSharpFunc{System.Int32,Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``1,Microsoft.FSharp.Core.Unit}}},FsAlg.Generic.Vector{``0},FsAlg.Generic.Vector{``1})">
+<summary>
+ Applies function `f` to corresponding elements of vectors `v1` and `v2` pairwise. The integer passed to function `f` indicates the index of element. The two input vectors must have the same lengths, otherwise ArgumentException is raised.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.iteri``1(Microsoft.FSharp.Core.FSharpFunc{System.Int32,Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.Unit}},FsAlg.Generic.Vector{``0})">
+<summary>
+ Applies function `f` to each element of vector `v`. The integer passed to function `f` indicates the index of element.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.iter2``2(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``1,Microsoft.FSharp.Core.Unit}},FsAlg.Generic.Vector{``0},FsAlg.Generic.Vector{``1})">
+<summary>
+ Applies function `f` to corresponding elements of vectors `v1` and `v2` pairwise. The two input vectors must have the same lengths, otherwise ArgumentException is raised.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.iter``1(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.Unit},FsAlg.Generic.Vector{``0})">
+<summary>
+ Applies function `f` to each element of vector `v`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.init``1(System.Int32,Microsoft.FSharp.Core.FSharpFunc{System.Int32,``0})">
+<summary>
+ Creates a vector with dimension `n` and a generator function `f` to compute the elements
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.get``1(FsAlg.Generic.Vector{``0},System.Int32)">
+<summary>
+ Gets the element of vector `v` with index `i`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.forall2``2(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``1,System.Boolean}},FsAlg.Generic.Vector{``0},FsAlg.Generic.Vector{``1})">
+<summary>
+ Tests if all corresponding elements of vectors `v1` and `v2` satisfy predicate `p` pairwise
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.forall``1(Microsoft.FSharp.Core.FSharpFunc{``0,System.Boolean},FsAlg.Generic.Vector{``0})">
+<summary>
+ Tests if all elements of vector `v` satisfy predicate `p`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.foldBack2``3(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``1,Microsoft.FSharp.Core.FSharpFunc{``2,``2}}},FsAlg.Generic.Vector{``0},FsAlg.Generic.Vector{``1},``2)">
+<summary>
+ Applies function `f` to corresponding elements of vectors `v1` and `v2`, threading an accumulator (with initial state `s`) through the computation. The two input vectors must have the same lengths, otherwise ArgumentException is raised.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.foldBack``2(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``1,``1}},FsAlg.Generic.Vector{``0},``1)">
+<summary>
+ Applies function `f` to each element of vector `v`, threading an accumulator (with initial state `s`) through the computation. If the input function is f and the elements are i0...iN then computes f i0 (...(f iN s)).
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.fold2``3(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``1,Microsoft.FSharp.Core.FSharpFunc{``2,``0}}},``0,FsAlg.Generic.Vector{``1},FsAlg.Generic.Vector{``2})">
+<summary>
+ Applies function `f` to corresponding elements of vectors `v1` and `v2`, threading an accumulator (with initial state `s`) through the computation. The two input vectors must have the same lengths, otherwise ArgumentException is raised.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.fold``2(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``1,``0}},``0,FsAlg.Generic.Vector{``1})">
+<summary>
+ Applies function `f` to each element of vector `v`, threading an accumulator (with initial state `s`) through the computation. If the input function is f and the elements are i0...iN then computes f (... (f s i0)...) iN.
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.findIndex``1(Microsoft.FSharp.Core.FSharpFunc{``0,System.Boolean},FsAlg.Generic.Vector{``0})">
+<summary>
+ Returns the index of the first element of vector `v` for which predicate `p` is true
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.find``1(Microsoft.FSharp.Core.FSharpFunc{``0,System.Boolean},FsAlg.Generic.Vector{``0})">
+<summary>
+ Returns the first element of vector `v` for which predicate `p` is true
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.fill``1(FsAlg.Generic.Vector{``0},System.Int32,System.Int32,``0)">
+<summary>
+ Fills a range of elements of vector `v` with value `a` starting with index `s` and counting `c` elements
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.exists2``2(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``1,System.Boolean}},FsAlg.Generic.Vector{``0},FsAlg.Generic.Vector{``1})">
+<summary>
+ Tests if any pair of corresponding elements of vectors `v1` and `v2` satisfies predicate `p`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.exists``1(Microsoft.FSharp.Core.FSharpFunc{``0,System.Boolean},FsAlg.Generic.Vector{``0})">
+<summary>
+ Tests if any element of vector `v` satisfies predicate `p`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.createBasis``1(System.Int32,System.Int32,``0)">
+<summary>
+ Creates a vector with `n` elements, where the element with index `i` has value `v` and the rest of the elements have value 0
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.create``1(System.Int32,``0)">
+<summary>
+ Creates a vector with `n` elements, all having value `v`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.copy``1(FsAlg.Generic.Vector{``0})">
+<summary>
+ Creates a copy of vector `v`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.concat``1(System.Collections.Generic.IEnumerable{FsAlg.Generic.Vector{``0}})">
+<summary>
+ Builds a new vector that contains the elements of each of the given sequence of vectors `v`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.append``1(FsAlg.Generic.Vector{``0},FsAlg.Generic.Vector{``0})">
+<summary>
+ Creates a vector that contains the elements of vector `v1` followed by the elements of vector `v2`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.toSeq``1(FsAlg.Generic.Vector{``0})">
+<summary>
+ Returns vector `v` as a sequence
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.ofSeq``1(System.Collections.Generic.IEnumerable{``0})">
+<summary>
+ Creates a vector from sequence `s`
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.toArray``1(FsAlg.Generic.Vector{``0})">
+<summary>
+ Converts vector `v` to an array
+</summary>
+</member>
+<member name="M:FsAlg.Generic.Vector.ofArray``1(``0[])">
+<summary>
+ Createsa vector from array `v`
+</summary>
+</member>
+<member name="T:FsAlg.Generic.Vector">
+<summary>
+ Operations on Vector type. (Implementing functionality similar to Microsoft.FSharp.Collections.Array)
+</summary>
+</member>
+</members>
+</doc>

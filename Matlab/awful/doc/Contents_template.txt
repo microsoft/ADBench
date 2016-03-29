@@ -1,0 +1,37 @@
+# Template File for awful/matlab/Contents.m and awful.m
+The awf utility library: A collection of awf utilities
+The au_ prefix is because it's important in matlab's flat namespace
+that clashes of function names are avoided.
+
+*Symbolic toolbox helpers*
+!AU_COEFF
+!AU_CCODE
+!AU_AUTODIFF_GENERATE
+
+*Faster/more convenient alternatives to matlab builtins*
+!AU_SPARSE
+!AU_WHIST
+!AU_BSX
+
+*Printing and testing*
+!AU_PRMAT
+!AU_DEEP_PRINT
+  AU_TEST*   Utilities for writing unit tests  
+  AU_ASSERT* Easier assertions  
+!AU_ROSENBROCK
+!AU_RUN_TESTS
+
+*Optimization/Numerics*
+!AU_LEVMARQ
+!AU_RANSAC
+!AU_DEEP_VECTORIZE
+!AU_DEEP_UNVECTORIZE
+!AU_LOGSUMEXP
+
+*File I/O helpers*
+!AU_FSCAN_REGEXP
+!AU_STRIP_PATH
+
+*MEX helper*
+!AU_MEX
+

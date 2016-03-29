@@ -4,14 +4,37 @@
 #include <chrono>
 #include <vector>
 
+//#define DO_GMM
+//#define DO_BA
+#define DO_HAND
+
+//#define DO_CPP
+#define DO_EIGEN
+//#define DO_LIGHT_MATRIX
+
 #include "ceres/ceres.h"
 #include "../utils.h"
+
+#if defined DO_GMM && defined DO_CPP
 #include "gmm.h"
+#define GMM_D 64
+#define GMM_K 5
+#define GMM_ICF_DIM (GMM_D*(GMM_D + 1) / 2)
+
+#elif defined DO_BA && defined DO_CPP
 #include "ba.h"
 
-#define GMM_D 10
-#define GMM_K 25
-#define GMM_ICF_DIM (GMM_D*(GMM_D + 1) / 2)
+#elif defined DO_HAND
+#ifdef DO_EIGEN
+#include "hand_eigen.h"
+typedef HandDataEigen HandDataType;
+#elif defined DO_LIGHT_MATRIX
+#include "hand_light_matrix.h"
+typedef HandDataLightMatrix HandDataType;
+#endif
+#define HAND_PARAMS_DIM 26
+#define HAND_NUM_PTS 100000
+#endif
 
 using ceres::AutoDiffCostFunction;
 using ceres::CostFunction;
@@ -25,8 +48,7 @@ using std::string;
 using std::vector;
 using namespace std::chrono;
 
-void write_J_sparse(const string& fn, ceres::CRSMatrix& J);
-void convert_gmm_J(int d, int k, double **J_ceres, double **J);
+#ifdef DO_GMM
 
 struct GMMCostFunctor {
   GMMCostFunctor(int n,
@@ -62,32 +84,38 @@ void compute_gmm_J(int d, int k, int n, double *alphas,
   cost_function->Evaluate(params, &err, J);
 }
 
-int test_gmm(const string& fn, int nruns)
+void convert_gmm_J(int d, int k, double **J_ceres, double *J)
+{
+  int icf_sz = d*(d + 1) / 2;
+  memcpy(J, J_ceres[0], k*sizeof(double));
+  int J_off = k;
+  memcpy(J + J_off, J_ceres[1], d*k*sizeof(double));
+  J_off += d*k;
+  memcpy(J + J_off, J_ceres[2], icf_sz*k*sizeof(double));
+}
+
+void test_gmm(const string& fn_in, const string& fn_out,
+  int nruns_f, int nruns_J, bool replicate_point)
 {
   int d, k, n;
-  double *alphas, *means, *icf, *x;
+  vector<double> alphas, means, icf, x;
   Wishart wishart;
   double err;
 
   // Read instance
-  read_gmm_instance(fn + ".txt", d, k, n,
-    alphas, means, icf, x, wishart);
+  read_gmm_instance(fn_in + ".txt", &d, &k, &n,
+    alphas, means, icf, x, wishart, replicate_point);
 
   if (d != GMM_D || k != GMM_K)
   {
     cout << "test_gmm: error: d and K in the specified file do not match with defines GMM_D and GMM_K"
       << endl;
-    return -1;
+    return;
   }
 
   int Jrows = 1;
   int Jcols = (k*(d + 1)*(d + 2)) / 2;
 
-  double **J = new double*[Jrows];
-  for (int i = 0; i < Jrows; i++)
-  {
-    J[i] = new double[Jcols];
-  }
   double **J_ceres = new double*[3];
   J_ceres[0] = new double[k];
   J_ceres[1] = new double[d*k];
@@ -98,85 +126,62 @@ int test_gmm(const string& fn, int nruns)
   double tf, tJ = 0.;
 
   start = high_resolution_clock::now();
-  for (int i = 0; i < nruns; i++)
+  for (int i = 0; i < nruns_f; i++)
   {
-    gmm_objective(d, k, n, alphas, means,
-      icf, x, wishart, &err);
+    gmm_objective(d, k, n, alphas.data(), means.data(),
+      icf.data(), x.data(), wishart, &err);
   }
   end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns;
+  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
 
   start = high_resolution_clock::now();
-  for (int i = 0; i < nruns; i++)
+  for (int i = 0; i < nruns_J; i++)
   {
-    compute_gmm_J(d, k, n, alphas,
-      means, icf, x, wishart, err, J_ceres);
+    compute_gmm_J(d, k, n, alphas.data(),
+      means.data(), icf.data(), x.data(), wishart, err, J_ceres);
   }
   end = high_resolution_clock::now();
-  tJ = duration_cast<duration<double>>(end - start).count() / nruns;
+  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
 
-  convert_gmm_J(d, k, J_ceres, J);
-  write_J(fn + "J_Ceres.txt", Jrows, Jcols, J);
+  string name("Ceres");
+  vector<double> J(Jcols);
+  convert_gmm_J(d, k, J_ceres, J.data());
+  write_J(fn_out + "_J_" + name + ".txt", Jrows, Jcols, J.data());
   //write_times(tf, tJ);
-  write_times(fn + "J_Ceres_times.txt", tf, tJ);
+  write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
 
   for (int i = 0; i < 3; i++)
   {
     delete[] J_ceres[i];
   }
   delete[] J_ceres;
-  for (int i = 0; i < Jrows; i++)
-  {
-    delete[] J[i];
-  }
-  delete[] J;
-  delete[] alphas;
-  delete[] means;
-  delete[] icf;
-  return 0;
 }
 
+#elif defined DO_BA
+
 struct ReprojectionError {
-  ReprojectionError(double feat_x, double feat_y)
-    : feat_x_(feat_x), feat_y_(feat_y) {}
+  ReprojectionError(const double* const feat)
+    : feat_(feat) {}
 
   template <typename T>
-  bool operator()(const T* const camera,
-    const T* const point, const T* const w,
+  bool operator()(
+    const T* const camera,
+    const T* const point, 
+    const T* const w,
     T* residuals) const
   {
     computeReprojError(camera, point, w,
-      feat_x_, feat_y_, residuals);
+      feat_, residuals);
     return true;
   }
 
-  static ceres::CostFunction* create(const double feat_x,
-    const double feat_y) {
+  static ceres::CostFunction* create(const double* const feat) {
     return (new ceres::AutoDiffCostFunction
       <ReprojectionError, 2, BA_NCAMPARAMS, 3, 1>(
-        new ReprojectionError(feat_x, feat_y)));
+        new ReprojectionError(feat)));
   }
 
-  double feat_x_;
-  double feat_y_;
-};
-
-struct FocalPriorError {
-  template <typename T>
-  bool operator()(const T* const cam1,
-    const T* const cam2, const T* const cam3,
-    T* err) const
-  {
-    computeFocalPriorError(cam1, cam2, cam3, err);
-    return true;
-  }
-
-  static ceres::CostFunction* create() {
-    return (new ceres::AutoDiffCostFunction
-      <FocalPriorError, 1, BA_NCAMPARAMS,
-      BA_NCAMPARAMS, BA_NCAMPARAMS>(
-        new FocalPriorError));
-  }
+  const double* const feat_;
 };
 
 struct ZachWeightError {
@@ -196,8 +201,7 @@ struct ZachWeightError {
 
 void compute_ba_J(int n, int m, int p, double *cams,
   double *X, double *w, int *obs, double *feats,
-  double *reproj_err, double *f_prior_err,
-  double *w_err, ceres::CRSMatrix& J)
+  double *reproj_err, double *w_err, ceres::CRSMatrix& J)
 {
   Problem problem;
 
@@ -220,23 +224,11 @@ void compute_ba_J(int n, int m, int p, double *cams,
     int ptIdx = obs[2 * i + 1];
     problem.AddResidualBlock(
       ReprojectionError::create(
-        feats[2 * i + 0],
-        feats[2 * i + 1]),
+        &feats[2 * i]),
       nullptr,
       &cams[BA_NCAMPARAMS*camIdx],
       &X[3 * ptIdx],
       &w[i]);
-  }
-  for (int i = 0; i < n - 2; i++)
-  {
-    int idx1 = BA_NCAMPARAMS * i;
-    int idx2 = BA_NCAMPARAMS * (i + 1);
-    int idx3 = BA_NCAMPARAMS * (i + 2);
-    problem.AddResidualBlock(FocalPriorError::create(),
-      nullptr,
-      &cams[idx1],
-      &cams[idx2],
-      &cams[idx3]);
   }
   for (int i = 0; i < p; i++)
   {
@@ -249,72 +241,9 @@ void compute_ba_J(int n, int m, int p, double *cams,
   problem.Evaluate(opt, nullptr, &residuals, nullptr, &J);
 }
 
-void test_ba(const string& fn, int nruns)
-{
-  int n, m, p;
-  double *cams, *X, *w, *feats;
-  int *obs;
-
-  //read instance
-  read_ba_instance(fn + ".txt", n, m, p,
-    cams, X, w, obs, feats);
-
-  ceres::CRSMatrix J;
-  double *reproj_err = new double[2 * p];
-  double *f_prior_err = new double[n - 2];
-  double *w_err = new double[p];
-
-  high_resolution_clock::time_point start, end;
-  double tf, tJ;
-
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns; i++)
-  {
-    ba_objective(n, m, p, cams, X, w, obs,
-      feats, reproj_err, f_prior_err, w_err);
-  }
-  end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns;
-
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns; i++)
-  {
-    compute_ba_J(n, m, p, cams, X, w, obs, feats,
-      reproj_err, f_prior_err, w_err, J);
-  }
-  end = high_resolution_clock::now();
-  tJ = duration_cast<duration<double>>(end - start).count() / nruns;
-
-  write_J_sparse(fn + "J_Ceres.txt", J);
-
-  write_times(tf, tJ);
-
-
-  delete[] reproj_err;
-  delete[] f_prior_err;
-  delete[] w_err;
-
-  delete[] cams;
-  delete[] X;
-  delete[] w;
-  delete[] obs;
-  delete[] feats;
-}
-
-int main(int argc, char** argv)
-{
-  string fn(argv[1]);
-  int nruns = 1;
-  if (argc >= 3)
-    nruns = std::stoi(string(argv[2]));
-  //google::InitGoogleLogging(argv[0]);
-  return test_gmm(fn, nruns);
-  //test_ba(fn, nruns); return 0;
-}
-
 void write_J_sparse(const string& fn, ceres::CRSMatrix& J)
 {
-  SparseMat Jnew;
+  BASparseMat Jnew;
   Jnew.nrows = J.num_rows;
   Jnew.ncols = J.num_cols;
   Jnew.rows = J.rows;
@@ -323,12 +252,144 @@ void write_J_sparse(const string& fn, ceres::CRSMatrix& J)
   write_J_sparse(fn, Jnew);
 }
 
-void convert_gmm_J(int d, int k, double **J_ceres, double **J)
+void test_ba(const string& fn_in, const string& fn_out,
+  int nruns_f, int nruns_J)
 {
-  int icf_sz = d*(d + 1) / 2;
-  memcpy(J[0], J_ceres[0], k*sizeof(double));
-  int J_off = k;
-  memcpy(J[0] + J_off, J_ceres[1], d*k*sizeof(double));
-  J_off += d*k;
-  memcpy(J[0] + J_off, J_ceres[2], icf_sz*k*sizeof(double));
+  int n, m, p;
+  vector<double> cams, X, w, feats;
+  vector<int> obs;
+
+  read_ba_instance(fn_in + ".txt", n, m, p,
+    cams, X, w, obs, feats);
+
+  ceres::CRSMatrix J;
+  vector<double> reproj_err(2 * p);
+  vector<double> w_err(p);
+
+  high_resolution_clock::time_point start, end;
+  double tf, tJ;
+
+  start = high_resolution_clock::now();
+  for (int i = 0; i < nruns_f; i++)
+  {
+    ba_objective(n, m, p, cams.data(), X.data(),
+      w.data(), obs.data(), feats.data(),
+      reproj_err.data(), w_err.data());
+  }
+  end = high_resolution_clock::now();
+  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
+
+  start = high_resolution_clock::now();
+  for (int i = 0; i < nruns_J; i++)
+  {
+    compute_ba_J(n, m, p, cams.data(), X.data(), w.data(), 
+      obs.data(), feats.data(), reproj_err.data(), w_err.data(), J);
+  }
+  end = high_resolution_clock::now();
+  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
+
+  string name = "Ceres";
+  //write_J_sparse(fn_out + "_J_" + name + ".txt", J);
+  write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
+}
+
+#elif defined DO_HAND
+void convert_J(size_t n_rows, size_t n_cols, vector<double>& J_ceres, vector<double> *pJ)
+{
+  for (size_t i_row = 0; i_row < n_rows; i_row++)
+    for (size_t i_col = 0; i_col < n_cols; i_col++)
+      (*pJ)[i_col*n_rows + i_row] = J_ceres[i_row*n_cols + i_col];
+}
+
+struct HandCostFunctor {
+  HandCostFunctor(const HandDataType& data) :
+    data_(data) {}
+
+  template <typename T> bool operator()(const T* const params, T* err) const
+  {
+    hand_objective(params, data_, err);
+    return true;
+  }
+
+private:
+  const HandDataType& data_;
+};
+
+void compute_hand_J(
+  vector<double>& params,
+  const HandDataType& data,
+  vector<double> *perr,
+  vector<double> *pJ)
+{
+  auto& err = *perr;
+  vector<double> J_ceres(pJ->size());
+  CostFunction *cost_function =
+    new AutoDiffCostFunction<HandCostFunctor, 3 * HAND_NUM_PTS,
+    HAND_PARAMS_DIM>(new HandCostFunctor(data));
+
+  double *tmp_J = &J_ceres[0];
+  double *tmp_params = &params[0];
+  cost_function->Evaluate(&tmp_params, &err[0], &tmp_J);
+  convert_J(err.size(), params.size(), J_ceres, pJ);
+}
+
+void test_hand(const string& model_dir, const string& fn_in, const string& fn_out,
+  int nruns_f, int nruns_J)
+{
+  vector<double> params;
+  HandDataType data;
+  read_hand_instance(model_dir, fn_in + ".txt", &params, &data);
+
+  vector<double> err(3 * data.correspondences.size());
+  vector<double> J(err.size() * params.size(), 0);
+
+  high_resolution_clock::time_point start, end;
+  double tf = 0., tJ = 0;
+
+  start = high_resolution_clock::now();
+  for (int i = 0; i < nruns_f; i++)
+  {
+    hand_objective(&params[0], data, &err[0]);
+  }
+  end = high_resolution_clock::now();
+  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
+
+  start = high_resolution_clock::now();
+  for (int i = 0; i < nruns_J; i++)
+  {
+    compute_hand_J(params, data, &err, &J);
+}
+  end = high_resolution_clock::now();
+  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
+
+#ifdef DO_EIGEN
+  string name("Ceres_eigen");
+#elif defined DO_LIGHT_MATRIX
+  string name("Ceres_light");
+#endif
+
+  write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), (int)params.size(), &J[0]);
+  write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
+}
+
+#endif
+
+int main(int argc, char** argv)
+{
+  string dir_in(argv[1]);
+  string dir_out(argv[2]);
+  string fn(argv[3]);
+  int nruns_f = std::stoi(string(argv[4]));
+  int nruns_J = std::stoi(string(argv[5]));
+
+  // read only 1 point and replicate it?
+  bool replicate_point = (argc >= 7 && string(argv[6]).compare("-rep") == 0);
+
+#ifdef DO_GMM
+  test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
+#elif defined DO_BA
+  test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
+#elif defined DO_HAND
+  test_hand(dir_in + "model/", dir_in + fn, dir_out + fn, nruns_f, nruns_J);
+#endif
 }

@@ -1,0 +1,8 @@
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharpBA\bin\Debug\DiffSharpBA.exe.config
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharpBA\bin\Debug\DiffSharpBA.XML
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharpBA\bin\Debug\DiffSharpBA.exe
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharpBA\bin\Debug\DiffSharpBA.pdb
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharpBA\bin\Debug\FSharp.Core.dll
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharpBA\bin\Debug\FSharp.Core.xml
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharpBA\obj\Debug\DiffSharpBA.exe
+C:\dev\GitHub\autodiff\Fsharp\Tests\DiffSharpBA\obj\Debug\DiffSharpBA.pdb

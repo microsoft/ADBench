@@ -18,18 +18,27 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="gmm.cpp">
+    <ClCompile Include="ba_d.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ba.cpp">
+    <ClCompile Include="gmm_d.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="gmm.h">
+    <ClInclude Include="ba_d.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ba.h">
+    <ClInclude Include="gmm_d.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gmm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gmm_eigen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="hand_eigen_d.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -39,12 +39,6 @@
     <ClCompile Include="gmm_b-all.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="gmm_dv-all.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ba_dv-all.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ba_bv-all.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -74,12 +68,6 @@
     <ClInclude Include="..\defs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="gmm_dv.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ba_dv.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ba_bv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -88,5 +76,6 @@
     <None Include="debugAD.inc">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

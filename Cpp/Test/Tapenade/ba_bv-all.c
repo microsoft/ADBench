@@ -9,110 +9,166 @@ Tapenade 3.10 (r5498) - 20 Jan 2015 09:48
 */
 
 /*
+Differentiation of sqsum in reverse (adjoint) mode:
+gradient     of useful results: *x sqsum
+with respect to varying inputs: *x
+Plus diff mem management of: x:in
+*/
+void sqsum_bv(int n,
+  double *x,
+  double(*xb)[NBDirsMaxReproj_BV],
+  double sqsumb[NBDirsMaxReproj_BV],
+  int nbdirs)
+{
+  double res;
+  double resb[NBDirsMaxReproj_BV];
+  int nd;
+  double sqsum;
+  for (nd = 0; nd < nbdirs; ++nd)
+    resb[nd] = sqsumb[nd];
+  for (int i = n - 1; i > -1; --i)
+    for (nd = 0; nd < nbdirs; ++nd)
+      xb[i][nd] = xb[i][nd] + 2 * x[i] * resb[nd];
+}
+
+/*
+Differentiation of cross in reverse (adjoint) mode:
+gradient     of useful results: *out *a *b
+with respect to varying inputs: *a *b
+Plus diff mem management of: out:in a:in b:in
+*/
+void cross_bv(
+  double *a,
+  double(*ab)[NBDirsMaxReproj_BV],
+  double *b,
+  double(*bb)[NBDirsMaxReproj_BV],
+  double *out,
+  double(*outb)[NBDirsMaxReproj_BV],
+  int nbdirs)
+{
+  int nd;
+  for (nd = 0; nd < nbdirs; ++nd)
+  {
+    ab[0][nd] = ab[0][nd] + b[1] * outb[2][nd];
+    bb[1][nd] = bb[1][nd] + a[0] * outb[2][nd];
+    ab[1][nd] = ab[1][nd] - b[0] * outb[2][nd];
+    bb[0][nd] = bb[0][nd] - a[1] * outb[2][nd];
+    outb[2][nd] = 0.0;
+    ab[2][nd] = ab[2][nd] + b[0] * outb[1][nd];
+    bb[0][nd] = bb[0][nd] + a[2] * outb[1][nd];
+    ab[0][nd] = ab[0][nd] - b[2] * outb[1][nd];
+    bb[2][nd] = bb[2][nd] - a[0] * outb[1][nd];
+    outb[1][nd] = 0.0;
+    ab[1][nd] = ab[1][nd] + b[2] * outb[0][nd];
+    bb[2][nd] = bb[2][nd] + a[1] * outb[0][nd];
+    ab[2][nd] = ab[2][nd] - b[1] * outb[0][nd];
+    bb[1][nd] = bb[1][nd] - a[2] * outb[0][nd];
+    outb[0][nd] = 0.0;
+  }
+}
+
+/*
 Differentiation of rodrigues_rotate_point in reverse (adjoint) mode:
 gradient     of useful results: *rot *rotatedPt
 with respect to varying inputs: *rot *pt
 Plus diff mem management of: rot:in rotatedPt:in pt:in
 */
-void rodrigues_rotate_point_bv(double *rot, double(*rotb)[NB_DIRS_REPROJ_BV], double
-  *pt, double(*ptb)[NB_DIRS_REPROJ_BV], double *rotatedPt, double(*rotatedPtb)
-  [NB_DIRS_REPROJ_BV], int nbdirs) {
+void rodrigues_rotate_point_bv(
+  double *rot,
+  double(*rotb)[NBDirsMaxReproj_BV],
+  double *pt,
+  double(*ptb)[NBDirsMaxReproj_BV],
+  double *rotatedPt,
+  double(*rotatedPtb)[NBDirsMaxReproj_BV],
+  int nbdirs)
+{
   int i;
-  double theta, costheta, sintheta, theta_inverse, w[3], w_cross_pt[3], tmp;
-  double thetab[NB_DIRS_REPROJ_BV], costhetab[NB_DIRS_REPROJ_BV], sinthetab[NB_DIRS_REPROJ_BV],
-    theta_inverseb[NB_DIRS_REPROJ_BV], wb[3][NB_DIRS_REPROJ_BV], w_cross_ptb[3][NB_DIRS_REPROJ_BV],
-    tmpb[NB_DIRS_REPROJ_BV];
+  double sqtheta, theta, costheta, sintheta, theta_inverse, w[3], cross_[3], tmp;
+  double sqthetab[NBDirsMaxReproj_BV], thetab[NBDirsMaxReproj_BV], costhetab[NBDirsMaxReproj_BV],
+    sinthetab[NBDirsMaxReproj_BV], theta_inverseb[NBDirsMaxReproj_BV], wb[3][NBDirsMaxReproj_BV],
+    cross_b[3][NBDirsMaxReproj_BV], tmpb[NBDirsMaxReproj_BV];
   int nd;
-  double tempb[NB_DIRS_REPROJ_BV];
+  double tempb[NBDirsMaxReproj_BV];
   int ii1;
-  // norm of rot
-  theta = 0.;
-  for (i = 0; i < 3; ++i)
-    theta = theta + rot[i] * rot[i];
-  pushreal8(theta);
-  theta = sqrt(theta);
-  costheta = cos(theta);
-  sintheta = sin(theta);
-  theta_inverse = 1.0 / theta;
-  w[0] = rot[0] * theta_inverse;
-  w[1] = rot[1] * theta_inverse;
-  w[2] = rot[2] * theta_inverse;
-  w_cross_pt[0] = w[1] * pt[2] - w[2] * pt[1];
-  w_cross_pt[1] = w[2] * pt[0] - w[0] * pt[2];
-  w_cross_pt[2] = w[0] * pt[1] - w[1] * pt[0];
-  tmp = (w[0] * pt[0] + w[1] * pt[1] + w[2] * pt[2])*(1. - costheta);
-  for (nd = 0; nd < nbdirs; ++nd) {
-    for (ii1 = 0; ii1 < 3; ++ii1)
-      w_cross_ptb[ii1][nd] = 0.0;
-    for (ii1 = 0; ii1 < 3; ++ii1)
-      wb[ii1][nd] = 0.0;
-    ptb[2][nd] = ptb[2][nd] + costheta*rotatedPtb[2][nd];
-    costhetab[nd] = pt[2] * rotatedPtb[2][nd];
-    w_cross_ptb[2][nd] = w_cross_ptb[2][nd] + sintheta*rotatedPtb[2][nd];
-    sinthetab[nd] = w_cross_pt[2] * rotatedPtb[2][nd];
-    wb[2][nd] = wb[2][nd] + tmp*rotatedPtb[2][nd];
-    tmpb[nd] = w[2] * rotatedPtb[2][nd];
-    rotatedPtb[2][nd] = 0.0;
-    ptb[1][nd] = ptb[1][nd] + costheta*rotatedPtb[1][nd];
-    costhetab[nd] = costhetab[nd] + pt[1] * rotatedPtb[1][nd];
-    w_cross_ptb[1][nd] = w_cross_ptb[1][nd] + sintheta*rotatedPtb[1][nd];
-    sinthetab[nd] = sinthetab[nd] + w_cross_pt[1] * rotatedPtb[1][nd];
-    wb[1][nd] = wb[1][nd] + tmp*rotatedPtb[1][nd];
-    tmpb[nd] = tmpb[nd] + w[1] * rotatedPtb[1][nd];
-    rotatedPtb[1][nd] = 0.0;
-    ptb[0][nd] = ptb[0][nd] + costheta*rotatedPtb[0][nd];
-    costhetab[nd] = costhetab[nd] + pt[0] * rotatedPtb[0][nd];
-    w_cross_ptb[0][nd] = w_cross_ptb[0][nd] + sintheta*rotatedPtb[0][nd];
-    sinthetab[nd] = sinthetab[nd] + w_cross_pt[0] * rotatedPtb[0][nd];
-    wb[0][nd] = wb[0][nd] + tmp*rotatedPtb[0][nd];
-    tmpb[nd] = tmpb[nd] + w[0] * rotatedPtb[0][nd];
-    tempb[nd] = (1. - costheta)*tmpb[nd];
-    wb[0][nd] = wb[0][nd] + pt[0] * tempb[nd];
-    ptb[0][nd] = ptb[0][nd] + w[0] * tempb[nd];
-    wb[1][nd] = wb[1][nd] + pt[1] * tempb[nd];
-    ptb[1][nd] = ptb[1][nd] + w[1] * tempb[nd];
-    wb[2][nd] = wb[2][nd] + pt[2] * tempb[nd];
-    ptb[2][nd] = ptb[2][nd] + w[2] * tempb[nd];
-    costhetab[nd] = costhetab[nd] - (w[0] * pt[0] + w[1] * pt[1] + w[2] * pt[2])*
-      tmpb[nd];
-    wb[0][nd] = wb[0][nd] + pt[1] * w_cross_ptb[2][nd];
-    ptb[1][nd] = ptb[1][nd] + w[0] * w_cross_ptb[2][nd];
-    wb[1][nd] = wb[1][nd] - pt[0] * w_cross_ptb[2][nd];
-    ptb[0][nd] = ptb[0][nd] - w[1] * w_cross_ptb[2][nd];
-    w_cross_ptb[2][nd] = 0.0;
-    wb[2][nd] = wb[2][nd] + pt[0] * w_cross_ptb[1][nd];
-    ptb[0][nd] = ptb[0][nd] + w[2] * w_cross_ptb[1][nd];
-    wb[0][nd] = wb[0][nd] - pt[2] * w_cross_ptb[1][nd];
-    ptb[2][nd] = ptb[2][nd] - w[0] * w_cross_ptb[1][nd];
-    w_cross_ptb[1][nd] = 0.0;
-    wb[1][nd] = wb[1][nd] + pt[2] * w_cross_ptb[0][nd];
-    ptb[2][nd] = ptb[2][nd] + w[1] * w_cross_ptb[0][nd];
-    wb[2][nd] = wb[2][nd] - pt[1] * w_cross_ptb[0][nd];
-    ptb[1][nd] = ptb[1][nd] - w[2] * w_cross_ptb[0][nd];
-    rotb[2][nd] = rotb[2][nd] + theta_inverse*wb[2][nd];
-    theta_inverseb[nd] = rot[2] * wb[2][nd];
-    wb[2][nd] = 0.0;
-    rotb[1][nd] = rotb[1][nd] + theta_inverse*wb[1][nd];
-    theta_inverseb[nd] = theta_inverseb[nd] + rot[1] * wb[1][nd];
-    wb[1][nd] = 0.0;
-    rotb[0][nd] = rotb[0][nd] + theta_inverse*wb[0][nd];
-    theta_inverseb[nd] = theta_inverseb[nd] + rot[0] * wb[0][nd];
-    thetab[nd] = cos(theta)*sinthetab[nd] - sin(theta)*costhetab[nd] -
-      theta_inverseb[nd] / (theta*theta);
-  }
-  popreal8(&theta);
-  for (nd = 0; nd < nbdirs; ++nd)
-    if (theta == 0.0)
-      thetab[nd] = 0.0;
-    else
-      thetab[nd] = thetab[nd] / (2.0*sqrt(theta));
-  for (i = 2; i > -1; --i)
+  sqtheta = rot[0] * rot[0] + rot[1] * rot[1] + rot[2] * rot[2]; // sqsum is buggy for no reason with tapenade
+  if (sqtheta != 0.) {
+    theta = sqrt(sqtheta);
+    costheta = cos(theta);
+    sintheta = sin(theta);
+    theta_inverse = 1.0 / theta;
+    for (i = 0; i < 3; ++i)
+      w[i] = rot[i] * theta_inverse;
+    cross(w, pt, cross_);
+    tmp = (w[0] * pt[0] + w[1] * pt[1] + w[2] * pt[2])*(1. - costheta);
+    for (nd = 0; nd < nbdirs; ++nd) {
+      for (i = 0; i < 3; i++)
+        ptb[i][nd] = 0.0;
+      for (ii1 = 0; ii1 < 3; ++ii1)
+        wb[ii1][nd] = 0.0;
+      for (ii1 = 0; ii1 < 3; ++ii1)
+        cross_b[ii1][nd] = 0.0;
+      costhetab[nd] = 0.0;
+      tmpb[nd] = 0.0;
+      sinthetab[nd] = 0.0;
+    }
+    for (i = 2; i > -1; --i)
+      for (nd = 0; nd < nbdirs; ++nd) {
+        ptb[i][nd] = ptb[i][nd] + costheta*rotatedPtb[i][nd];
+        costhetab[nd] = costhetab[nd] + pt[i] * rotatedPtb[i][nd];
+        cross_b[i][nd] = cross_b[i][nd] + sintheta*rotatedPtb[i][nd];
+        sinthetab[nd] = sinthetab[nd] + cross_[i] * rotatedPtb[i][nd];
+        wb[i][nd] = wb[i][nd] + tmp*rotatedPtb[i][nd];
+        tmpb[nd] = tmpb[nd] + w[i] * rotatedPtb[i][nd];
+        rotatedPtb[i][nd] = 0.0;
+      }
+    for (nd = 0; nd < nbdirs; ++nd) {
+      tempb[nd] = (1. - costheta)*tmpb[nd];
+      wb[0][nd] = wb[0][nd] + pt[0] * tempb[nd];
+      ptb[0][nd] = ptb[0][nd] + w[0] * tempb[nd];
+      wb[1][nd] = wb[1][nd] + pt[1] * tempb[nd];
+      ptb[1][nd] = ptb[1][nd] + w[1] * tempb[nd];
+      wb[2][nd] = wb[2][nd] + pt[2] * tempb[nd];
+      ptb[2][nd] = ptb[2][nd] + w[2] * tempb[nd];
+      costhetab[nd] = costhetab[nd] - (w[0] * pt[0] + w[1] * pt[1] + w[2] * pt[2])
+        *tmpb[nd];
+    }
+    cross_bv(w, wb, pt, ptb, cross_, cross_b, nbdirs);
     for (nd = 0; nd < nbdirs; ++nd)
-      rotb[i][nd] = rotb[i][nd] + 2 * rot[i] * thetab[nd];
+      theta_inverseb[nd] = 0.0;
+    for (i = 2; i > -1; --i)
+      for (nd = 0; nd < nbdirs; ++nd) {
+        rotb[i][nd] = rotb[i][nd] + theta_inverse*wb[i][nd];
+        theta_inverseb[nd] = theta_inverseb[nd] + rot[i] * wb[i][nd];
+        wb[i][nd] = 0.0;
+      }
+    for (nd = 0; nd < nbdirs; ++nd) {
+      thetab[nd] = cos(theta)*sinthetab[nd] - sin(theta)*costhetab[nd] -
+        theta_inverseb[nd] / (theta*theta);
+      if (sqtheta == 0.0)
+        sqthetab[nd] = 0.0;
+      else
+        sqthetab[nd] = thetab[nd] / (2.0*sqrt(sqtheta));
+    }
+  }
+  else {
+    for (nd = 0; nd < nbdirs; ++nd) {
+      for (i = 0; i < 3; i++)
+        ptb[i][nd] = 0.0;
+      for (ii1 = 0; ii1 < 3; ++ii1)
+        cross_b[ii1][nd] = 0.0;
+    }
+    for (i = 2; i > -1; --i)
+      for (nd = 0; nd < nbdirs; ++nd) {
+        ptb[i][nd] = ptb[i][nd] + rotatedPtb[i][nd];
+        cross_b[i][nd] = cross_b[i][nd] + rotatedPtb[i][nd];
+        rotatedPtb[i][nd] = 0.0;
+      }
+    cross_bv(rot, rotb, pt, ptb, cross_, cross_b, nbdirs);
+    for (nd = 0; nd < nbdirs; ++nd)
+      sqthetab[nd] = 0.0;
+  }
+  sqsum_bv(3, rot, rotb, sqthetab, nbdirs);
 }
-/*  Hint: NB_DIRS_REPROJ_BV should be the maximum number of differentiation directions
-*/
-
 
 /*
 Differentiation of radial_distort in reverse (adjoint) mode:
@@ -120,12 +176,17 @@ gradient     of useful results: *rad_params *proj
 with respect to varying inputs: *rad_params *proj
 Plus diff mem management of: rad_params:in proj:in
 */
-void radial_distort_bv(double *rad_params, double(*rad_paramsb)[NB_DIRS_REPROJ_BV],
-  double *proj, double(*projb)[NB_DIRS_REPROJ_BV], int nbdirs) {
+void radial_distort_bv(
+  double *rad_params,
+  double(*rad_paramsb)[NBDirsMaxReproj_BV],
+  double *proj,
+  double(*projb)[NBDirsMaxReproj_BV],
+  int nbdirs)
+{
   double rsq, L;
   double rsqb[NB_DIRS_REPROJ_BV], Lb[NB_DIRS_REPROJ_BV];
   int nd;
-  rsq = proj[0] * proj[0] + proj[1] * proj[1];
+  rsq = proj[0] * proj[0] + proj[1] * proj[1]; // sqsum is buggy for no reason with tapenade
   L = 1 + rad_params[0] * rsq + rad_params[1] * rsq*rsq;
   pushreal8(proj[0]);
   pushreal8(proj[1]);
@@ -142,63 +203,55 @@ void radial_distort_bv(double *rad_params, double(*rad_paramsb)[NB_DIRS_REPROJ_B
     rad_paramsb[0][nd] = rad_paramsb[0][nd] + rsq*Lb[nd];
     rsqb[nd] = (rad_params[1] * 2 * rsq + rad_params[0])*Lb[nd];
     rad_paramsb[1][nd] = rad_paramsb[1][nd] + rsq*rsq*Lb[nd];
-    projb[0][nd] = projb[0][nd] + 2 * proj[0] * rsqb[nd];
-    projb[1][nd] = projb[1][nd] + 2 * proj[1] * rsqb[nd];
   }
+  sqsum_bv(2, proj, projb, rsqb, nbdirs);
 }
-/*  Hint: NB_DIRS_REPROJ_BV should be the maximum number of differentiation directions
-*/
-
 
 /*
 Differentiation of project in reverse (adjoint) mode:
-gradient     of useful results: *proj
+gradient     of useful results: *cam *X *proj
 with respect to varying inputs: *cam *X
 Plus diff mem management of: cam:in X:in proj:in-out
 */
-void project_bv(double *cam, double(*camb)[NB_DIRS_REPROJ_BV], double *X, double(*Xb
-  )[NB_DIRS_REPROJ_BV], double *proj, double(*projb)[NB_DIRS_REPROJ_BV], int nbdirs) {
-  int i, k;
+void project_bv(
+  double *cam,
+  double(*camb)[NBDirsMaxReproj_BV],
+  double *X,
+  double(*Xb)[NBDirsMaxReproj_BV],
+  double *proj,
+  double(*projb)[NBDirsMaxReproj_BV],
+  int nbdirs)
+{
+  int i;
   double *C;
   double(*Cb)[NB_DIRS_REPROJ_BV];
   double Xo[3], Xcam[3];
-  double Xob[3][NB_DIRS_REPROJ_BV], Xcamb[3][NB_DIRS_REPROJ_BV];
+  double Xob[3][NBDirsMaxReproj_BV], Xcamb[3][NBDirsMaxReproj_BV];
   int nd;
-  double tempb0[NB_DIRS_REPROJ_BV];
-  double tempb[NB_DIRS_REPROJ_BV];
+  double tempb0[NBDirsMaxReproj_BV];
+  double tempb[NBDirsMaxReproj_BV];
   int ii1;
-  for (i = 0; i < 3; i++)
-    for (k = 0; k < nbdirs; k++)
-    {
-      Xob[i][k] = 0.;
-      Xcamb[i][k] = 0.;
-    }
   Cb = &camb[3];
   C = &cam[3];
-  Xo[0] = X[0] - C[0];
-  Xo[1] = X[1] - C[1];
-  Xo[2] = X[2] - C[2];
+  for (i = 0; i < 3; ++i)
+    Xo[i] = X[i] - C[i];
   rodrigues_rotate_point(&cam[0], Xo, Xcam);
   proj[0] = Xcam[0] / Xcam[2];
   proj[1] = Xcam[1] / Xcam[2];
   pushreal8(proj[0]);
   pushreal8(proj[1]);
   radial_distort(&cam[9], proj);
-  pushreal8(proj[0]);
-  pushreal8(proj[1]);
-  proj[0] = proj[0] * cam[6] + cam[7];
-  proj[1] = proj[1] * cam[6] + cam[8];
-  popreal8(&proj[1]);
-  popreal8(&proj[0]);
-  for (nd = 0; nd < nbdirs; ++nd) {
-    camb[6][nd] = camb[6][nd] + proj[1] * projb[1][nd];
-    camb[8][nd] = camb[8][nd] + projb[1][nd];
-    projb[1][nd] = cam[6] * projb[1][nd];
+  for (i = 0; i < 2; ++i) {
+    pushreal8(proj[i]);
+    proj[i] = proj[i] * cam[6] + cam[7 + i];
   }
-  for (nd = 0; nd < nbdirs; ++nd) {
-    camb[6][nd] = camb[6][nd] + proj[0] * projb[0][nd];
-    camb[7][nd] = camb[7][nd] + projb[0][nd];
-    projb[0][nd] = cam[6] * projb[0][nd];
+  for (i = 1; i > -1; --i) {
+    popreal8(&proj[i]);
+    for (nd = 0; nd < nbdirs; ++nd) {
+      camb[6][nd] = camb[6][nd] + proj[i] * projb[i][nd];
+      camb[7 + i][nd] = camb[7 + i][nd] + projb[i][nd];
+      projb[i][nd] = cam[6] * projb[i][nd];
+    }
   }
   popreal8(&proj[1]);
   popreal8(&proj[0]);
@@ -214,22 +267,14 @@ void project_bv(double *cam, double(*camb)[NB_DIRS_REPROJ_BV], double *X, double
     Xcamb[0][nd] = Xcamb[0][nd] + tempb0[nd];
     Xcamb[2][nd] = Xcamb[2][nd] - Xcam[0] * tempb0[nd] / Xcam[2];
   }
-  rodrigues_rotate_point_bv(&cam[0], &camb[0], Xo, Xob, Xcam, Xcamb, nbdirs)
-    ;
-  for (nd = 0; nd < nbdirs; ++nd) {
-    Xb[2][nd] = Xb[2][nd] + Xob[2][nd];
-    Cb[2][nd] = Cb[2][nd] - Xob[2][nd];
-    Xob[2][nd] = 0.0;
-    Xb[1][nd] = Xb[1][nd] + Xob[1][nd];
-    Cb[1][nd] = Cb[1][nd] - Xob[1][nd];
-    Xob[1][nd] = 0.0;
-    Xb[0][nd] = Xb[0][nd] + Xob[0][nd];
-    Cb[0][nd] = Cb[0][nd] - Xob[0][nd];
-  }
+  rodrigues_rotate_point_bv(&cam[0], &camb[0], Xo, Xob, Xcam, Xcamb, nbdirs);
+  for (i = 2; i > -1; --i)
+    for (nd = 0; nd < nbdirs; ++nd) {
+      Xb[i][nd] = Xb[i][nd] + Xob[i][nd];
+      Cb[i][nd] = Cb[i][nd] - Xob[i][nd];
+      Xob[i][nd] = 0.0;
+    }
 }
-/*  Hint: NB_DIRS_REPROJ_BV should be the maximum number of differentiation directions
-*/
-
 
 /*
 Differentiation of computeReprojError in reverse (adjoint) mode:
@@ -238,16 +283,31 @@ with respect to varying inputs: *err *w *cam *X
 RW status of diff variables: *err:in-out *w:out *cam:out *X:out
 Plus diff mem management of: err:in w:in cam:in X:in
 */
-void computeReprojError_bv(double *cam, double(*camb)[NB_DIRS_REPROJ_BV], double *X,
-  double(*Xb)[NB_DIRS_REPROJ_BV], double *w, double(*wb)[NB_DIRS_REPROJ_BV], double
-  feat_x, double feat_y, double *err, double(*errb)[NB_DIRS_REPROJ_BV], int
-  nbdirs) {
+void computeReprojError_bv(
+  double *cam, 
+  double(*camb)[NBDirsMaxReproj_BV], 
+  double *X,
+  double(*Xb)[NBDirsMaxReproj_BV], 
+  double *w, 
+  double(*wb)[NBDirsMaxReproj_BV], 
+  double feat_x, double feat_y, 
+  double *err, 
+  double(*errb)[NBDirsMaxReproj_BV], 
+  int nbdirs) 
+{
   double proj[2];
-  double projb[2][NB_DIRS_REPROJ_BV];
+  double projb[2][NBDirsMaxReproj_BV];
   int nd;
   int ii1;
-  pushreal8(*proj);
+  pushreal8(proj[0]);
+  pushreal8(proj[1]);
   project(cam, X, proj);
+
+  err[0] = (*w)*(proj[0] - feat_x);
+  err[1] = (*w)*(proj[1] - feat_y);
+  
+  // This term is here so that tapenade correctly 
+  // recognizes inputs to be the inputs
   for (nd = 0; nd < nbdirs; ++nd) {
     for (ii1 = 0; ii1 < 2; ++ii1)
       projb[ii1][nd] = 0.0;
@@ -258,24 +318,9 @@ void computeReprojError_bv(double *cam, double(*camb)[NB_DIRS_REPROJ_BV], double
     projb[0][nd] = projb[0][nd] + (*w)*errb[0][nd];
     errb[0][nd] = 0.0;
   }
-  popreal8(proj);
+  popreal8(&proj[1]);
+  popreal8(&proj[0]);
   project_bv(cam, camb, X, Xb, proj, projb, nbdirs);
-}
-
-/*
-Differentiation of computeFocalPriorError in reverse (adjoint) mode:
-gradient     of useful results: *err
-with respect to varying inputs: *err *cam1 *cam2 *cam3
-RW status of diff variables: *err:in-zero *cam1:out *cam2:out *cam3:out
-Plus diff mem management of: err:in cam1:in cam2:in cam3:in
-*/
-void computeFocalPriorError_b(double *cam1, double *cam1b, double *cam2,
-  double *cam2b, double *cam3, double *cam3b, double *err, double *errb)
-{
-  cam1b[6] = cam1b[6] + *errb;
-  cam2b[6] = cam2b[6] - 2 * (*errb);
-  cam3b[6] = cam3b[6] + *errb;
-  *errb = 0.0;
 }
 
 /*
