@@ -43,3 +43,8 @@ ipch/
 
 # Python
 __pycache__
+*.obj
+*.exe
+ba - Copy.txt
+ba-old.txt
+*.db
