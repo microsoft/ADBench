@@ -43,4 +43,7 @@ ipch/
 
 # Python
 __pycache__
-.ipynb_checkpoints/
+*.obj
+*.exe
+ba - Copy.txt
+ba-old.txt
