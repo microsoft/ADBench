@@ -3,7 +3,7 @@ open System.Diagnostics
 open System.IO
 
 #if MODE_AD
-open DiffSharp.AD
+open DiffSharp.AD.Float64
 let D_seed (x:float) = D x
 #else
 #if MODE_R
@@ -92,14 +92,16 @@ let compute_ba_J (cams:_[][]) (X:_[][]) (w:_[]) (obs:int[][]) (feats:float[][]) 
     let p = w.Length
 
     let compute_reproj_err_J_block (cam:_[]) (X:_[]) (w:_) (feat:float[]) =
-        let compute_reproj_err_wrapper_ parameters = 
-            ba.compute_reproj_err_wrapper parameters feat
-        let err_D, J_D = (jacobian' compute_reproj_err_wrapper_ (ba.vectorize cam X w))
-        let err = Array.map (float) err_D
-        let J = Array2D.map (float) J_D
+        let compute_reproj_err_wrapper parameters = 
+            ba.ds.compute_reproj_err_wrapper parameters feat
+        let err_D, J_D = (jacobian' compute_reproj_err_wrapper (ba.ds.vectorize (toDV cam) (toDV X) (D w)))
+        let err = convert err_D
+        let J = convert J_D
         err, J
-    let compute_w_err_d = 
-        diff' ba.compute_zach_weight_error_
+
+    let compute_w_err_d (w:float) = 
+        let e,ed = diff' ba.ds.compute_zach_weight_error (D w)
+        convert e, convert ed
 
     let reproj_err_val_J = 
         [|for i=0 to p-1 do 
@@ -113,48 +115,67 @@ let compute_ba_J (cams:_[][]) (X:_[][]) (w:_[]) (obs:int[][]) (feats:float[][]) 
 
     (reproj_err, w_err), J
 
+let run_test n f =
+    // Call it once to get jitting done etc
+    let ans = f ()
+    let sw = Stopwatch.StartNew()
+    for i=1 to n do
+        ignore (f())
+    sw.Stop()
+    let elapsed = (float sw.ElapsedMilliseconds) / (float n)
+    elapsed,ans
+
+
 let test_ba fn_in fn_out nruns_f nruns_J = 
-    let cams_float, X_float, w_float, obs, feat = ba.read_ba_instance (fn_in + ".txt")
-#if MODE_AD
-    let cams = Array.map (Array.map D) cams_float 
-    let X = Array.map (Array.map D) X_float 
-    let w = Array.map D w_float
-#else
-    let cams = cams_float
-    let X = X_float
-    let w = w_float
-#endif
+    let cams, X, w, obs, feat = ba.read_ba_instance (fn_in + ".txt")
+
+    let n = cams.Length
+    let m = X.Length
+    let p = obs.Length
     
+    // Time F# implementation
+    let fs_tf, fs_err = run_test nruns_f (fun () -> 
+        ba.fs.ba_objective cams X w obs feat
+    )
 
-    let obj_stop_watch = Stopwatch.StartNew()
-    let err = ba.ba_objective cams_float X_float w_float obs feat
-    for i = 1 to nruns_f-1 do
-        ba.ba_objective cams_float X_float w_float obs feat
-    obj_stop_watch.Stop()
+    printfn "fs_err = %A" fs_err
 
+    // Time DiffSharp implementation
+    let ds_cams = Array.map toDV cams
+    let ds_X = Array.map toDV X
+    let ds_w = Array.map D w
+
+    let ds_tf, ds_err = run_test nruns_f (fun () -> 
+        ba.ds.ba_objective ds_cams ds_X ds_w obs feat
+    )
+
+    printfn "ds_err = %A" ds_err
+
+    // Check equal
+    let err2, J = compute_ba_J cams X w obs feat
+
+    if fs_err = (fst ds_err |> Array.map convert, snd ds_err |> Array.map convert) then
+        printfn "BA: equality test ok"
+    else
+        printfn "BA: equality test FAIL"
+        printfn "%A" fs_err
+        printfn "%A" ds_err
+    
+    // Now time Jacobian
+    let tJ,ans = run_test nruns_J (fun () ->
+        compute_ba_J cams X w obs feat
+    )
+        
+    printfn "BA: times Obj_fs %A, Obj_ds %A, J_ds %A" fs_tf ds_tf tJ
+
+    // Save times
   #if MODE_AD
     let name = "DiffSharp"
   #else
     let name = "DiffSharp_R"
   #endif
 
-    let n = cams.Length
-    let m = X.Length
-    let p = obs.Length
-    
-
-    let jac_stop_watch = Stopwatch.StartNew()
-    if nruns_J>0 then   
-        let err2, J = compute_ba_J cams X w obs feat
-        for i = 1 to nruns_J-1 do
-            compute_ba_J cams X w obs feat
-        jac_stop_watch.Stop()
-
-        //ba.write_J (fn_out + "_J_" + name + ".txt") gradient   
-        
-    let tf = ((float obj_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns_f)
-    let tJ = ((float jac_stop_watch.ElapsedMilliseconds) / 1000.) / (float nruns_J)
-    write_times (fn_out + "_times_" + name + ".txt") tf tJ
+    write_times (fn_out + "_times_" + name + ".txt") ds_tf tJ
 #endif
 
 #if DO_HAND

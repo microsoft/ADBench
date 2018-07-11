@@ -4,11 +4,7 @@ open System
 open System.Diagnostics
 open System.IO
 
-#if MODE_AD
-open DiffSharp.AD
-#else
-open DiffSharp.AD.Specialized.Reverse1
-#endif
+open DiffSharp.AD.Float64
 
 let N_CAM_PARAMS = 11
 let ROT_IDX = 0
@@ -17,110 +13,135 @@ let FOCAL_IDX = 6
 let X0_IDX = 7
 let RAD_IDX = 9
 
-////// Objective //////
+////// fs: Objective in "raw" fsharp //////
 
-let inline sqnorm (x:_[]) =
-    x |> Array.map (fun x -> x*x) |> Array.sum
+module fs =
+    let inline sqnorm x =
+        x |> Array.map (fun x -> x*x) |> Array.sum
 
-let inline dot_prod (x:_[]) (y:_[]) =
-    Array.map2 (*) x y |> Array.sum
+    let inline dot_prod (x:_[]) (y:_[]) =
+        Array.map2 (*) x y |> Array.sum
 
-let inline sub_vec (x:_[]) (y:_[]) =
-    Array.map2 (-) x y
+    let inline sub_vec (x:_[]) (y:_[]) =
+        Array.map2 (-) x y
 
-let inline add_vec (x:_[]) (y:_[]) =
-    Array.map2 (+) x y
+    let inline add_vec (x:_[]) (y:_[]) =
+        Array.map2 (+) x y
 
-let inline add_vec3 (x:_[]) (y:_[]) (z:_[]) =
-  add_vec (add_vec x y) z
+    let inline add_vec3 (x:_[]) (y:_[]) (z:_[]) =
+      add_vec (add_vec x y) z
 
-let inline mult_by_scalar (x:_[]) y =
-    Array.map (fun a -> a*y) x
+    let inline mult_by_scalar (x:_[]) y =
+        Array.map (fun a -> a*y) x
 
-let inline cross (a:_[]) (b:_[]) =
-    [|a.[1]*b.[2] - a.[2]*b.[1]; a.[2]*b.[0] - a.[0]*b.[2]; a.[0]*b.[1] - a.[1]*b.[0];|]
+    let cross (a:float[]) (b:float[]) =
+        [|a.[1]*b.[2] - a.[2]*b.[1]; a.[2]*b.[0] - a.[0]*b.[2]; a.[0]*b.[1] - a.[1]*b.[0];|]
 
-let rodrigues_rotate_point (rot:_[]) (X:_[]) =
-    let sqtheta = sqnorm rot
-    if sqtheta <> 0. then
-        let theta = sqrt sqtheta
-        let costheta = cos theta
-        let sintheta = sin theta
-        let theta_inv = 1. / theta
+    let rodrigues_rotate_point (rot:_[]) (X:_[]) =
+        let sqtheta = sqnorm rot
+        if sqtheta <> 0. then
+            let theta = sqrt sqtheta
+            let costheta = cos theta
+            let sintheta = sin theta
+            let theta_inv = 1. / theta
 
-        let w = mult_by_scalar rot theta_inv
-        let w_cross_X = cross w X    
-        let tmp = (dot_prod w X) * (1. - costheta)
+            let w = mult_by_scalar rot theta_inv
+            let w_cross_X = cross w X    
+            let tmp = (dot_prod w X) * (1. - costheta)
 
-        add_vec3 (mult_by_scalar X costheta) (mult_by_scalar w_cross_X sintheta) (mult_by_scalar w tmp)
-    else
-        add_vec X (cross rot X)
+            add_vec3 (mult_by_scalar X costheta) (mult_by_scalar w_cross_X sintheta) (mult_by_scalar w tmp)
+        else
+            add_vec X (cross rot X)
 
-let radial_distort (rad_params:_[]) (proj:_[]) =
-    let rsq = sqnorm proj
-    let L = 1. + rad_params.[0] * rsq + rad_params.[1] * rsq * rsq
-    mult_by_scalar proj L
+    let radial_distort (rad_params:_[]) (proj:_[]) =
+        let rsq = sqnorm proj
+        let L = 1. + rad_params.[0] * rsq + rad_params.[1] * rsq * rsq
+        mult_by_scalar proj L
 
-let project (cam:_[]) (X:_[]) =
-    let Xcam = rodrigues_rotate_point cam.[ROT_IDX..(ROT_IDX+2)] (sub_vec X cam.[CENTER_IDX..(CENTER_IDX+2)])
-    let distorted = radial_distort cam.[RAD_IDX..(RAD_IDX+1)] (mult_by_scalar Xcam.[0..1] (1./Xcam.[2]))
-    add_vec cam.[X0_IDX..(X0_IDX+1)] (mult_by_scalar distorted cam.[FOCAL_IDX])
+    let project (cam:_[]) (X:_[]) =
+        let Xcam = rodrigues_rotate_point cam.[ROT_IDX..(ROT_IDX+2)] (sub_vec X cam.[CENTER_IDX..(CENTER_IDX+2)])
+        let distorted = radial_distort cam.[RAD_IDX..(RAD_IDX+1)] (mult_by_scalar Xcam.[0..1] (1./Xcam.[2]))
+        add_vec cam.[X0_IDX..(X0_IDX+1)] (mult_by_scalar distorted cam.[FOCAL_IDX])
 
-let compute_reproj_err (cam:_[]) (X:_[]) w (feat:_[]) =
-    mult_by_scalar (sub_vec (project cam X) feat) w
+    let compute_reproj_err (cam:_[]) (X:_[]) w (feat:_[]) =
+        mult_by_scalar (sub_vec (project cam X) feat) w
 
-let compute_zach_weight_error w =
-    1. - w*w
+    let compute_zach_weight_error w =
+        1. - w*w
 
-let ba_objective (cams:_[][]) (X:_[][]) (w:_[]) (obs:int[][]) (feat:float[][]) =
-    let n = cams.Length
-    let p = w.Length
-    let reproj_err = 
-        [|for i = 0 to p-1 do yield (compute_reproj_err cams.[obs.[i].[0]] X.[obs.[i].[1]] w.[i] feat.[i])|]
-    let w_err = Array.map compute_zach_weight_error w 
-    reproj_err, w_err
+    let ba_objective (cams:_[][]) (X:_[][]) (w:_[]) (obs:int[][]) (feat:float[][]) =
+        let n = cams.Length
+        let p = w.Length
+        let reproj_err = 
+            [|for i = 0 to p-1 do yield (compute_reproj_err cams.[obs.[i].[0]] X.[obs.[i].[1]] w.[i] feat.[i])|]
+        let w_err = Array.map compute_zach_weight_error w 
+        reproj_err, w_err
 
-///// Derivative extras /////
-let rodrigues_rotate_point_ (rot:D[]) (X:D[]) =
-    let sqtheta = sqnorm rot
-    let zero = rot.[0] - rot.[0] // simple (D 0.) did not work
-    if sqtheta <> zero then
-        let theta = sqrt sqtheta
-        let costheta = cos theta
-        let sintheta = sin theta
-        let theta_inv = 1. / theta
+///// ds: DiffSharp version /////
 
-        let w = mult_by_scalar rot theta_inv
-        let w_cross_X = cross w X    
-        let tmp = (dot_prod w X) * (1. - costheta)
+module ds =
 
-        add_vec3 (mult_by_scalar X costheta) (mult_by_scalar w_cross_X sintheta) (mult_by_scalar w tmp)
-    else
-        add_vec X (cross rot X)
+    let dot (a:DV) (b:DV) = a * b
 
-let radial_distort_ (rad_params:D[]) (proj:D[]) =
-    let rsq = sqnorm proj
-    let L = 1. + rad_params.[0] * rsq + rad_params.[1] * rsq * rsq
-    mult_by_scalar proj L
+    let cross (a:DV) (b:DV) = 
+        toDV [a.[1]*b.[2] - a.[2]*b.[1]; a.[2]*b.[0] - a.[0]*b.[2]; a.[0]*b.[1] - a.[1]*b.[0]]
 
-let project_ (cam:D[]) (X:D[]) =
-    let Xcam = rodrigues_rotate_point_ cam.[ROT_IDX..(ROT_IDX+2)] (sub_vec X cam.[CENTER_IDX..(CENTER_IDX+2)])
-    let distorted = radial_distort_ cam.[RAD_IDX..(RAD_IDX+1)] (mult_by_scalar Xcam.[0..1] (1./Xcam.[2]))
-    add_vec cam.[X0_IDX..(X0_IDX+1)] (mult_by_scalar distorted cam.[FOCAL_IDX])
+    let rodrigues_rotate_point (rot:DV) (X:DV) =
+        let sqtheta = DV.l2normSq rot
+        if sqtheta <> D 0. then
+            let theta = sqrt sqtheta
+            let costheta = cos theta
+            let sintheta = sin theta
+            let theta_inv = D 1. / theta
 
-let compute_reproj_err_ (cam:D[]) (X:D[]) (w:D) (feat:float[]) =
-    mult_by_scalar (sub_vec (project_ cam X) feat) w
+            let w = rot * theta_inv
+            let w_cross_X = cross w X    
+            let tmp = (dot w X) * (D 1. - costheta)
+
+            (X * costheta) + (w_cross_X * sintheta) + (w * tmp)
+        else
+            X + (cross rot X)
+
+    let radial_distort (rad_params:DV) (proj:DV) =
+        let rsq = DV.l2normSq proj
+        let L = 1. + rad_params.[0] * rsq + rad_params.[1] * rsq * rsq
+        proj * L
+
+    let proj (X:DV) = X.[0..1] / X.[2]
+
+    let project (cam:DV) (X:DV) =
+        let rot = cam.[ROT_IDX..(ROT_IDX+2)]
+        let translation = cam.[CENTER_IDX..(CENTER_IDX+2)]
+        let kappa = cam.[RAD_IDX..(RAD_IDX+1)]
+        let principal_point = cam.[X0_IDX..(X0_IDX+1)]
+        let focal_length = cam.[FOCAL_IDX]
+
+        let Xcam = rodrigues_rotate_point rot (X - translation)
+        let distorted = radial_distort kappa (proj Xcam)
+        principal_point + (distorted * focal_length)
+
+    let compute_reproj_err (cam:DV) (X:DV) (w:D) (feat:float[]) =
+        ((project cam X) - toDV feat) * w
     
-let compute_reproj_err_wrapper (parameters:_[]) (feat:float[]) =
-    let X_off = N_CAM_PARAMS
-    let w_off = X_off + 3
-    compute_reproj_err_ parameters.[..(X_off-1)] parameters.[X_off..(X_off+2)] parameters.[w_off] feat
+    let compute_reproj_err_wrapper (parameters:DV) (feat:float[]) =
+        let X_off = N_CAM_PARAMS
+        let w_off = X_off + 3
+        compute_reproj_err parameters.[..(X_off-1)] parameters.[X_off..(X_off+2)] parameters.[w_off] feat
 
-let vectorize (cam:_[]) (X:_[]) (w:_) = 
-    Array.append (Array.append cam X) [|w|]
+    let vectorize (cam:DV) (X:DV) (w:D) = 
+        DV.concat [| cam; X; toDV [| w |] |]
 
-let compute_zach_weight_error_ (w:D) =
-    1. - w*w
+    let compute_zach_weight_error (w:D) =
+        1. - w*w
+
+    let ba_objective (cams:DV[]) (X:DV[]) (w:D[]) (obs:int[][]) (feat:float[][]) =
+        let n = cams.Length
+        let p = w.Length
+        let reproj_err = 
+            [|for i = 0 to p-1 do yield (compute_reproj_err cams.[obs.[i].[0]] X.[obs.[i].[1]] w.[i] feat.[i])|]
+        let w_err = Array.map compute_zach_weight_error w 
+        reproj_err, w_err
+
     
 ////// UTILS ////
 

@@ -63,7 +63,7 @@ let read_gmm_instance (fn:string) replicate_point =
     alphas, means, icf, x, wishart
 
 #if MODE_AD
-let write_grad (fn:string) (gradient:D[]) =
+let write_grad (fn:string) (gradient:_[]) =
 #else
 let write_grad (fn:string) (gradient:float[]) =
 #endif
@@ -133,7 +133,7 @@ let gmm_objective (alphas:float[]) (means:float[][]) (icf:float[][]) (x:float[][
     slse + (float n) * ((log CONSTANT) - (logsumexp alphas)) + (log_wishart_prior d wishart Qdiags sum_qs icf)
     
 /////// Derivative extras ////////
-let log_wishart_prior_ p (wishart:Wishart) (Qdiags:D[][]) (sum_qs:D[]) (icf:D[][]) =
+let log_wishart_prior_ p (wishart:Wishart) (Qdiags:_[][]) (sum_qs:_[]) (icf:_[][]) =
     let log_gamma_distrib a p =
         log (Math.Pow(Math.PI,(0.25*(float (p*(p-1)))))) + 
             ([for j = 1 to p do yield SpecialFunctions.GammaLn (a + 0.5*(1. - (float j)))] |> List.sum)
