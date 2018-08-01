@@ -1,0 +1,7 @@
+﻿  main.cpp
+  Generating code
+  19 of 415 functions ( 4.6%) were compiled, the rest were copied from previous compilation.
+    7 functions were new in current compilation
+    25 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  Test.vcxproj -> C:\dev\github\autodiff\Release\Tapenade.exe
