@@ -22,7 +22,7 @@
 #define ADEPT_COMPILATION
 #include "../cpp-common/gmm.h"
 #elif defined DO_BA
-#include "../ba.h"
+#include "../cpp-common/ba.h"
 #elif (defined DO_HAND || defined DO_HAND_COMPLICATED)
 #ifdef DO_LIGHT_MATRIX
 #include "../cpp-common/hand_light_matrix.h"
@@ -211,6 +211,8 @@ double compute_ba_J(int nruns, int n, int m, int p,
   double *cams, double *X, double *w, int *obs, double *feats,
   double *reproj_err, double *w_err, BASparseMat *J)
 {
+	cout << "Test BA" << endl;
+
   if (nruns == 0)
     return 0.;
 

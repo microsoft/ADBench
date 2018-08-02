@@ -21,3 +21,4 @@ function run($tool, $objective)
 
 run Manual GMM $dir/data/gmm/ $dir/tmp/gmm_ test 10 10
 run Adept GMM $dir/data/gmm/ $dir/tmp/gmm_ test 10 10
+run Adept BA $dir/data/ba/ $dir/tmp/ba_ test 10 10

@@ -101,6 +101,7 @@ void compute_ba_J(int n, int m, int p, double *cams, double *X,
   double *w, int *obs, double *feats, double *reproj_err,
   double *w_err, BASparseMat& J)
 {
+	cout << "Test BA\n";
   J = BASparseMat(n,m,p);
 
   int n_new_cols = BA_NCAMPARAMS + 3 + 1;
