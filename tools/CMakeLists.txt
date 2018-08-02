@@ -1,4 +1,4 @@
-#project ("ADBench")
+project ("ADBench")
 
 # Include sub-projects.
 add_subdirectory ("Manual")
