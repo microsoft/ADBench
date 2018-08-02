@@ -3,6 +3,8 @@
 #include <chrono>
 #include <set>
 
+#define TOOL_ADEPT
+
 //#define DO_GMM_FULL
 //#define DO_GMM_SPLIT
 //#define DO_BA
@@ -12,18 +14,18 @@
 #define DO_LIGHT_MATRIX
 //#define DO_VXL // this is experimental - vxl does not compile with adouble
 
-#include <adept_source.h>
-#include "../utils.h"
-#include "../defs.h"
+#include "./include/adept.h"
+#include "../cpp-common/utils.h"
+#include "../cpp-common/defs.h"
 
 #if defined DO_GMM_FULL || defined DO_GMM_SPLIT
 #define ADEPT_COMPILATION
-#include "../gmm.h"
+#include "../cpp-common/gmm.h"
 #elif defined DO_BA
 #include "../ba.h"
 #elif (defined DO_HAND || defined DO_HAND_COMPLICATED)
 #ifdef DO_LIGHT_MATRIX
-#include "../hand_light_matrix.h"
+#include "../cpp-common/hand_light_matrix.h"
 typedef HandDataLightMatrix HandDataType;
 #elif defined DO_VXL
 #include "hand_vxl.h"
@@ -159,6 +161,7 @@ double compute_gmm_J_split(int nruns,
 void test_gmm(const string& fn_in, const string& fn_out,
   int nruns_f, int nruns_J, bool replicate_point)
 {
+  cout << "Test GMM\n";
   int d, k, n;
   vector<double> alphas, means, icf, x;
   double err;
@@ -463,6 +466,8 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
 
 int main(int argc, char *argv[])
 {
+  std::cout << "Adept: Begin\n";
+
   string dir_in(argv[1]);
   string dir_out(argv[2]);
   string fn(argv[3]);
