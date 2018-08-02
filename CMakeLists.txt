@@ -9,7 +9,7 @@ include("etc/HunterGate.cmake")
 
 HunterGate(
     URL "https://github.com/ruslo/hunter/archive/v0.23.6.tar.gz"
-    SHA1 "53b198e364dc7bc8360fc545f798563229bd7e20"
+    SHA1 "951e8daf57a51708b0e6a00cab342a042db57a2f"
 )
 
 # Declare project name
