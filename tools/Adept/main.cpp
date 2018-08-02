@@ -161,7 +161,7 @@ double compute_gmm_J_split(int nruns,
 void test_gmm(const string& fn_in, const string& fn_out,
   int nruns_f, int nruns_J, bool replicate_point)
 {
-  cout << "Test GMM\n";
+  cout << "  GMM\n";
   int d, k, n;
   vector<double> alphas, means, icf, x;
   double err;
@@ -189,7 +189,7 @@ void test_gmm(const string& fn_in, const string& fn_out,
   }
   end = high_resolution_clock::now();
   tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
-  cout << "err: " << err << endl;
+  cout << "    err: " << err << endl;
 
 #ifdef DO_GMM_FULL
   string name = "Adept";
@@ -201,6 +201,8 @@ void test_gmm(const string& fn_in, const string& fn_out,
     icf.data(), x.data(), wishart, err, J.data());
 #endif
 
+  cout << "    ";
+
   write_J(fn_out + "_J_" + name + ".txt", Jrows, Jcols, J.data());
   //write_times(tf, tJ);
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
@@ -211,8 +213,6 @@ double compute_ba_J(int nruns, int n, int m, int p,
   double *cams, double *X, double *w, int *obs, double *feats,
   double *reproj_err, double *w_err, BASparseMat *J)
 {
-	cout << "Test BA" << endl;
-
   if (nruns == 0)
     return 0.;
 
@@ -269,7 +269,7 @@ double compute_ba_J(int nruns, int n, int m, int p,
 
   end = high_resolution_clock::now();
   double t_J = duration_cast<duration<double>>(end - start).count() / nruns;
-  cout << "t_J:" << t_J << endl;
+  cout << "    t_J:" << t_J << endl;
 
   return t_J;
 }
@@ -277,9 +277,13 @@ double compute_ba_J(int nruns, int n, int m, int p,
 void test_ba(const string& fn_in, const string& fn_out,
   int nruns_f, int nruns_J)
 {
+	cout << "  BA" << endl;
+
   int n, m, p;
   vector<double> cams, X, w, feats;
   vector<int> obs;
+
+  cout << "    ";
 
   read_ba_instance(fn_in + ".txt", n, m, p,
     cams, X, w, obs, feats);
@@ -468,7 +472,7 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
 
 int main(int argc, char *argv[])
 {
-  std::cout << "Adept: Begin\n";
+  std::cout << "-Adept\n";
 
   string dir_in(argv[1]);
   string dir_out(argv[2]);

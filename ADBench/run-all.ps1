@@ -19,6 +19,7 @@ function run($tool, $objective)
     & "$bindir\tools\$tool\Tools-$tool-$objective.exe" @args
 }
 
-run Manual GMM $dir/data/gmm/ $dir/tmp/gmm_ test 10 10
 run Adept GMM $dir/data/gmm/ $dir/tmp/gmm_ test 10 10
 run Adept BA $dir/data/ba/ $dir/tmp/ba_ test 10 10
+run ADOLC GMM $dir/data/gmm/ $dir/tmp/gmm_ test 10 10
+run Manual GMM $dir/data/gmm/ $dir/tmp/gmm_ test 10 10
