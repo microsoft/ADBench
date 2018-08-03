@@ -14,7 +14,7 @@
 #define DO_LIGHT_MATRIX
 //#define DO_VXL // this is experimental - vxl does not compile with adouble
 
-#include "./include/adept.h"
+#include "adept.h"
 #include "../cpp-common/utils.h"
 #include "../cpp-common/defs.h"
 
