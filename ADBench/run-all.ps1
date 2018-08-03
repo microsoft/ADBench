@@ -19,7 +19,11 @@ function run($tool, $objective)
     & "$bindir\tools\$tool\Tools-$tool-$objective.exe" @args
 }
 
+if (-Not (Test-Path $dir/tmp)) { mkdir $dir/tmp }
+
 run Adept GMM $dir/data/gmm/ $dir/tmp/gmm_ test 10 10
 run Adept BA $dir/data/ba/ $dir/tmp/ba_ test 10 10
 run ADOLC GMM $dir/data/gmm/ $dir/tmp/gmm_ test 10 10
+run ADOLC BA $dir/data/ba/ $dir/tmp/ba_ test 10 10
 run Manual GMM $dir/data/gmm/ $dir/tmp/gmm_ test 10 10
+run Manual BA $dir/data/ba/ $dir/tmp/ba_ test 10 10

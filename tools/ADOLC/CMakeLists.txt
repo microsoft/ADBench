@@ -7,3 +7,8 @@ target_include_directories("Tools-ADOLC-GMM" PRIVATE "${CMAKE_CURRENT_LIST_DIR}/
 target_link_libraries("Tools-ADOLC-GMM" "${CMAKE_CURRENT_LIST_DIR}/lib/adolc.lib")
 
 file(COPY "${CMAKE_CURRENT_LIST_DIR}/../cpp-common/bin/adolc.dll" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+
+add_executable("Tools-ADOLC-BA" "main.cpp" "include/adolc/adolc.h")
+target_compile_definitions("Tools-ADOLC-BA" PUBLIC "DO_BA_BLOCK" "DO_CPP")
+target_include_directories("Tools-ADOLC-BA" PRIVATE "${CMAKE_CURRENT_LIST_DIR}/include")
+target_link_libraries("Tools-ADOLC-BA" "${CMAKE_CURRENT_LIST_DIR}/lib/adolc.lib")

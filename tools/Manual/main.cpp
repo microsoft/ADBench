@@ -5,10 +5,10 @@
 #include <cassert>
 
 
-#ifdef DO_EIGEN
+/*#ifdef DO_EIGEN
 #define DO_HAND
 #define DO_HAND_COMPLICATED
-#endif
+#endif*/
 
 #include "../cpp-common/utils.h"
 #include "../cpp-common/defs.h"
@@ -102,7 +102,6 @@ void compute_ba_J(int n, int m, int p, double *cams, double *X,
   double *w, int *obs, double *feats, double *reproj_err,
   double *w_err, BASparseMat& J)
 {
-	cout << "  BA\n";
   J = BASparseMat(n,m,p);
 
   int n_new_cols = BA_NCAMPARAMS + 3 + 1;
@@ -136,10 +135,11 @@ void compute_ba_J(int n, int m, int p, double *cams, double *X,
 void test_ba(const string& fn_in, const string& fn_out,
   int nruns_f, int nruns_J)
 {
+	cout << "  BA\n";
   int n, m, p;
   vector<double> cams, X, w, feats;
   vector<int> obs;
-
+  cout << "    ";
   read_ba_instance(fn_in + ".txt", n, m, p,
     cams, X, w, obs, feats);
 
@@ -173,6 +173,7 @@ void test_ba(const string& fn_in, const string& fn_out,
 #else
   string name("manual_cpp");
 #endif
+  cout << "    ";
   write_J_sparse(fn_out + "_J_" + name + ".txt", J);
   write_times(tf, tJ);
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
@@ -295,14 +296,14 @@ int main(int argc, char *argv[])
   bool replicate_point = (argc > 6 && string(argv[6]).compare("-rep") == 0);
 
 #ifdef DO_GMM
-  test_gmm(dir_in + fn, dir_out + "gmm_" + fn, nruns_f, nruns_J, replicate_point);
+  test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
 #endif
 
 #if defined DO_BA
-  test_ba(dir_in + "ba_instances/" + fn, dir_out + "ba_" + fn, nruns_f, nruns_J);
+  test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
 #endif
 
 #if defined DO_HAND || defined DO_HAND_COMPLICATED
-  test_hand(dir_in + "hand/model/", dir_in + "hand_instances/" + fn, dir_out + "hand_" + fn, nruns_f, nruns_J);
+  test_hand(dir_in + "hand/model/", dir_in + fn, dir_out + fn, nruns_f, nruns_J);
 #endif
 }

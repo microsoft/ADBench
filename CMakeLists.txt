@@ -16,9 +16,14 @@ HunterGate(
 project ("ADBench")
 
 # Try to get dependencies
-#hunter_add_package(Eigen VERSION 3.2.5)
-#find_package(Eigen VERSION 3.2.5)
+# hunter_add_package(Eigen VERSION 3.2.5)
+# find_package(Eigen VERSION 3.2.5)
+hunter_add_package(Eigen)
+find_package(Eigen3 REQUIRED)
 
+include_directories("${EIGEN_ROOT}/share/eigen3/cmake")
+
+include_directories("${EIGEN3_INCLUDE_DIRS}")
 
 # Include sub-projects.
 add_subdirectory ("ADBench")

@@ -524,10 +524,12 @@ double compute_ba_J(int nruns, int n, int m, int p,
 void test_ba(const string& fn_in, const string& fn_out,
   int nruns_f, int nruns_J)
 {
+	cout << "  BA" << endl;
+
   int n, m, p;
   vector<double> cams, X, w, feats;
   vector<int> obs;
-
+  cout << "    ";
   read_ba_instance(fn_in + ".txt", n, m, p,
     cams, X, w, obs, feats);
 
