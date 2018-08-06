@@ -21,9 +21,25 @@ function run($tool, $objective)
 
 if (-Not (Test-Path $dir/tmp)) { mkdir $dir/tmp }
 
-run Adept GMM $dir/data/gmm/ $dir/tmp/gmm_ test 10 10
+$tools = @("Adept", "ADOLC", "Manual")
+
+# GMM
+$d_all = @(2, 10, 20) # @(2, 10, 20, 32, 64)
+$k_all = @(5, 10) # @(5, 10, 25, 50, 100, 200)
+if (-Not (Test-Path $dir/tmp/gmm)) { mkdir $dir/tmp/gmm }
+foreach ($tool in $tools) {
+	if (-Not (Test-Path $dir/tmp/gmm/$tool)) { mkdir $dir/tmp/gmm/$tool }
+	foreach ($d in $d_all) {
+		foreach ($k in $k_all) {
+			run $tool GMM $dir/data/gmm/1k/ $dir/tmp/gmm/$tool/ gmm_d$($d)_K$($k) 10 10
+		}
+	}
+}
+
+<#run Adept GMM $dir/data/gmm/ $dir/tmp/gmm_ test 10 10
 run Adept BA $dir/data/ba/ $dir/tmp/ba_ test 10 10
 run ADOLC GMM $dir/data/gmm/ $dir/tmp/gmm_ test 10 10
 run ADOLC BA $dir/data/ba/ $dir/tmp/ba_ test 10 10
+run Ceres GMM $dir/data/gmm/ $dir/tmp/gmm_ test 10 10
 run Manual GMM $dir/data/gmm/ $dir/tmp/gmm_ test 10 10
-run Manual BA $dir/data/ba/ $dir/tmp/ba_ test 10 10
+run Manual BA $dir/data/ba/ $dir/tmp/ba_ test 10 10#>
