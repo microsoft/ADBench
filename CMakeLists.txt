@@ -9,16 +9,21 @@ include("etc/HunterGate.cmake")
 
 HunterGate(
     URL "https://github.com/ruslo/hunter/archive/v0.23.6.tar.gz"
-    SHA1 "53b198e364dc7bc8360fc545f798563229bd7e20"
+    SHA1 "951e8daf57a51708b0e6a00cab342a042db57a2f"
 )
 
 # Declare project name
 project ("ADBench")
 
 # Try to get dependencies
-#hunter_add_package(Eigen VERSION 3.2.5)
-#find_package(Eigen VERSION 3.2.5)
+# hunter_add_package(Eigen VERSION 3.2.5)
+# find_package(Eigen VERSION 3.2.5)
+hunter_add_package(Eigen)
+find_package(Eigen3 REQUIRED)
 
+include_directories("${EIGEN_ROOT}/share/eigen3/cmake")
+
+include_directories("${EIGEN3_INCLUDE_DIRS}")
 
 # Include sub-projects.
 add_subdirectory ("ADBench")

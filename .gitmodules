@@ -1,3 +1,6 @@
-[submodule "Cpp/Adept-2"]
-	path = Cpp/Adept-2
+[submodule "submodules/awful"]
+	path = submodules/awful
+	url = https://github.com/awf/awful
+[submodule "submodules/Adept-2"]
+	path = submodules/Adept-2
 	url = https://github.com/rjhogan/Adept-2

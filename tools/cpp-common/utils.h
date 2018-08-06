@@ -330,9 +330,9 @@ void write_J(const string& fn, int Jrows, int Jcols, double *J)
 
 void write_times(double tf, double tJ)
 {
-  cout << "tf = " << std::scientific << tf << "s" << endl;
-  cout << "tJ = " << tJ << "s" << endl;
-  cout << "tJ/tf = " << tJ / tf << "s" << endl;
+  cout << "    tf = " << std::scientific << tf << "s" << endl;
+  cout << "    tJ = " << tJ << "s" << endl;
+  cout << "    tJ/tf = " << tJ / tf << "s" << endl;
 }
 
 void write_times(const string& fn, double tf, double tJ, double *t_sparsity = nullptr)

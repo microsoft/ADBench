@@ -3,6 +3,8 @@
 #include <chrono>
 #include <set>
 
+#define TOOL_ADEPT
+
 //#define DO_GMM_FULL
 //#define DO_GMM_SPLIT
 //#define DO_BA
@@ -12,18 +14,18 @@
 #define DO_LIGHT_MATRIX
 //#define DO_VXL // this is experimental - vxl does not compile with adouble
 
-#include <adept_source.h>
-#include "../utils.h"
-#include "../defs.h"
+#include "adept.h"
+#include "../cpp-common/utils.h"
+#include "../cpp-common/defs.h"
 
 #if defined DO_GMM_FULL || defined DO_GMM_SPLIT
 #define ADEPT_COMPILATION
-#include "../gmm.h"
+#include "../cpp-common/gmm.h"
 #elif defined DO_BA
-#include "../ba.h"
+#include "../cpp-common/ba.h"
 #elif (defined DO_HAND || defined DO_HAND_COMPLICATED)
 #ifdef DO_LIGHT_MATRIX
-#include "../hand_light_matrix.h"
+#include "../cpp-common/hand_light_matrix.h"
 typedef HandDataLightMatrix HandDataType;
 #elif defined DO_VXL
 #include "hand_vxl.h"
@@ -159,6 +161,7 @@ double compute_gmm_J_split(int nruns,
 void test_gmm(const string& fn_in, const string& fn_out,
   int nruns_f, int nruns_J, bool replicate_point)
 {
+  cout << "  GMM\n";
   int d, k, n;
   vector<double> alphas, means, icf, x;
   double err;
@@ -186,7 +189,7 @@ void test_gmm(const string& fn_in, const string& fn_out,
   }
   end = high_resolution_clock::now();
   tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
-  cout << "err: " << err << endl;
+  cout << "    err: " << err << endl;
 
 #ifdef DO_GMM_FULL
   string name = "Adept";
@@ -197,6 +200,8 @@ void test_gmm(const string& fn_in, const string& fn_out,
   tJ = compute_gmm_J_split(nruns_J, d, k, n, alphas.data(), means.data(), 
     icf.data(), x.data(), wishart, err, J.data());
 #endif
+
+  cout << "    ";
 
   write_J(fn_out + "_J_" + name + ".txt", Jrows, Jcols, J.data());
   //write_times(tf, tJ);
@@ -264,7 +269,7 @@ double compute_ba_J(int nruns, int n, int m, int p,
 
   end = high_resolution_clock::now();
   double t_J = duration_cast<duration<double>>(end - start).count() / nruns;
-  cout << "t_J:" << t_J << endl;
+  cout << "    t_J:" << t_J << endl;
 
   return t_J;
 }
@@ -272,9 +277,13 @@ double compute_ba_J(int nruns, int n, int m, int p,
 void test_ba(const string& fn_in, const string& fn_out,
   int nruns_f, int nruns_J)
 {
+	cout << "  BA" << endl;
+
   int n, m, p;
   vector<double> cams, X, w, feats;
   vector<int> obs;
+
+  cout << "    ";
 
   read_ba_instance(fn_in + ".txt", n, m, p,
     cams, X, w, obs, feats);
@@ -463,6 +472,8 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
 
 int main(int argc, char *argv[])
 {
+  std::cout << "-Adept\n";
+
   string dir_in(argv[1]);
   string dir_out(argv[2]);
   string fn(argv[3]);
