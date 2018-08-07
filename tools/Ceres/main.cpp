@@ -13,15 +13,14 @@
 //#define DO_LIGHT_MATRIX
 
 #include "ceres/ceres.h"
-#include "../utils.h"
+#include "../cpp-common/utils.h"
 
-#if defined DO_GMM && defined DO_CPP
+#if defined DO_GMM
 #include "gmm.h"
-#define GMM_D 64
-#define GMM_K 5
+#define GMM_D 2
+#define GMM_K 3
 #define GMM_ICF_DIM (GMM_D*(GMM_D + 1) / 2)
-
-#elif defined DO_BA && defined DO_CPP
+#elif defined DO_BA
 #include "ba.h"
 
 #elif defined DO_HAND
@@ -76,7 +75,7 @@ void compute_gmm_J(int d, int k, int n, double *alphas,
   CostFunction* cost_function =
     new AutoDiffCostFunction<GMMCostFunctor, 1, GMM_K, GMM_D*GMM_K,
     GMM_ICF_DIM*GMM_K>(new GMMCostFunctor(n, x, wishart));
-
+  // NOTE this line (Above)
   double *params[3];
   params[0] = alphas;
   params[1] = means;
@@ -97,12 +96,14 @@ void convert_gmm_J(int d, int k, double **J_ceres, double *J)
 void test_gmm(const string& fn_in, const string& fn_out,
   int nruns_f, int nruns_J, bool replicate_point)
 {
+	cout << "  GMM" << endl;
   int d, k, n;
   vector<double> alphas, means, icf, x;
   Wishart wishart;
   double err;
 
   // Read instance
+  cout << "    ";
   read_gmm_instance(fn_in + ".txt", &d, &k, &n,
     alphas, means, icf, x, wishart, replicate_point);
 
@@ -255,10 +256,12 @@ void write_J_sparse(const string& fn, ceres::CRSMatrix& J)
 void test_ba(const string& fn_in, const string& fn_out,
   int nruns_f, int nruns_J)
 {
+	cout << "  BA" << endl;
   int n, m, p;
   vector<double> cams, X, w, feats;
   vector<int> obs;
 
+  cout << "    ";
   read_ba_instance(fn_in + ".txt", n, m, p,
     cams, X, w, obs, feats);
 
@@ -326,6 +329,7 @@ void compute_hand_J(
   CostFunction *cost_function =
     new AutoDiffCostFunction<HandCostFunctor, 3 * HAND_NUM_PTS,
     HAND_PARAMS_DIM>(new HandCostFunctor(data));
+  //NOTE this line also
 
   double *tmp_J = &J_ceres[0];
   double *tmp_params = &params[0];
@@ -376,6 +380,8 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
 
 int main(int argc, char** argv)
 {
+	cout << "-Ceres\n";
+
   string dir_in(argv[1]);
   string dir_out(argv[2]);
   string fn(argv[3]);
@@ -386,7 +392,7 @@ int main(int argc, char** argv)
   bool replicate_point = (argc >= 7 && string(argv[6]).compare("-rep") == 0);
 
 #ifdef DO_GMM
-  test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
+  //test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
 #elif defined DO_BA
   test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
 #elif defined DO_HAND
