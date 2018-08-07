@@ -23,8 +23,8 @@ find_package(Eigen3 REQUIRED)
 include_directories("${EIGEN_ROOT}/share/eigen3/cmake")
 include_directories("${EIGEN3_INCLUDE_DIRS}")
 
-hunter_add_package(ceres-solver)
-find_package(Ceres CONFIG REQUIRED)
+#hunter_add_package(ceres-solver)
+#find_package(Ceres CONFIG REQUIRED)
 
 # Include sub-projects.
 add_subdirectory ("ADBench")
