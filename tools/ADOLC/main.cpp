@@ -249,7 +249,7 @@ double compute_gmm_J_split(int nruns,
 void test_gmm(const string& fn_in, const string& fn_out,
   int nruns_f, int nruns_J, bool replicate_point)
 {
-	cout << "  GMM" << endl;
+	//cout << "  GMM" << endl;
 
   int d, k, n;
   vector<double> alphas, means, icf, x;
@@ -278,7 +278,7 @@ void test_gmm(const string& fn_in, const string& fn_out,
   }
   end = high_resolution_clock::now();
   tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
-  cout << "    err: " << err << endl;
+  cout << "        err: " << err << endl;
 
 #ifdef DO_GMM_FULL
   string name = "ADOLC";
@@ -289,8 +289,8 @@ void test_gmm(const string& fn_in, const string& fn_out,
   tJ = compute_gmm_J_split(nruns_J, d, k, n, alphas.data(), means.data(), icf.data(),
     x.data(), wishart, err, J.data());
 #endif
-  cout << "    err: " << err << endl;
-  cout << "    ";
+  cout << "        err: " << err << endl;
+  cout << "        ";
   write_J(fn_out + "_J_" + name + ".txt", Jrows, Jcols, J.data());
   //write_times(tf, tJ);
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
@@ -512,9 +512,9 @@ double compute_ba_J(int nruns, int n, int m, int p,
   delete[] cidxs;
   delete[] nzvals;
 
-  cout << "    t_tape: " << t_tape << endl;
-  cout << "    t_sparsity: " << *t_sparsity << endl;
-  cout << "    t_J:" << t_J << endl;
+  cout << "        t_tape: " << t_tape << endl;
+  cout << "        t_sparsity: " << *t_sparsity << endl;
+  cout << "        t_J:" << t_J << endl;
 
   return t_J;
 }
@@ -524,12 +524,12 @@ double compute_ba_J(int nruns, int n, int m, int p,
 void test_ba(const string& fn_in, const string& fn_out,
   int nruns_f, int nruns_J)
 {
-	cout << "  BA" << endl;
+	//cout << "  BA" << endl;
 
   int n, m, p;
   vector<double> cams, X, w, feats;
   vector<int> obs;
-  cout << "    ";
+  cout << "        ";
   read_ba_instance(fn_in + ".txt", n, m, p,
     cams, X, w, obs, feats);
 
@@ -578,7 +578,7 @@ void test_ba(const string& fn_in, const string& fn_out,
   //write_J_sparse(fn_out + "_J_" + name + ".txt", J);
 }
 
-#elif defined DO_GMM_FULL
+#elif (defined DO_GMM_FULL || defined DO_GMM_SPLIT)
 
 
 #elif defined DO_HAND || defined DO_HAND_SPARSE
@@ -951,7 +951,7 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
 
 int main(int argc, char *argv[])
 {
-	cout << "-ADOLC\n";
+	//cout << "-ADOLC\n";
   string dir_in(argv[1]);
   string dir_out(argv[2]);
   string fn(argv[3]);

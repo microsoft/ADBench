@@ -21,15 +21,17 @@ set(ADOLC_INCLUDE_DIR "${ADOLC_SRC_DIR}/ADOL-C/include")
 include_directories(${ADOLC_INCLUDE_DIR})
 
 # Build GMM
-add_executable("Tools-ADOLC-GMM" "main.cpp" "${ADOLC_INCLUDE_DIR}/adolc/adolc.h")
-target_compile_definitions("Tools-ADOLC-GMM" PUBLIC "DO_GMM_FULL" "DO_CPP")
-#target_include_directories("Tools-ADOLC-GMM" PRIVATE ${ADOLC_INCLUDE_DIR})
-target_link_libraries("Tools-ADOLC-GMM" "${CMAKE_CURRENT_BINARY_DIR}/adol-c/adolc.lib")
+add_executable("Tools-ADOLC-GMM-FULL" "main.cpp" "${ADOLC_INCLUDE_DIR}/adolc/adolc.h")
+target_compile_definitions("Tools-ADOLC-GMM-FULL" PUBLIC "DO_GMM_FULL" "DO_CPP")
+target_link_libraries("Tools-ADOLC-GMM-FULL" "${CMAKE_CURRENT_BINARY_DIR}/adol-c/adolc.lib")
+
+add_executable("Tools-ADOLC-GMM-SPLIT" "main.cpp" "${ADOLC_INCLUDE_DIR}/adolc/adolc.h")
+target_compile_definitions("Tools-ADOLC-GMM-SPLIT" PUBLIC "DO_GMM_SPLIT" "DO_CPP")
+target_link_libraries("Tools-ADOLC-GMM-SPLIT" "${CMAKE_CURRENT_BINARY_DIR}/adol-c/adolc.lib")
 
 # Build BA
 add_executable("Tools-ADOLC-BA" "main.cpp" "${ADOLC_INCLUDE_DIR}/adolc/adolc.h")
 target_compile_definitions("Tools-ADOLC-BA" PUBLIC "DO_BA_BLOCK" "DO_CPP")
-#target_include_directories("Tools-ADOLC-BA" PRIVATE ${ADOLC_INCLUDE_DIR})
 target_link_libraries("Tools-ADOLC-BA" "${CMAKE_CURRENT_BINARY_DIR}/adol-c/adolc.lib")
 
 # Copy DLL

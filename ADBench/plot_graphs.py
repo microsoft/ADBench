@@ -1,8 +1,9 @@
 import os
+import numpy
 from matplotlib import pylab, pyplot
 from mpl_toolkits.mplot3d import Axes3D
 
-tmp_dir = "../tmp/"
+tmp_dir = "../tmp"
 
 # Recursively set in nested dictionary
 def _set_rec(obj, keys, value):
@@ -20,26 +21,31 @@ def _set_rec(obj, keys, value):
 
 # Read results from output files
 results = {}
-for tool in os.listdir(tmp_dir + "gmm"):
-    for filename in os.listdir(tmp_dir + "gmm/" + tool):
-        fn_split = filename.split(".")[0].split("_")
-        if fn_split[3] != "times":
-            continue
+for test in os.listdir(tmp_dir):
+    for tool in os.listdir("{}/{}".format(tmp_dir, test)):
+        for filename in os.listdir("{}/{}/{}".format(tmp_dir, test, tool)):
+            fn_split = filename.split(".")[0].split("_")
+            if fn_split[-2] != "times":
+                continue
 
-        d = int(fn_split[1][1:])
-        k = int(fn_split[2][1:])
+            name = "_".join(fn_split[:-2])
 
-        file = open(tmp_dir + "gmm/" + tool + "/" + filename)
-        contents = file.read()
-        file.close()
+            #d = int(fn_split[1][1:])
+            #k = int(fn_split[2][1:])
 
-        time = float(contents.split(" ")[0])
+            file = open("{}/{}/{}/{}".format(tmp_dir, test, tool, filename))
+            contents = file.read()
+            file.close()
 
-        _set_rec(results, ["gmm", tool, d, k], time)
+            time = float(contents.split(" ")[0])
 
+            _set_rec(results, [test, tool, name], time)
+
+
+# Plot GMM Graphs
 
 # Create axes
-figure = pyplot.figure()
+figure = pyplot.figure(1)
 axes = figure.add_subplot(111, projection="3d")
 
 # Label axes
@@ -47,23 +53,51 @@ axes.set_xlabel("D values")
 axes.set_ylabel("K values")
 axes.set_zlabel("Time taken")
 
+COLORS = ["b", "g", "r", "c", "m", "y", "k", "w"]
+
 # Loop through tools
 for tool in results["gmm"]:
-    # Sort values into single lists
-    d_vals = []
-    k_vals = []
-    t_vals = []
-    for d in sorted(results["gmm"][tool].keys()):
-        for k in sorted(results["gmm"][tool][d].keys()):
-            d_vals.append(d)
-            k_vals.append(k)
-            t_vals.append(results["gmm"][tool][d][k])
+    # Extract values
+    d_vals = [int(key.split("_")[1][1:]) for key in results["gmm"][tool]]
+    k_vals = [int(key.split("_")[2][1:]) for key in results["gmm"][tool]]
+    t_vals = list(results["gmm"][tool].values())
+
+    # 3d stuff
+    def getz(d, k):
+        return results["gmm"][tool]["gmm_d{}_K{}".format(d, k)]
+    X = numpy.array(d_vals)
+    Y = numpy.array(k_vals)
+    X, Y = numpy.meshgrid(X, Y)
+    zs = numpy.array([getz(d, k) for d, k in zip(numpy.ravel(X), numpy.ravel(Y))])
+    Z = zs.reshape(X.shape)
+    # TODO not sure this is right, but test with more data
+
+    pyplot.figure(1)
+    #axes.plot_wireframe(X, Y, Z, label=tool, color=COLORS[list(results["gmm"].keys()).index(tool)])
+    axes.scatter(X, Y, Z, label=tool, color=COLORS[list(results["gmm"].keys()).index(tool)])
+    #axes.plot_surface(X, Y, Z)
 
     # Plot values
-    axes.plot(d_vals, k_vals, t_vals, label=tool)
+    #axes.plot(d_vals, k_vals, t_vals, label=tool)
+    
+    # 2d stuff
+    def getn(key):
+        d = int(key.split("_")[1][1:])
+        k = int(key.split("_")[2][1:])
+        return int(d * (d - 1) / 2 * k)
+    pyplot.figure(2)
+    n_vals = sorted([getn(key) for key in results["gmm"][tool]])
+    t_vals_sorted = [results["gmm"][tool][key] for key in sorted(results["gmm"][tool].keys(), key=lambda key: getn(key))]
+    pyplot.plot(n_vals, t_vals_sorted, marker="x", label=tool)
 
-# Show legend
+
+# Show legends
+pyplot.figure(1)
 pyplot.legend()
+pyplot.figure(2)
+pyplot.legend()
+
+# Display figures
 pyplot.show()
 
 '''    
