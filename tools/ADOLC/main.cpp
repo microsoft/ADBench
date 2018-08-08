@@ -12,8 +12,8 @@ enum adtl::Mode adtl::adouble::forward_mode = ADTL_FOV;
 size_t adtl::adouble::numDir = NUMBER_DIRECTIONS;
 size_t adtl::refcounter::refcnt = 0;
 #else
-#include "./include/adolc/adolc.h"
-#include "./include/adolc/adolc_sparse.h"
+#include "adolc/adolc.h"
+#include "adolc/adolc_sparse.h"
 #endif
 #include "../cpp-common/utils.h"
 #include "../cpp-common/defs.h"

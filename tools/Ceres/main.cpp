@@ -17,8 +17,15 @@
 
 #if defined DO_GMM
 #include "gmm.h"
+
+#ifndef GMM_D
 #define GMM_D 2
-#define GMM_K 3
+#endif
+
+#ifndef GMM_K
+#define GMM_K 5
+#endif
+
 #define GMM_ICF_DIM (GMM_D*(GMM_D + 1) / 2)
 #elif defined DO_BA
 #include "ba.h"
@@ -392,7 +399,7 @@ int main(int argc, char** argv)
   bool replicate_point = (argc >= 7 && string(argv[6]).compare("-rep") == 0);
 
 #ifdef DO_GMM
-  //test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
+  test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
 #elif defined DO_BA
   test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
 #elif defined DO_HAND

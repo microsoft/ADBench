@@ -1,21 +1,36 @@
 
 project("Tools-ADOLC")
 
+# Find Boost
 hunter_add_package(Boost)
 find_package(Boost CONFIG REQUIRED)
 
-message(${BOOST_INCLUDE_DIRS})
+# ADOL-C submodule dir
+set(ADOLC_SRC_DIR "${CMAKE_SOURCE_DIR}/submodules/adol-c")
+set(ADOLC_BIN_DIR "${CMAKE_CURRENT_BINARY_DIR}/adol-c")
 
-# TODO use execute_process here to run build.bat (also add to it with boost and decent paths, etc.)
+# Build ADOL-C
+if (WIN32)
+	message("Running ADOL-C build.bat")
+	execute_process(COMMAND "${CMAKE_CURRENT_LIST_DIR}/build.bat" "${ADOLC_SRC_DIR}" "${ADOLC_BIN_DIR}" "${BOOST_ROOT}/include")
+	message("Finished ADOL-C build.bat")
+endif()
 
-#add_executable("Tools-ADOLC-GMM" "main.cpp" "include/adolc/adolc.h")
-#target_compile_definitions("Tools-ADOLC-GMM" PUBLIC "DO_GMM_FULL" "DO_CPP")
-#target_include_directories("Tools-ADOLC-GMM" PRIVATE "${CMAKE_CURRENT_LIST_DIR}/include")
-#target_link_libraries("Tools-ADOLC-GMM" "${CMAKE_CURRENT_LIST_DIR}/lib/adolc.lib")
+# Include ADOL-C
+set(ADOLC_INCLUDE_DIR "${ADOLC_SRC_DIR}/ADOL-C/include")
+include_directories(${ADOLC_INCLUDE_DIR})
 
-#file(COPY "${CMAKE_CURRENT_LIST_DIR}/../cpp-common/bin/adolc.dll" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+# Build GMM
+add_executable("Tools-ADOLC-GMM" "main.cpp" "${ADOLC_INCLUDE_DIR}/adolc/adolc.h")
+target_compile_definitions("Tools-ADOLC-GMM" PUBLIC "DO_GMM_FULL" "DO_CPP")
+#target_include_directories("Tools-ADOLC-GMM" PRIVATE ${ADOLC_INCLUDE_DIR})
+target_link_libraries("Tools-ADOLC-GMM" "${CMAKE_CURRENT_BINARY_DIR}/adol-c/adolc.lib")
 
-#add_executable("Tools-ADOLC-BA" "main.cpp" "include/adolc/adolc.h")
-#target_compile_definitions("Tools-ADOLC-BA" PUBLIC "DO_BA_BLOCK" "DO_CPP")
-#target_include_directories("Tools-ADOLC-BA" PRIVATE "${CMAKE_CURRENT_LIST_DIR}/include")
-#target_link_libraries("Tools-ADOLC-BA" "${CMAKE_CURRENT_LIST_DIR}/lib/adolc.lib")
+# Build BA
+add_executable("Tools-ADOLC-BA" "main.cpp" "${ADOLC_INCLUDE_DIR}/adolc/adolc.h")
+target_compile_definitions("Tools-ADOLC-BA" PUBLIC "DO_BA_BLOCK" "DO_CPP")
+#target_include_directories("Tools-ADOLC-BA" PRIVATE ${ADOLC_INCLUDE_DIR})
+target_link_libraries("Tools-ADOLC-BA" "${CMAKE_CURRENT_BINARY_DIR}/adol-c/adolc.lib")
+
+# Copy DLL
+file(COPY "${ADOLC_BIN_DIR}/adolc.dll" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
