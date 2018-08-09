@@ -19,7 +19,8 @@ def _set_rec(obj, keys, value):
         return obj
 
 
-# Read results from output files
+# READ IN RESULTS FROM OUTPUT FILES
+
 results = {}
 for test in os.listdir(tmp_dir):
     for tool in os.listdir("{}/{}".format(tmp_dir, test)):
@@ -30,9 +31,6 @@ for test in os.listdir(tmp_dir):
 
             name = "_".join(fn_split[:-2])
 
-            #d = int(fn_split[1][1:])
-            #k = int(fn_split[2][1:])
-
             file = open("{}/{}/{}/{}".format(tmp_dir, test, tool, filename))
             contents = file.read()
             file.close()
@@ -42,7 +40,7 @@ for test in os.listdir(tmp_dir):
             _set_rec(results, [test, tool, name], time)
 
 
-# Plot GMM Graphs
+# PLOT GMM GRAPHS
 
 # Create axes
 figure = pyplot.figure(1)
@@ -53,71 +51,64 @@ axes.set_xlabel("D values")
 axes.set_ylabel("K values")
 axes.set_zlabel("Time taken")
 
+# Color constants
 COLORS = ["b", "g", "r", "c", "m", "y", "k", "w"]
+
+# Lambda functions to sort results
+getd = lambda key: int(key.split("_")[1][1:])
+getk = lambda key: int(key.split("_")[2][1:])
+getn = lambda key: int(getd(key) * (getd(key) - 1) / 2 * getk(key))
+getkey = lambda d, k: "gmm_d{}_K{}".format(d, k)
+getz = lambda d, k: results["gmm"][tool][getkey(d, k)] if getkey(d, k) in results["gmm"][tool] else float("inf")
 
 # Loop through tools
 for tool in results["gmm"]:
-    def getd(key):
-        return int(key.split("_")[1][1:])
-    
-    def getk(key):
-        return int(key.split("_")[2][1:])
-
-    # Extract values
-    sorted_keys = sorted(results["gmm"][tool].keys(), key=lambda key: getd(key) ** 200 + getk(key))
-    d_vals = [getd(key) for key in sorted_keys]
-    k_vals = [getk(key) for key in sorted_keys]
-
-    # 3d stuff
-    def getz(d, k):
-        return results["gmm"][tool]["gmm_d{}_K{}".format(d, k)]
-    X = numpy.array(d_vals)
-    Y = numpy.array(k_vals)
-    X, Y = numpy.meshgrid(X, Y)
-    zs = numpy.array([getz(d, k) for d, k in zip(numpy.ravel(X), numpy.ravel(Y))])
-    Z = zs.reshape(X.shape)
-    # TODO not sure this is right, but test with more data
-
+    # 3D Plot
     pyplot.figure(1)
+
+    # Get values
+    d_vals = numpy.unique(list(map(getd, results["gmm"][tool])))
+    k_vals = numpy.unique(list(map(getk, results["gmm"][tool])))
+    X = numpy.repeat([d_vals], len(k_vals), 0)
+    Y = numpy.repeat([[k] for k in k_vals], len(d_vals), 1)
+    Z = numpy.array([[getz(X[i, j], Y[i, j]) for j in range(len(d_vals))] for i in range(len(k_vals))])
+
+    # Plot
     axes.plot_wireframe(X, Y, Z, label=tool, color=COLORS[list(results["gmm"].keys()).index(tool)])
     #axes.scatter(X, Y, Z, label=tool, color=COLORS[list(results["gmm"].keys()).index(tool)])
-    #axes.plot_surface(X, Y, Z)
-
-    # Plot values
-    #axes.plot(d_vals, k_vals, t_vals, label=tool)
+    #axes.plot_surface(X, Y, Z, color=COLORS[list(results["gmm"].keys()).index(tool)])
     
-    # 2d stuff
-    def getn(key):
-        d = int(key.split("_")[1][1:])
-        k = int(key.split("_")[2][1:])
-        return int(d * (d - 1) / 2 * k)
+    # 2D plot
     pyplot.figure(2)
-    n_vals = sorted([getn(key) for key in results["gmm"][tool]])
-    t_vals_sorted = [results["gmm"][tool][key] for key in sorted(results["gmm"][tool].keys(), key=lambda key: getn(key))]
-    pyplot.plot(n_vals, t_vals_sorted, marker="x", label=tool)
+
+    # Get values
+    key_n_vals = {key: getn(key) for key in results["gmm"][tool]}
+    n_vals = sorted(key_n_vals.values())
+    t_vals = [results["gmm"][tool][key] for key in sorted(key_n_vals.keys(), key=lambda key: key_n_vals[key])]
+
+    # Plot
+    pyplot.plot(n_vals, t_vals, marker="x", label=tool)
 
 
-# Show legends
+# Show 3D legend
 pyplot.figure(1)
 pyplot.legend()
 
+# Show 2D legend, and log-scale axes
 pyplot.figure(2)
 pyplot.xscale("log")
 pyplot.yscale("log")
 pyplot.legend()
 
-# Display figures
-pyplot.show()
 
-'''    
-# Plot results
-pyplot.xlabel("d * k")
-pyplot.ylabel("Run Time (s)")
-for tool in results["gmm"]:
-    pyplot.plot(sorted(results["gmm"][tool].keys()), [results["gmm"][tool][key] for key in sorted(results["gmm"][tool].keys())], marker="x", label=tool)
-    
+# PLOT BA GRAPHS
+
+pyplot.figure(3)
+
+#for tool in results["ba"]:
+#    pass # TODO
+
 pyplot.legend()
-#pylab.savefig("graphs.png")
-pyplot.show()
 
-'''
+# Display all figures
+pyplot.show()

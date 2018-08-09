@@ -7,3 +7,9 @@
 [submodule "submodules/adol-c"]
 	path = submodules/adol-c
 	url = https://gitlab.com/adol-c/adol-c/
+[submodule "submodules/DiffSharp"]
+	path = submodules/DiffSharp
+	url = https://github.com/DiffSharp/DiffSharp
+[submodule "submodules/mathnet-numerics"]
+	path = submodules/mathnet-numerics
+	url = https://github.com/mathnet/mathnet-numerics
