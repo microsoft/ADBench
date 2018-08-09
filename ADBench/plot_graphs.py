@@ -37,7 +37,7 @@ for test in os.listdir(tmp_dir):
             contents = file.read()
             file.close()
 
-            time = float(contents.split(" ")[0])
+            time = float(contents.replace("\n", " ").split(" ")[1])
 
             _set_rec(results, [test, tool, name], time)
 
@@ -57,10 +57,16 @@ COLORS = ["b", "g", "r", "c", "m", "y", "k", "w"]
 
 # Loop through tools
 for tool in results["gmm"]:
+    def getd(key):
+        return int(key.split("_")[1][1:])
+    
+    def getk(key):
+        return int(key.split("_")[2][1:])
+
     # Extract values
-    d_vals = [int(key.split("_")[1][1:]) for key in results["gmm"][tool]]
-    k_vals = [int(key.split("_")[2][1:]) for key in results["gmm"][tool]]
-    t_vals = list(results["gmm"][tool].values())
+    sorted_keys = sorted(results["gmm"][tool].keys(), key=lambda key: getd(key) ** 200 + getk(key))
+    d_vals = [getd(key) for key in sorted_keys]
+    k_vals = [getk(key) for key in sorted_keys]
 
     # 3d stuff
     def getz(d, k):
@@ -73,8 +79,8 @@ for tool in results["gmm"]:
     # TODO not sure this is right, but test with more data
 
     pyplot.figure(1)
-    #axes.plot_wireframe(X, Y, Z, label=tool, color=COLORS[list(results["gmm"].keys()).index(tool)])
-    axes.scatter(X, Y, Z, label=tool, color=COLORS[list(results["gmm"].keys()).index(tool)])
+    axes.plot_wireframe(X, Y, Z, label=tool, color=COLORS[list(results["gmm"].keys()).index(tool)])
+    #axes.scatter(X, Y, Z, label=tool, color=COLORS[list(results["gmm"].keys()).index(tool)])
     #axes.plot_surface(X, Y, Z)
 
     # Plot values
@@ -94,7 +100,10 @@ for tool in results["gmm"]:
 # Show legends
 pyplot.figure(1)
 pyplot.legend()
+
 pyplot.figure(2)
+pyplot.xscale("log")
+pyplot.yscale("log")
 pyplot.legend()
 
 # Display figures

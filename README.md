@@ -4,8 +4,6 @@
 
 To provide a running-time comparison for different tools for automatic differentiation. Should eventually output a set of relevant graphs.
 
-**NOTE** - the scripts in ADBench (run-all.ps1 and plot_graphs.py) may not work in their current state.
-
 ## Usage
 
 All tools should build (along with any external packages) and run very easily.
