@@ -1,6 +1,8 @@
 set dsdir=C:/ZS/autodiff/submodules/DiffSharp
 set bindir="C:/Users/Zak Smith/CMakeBuilds/95e43dd6-1979-0633-8dca-9ab4e04499c8/build/x64-Debug/tools/DiffSharp"
 
+rem TODO remove hard paths
+
 dotnet build %dsdir%/src/DiffSharp/Diffsharp.fsproj -o %bindir%
 rmdir /s /q "%dsdir%/src/DiffSharp/obj"
 

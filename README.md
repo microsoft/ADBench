@@ -4,7 +4,18 @@
 
 To provide a running-time comparison for different tools for automatic differentiation. Should eventually output a set of relevant graphs.
 
-## Usage
+## Prerequisites
+
+- CMake
+- .NET
+- Python (with the following `pip` modules)
+	- numpy
+	- scipy
+	- matplotlib
+	- autograd
+	- Theano
+
+## Installation/Usage
 
 All tools should build (along with any external packages) and run very easily.
 
@@ -12,14 +23,7 @@ All tools should build (along with any external packages) and run very easily.
 2) Run cmake
 3) Build
 4) Run ADBench/run-all.ps1
-
-In order to run Python tools, the following packages are required (just `pip install` each of them):
-
-- numpy
-- scipy
-- matplotlib
-- autograd
-- Theano
+5) Run ADBench/plot_graphs.py
 
 ## Folder structure
 

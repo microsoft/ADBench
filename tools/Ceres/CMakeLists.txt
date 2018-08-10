@@ -7,9 +7,6 @@ find_package(Ceres CONFIG REQUIRED)
 include_directories("${CERES_INCLUDE_DIRS}")
 
 # Create GMM with different #define D and K values
-set(D_VALS 2 10) # NOTE unable to run 20, 32 due to memory error
-set(K_VALS 5 10 25 50) # removed 100, 200 as well
-# NOTE may be able to run more than is done here
 foreach (D_VAL ${D_VALS})
 	foreach (K_VAL ${K_VALS})
 		add_executable("Tools-Ceres-GMM-d${D_VAL}-K${K_VAL}" "main.cpp" "${CERES-SOLVER_ROOT}/include/ceres/ceres.h")

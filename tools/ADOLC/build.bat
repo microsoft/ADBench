@@ -3,6 +3,7 @@ set bindir=%2
 set boostdir=%3
 
 call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" amd64
+rem TODO remove hard paths
 
 set INCLUDE="%INCLUDE%%srcdir%/MSVisualStudio/v14/x64/nosparse;%boostdir%;%srcdir%/MSVisualStudio/v14/nosparse;"
 

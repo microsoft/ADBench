@@ -82,7 +82,7 @@ void compute_gmm_J(int d, int k, int n, double *alphas,
   CostFunction* cost_function =
     new AutoDiffCostFunction<GMMCostFunctor, 1, GMM_K, GMM_D*GMM_K,
     GMM_ICF_DIM*GMM_K>(new GMMCostFunctor(n, x, wishart));
-  // NOTE this line (Above)
+
   double *params[3];
   params[0] = alphas;
   params[1] = means;
@@ -336,7 +336,6 @@ void compute_hand_J(
   CostFunction *cost_function =
     new AutoDiffCostFunction<HandCostFunctor, 3 * HAND_NUM_PTS,
     HAND_PARAMS_DIM>(new HandCostFunctor(data));
-  //NOTE this line also
 
   double *tmp_J = &J_ceres[0];
   double *tmp_params = &params[0];

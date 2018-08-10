@@ -1,5 +1,5 @@
 # Accept command-line args
-param([int]$global:nruns_f=10, [int]$global:nruns_J=10, [string]$global:tmpdir="")
+param([int]$script:nruns_f=10, [int]$script:nruns_J=10, [string]$script:tmpdir="")
 
 # Assert function
 function assert ($expr) {
@@ -10,18 +10,18 @@ function assert ($expr) {
 
 # Get source dir
 
-$global:dir = split-path ($MyInvocation.MyCommand.Path)
-assert { $global:dir -match 'ADbench$' }
-$global:dir = Split-Path $global:dir
+$script:dir = split-path ($MyInvocation.MyCommand.Path)
+assert { $script:dir -match 'ADbench$' }
+$script:dir = Split-Path $script:dir
 
-Write-Host "$global:dir"
+Write-Host "$script:dir"
 
 # Load bindir variable
-assert "Test-Path" "$global:dir/ADBench/cmake_vars.ps1"
-. $global:dir/ADBench/cmake_vars.ps1
+assert "Test-Path" "$script:dir/ADBench/cmake_vars.ps1"
+. $script:dir/ADBench/cmake_vars.ps1
 
 # Set tmpdir default
-if (!$global:tmpdir) { $global:tmpdir = "$dir/tmp" }
+if (!$script:tmpdir) { $script:tmpdir = "$dir/tmp" }
 
 
 # Custom Tool class
@@ -32,19 +32,14 @@ Class Tool {
 	[bool]$gmm_use_defs
 
 	# Static constants
-
-	# GMM values - NOTE not all implemented for ceres
-	static [int[]]$gmm_d_vals = @(2, 10) # @(2, 10, 20, 32, 64)
-	static [int[]]$gmm_k_vals = @(5, 10, 25) # @(5, 10, 25, 50, 100, 200)
-
 	static [string]$gmm_dir_in = "$dir/data/gmm/1k/"
 
 	# Constructor
-	Tool ([string]$name, [bool]$gmm_both, [string]$type, [bool]$gmm_defs) {
+	Tool ([string]$name, [bool]$gmm_both, [string]$type, [bool]$gmm_use_defs) {
 		$this.name = $name
 		$this.gmm_both = $gmm_both
 		$this.type = $type
-		$this.gmm_use_defs = $gmm_defs
+		$this.gmm_use_defs = $gmm_use_defs
 	}
 
 	# Run all tests for this tool
@@ -56,13 +51,13 @@ Class Tool {
 	# Run a single test
 	[void] run ([string]$objective, [string]$dir_in, [string]$dir_out, [string]$fn) {
 		$cmd = ""
-		$cmdargs = @($dir_in, $dir_out, $fn, $global:nruns_f, $global:nruns_J)
+		$cmdargs = @($dir_in, $dir_out, $fn, $script:nruns_f, $script:nruns_J)
 		if ($this.type -eq "bin") {
-			$cmd = "$global:bindir\tools\$($this.name)\Tools-$($this.name)-$objective.exe"
+			$cmd = "$script:bindir\tools\$($this.name)\Tools-$($this.name)-$objective.exe"
 		} elseif ($this.type -eq "py") {
 			$objective = $objective.ToLower().Replace("-", "_")
 			$cmd = "python"
-			$cmdargs = @("$global:dir/tools/$($this.name)/$($this.name)_$objective.py") + $cmdargs
+			$cmdargs = @("$script:dir/tools/$($this.name)/$($this.name)_$objective.py") + $cmdargs
 		}
 
 		& $cmd @cmdargs
@@ -78,12 +73,12 @@ Class Tool {
 
 		Write-Host "  GMM$type"
 
-		$dir_out = "$global:tmpdir/gmm/$($this.name)/"
+		$dir_out = "$script:tmpdir/gmm/$($this.name)/"
 		if (-Not (Test-Path $dir_out)) { mkdir $dir_out }
 
-		foreach ($d in [Tool]::gmm_d_vals) {
+		foreach ($d in $script:gmm_d_vals) {
 			Write-Host "    d=$d"
-			foreach ($k in [Tool]::gmm_k_vals) {
+			foreach ($k in $script:gmm_k_vals) {
 				Write-Host "      K=$k"
 				$obj = "GMM$type"
 				if ($this.gmm_use_defs) { $obj += "-d$d-K$k" }
