@@ -13,15 +13,21 @@
 //#define DO_LIGHT_MATRIX
 
 #include "ceres/ceres.h"
-#include "../utils.h"
+#include "../cpp-common/utils.h"
 
-#if defined DO_GMM && defined DO_CPP
+#if defined DO_GMM
 #include "gmm.h"
-#define GMM_D 64
-#define GMM_K 5
-#define GMM_ICF_DIM (GMM_D*(GMM_D + 1) / 2)
 
-#elif defined DO_BA && defined DO_CPP
+#ifndef GMM_D
+#define GMM_D 2
+#endif
+
+#ifndef GMM_K
+#define GMM_K 5
+#endif
+
+#define GMM_ICF_DIM (GMM_D*(GMM_D + 1) / 2)
+#elif defined DO_BA
 #include "ba.h"
 
 #elif defined DO_HAND
@@ -97,12 +103,14 @@ void convert_gmm_J(int d, int k, double **J_ceres, double *J)
 void test_gmm(const string& fn_in, const string& fn_out,
   int nruns_f, int nruns_J, bool replicate_point)
 {
+	//cout << "  GMM" << endl;
   int d, k, n;
   vector<double> alphas, means, icf, x;
   Wishart wishart;
   double err;
 
   // Read instance
+  cout << "        ";
   read_gmm_instance(fn_in + ".txt", &d, &k, &n,
     alphas, means, icf, x, wishart, replicate_point);
 
@@ -255,10 +263,12 @@ void write_J_sparse(const string& fn, ceres::CRSMatrix& J)
 void test_ba(const string& fn_in, const string& fn_out,
   int nruns_f, int nruns_J)
 {
+	//cout << "  BA" << endl;
   int n, m, p;
   vector<double> cams, X, w, feats;
   vector<int> obs;
 
+  cout << "        ";
   read_ba_instance(fn_in + ".txt", n, m, p,
     cams, X, w, obs, feats);
 
@@ -376,6 +386,8 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
 
 int main(int argc, char** argv)
 {
+	//cout << "-Ceres\n";
+
   string dir_in(argv[1]);
   string dir_out(argv[2]);
   string fn(argv[3]);

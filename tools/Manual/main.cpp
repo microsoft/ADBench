@@ -41,7 +41,7 @@ using namespace std::chrono;
 void test_gmm(const string& fn_in, const string& fn_out,
   int nruns_f, int nruns_J, bool replicate_point)
 {
-	cout << "  GMM\n";
+	//cout << "  GMM\n";
   int d, k, n;
   vector<double> alphas, means, icf, x;
   double err;
@@ -69,7 +69,7 @@ void test_gmm(const string& fn_in, const string& fn_out,
   }
   end = high_resolution_clock::now();
   tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
-  cout << "    err: " << err << endl;
+  cout << "        err: " << err << endl;
 
   start = high_resolution_clock::now();
   for (int i = 0; i < nruns_J; i++)
@@ -79,7 +79,7 @@ void test_gmm(const string& fn_in, const string& fn_out,
   }
   end = high_resolution_clock::now();
   tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
-  cout << "    err: " << err << endl;
+  cout << "        err: " << err << endl;
 
 #ifdef DO_CPP
   string name("manual_cpp");
@@ -90,7 +90,7 @@ void test_gmm(const string& fn_in, const string& fn_out,
 #else
   string name("manual");
 #endif
-  cout << "    ";
+  cout << "        ";
   write_J(fn_out + "_J_" + name + ".txt", Jrows, Jcols, J.data());
   //write_times(tf, tJ);
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
@@ -135,11 +135,11 @@ void compute_ba_J(int n, int m, int p, double *cams, double *X,
 void test_ba(const string& fn_in, const string& fn_out,
   int nruns_f, int nruns_J)
 {
-	cout << "  BA\n";
+	//cout << "  BA\n";
   int n, m, p;
   vector<double> cams, X, w, feats;
   vector<int> obs;
-  cout << "    ";
+  cout << "        ";
   read_ba_instance(fn_in + ".txt", n, m, p,
     cams, X, w, obs, feats);
 
@@ -173,7 +173,7 @@ void test_ba(const string& fn_in, const string& fn_out,
 #else
   string name("manual_cpp");
 #endif
-  cout << "    ";
+  cout << "        ";
   write_J_sparse(fn_out + "_J_" + name + ".txt", J);
   write_times(tf, tJ);
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
@@ -275,7 +275,7 @@ char* defaults[] = {
 
 int main(int argc, char *argv[])
 {
-	std::cout << "-Manual\n";
+	//std::cout << "-Manual\n";
 	
 	if (argc < 2) {
 		argc = 6;
