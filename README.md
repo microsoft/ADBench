@@ -8,12 +8,14 @@ To provide a running-time comparison for different tools for automatic different
 
 - CMake
 - .NET
+- FSharp
 - Python (with the following `pip` modules)
 	- numpy
 	- scipy
 	- matplotlib
 	- autograd
 	- Theano
+- Powershell (default on Windows)
 
 ## Installation/Usage
 
