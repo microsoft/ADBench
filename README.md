@@ -21,7 +21,7 @@ To provide a running-time comparison for different tools for automatic different
 
 All tools should build (along with any external packages) and run very easily.
 
-1) Clone the repository
+1) Clone the repository (make sure submodules are cloned properly)
 2) Run cmake
 3) Build
 4) Run ADBench/run-all.ps1
