@@ -33,6 +33,9 @@ Class Tool {
 
 	# Static constants
 	static [string]$gmm_dir_in = "$dir/data/gmm/1k/"
+	static [string]$ba_dir_in = "$dir/data/ba/"
+	static [int]$ba_min_n = 1
+	static [int]$ba_max_n = 20
 
 	# Constructor
 	Tool ([string]$name, [bool]$gmm_both, [string]$type, [bool]$gmm_use_defs) {
@@ -46,6 +49,7 @@ Class Tool {
 	[void] runall () {
 		Write-Host $this.name
 		$this.testgmm("")
+		$this.testba()
 	}
 
 	# Run a single test
@@ -84,6 +88,19 @@ Class Tool {
 				if ($this.gmm_use_defs) { $obj += "-d$d-K$k" }
 				$this.run($obj, [Tool]::gmm_dir_in, $dir_out, "gmm_d$($d)_K$($k)")
 			}
+		}
+	}
+
+	# Run all BA tests for this tool
+	[void] testba () {
+		Write-Host "  BA"
+
+		$dir_out = "$script:tmpdir/ba/$($this.name)/"
+		if (-Not (Test-Path $dir_out)) { mkdir $dir_out }
+
+		for ($n = [Tool]::ba_min_n; $n -le [Tool]::ba_max_n; $n++) {
+			Write-Host "    $n"
+			$this.run("BA", [Tool]::ba_dir_in, $dir_out, "ba$n")
 		}
 	}
 }
