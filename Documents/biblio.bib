@@ -1,0 +1,389 @@
+% This file was created with JabRef 2.10.
+% Encoding: UTF8
+
+@MISC{eigen,
+  author = {Ga\"{e}l Guennebaud and Beno\^{i}t Jacob and others},
+  title = {Eigen v3},
+  howpublished = {http://eigen.tuxfamily.org},
+  year = {2010}
+ }
+ 
+@article{colpack,
+ author = {Gebremedhin, A. H. and Nguyen, D. and Patwary, Md. M. A. and Pothen, A.},
+ title = {ColPack: Software for Graph Coloring and Related Problems in Scientific Computing},
+ journal = {ACM Trans. Math. Softw.},
+ issue_date = {September 2013},
+ volume = {40},
+ number = {1},
+ month = oct,
+ year = {2013},
+ issn = {0098-3500},
+ pages = {1:1--1:31},
+ articleno = {1},
+ numpages = {31},
+ doi = {10.1145/2513109.2513110},
+ acmid = {2513110},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ keywords = {Automatic differentiation, combinatorial optimization, graph coloring, greedy coloring algorithms, nonlinear optimization, sparse derivative computation, vertex ordering techniques},
+} 
+
+@Misc{autodiff-org,
+  Title                    = {Community Portal for Automatic Differentiation},
+
+  Author                   = {M. Bückler and P. Hovland and C. Wente and H. Bach},
+  HowPublished             = {\url{http://www.autodiff.org/}}
+}
+
+@Misc{ceres,
+  Title                    = {{C}eres {S}olver},
+
+  Author                   = {S. Agarwal and K. Mierle and Others},
+  HowPublished             = {\url{http://ceres-solver.org}}
+}
+
+@Misc{Bastien12theano,
+  Title                    = {Theano: new features and speed improvements},
+
+  Author                   = {Bastien, F. and Lamblin, P. and Pascanu, R. and Bergstra, J. and Goodfellow, I. J. and Bergeron, A. and Bouchard, N. and Bengio, Y.},
+  HowPublished             = {{DLUFL NIPS} Workshop},
+  Year                     = {2012},
+
+  Abstract                 = {Theano is a linear algebra compiler that optimizes a user’s symbolically-speciﬁed
+mathematical computations to produce efﬁcient low-level implementations. In
+this paper, we present new features and efﬁciency improvements to Theano, and
+benchmarks demonstrating Theano’s performance relative to Torch7, a recently
+introduced machine learning library, and to RNNLM, a C++ library targeted at
+recurrent neural networks.}
+}
+
+@Article{Durrbaum02comparison,
+    author="D{\"u}rrbaum, Axel and Klier, Willy and Hahn, Hubert",
+    title="Comparison of Automatic and Symbolic Differentiation in Mathematical Modeling and Computer Simulation of Rigid-Body Systems",
+    journal="Multibody System Dynamics",
+    year="2002",
+    month="May",
+    day="01",
+    volume="7",
+    number="4",
+    pages="331--355",
+    abstract="The objective of this paper is to check the efficiency and validity of two approaches for computing derivatives of complex functions,automatic differentiation using ADOLC and symbolic differentiation using MACSYMA. This has been done in three benchmark examples, where the gradient of a Helmholtz energy function has been computed for different dimensions of independent variables (Example 1)and Jacobian matrices of inverse kinematics of planar and spatial parallel robots (Examples 2 and 3) have been computed. The results havebeen evaluated under six criteria: preliminary implementation work,computation time, flexibility in applications, limits of applicability,accuracy, and memory requirements."
+}
+
+@Article{Baydin15survey,
+  Title                    = {Automatic differentiation in machine learning: a survey},
+  Author                   = {Baydin, A. G. and Pearlmutter, B. A. and Radul, A. A. and Siskind, J. M.},
+  Journal                  = {arXiv preprint arXiv:1502.05767},
+  Year                     = {2015}
+}
+
+@InProceedings{Bergstra10theano,
+  Title                    = {Theano: a {CPU} and {GPU} Math Expression Compiler},
+  Author                   = {Bergstra, J. and Breuleux, O. and Bastien, F. and Lamblin, P. and Pascanu, R. and Desjardins, G. and Turian, J. and Warde-Farley, D. and Bengio, Y.},
+  Booktitle                = {{SciPy}},
+  Year                     = {2010},
+
+  Abstract                 = {Theano is a compiler for mathematical expressions in Python that combines the convenience of NumPy’s syntax with the speed of optimized native machine language. The user composes mathematical expressions in a high-level description that mimics NumPy’s syntax and semantics, while being statically typed and
+functional (as opposed to imperative). These expressions allow Theano to provide symbolic differentiation. Before performing computation, Theano optimizes the choice of expressions, translates
+them into C++ (or CUDA for GPU), compiles them into dynamically loaded Python modules, all automatically. Common machine learning algorithms implemented with Theano are from 1.6× to 7.5× faster than competitive alternatives (including those implemented with C/C++, NumPy/SciPy and MATLAB) when compiled for the
+CPU and between 6.5× and 44× faster when compiled for the GPU. This paper illustrates how to use Theano, outlines the scope of the compiler, provides benchmarks on both CPU and GPU processors, and explains its overall design.},
+  Location                 = {Austin, TX}
+}
+
+@InProceedings{Bischof02adimat,
+  Title                    = {Combining Source Transformation and Operator Overloading Techniques to Compute
+ Derivatives for {MATLAB} Programs},
+  Author                   = {C. H.~Bischof and H. M. B{\"u}cker and B. Lang and A. Rasch and A. Vehreschild},
+  Booktitle                = {{SCAM}},
+  Year                     = {2002},
+  Pages                    = {65--72},
+
+  Abstract                 = {Derivatives of mathematical functions play a key role in various areas of numerical
+ and technical computing. MATLAB is a popular environmen t for technical computing providing
+ engineers and scientists with capabilities fo r mathematical computing, analysis, visualization, and
+ algorithmic development. For functions written in the MATLAB language, a novel software tool is
+ proposed to automatically transform a given MATLAB program into another MATLA B program capable of
+ computing not only the original function but also user -specified derivatives of that function. That
+ is, a program transformation k nown as automatic differentiation is performed to change the
+ semantics of a program in a fashion based on the chain rule of differential calculus. Th e crucial
+ ingredient of the tool is a combination of source-to-source trans formation and operator
+ overloading. The overall design of the tool is described and numerical experiments are reported
+ demonstrating the efficiency of the resu lting code for a sample problem.},
+  Ad_tools                 = {ADiMat},
+  Doi                      = {10.1109/SCAM.2002.1134106}
+}
+
+@Article{Hascoet13tapenade,
+  Title                    = {The {T}apenade Automatic Differentiation tool: {P}rinciples, Model, and
+ Specification},
+  Author                   = {Hasco{\"e}t, L. and Pascual, V.},
+  Journal                  = {{ACM TOMS}},
+  Year                     = {2013},
+  Number                   = {3},
+  Pages                    = {20:1--20:43},
+  Volume                   = {39},
+
+  Ad_theotech              = {Adjoint, Checkpointing, control-flow reversal, Data Flow Analysis, data-flow
+ reversal, Implementation Strategies, Reverse Mode, Source transformation, Static Analysis},
+  Ad_tools                 = {TAPENADE}
+}
+
+@Article{Hogan14adept,
+  Title                    = {Fast Reverse-Mode Automatic Differentiation Using Expression Templates in {C++}},
+  Author                   = {R. J. Hogan},
+  Journal                  = {{ACM TOMS}},
+  Year                     = {2014},
+  Number                   = {4},
+  Pages                    = {26:1--26:24},
+  Volume                   = {40},
+
+  Abstract                 = {Gradient-based optimization problems are encountered in many fields, but the
+ associated task of differentiating large computer algorithms can be formidable. The
+ operator-overloading approach to performing reverse-mode automatic differentiation is the most
+ convenient for the user but current implementations are typically 10-35 times slower than the
+ original algorithm. In this paper a fast new operator-overloading method is presented that uses the
+ \textit{expression template} programming technique in C++ to provide a compile-time
+ representation of each mathematical expression as a computational graph that can be efficiently
+ traversed in either direction. Benchmarking with four different numerical algorithms shows this
+ approach to be 2.6--9 times faster than current operator-overloading libraries, and 1.3--7.7 times
+ more efficient in memory usage. It is typically less than 4 times the computational cost of the
+ original algorithm, although poorer performance is found for all libraries in the case of simple
+ loops containing no mathematical functions. An implementation is freely available in the
+ \textit{Adept} C++ software library.},
+  Accepted                 = {9 December 2013},
+  Ad_tools                 = {Adept}
+}
+
+@inproceedings{autograd,
+  title={Autograd: Effortless gradients in numpy},
+  author={Maclaurin, D. and Duvenaud, D. and Adams, R. P.},
+  booktitle={ICML 2015 AutoML Workshop},
+  year={2015}
+}
+
+@inproceedings{Siskind16,
+  title={Efficient Implementation of a Higher-Order Language with Built-In AD},
+  author={Siskind, Jeffrey Mark and Pearlmutter, Barak A},
+  booktitle={AD2016: Programme and Abstracts},
+  year={2016}
+}
+
+@book{Griewank08,
+  title={Evaluating derivatives: principles and techniques of algorithmic differentiation},
+  author={Griewank, A. and Walther, A.},
+  year={2008},
+  publisher={SIAM}
+}
+
+@Article{Narayanan10adic2,
+  Title                    = {{ADIC2}: Development of a component source transformation system for differentiating C and C++},
+  Author                   = {S. H. K. Narayanan and B. Norris and B. Winnicka},
+  Journal                  = {Procedia Computer Science},
+  Year                     = {2010},
+  Number                   = {1},
+  Pages                    = {1845 - 1853},
+  Volume                   = {1},
+
+  Abstract                 = {We present a new tool, ADIC2, for automatic differentiation (AD) of C and C++ code through source-to-source transformation. \{ADIC2\} is the successor of the \{ADIC\} differentiation tool, which supports forward mode \{AD\} of C and a small subset of C++. \{ADIC2\} was completely redesigned and reimplemented as part of the OpenAD software framework, resulting in a robust, flexible, and extensible tool for differentiating C and some features of C++, with plans for full support of C++ in the near future. We discuss some of the challenges in creating \{AD\} tools for C and C++ in general and describe the component approach employed in the design and implementation of ADIC2. },
+  Doi                      = {http://dx.doi.org/10.1016/j.procs.2010.04.206},
+  ISSN                     = {1877-0509},
+  Keywords                 = {Automatic differentiation}
+}
+
+@InProceedings{Snavely-siggraph06,
+  Title                    = {Photo tourism: Exploring photo collections in 3D},
+  Author                   = {Snavely, N. and Seitz, S. M. and Szeliski, R.},
+  Booktitle                = {SIGGRAPH},
+  Year                     = {2006},
+  Pages                    = {835--846},
+
+  ISBN                     = {1-59593-364-6},
+  Timestamp                = {2016.04.25}
+}
+
+@Article{Agarwal-acm11,
+  Title                    = {Building Rome in a Day},
+  Author                   = {Agarwal, S. and Furukawa, Y. and Snavely, N. and Simon, I. and Curless, B. and Seitz, S. M. and Szeliski, R.},
+  Journal                  = {Commun. ACM},
+  Year                     = {2011},
+
+  Month                    = oct,
+  Number                   = {10},
+  Pages                    = {105--112},
+  Volume                   = {54},
+
+  Acmid                    = {2001293},
+  Address                  = {New York, NY, USA},
+  Doi                      = {10.1145/2001269.2001293},
+  ISSN                     = {0001-0782},
+  Issue_date               = {October 2011},
+  Numpages                 = {8},
+  Publisher                = {ACM},
+  Timestamp                = {2016.04.25}
+}
+
+@Inbook{Sattler12-localization,
+author="Sattler, Torsten
+and Leibe, Bastian
+and Kobbelt, Leif",
+title="Towards Fast Image-Based Localization on a City-Scale",
+bookTitle="Outdoor and Large-Scale Real-World Scene Analysis: 15th International Workshop on Theoretical Foundations of Computer Vision",
+year="2012",
+publisher="Springer Berlin Heidelberg",
+pages="191--211",
+isbn="978-3-642-34091-8"
+}
+
+@article{Davison07monoslam,
+  title={MonoSLAM: Real-time single camera SLAM},
+  author={Davison, Andrew J. and Reid, Ian D. and Molton, Nicholas D. and Stasse, Olivier},
+  journal={IEEE transactions on pattern analysis and machine intelligence},
+  volume={29},
+  number={6},
+  year={2007},
+  publisher={IEEE}
+}
+
+@inproceedings{Shapira16reality,
+  title={Reality Skins: Creating Immersive and Tactile Virtual Environments},
+  author={Shapira, Lior and Freedman, Daniel},
+  booktitle={Mixed and Augmented Reality (ISMAR), IEEE International Symposium on},
+  pages={115--124},
+  year={2016},
+  organization={IEEE}
+}
+
+@book{Yu14automatic,
+  title={Automatic speech recognition: A deep learning approach},
+  author={Yu, Dong and Deng, Li},
+  year={2014},
+  publisher={Springer}
+}
+
+@Book{HZ04,
+  Title                    = {Multiple View Geometry in Computer Vision},
+  Author                   = {Hartley, R.~I. and Zisserman, A.},
+  Publisher                = {Cambridge University Press},
+  Year                     = {2004},
+  Edition                  = {Second},
+
+  Timestamp                = {2016.05.20}
+}
+
+@ARTICLE{adigator,
+       author = "Patterson, M. A. and Weinstein, M. and Rao, A. V.",
+       title = "An efficient overloaded method for computing derivatives of mathematical functions in MATLAB",
+       journal = "ACM Trans. Math. Softw.",
+       issue_date = "April 2013",
+       volume = "39",
+       number = "3",
+       month = "may",
+       year = "2013",
+       issn = "0098-3500",
+       pages = "17:1--17:36",
+       articleno = "17",
+       numpages = "36",
+       acmid = "2450155",
+       publisher = "ACM",
+       address = "New York, NY, USA",
+       keywords = "Automatic differentiation, MATLAB, applied mathematics, numerical methods,
+         scientific computation",
+       ad_tools = "ADiGator"
+}
+
+@article{julia-fwd-diff,
+    title = {Forward-Mode Automatic Differentiation in Julia},
+   author = {{Revels}, J. and {Lubin}, M. and {Papamarkou}, T.},
+  journal = {arXiv:1607.07892 [cs.MS]},
+     year = {2016}
+}
+
+@InProceedings{Taylor14hand,
+  Title                    = {User-Specific Hand Modeling from Monocular Depth Sequences},
+  Author                   = {Taylor, J. and Stebbing, R. and Ramakrishna, V. and Keskin, C. and Shotton, J. and Izadi, S. and Hertzmann, A. and Fitzgibbon, A.},
+  Booktitle                = {CVPR},
+  Year                     = {2014}
+}
+
+@Misc{mupad,
+  Title                    = {MuPAD},
+
+  Author                   = {{The MathWorks, Inc.}},
+  HowPublished             = {MATLAB Symbolic Math Toolbox}
+}
+
+@InProceedings{Triggs99ba,
+  Title                    = {Bundle Adjustment - A Modern Synthesis},
+  Author                   = {Triggs, B. and McLauchlan, P. F. and Hartley, R. I. and Fitzgibbon, A. W.},
+  Booktitle                = {Proc. of the Intl. Workshop on Vision Algorithms: Theory and Practice},
+  Year                     = {2000},
+  Pages                    = {298--372},
+  Series                   = {ICCV},
+
+  Acmid                    = {685629},
+  ISBN                     = {3-540-67973-1},
+  Numpages                 = {75}
+}
+
+@Misc{clad,
+  Title                    = {clad},
+
+  Author                   = {V. Vassilev and V. Ilieva and L. Moneta and A. Penev and M. Vassilev},
+  HowPublished             = {\url{https://github.com/vgvassilev/clad}},
+
+  Timestamp                = {2016.03.08}
+}
+
+@InCollection{Walther12adolc,
+  Title                    = {Getting started with {ADOL-C}},
+  Author                   = {A. Walther and A. Griewank},
+  Booktitle                = {Combinatorial Scientific Computing},
+  Publisher                = {Chapman-Hall CRC Computational Science},
+  Year                     = {2012},
+  Chapter                  = {7},
+  Pages                    = {181--202},
+
+  Ad_tools                 = {ADOL-C}
+}
+
+@InProceedings{Zoran11gmm,
+  Title                    = {From learning models of natural image patches to whole image restoration},
+  Author                   = {D. Zoran and Y. Weiss},
+  Booktitle                = {ICCV},
+  Year                     = {2011},
+  Month                    = {Nov},
+  Pages                    = {479-486},
+
+  Doi                      = {10.1109/ICCV.2011.6126278},
+  ISSN                     = {1550-5499},
+  Keywords                 = {Gaussian processes;computer vision;image restoration;maximum likelihood estimation;Gaussian mixture model;Gaussian mixture prior;approximate MAP estimate;computer vision;cost function;image processing;image restoration;learning model;learning priors;natural image patches;patch priors;patch restoration;Equations;Estimation;Image reconstruction;Image restoration;Mathematical model;Noise measurement;Noise reduction}
+}
+@inproceedings{Wood16hands,
+ author = {Wood, Erroll and Taylor, Jonathan and Fogarty, John and Fitzgibbon, Andrew and Shotton, Jamie},
+ title = {ShadowHands: High-Fidelity Remote Hand Gesture Visualization Using a Hand Tracker},
+ booktitle = {Proceedings of the 2016 ACM on Interactive Surfaces and Spaces},
+ series = {ISS '16},
+ year = {2016},
+ isbn = {978-1-4503-4248-3},
+ location = {Niagara Falls, Ontario, Canada},
+ pages = {77--84},
+ numpages = {8},
+ acmid = {2992169},
+ publisher = {ACM},
+ keywords = {hand gestures, hand tracking, remote collaboration},
+} 
+
+@Inbook{Agarwal10ba,
+author="Agarwal, Sameer
+and Snavely, Noah
+and Seitz, Steven M.
+and Szeliski, Richard",
+title="Bundle Adjustment in the Large",
+bookTitle="ECCV 2010",
+year="2010",
+publisher="Springer Berlin Heidelberg",
+address="Berlin, Heidelberg",
+pages={29-42},
+isbn="978-3-642-15552-9",
+}
+

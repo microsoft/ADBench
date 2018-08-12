@@ -1,0 +1,82 @@
+\newcommand{\real}{{\mathbb R}}
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand{\blue}[1]{\textcolor{blue}{#1}}
+\newcommand{\grey}[1]{\textcolor{Gray}{#1}}
+\newcommand{\changecol}[1]{#1}
+\newcommand{\changecolnew}[1]{#1}
+
+\makeatletter
+\usepackage{xspace}
+\def\@onedot{\ifx\@let@token.\else.\null\fi\xspace}
+\DeclareRobustCommand\onedot{\futurelet\@let@token\@onedot}
+
+\newcommand{\figref}[1]{Fig\onedot~\ref{#1}}
+\newcommand{\equref}[1]{Eq\onedot~\eqref{#1}}
+\newcommand{\secref}[1]{Sec\onedot~\ref{#1}}
+\newcommand{\tabref}[1]{Tab\onedot~\ref{#1}}
+
+\newcommand{\logsumexp}{\operatornamewithlimits{logsumexp}}
+
+\def\bmat {\begin{bmatrix}}
+\def\emat {\end{bmatrix}}
+
+\usepackage{bm}
+\newcommand{\vectorstyle}[1]{\bm{#1}}
+\newcommand{\matrixstyle}[1]{{\bf #1}}
+\newcommand{\tensorstyle}[1]{\bm{\mathsf #1}}
+
+% vectors
+\newcommand{\vp}{\vectorstyle{p}}
+\newcommand{\vc}{\vectorstyle{c}}
+\newcommand{\ve}{\vectorstyle{e}}
+\newcommand{\vm}{\vectorstyle{m}}
+\newcommand{\vr}{\vectorstyle{r}}
+\newcommand{\vl}{\vectorstyle{l}}
+\newcommand{\vu}{\vectorstyle{u}}
+\newcommand{\vq}{\vectorstyle{q}}
+\newcommand{\vv}{\vectorstyle{v}}
+\newcommand{\vx}{\vectorstyle{x}}
+\newcommand{\vt}{\vectorstyle{t}}
+\newcommand{\vy}{\vectorstyle{y}}
+\newcommand{\vz}{\vectorstyle{z}}
+\newcommand{\vw}{\vectorstyle{w}}
+\newcommand{\valpha}{\vectorstyle{\alpha}}
+\newcommand{\vkappa}{\vectorstyle{\kappa}}
+\newcommand{\vmu}{\vectorstyle{\mu}}
+
+% matrices
+\newcommand{\mQ}{\matrixstyle{Q}}
+\newcommand{\mL}{\matrixstyle{L}}
+\newcommand{\mM}{\matrixstyle{M}}
+\newcommand{\mX}{\matrixstyle{X}}
+\newcommand{\mY}{\matrixstyle{Y}}
+\newcommand{\mZ}{\matrixstyle{Z}}
+\newcommand{\mV}{\matrixstyle{V}}
+\newcommand{\mW}{\matrixstyle{W}}
+\newcommand{\mU}{\matrixstyle{U}}
+\newcommand{\mR}{\matrixstyle{R}}
+\newcommand{\mE}{\matrixstyle{E}}
+\newcommand{\mT}{\matrixstyle{T}}
+\newcommand{\mMu}{\matrixstyle{M}}
+\newcommand{\mSigma}{\matrixstyle{\Sigma}}
+
+% tensors
+\newcommand{\tM}{\tensorstyle{M}}
+\newcommand{\tT}{\tensorstyle{T}}
+\newcommand{\tZ}{\tensorstyle{Z}}
+\newcommand{\tSigma}{\tensorstyle{\Sigma}}
+
+%special
+%\newcommand{\mSigma}{\bm{\varSigma}}
+%\DeclareMathSymbol{\upSigma}{\mathalpha}{operators}{6}
+%\newcommand{\tSigma}{\bm{\upSigma}}
+
+\newcommand{\transpose}{\top}
+
+\def\eg{\emph{e.g}\onedot} \def\Eg{\emph{E.g}\onedot}
+\def\ie{\emph{i.e}\onedot} \def\Ie{\emph{I.e}\onedot}
+\def\etc{\emph{etc}\onedot} \def\vs{\emph{vs}\onedot}
+\def\wrt{w.r.t\onedot} \def\dof{d.o.f\onedot}
+\def\etal{\emph{et al}\onedot}
+
+\newcommand{\Cpp}{C\texttt{++}}
