@@ -2,7 +2,9 @@
 
 ## Aim
 
-To provide a running-time comparison for different tools for automatic differentiation. Should eventually output a set of relevant graphs.
+To provide a running-time comparison for different tools for automatic differentiation, 
+as described in https://arxiv.org/abs/1807.10129, (source in Documentaion/ms.tex)
+Output a set of relevant graphs.
 
 ## Prerequisites
 
