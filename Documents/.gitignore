@@ -1,0 +1,6 @@
+# LaTeX
+ms.aux
+ms.bbl
+ms.log
+*.synctex.gz
+ms.out
