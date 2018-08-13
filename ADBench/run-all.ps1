@@ -1,5 +1,5 @@
 # Accept command-line args
-param([int]$script:nruns_f=10, [int]$script:nruns_J=10, [string]$script:tmpdir="")
+param([int]$nruns_f=10, [int]$nruns_J=10, [double]$time_limit=20, [string]$tmpdir="")
 
 # Assert function
 function assert ($expr) {
@@ -10,18 +10,18 @@ function assert ($expr) {
 
 # Get source dir
 
-$script:dir = split-path ($MyInvocation.MyCommand.Path)
-assert { $script:dir -match 'ADbench$' }
-$script:dir = Split-Path $script:dir
+$dir = split-path ($MyInvocation.MyCommand.Path)
+assert { $dir -match 'ADbench$' }
+$dir = Split-Path $dir
 
-Write-Host "$script:dir"
+Write-Host "$dir"
 
 # Load bindir variable
-assert "Test-Path" "$script:dir/ADBench/cmake_vars.ps1"
-. $script:dir/ADBench/cmake_vars.ps1
+assert "Test-Path" "$dir/ADBench/cmake_vars.ps1"
+. $dir/ADBench/cmake_vars.ps1
 
 # Set tmpdir default
-if (!$script:tmpdir) { $script:tmpdir = "$dir/tmp" }
+if (!$tmpdir) { $tmpdir = "$dir/tmp" }
 
 
 # Custom Tool class
@@ -55,7 +55,7 @@ Class Tool {
 	# Run a single test
 	[void] run ([string]$objective, [string]$dir_in, [string]$dir_out, [string]$fn) {
 		$cmd = ""
-		$cmdargs = @($dir_in, $dir_out, $fn, $script:nruns_f, $script:nruns_J)
+		$cmdargs = @($dir_in, $dir_out, $fn, $script:nruns_f, $script:nruns_J, $script:time_limit)
 		if ($this.type -eq "bin") {
 			$cmd = "$script:bindir\tools\$($this.name)\Tools-$($this.name)-$objective.exe"
 		} elseif ($this.type -eq "py") {
@@ -64,7 +64,10 @@ Class Tool {
 			$cmdargs = @("$script:dir/tools/$($this.name)/$($this.name)_$objective.py") + $cmdargs
 		}
 
-		& $cmd @cmdargs
+		$output = & $cmd @cmdargs
+		foreach($line in $output) {
+			Write-Host "        " $line
+		}
 	}
 
 	# Run all gmm tests for this tool
@@ -107,11 +110,11 @@ Class Tool {
 
 # Full list of tools
 $tools = @(
-	[Tool]::new("Adept", 1, "bin", 0),
-	[Tool]::new("ADOLC", 1, "bin", 0),
-	[Tool]::new("Ceres", 0, "bin", 1),
-	[Tool]::new("Manual", 0, "bin", 0),
-	[Tool]::new("Autograd", 1, "py", 0)
+	[Tool]::new("Adept", 1, "bin", 0)
+	#[Tool]::new("ADOLC", 1, "bin", 0),
+	#[Tool]::new("Ceres", 0, "bin", 1),
+	#[Tool]::new("Manual", 0, "bin", 0),
+	#[Tool]::new("Autograd", 1, "py", 0)
 	#[Tool]::new("Theano", $TRUE, "py")
 )
 

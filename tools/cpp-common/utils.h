@@ -626,3 +626,31 @@ void read_hand_instance(const string& model_dir, const string& fn_in,
   }
   in.close();
 }
+
+
+
+#include <functional>
+#include <limits>
+#include <chrono>
+
+using namespace std::chrono;
+
+// Time a function
+double timer(std::function<void()> func, int nruns=10, double limit=std::numeric_limits<double>::max()) {
+	if (limit < 0) limit = std::numeric_limits<double>::max();
+
+	double total = 0;
+	int i = 0;
+	while (i < nruns && total < limit) {
+		high_resolution_clock::time_point start = high_resolution_clock::now();
+		func();
+		high_resolution_clock::time_point end = high_resolution_clock::now();
+		total += duration_cast<duration<double>>(end - start).count();
+		i++;
+	}
+
+	if (i < nruns) std::cout << "Hit time limit after " << i << " loops" << endl;
+
+	if (i > 0) return total / i;
+	else return 0;
+}

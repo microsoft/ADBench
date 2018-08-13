@@ -19,4 +19,4 @@ JOIN("${GMM_K_VALS}" ", " GMM_K_STR)
 
 # Output CMake variables to powershell script
 file(WRITE "${CMAKE_CURRENT_LIST_DIR}/cmake_vars.ps1"
-	"$script:bindir = \"${CMAKE_BINARY_DIR}\"\n$script:gmm_d_vals = @(${GMM_D_STR})\n$script:gmm_k_vals = @(${GMM_K_STR})\n")
+	"$bindir = \"${CMAKE_BINARY_DIR}\"\n$gmm_d_vals = @(${GMM_D_STR})\n$gmm_k_vals = @(${GMM_K_STR})\n")

@@ -3,7 +3,7 @@ import time as t
 
 # Time execution of a function
 def timer(func, args, nruns=10, limit=float("inf"), ret_val=False):
-    total = 0
+    total, i = 0, 0
     value = None
     while i < nruns and total < limit:
         start = t.time()
