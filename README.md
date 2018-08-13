@@ -27,8 +27,8 @@ All tools should build (along with any external packages) and run very easily.
 1) Clone the repository (make sure submodules are cloned properly)
 2) Run cmake
 3) Build
-4) Run ADBench/run-all.ps1
-5) Run ADBench/plot_graphs.py
+4) Run `powershell ADBench/run-all.ps1`
+5) Run `python ADBench/plot_graphs.py`
 
 ## Folder structure
 
@@ -47,7 +47,7 @@ All tools should build (along with any external packages) and run very easily.
 
 ## Tools
 
-Checked items are built by CMake and run by run-all.ps1
+Checked items are built by CMake and can be run by run-all.ps1
 
 ### C++
 - [x] [Adept](https://github.com/rjhogan/Adept-2)
