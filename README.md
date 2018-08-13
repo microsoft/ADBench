@@ -3,7 +3,8 @@
 ## Aim
 
 To provide a running-time comparison for different tools for automatic differentiation, 
-as described in https://arxiv.org/abs/1807.10129, (source in Documentaion/ms.tex)
+as described in https://arxiv.org/abs/1807.10129, (source in Documentaion/ms.tex).
+
 Output a set of relevant graphs.
 
 ## Prerequisites
@@ -54,7 +55,7 @@ Checked items are built by CMake and run by run-all.ps1
 	- Built using custom cmake
 - [x] [ADOLC](https://gitlab.com/adol-c/adol-c)
 	- Git submodule
-	- Built using a batch file (to run msbuild) on windows
+	- Built using a batch file (to run `msbuild`) on windows
 - [x] [Ceres](https://github.com/ceres-solver/ceres-solver)
 	- HunterGate packages
 	- Built with shared libs
@@ -72,7 +73,9 @@ Checked items are built by CMake and run by run-all.ps1
 - [ ] [MuPad](https://www.mathworks.com/discovery/mupad.html)
 
 ### F#
-- [ ] [DiffSharp](https://github.com/DiffSharp/DiffSharp)
+- [x] [DiffSharp](https://github.com/DiffSharp/DiffSharp)
+	- Built using `dotnet build` (in batch file), which restores NuGet packages
+	- GMM builds fail
 
 ### Julia
 - [ ] Julia AD
@@ -82,4 +85,5 @@ Checked items are built by CMake and run by run-all.ps1
 	- Should mostly work on other platforms, but ADOL-C may not build properly
 - Ceres only builds up to certain d (20) and k (50) values, due to memory issue
 	- Should be solvable, but needs looking into
+- DiffSharp GMM builds fail
 - run-all.ps1 does not currently run all tools
