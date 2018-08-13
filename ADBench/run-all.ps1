@@ -35,7 +35,7 @@ Class Tool {
 	static [string]$gmm_dir_in = "$dir/data/gmm/1k/"
 	static [string]$ba_dir_in = "$dir/data/ba/"
 	static [int]$ba_min_n = 1
-	static [int]$ba_max_n = 20
+	static [int]$ba_max_n = 5
 
 	# Constructor
 	Tool ([string]$name, [bool]$gmm_both, [string]$type, [bool]$gmm_use_defs) {
@@ -110,10 +110,10 @@ Class Tool {
 
 # Full list of tools
 $tools = @(
-	[Tool]::new("Adept", 1, "bin", 0)
-	#[Tool]::new("ADOLC", 1, "bin", 0),
-	#[Tool]::new("Ceres", 0, "bin", 1),
-	#[Tool]::new("Manual", 0, "bin", 0),
+	[Tool]::new("Adept", 1, "bin", 0),
+	[Tool]::new("ADOLC", 1, "bin", 0),
+	[Tool]::new("Ceres", 0, "bin", 1)
+	[Tool]::new("Manual", 0, "bin", 0)
 	#[Tool]::new("Autograd", 1, "py", 0)
 	#[Tool]::new("Theano", $TRUE, "py")
 )

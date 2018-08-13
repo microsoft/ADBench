@@ -101,16 +101,14 @@ void convert_gmm_J(int d, int k, double **J_ceres, double *J)
 }
 
 void test_gmm(const string& fn_in, const string& fn_out,
-  int nruns_f, int nruns_J, bool replicate_point)
+  int nruns_f, int nruns_J, double time_limit, bool replicate_point)
 {
-	//cout << "  GMM" << endl;
   int d, k, n;
   vector<double> alphas, means, icf, x;
   Wishart wishart;
   double err;
 
   // Read instance
-  cout << "        ";
   read_gmm_instance(fn_in + ".txt", &d, &k, &n,
     alphas, means, icf, x, wishart, replicate_point);
 
@@ -130,26 +128,15 @@ void test_gmm(const string& fn_in, const string& fn_out,
   J_ceres[2] = new double[GMM_ICF_DIM*k];
 
   // Test
-  high_resolution_clock::time_point start, end;
-  double tf, tJ = 0.;
+  double tf = timer([d, k, n, alphas, means, icf, x, wishart, &err]() {
+	  gmm_objective(d, k, n, alphas.data(), means.data(),
+		  icf.data(), x.data(), wishart, &err);
+  }, nruns_f, time_limit);
 
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_f; i++)
-  {
-    gmm_objective(d, k, n, alphas.data(), means.data(),
-      icf.data(), x.data(), wishart, &err);
-  }
-  end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
-
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_J; i++)
-  {
-    compute_gmm_J(d, k, n, alphas.data(),
-      means.data(), icf.data(), x.data(), wishart, err, J_ceres);
-  }
-  end = high_resolution_clock::now();
-  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
+  double tJ = timer([d, k, n, &alphas, &means, &icf, &x, wishart, &err, J_ceres]() {
+	  compute_gmm_J(d, k, n, alphas.data(),
+		  means.data(), icf.data(), x.data(), wishart, err, J_ceres);
+  }, nruns_J, time_limit);
 
   string name("Ceres");
   vector<double> J(Jcols);
@@ -261,14 +248,12 @@ void write_J_sparse(const string& fn, ceres::CRSMatrix& J)
 }
 
 void test_ba(const string& fn_in, const string& fn_out,
-  int nruns_f, int nruns_J)
+  int nruns_f, int nruns_J, double time_limit)
 {
-	//cout << "  BA" << endl;
   int n, m, p;
   vector<double> cams, X, w, feats;
   vector<int> obs;
 
-  cout << "        ";
   read_ba_instance(fn_in + ".txt", n, m, p,
     cams, X, w, obs, feats);
 
@@ -276,27 +261,16 @@ void test_ba(const string& fn_in, const string& fn_out,
   vector<double> reproj_err(2 * p);
   vector<double> w_err(p);
 
-  high_resolution_clock::time_point start, end;
-  double tf, tJ;
+  double tf = timer([n, m, p, cams, X, w, obs, feats, &reproj_err, &w_err]() {
+	  ba_objective(n, m, p, cams.data(), X.data(),
+		  w.data(), obs.data(), feats.data(),
+		  reproj_err.data(), w_err.data());
+  }, nruns_f, time_limit);
 
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_f; i++)
-  {
-    ba_objective(n, m, p, cams.data(), X.data(),
-      w.data(), obs.data(), feats.data(),
-      reproj_err.data(), w_err.data());
-  }
-  end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
-
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_J; i++)
-  {
-    compute_ba_J(n, m, p, cams.data(), X.data(), w.data(), 
-      obs.data(), feats.data(), reproj_err.data(), w_err.data(), J);
-  }
-  end = high_resolution_clock::now();
-  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
+  double tJ = timer([n, m, p, &cams, &X, &w, &obs, &feats, &reproj_err, &w_err, &J]() {
+	  compute_ba_J(n, m, p, cams.data(), X.data(), w.data(),
+		  obs.data(), feats.data(), reproj_err.data(), w_err.data(), J);
+  }, nruns_J, time_limit);
 
   string name = "Ceres";
   //write_J_sparse(fn_out + "_J_" + name + ".txt", J);
@@ -386,21 +360,22 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
 
 int main(int argc, char** argv)
 {
-	//cout << "-Ceres\n";
-
   string dir_in(argv[1]);
   string dir_out(argv[2]);
   string fn(argv[3]);
   int nruns_f = std::stoi(string(argv[4]));
   int nruns_J = std::stoi(string(argv[5]));
+  double time_limit;
+  if (argc >= 7) time_limit = std::stod(string(argv[6]));
+  else time_limit = std::numeric_limits<double>::infinity();
 
   // read only 1 point and replicate it?
   bool replicate_point = (argc >= 7 && string(argv[6]).compare("-rep") == 0);
 
 #ifdef DO_GMM
-  test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
+  test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, time_limit, replicate_point);
 #elif defined DO_BA
-  test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
+  test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J, time_limit);
 #elif defined DO_HAND
   test_hand(dir_in + "model/", dir_in + fn, dir_out + fn, nruns_f, nruns_J);
 #endif

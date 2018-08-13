@@ -39,9 +39,8 @@ using namespace std::chrono;
 
 #ifdef DO_GMM
 void test_gmm(const string& fn_in, const string& fn_out,
-  int nruns_f, int nruns_J, bool replicate_point)
+  int nruns_f, int nruns_J, double time_limit, bool replicate_point)
 {
-	//cout << "  GMM\n";
   int d, k, n;
   vector<double> alphas, means, icf, x;
   double err;
@@ -58,28 +57,17 @@ void test_gmm(const string& fn_in, const string& fn_out,
   vector<double> J(Jcols);
 
   // Test
-  high_resolution_clock::time_point start, end;
-  double tf, tJ = 0.;
+  double tf = timer([d, k, n, alphas, means, icf, x, wishart, &err]() {
+	  gmm_objective(d, k, n, alphas.data(), means.data(),
+		  icf.data(), x.data(), wishart, &err);
+  }, nruns_f, time_limit);
+  cout << "err: " << err << endl;
 
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_f; i++)
-  {
-    gmm_objective(d, k, n, alphas.data(), means.data(),
-      icf.data(), x.data(), wishart, &err);
-  }
-  end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
-  cout << "        err: " << err << endl;
-
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_J; i++)
-  {
-    gmm_objective_d(d, k, n, alphas.data(), means.data(),
-      icf.data(), x.data(), wishart, &err, J.data());
-  }
-  end = high_resolution_clock::now();
-  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
-  cout << "        err: " << err << endl;
+  double tJ = timer([d, k, n, alphas, means, icf, x, wishart, &err, &J]() {
+	  gmm_objective_d(d, k, n, alphas.data(), means.data(),
+		  icf.data(), x.data(), wishart, &err, J.data());
+  }, nruns_J, time_limit);
+  cout << "err: " << err << endl;
 
 #ifdef DO_CPP
   string name("manual_cpp");
@@ -90,7 +78,6 @@ void test_gmm(const string& fn_in, const string& fn_out,
 #else
   string name("manual");
 #endif
-  cout << "        ";
   write_J(fn_out + "_J_" + name + ".txt", Jrows, Jcols, J.data());
   //write_times(tf, tJ);
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
@@ -133,13 +120,12 @@ void compute_ba_J(int n, int m, int p, double *cams, double *X,
 }
 
 void test_ba(const string& fn_in, const string& fn_out,
-  int nruns_f, int nruns_J)
+  int nruns_f, int nruns_J, double time_limit)
 {
-	//cout << "  BA\n";
   int n, m, p;
   vector<double> cams, X, w, feats;
   vector<int> obs;
-  cout << "        ";
+
   read_ba_instance(fn_in + ".txt", n, m, p,
     cams, X, w, obs, feats);
 
@@ -147,33 +133,21 @@ void test_ba(const string& fn_in, const string& fn_out,
   vector<double> w_err(p);
   BASparseMat J(n,m,p);
 
-  high_resolution_clock::time_point start, end;
-  double tf = 0., tJ = 0.;
+  double tf = timer([n, m, p, cams, X, w, obs, feats, &reproj_err, &w_err]() {
+	  ba_objective(n, m, p, cams.data(), X.data(), w.data(),
+		  obs.data(), feats.data(), reproj_err.data(), w_err.data());
+  }, nruns_f, time_limit);
 
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_f; i++)
-  {
-    ba_objective(n, m, p, cams.data(), X.data(), w.data(),
-      obs.data(), feats.data(), reproj_err.data(), w_err.data());
-  }
-  end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
-
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_J; i++)
-  {
-    compute_ba_J(n, m, p, cams.data(), X.data(), w.data(), obs.data(), 
-      feats.data(), reproj_err.data(), w_err.data(), J);
-  }
-  end = high_resolution_clock::now();
-  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
+  double tJ = timer([n, m, p, &cams, &X, &w, &obs, &feats, &reproj_err, &w_err, &J]() {
+	  compute_ba_J(n, m, p, cams.data(), X.data(), w.data(), obs.data(),
+		  feats.data(), reproj_err.data(), w_err.data(), J);
+  }, nruns_J, time_limit);
 
 #ifdef DO_EIGEN
   string name("manual_eigen");
 #else
   string name("manual_cpp");
 #endif
-  cout << "        ";
   write_J_sparse(fn_out + "_J_" + name + ".txt", J);
   write_times(tf, tJ);
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
@@ -275,8 +249,6 @@ char* defaults[] = {
 
 int main(int argc, char *argv[])
 {
-	//std::cout << "-Manual\n";
-	
 	if (argc < 2) {
 		argc = 6;
 		argv = defaults;
@@ -291,16 +263,19 @@ int main(int argc, char *argv[])
 	string fn(argv[3]);
 	int nruns_f = std::stoi(string(argv[4]));
     int nruns_J = std::stoi(string(argv[5]));
+	double time_limit;
+	if (argc >= 7) time_limit = std::stod(string(argv[6]));
+	else time_limit = std::numeric_limits<double>::infinity();
 
   // read only 1 point and replicate it?
   bool replicate_point = (argc > 6 && string(argv[6]).compare("-rep") == 0);
 
 #ifdef DO_GMM
-  test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
+  test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, time_limit, replicate_point);
 #endif
 
 #if defined DO_BA
-  test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
+  test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J, time_limit);
 #endif
 
 #if defined DO_HAND || defined DO_HAND_COMPLICATED

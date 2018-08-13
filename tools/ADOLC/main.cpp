@@ -78,7 +78,7 @@ public:
 
 #ifdef DO_GMM_FULL
 
-double compute_gmm_J(int nruns,
+double compute_gmm_J(int nruns, double time_limit,
 	int d, int k, int n, double *alphas, 
 	double *means, double *icf, double *x, 
 	Wishart wishart, double& err, double *J)
@@ -119,11 +119,9 @@ double compute_gmm_J(int nruns,
 	delete[] ameans;
 	delete[] aicf;
 
-
-	high_resolution_clock::time_point start, end;
-	start = high_resolution_clock::now();
-
 	// Compute J
+
+	// TODO this was timed before - what to do?
 	double *in = new double[Jcols];
 	memcpy(in, alphas, k*sizeof(double));
 	int off = k;
@@ -131,26 +129,23 @@ double compute_gmm_J(int nruns,
 	off += d*k;
 	memcpy(in + off, icf, icf_sz*k*sizeof(double));
 
-	for (int i = 0; i < nruns; i++)
-	{
+	double tJ = timer([tapeTag, Jcols, in, J]() {
 		gradient(tapeTag, Jcols, in, J);
 
 		//int keepValues = 1;
 		//double errd = 1;
 		//zos_forward(tapeTag, Jrows, Jcols, keepValues, in, &err);
 		//fos_reverse(tapeTag, Jrows, Jcols, &errd, J[0]);
-	}
-
-	end = high_resolution_clock::now();
+	}, nruns, time_limit);
 
 	delete[] in;
 
-  return duration_cast<duration<double>>(end - start).count() / nruns;
+	return tJ;
 }
 
 #elif defined DO_GMM_SPLIT
 
-double compute_gmm_J_split(int nruns,
+double compute_gmm_J_split(int nruns, double time_limit,
   int d, int k, int n, double *alphas,
   double *means, double *icf, double *x,
   Wishart wishart, double& err, double *J)
@@ -182,10 +177,8 @@ double compute_gmm_J_split(int nruns,
 
   trace_off();
 
-  high_resolution_clock::time_point start, end;
-  start = high_resolution_clock::now();
-
   // Compute J
+  // TODO again, this was timed before
   double *in = new double[Jcols];
   memcpy(in, alphas, k*sizeof(double));
   int off = k;
@@ -194,45 +187,44 @@ double compute_gmm_J_split(int nruns,
   memcpy(in + off, icf, icf_sz*k*sizeof(double));
 
   double *Jtmp = new double[Jcols];
-  for (int i = 0; i < nruns; i++)
-  {
-    gradient(otherTapeTag, Jcols, in, J);
-    for (int i = 0; i < n; i++)
-    {
-      // Record on a tape
-      int keepValues = 1; // those are used for gradient right after
-      trace_on(innerTapeTag, keepValues);
+  
+  double tJ = timer([n, d, k, Jcols, in, J, x, otherTapeTag, innerTapeTag,
+	  alphas, means, icf, aalphas, ameans, aicf, wishart, &aerr, icf_sz, &err, Jtmp]() {
+	  gradient(otherTapeTag, Jcols, in, J);
+	  for (int i = 0; i < n; i++)
+	  {
+		  // Record on a tape
+		  int keepValues = 1; // those are used for gradient right after
+		  trace_on(innerTapeTag, keepValues);
 
-      for (int i = 0; i < k; i++)
-        aalphas[i] <<= alphas[i];
-      for (int i = 0; i < d*k; i++)
-        ameans[i] <<= means[i];
-      for (int i = 0; i < icf_sz*k; i++)
-        aicf[i] <<= icf[i];
+		  for (int i = 0; i < k; i++)
+			  aalphas[i] <<= alphas[i];
+		  for (int i = 0; i < d*k; i++)
+			  ameans[i] <<= means[i];
+		  for (int i = 0; i < icf_sz*k; i++)
+			  aicf[i] <<= icf[i];
 
-      gmm_objective_split_inner(d, k, aalphas, ameans,
-        aicf, &x[i*d], wishart, &aerr);
+		  gmm_objective_split_inner(d, k, aalphas, ameans,
+			  aicf, &x[i*d], wishart, &aerr);
 
-      double err_tmp;
-      aerr >>= err_tmp;
-      err += err_tmp;
+		  double err_tmp;
+		  aerr >>= err_tmp;
+		  err += err_tmp;
 
-      trace_off();
+		  trace_off();
 
-      gradient(innerTapeTag, Jcols, in, Jtmp);
-      for (int i = 0; i < Jcols; i++)
-      {
-        J[i] += Jtmp[i];
-      }
-    }
+		  gradient(innerTapeTag, Jcols, in, Jtmp);
+		  for (int i = 0; i < Jcols; i++)
+		  {
+			  J[i] += Jtmp[i];
+		  }
+	  }
 
-    //int keepValues = 1;
-    //double errd = 1;
-    //zos_forward(tapeTag, Jrows, Jcols, keepValues, in, &err);
-    //fos_reverse(tapeTag, Jrows, Jcols, &errd, J[0]);
-  }
-
-  end = high_resolution_clock::now();
+	  //int keepValues = 1;
+	  //double errd = 1;
+	  //zos_forward(tapeTag, Jrows, Jcols, keepValues, in, &err);
+	  //fos_reverse(tapeTag, Jrows, Jcols, &errd, J[0]);
+  }, nruns, time_limit);
 
   delete[] aalphas;
   delete[] ameans;
@@ -240,17 +232,15 @@ double compute_gmm_J_split(int nruns,
   delete[] Jtmp;
   delete[] in;
 
-  return duration_cast<duration<double>>(end - start).count() / nruns;
+  return tJ;
 }
 
 #endif
 #if defined DO_GMM_FULL || defined DO_GMM_SPLIT
 
 void test_gmm(const string& fn_in, const string& fn_out,
-  int nruns_f, int nruns_J, bool replicate_point)
+  int nruns_f, int nruns_J, double time_limit, bool replicate_point)
 {
-	//cout << "  GMM" << endl;
-
   int d, k, n;
   vector<double> alphas, means, icf, x;
   double err;
@@ -267,30 +257,25 @@ void test_gmm(const string& fn_in, const string& fn_out,
   vector<double> J(Jcols);
 
   // Test
-  high_resolution_clock::time_point start, end;
-  double tf, tJ = 0.;
+  double tf = timer([d, k, n, alphas, means,
+	  icf, x, wishart, &err]() {
+	  gmm_objective(d, k, n, alphas.data(), means.data(),
+		  icf.data(), x.data(), wishart, &err);
+  }, nruns_f, time_limit);
+  cout << "err: " << err << endl;
 
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_f; i++)
-  {
-    gmm_objective(d, k, n, alphas.data(), means.data(),
-      icf.data(), x.data(), wishart, &err);
-  }
-  end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
-  cout << "        err: " << err << endl;
+  double tJ;
 
 #ifdef DO_GMM_FULL
   string name = "ADOLC";
-  tJ = compute_gmm_J(nruns_J, d, k, n, alphas.data(), means.data(), icf.data(), 
+  tJ = compute_gmm_J(nruns_J, time_limit, d, k, n, alphas.data(), means.data(), icf.data(), 
     x.data(), wishart, err, J.data());
 #elif defined DO_GMM_SPLIT
   string name = "ADOLC_split";
-  tJ = compute_gmm_J_split(nruns_J, d, k, n, alphas.data(), means.data(), icf.data(),
+  tJ = compute_gmm_J_split(nruns_J, time_limit, d, k, n, alphas.data(), means.data(), icf.data(),
     x.data(), wishart, err, J.data());
 #endif
-  cout << "        err: " << err << endl;
-  cout << "        ";
+  cout << "err: " << err << endl;
   write_J(fn_out + "_J_" + name + ".txt", Jrows, Jcols, J.data());
   //write_times(tf, tJ);
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
@@ -417,7 +402,7 @@ void convert_J(int nnz, unsigned int *ridxs, unsigned int *cidxs,
   }
 }
 
-double compute_ba_J(int nruns, int n, int m, int p,
+double compute_ba_J(int nruns, double time_limit, int n, int m, int p,
   double *cams, double *X, double *w, int *obs, double *feats,
   double *reproj_err, double *w_err, BASparseMat *J, double* t_sparsity)
 {
@@ -512,9 +497,9 @@ double compute_ba_J(int nruns, int n, int m, int p,
   delete[] cidxs;
   delete[] nzvals;
 
-  cout << "        t_tape: " << t_tape << endl;
-  cout << "        t_sparsity: " << *t_sparsity << endl;
-  cout << "        t_J:" << t_J << endl;
+  cout << "t_tape: " << t_tape << endl;
+  cout << "t_sparsity: " << *t_sparsity << endl;
+  cout << "t_J:" << t_J << endl;
 
   return t_J;
 }
@@ -522,14 +507,12 @@ double compute_ba_J(int nruns, int n, int m, int p,
 
 #if defined DO_BA_BLOCK || defined DO_BA_SPARSE
 void test_ba(const string& fn_in, const string& fn_out,
-  int nruns_f, int nruns_J)
+  int nruns_f, int nruns_J, double time_limit)
 {
-	//cout << "  BA" << endl;
-
   int n, m, p;
   vector<double> cams, X, w, feats;
   vector<int> obs;
-  cout << "        ";
+
   read_ba_instance(fn_in + ".txt", n, m, p,
     cams, X, w, obs, feats);
 
@@ -537,18 +520,11 @@ void test_ba(const string& fn_in, const string& fn_out,
   vector<double> w_err(p);
   BASparseMat J(n, m, p);
 
-  high_resolution_clock::time_point start, end;
-  double tf = 0., tJ = 0;
-
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_f; i++)
-  {
-    ba_objective(n, m, p, cams.data(), X.data(), 
-      w.data(), obs.data(), feats.data(),
-      reproj_err.data(), w_err.data());
-  }
-  end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
+  double tf = timer([n, m, p, cams, X, w, obs, feats, &reproj_err, &w_err]() {
+	  ba_objective(n, m, p, cams.data(), X.data(),
+		  w.data(), obs.data(), feats.data(),
+		  reproj_err.data(), w_err.data());
+  }, nruns_f, time_limit);
 
 #ifdef DO_CPP
   string postfix("");
@@ -557,19 +533,17 @@ void test_ba(const string& fn_in, const string& fn_out,
 #endif
 #if defined DO_BA_BLOCK
   string name("ADOLC" + postfix);
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_J; i++)
-  {
-    compute_ba_J(n, m, p, cams.data(), X.data(), w.data(),
-      obs.data(), feats.data(), reproj_err.data(), w_err.data(), &J);
-  }
-  end = high_resolution_clock::now();
-  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
+
+  double tJ = timer([n, m, p, &cams, &X, &w, &obs, &feats, &reproj_err, &w_err, &J]() {
+	  compute_ba_J(n, m, p, cams.data(), X.data(), w.data(),
+		  obs.data(), feats.data(), reproj_err.data(), w_err.data(), &J);
+  }, nruns_J, time_limit);
+
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
 #elif defined DO_BA_SPARSE
   string name("ADOLC_sparse" + postfix);
   double t_sparsity;
-  tJ = compute_ba_J(nruns_J, n, m, p, cams.data(), X.data(), w.data(),
+  double tJ = compute_ba_J(nruns_J, n, m, p, cams.data(), X.data(), w.data(),
     obs.data(), feats.data(), reproj_err.data(), w_err.data(), &J, &t_sparsity);
 
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ, &t_sparsity);
@@ -951,20 +925,22 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
 
 int main(int argc, char *argv[])
 {
-	//cout << "-ADOLC\n";
   string dir_in(argv[1]);
   string dir_out(argv[2]);
   string fn(argv[3]);
   int nruns_f = std::stoi(string(argv[4]));
   int nruns_J = std::stoi(string(argv[5]));
+  double time_limit;
+  if (argc >= 7) time_limit = std::stod(string(argv[6]));
+  else time_limit = std::numeric_limits<double>::infinity();
 
   // read only 1 point and replicate it?
   bool replicate_point = (argc >= 7 && string(argv[6]).compare("-rep") == 0);
   
 #if defined DO_GMM_FULL || defined DO_GMM_SPLIT
-  test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
+  test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, time_limit, replicate_point);
 #elif defined DO_BA_BLOCK || defined DO_BA_SPARSE
-  test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
+  test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J, time_limit);
 #elif defined DO_HAND || defined DO_HAND_SPARSE || defined DO_HAND_COMPLICATED
   test_hand(dir_in + "model/", dir_in + fn, dir_out + fn, nruns_f, nruns_J);
 #endif

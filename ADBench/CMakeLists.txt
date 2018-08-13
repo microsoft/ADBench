@@ -3,10 +3,6 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
-# Set GMM Values
-set(GMM_D_VALS 2 10) # set(D_VALS 2 10 20 32 64)
-set(GMM_K_VALS 5 10 25 50) # set(K_VALS 5 10 25 50 100 200)
-# TODO figure out why Ceres build crashes
 
 function(JOIN VALUES GLUE OUTPUT)
   string (REGEX REPLACE "([^\\]|^);" "\\1${GLUE}" _TMP_STR "${VALUES}")

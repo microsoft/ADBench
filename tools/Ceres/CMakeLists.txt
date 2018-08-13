@@ -22,5 +22,3 @@ target_link_libraries("Tools-Ceres-BA" "${CERES-SOLVER_ROOT}/lib/ceres-debug.lib
 
 # Copy GLOG DLL
 file(COPY "${CERES-SOLVER_ROOT}/bin/glogd.dll" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
-
-# NOTE GMM seems to need old libglog.lib, but BA seems to need new glogd.lib

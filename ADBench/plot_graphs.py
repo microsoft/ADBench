@@ -16,7 +16,7 @@ def _set_rec(obj, keys, value):
             obj[keys[0]] = _set_rec(obj[keys[0]], keys[1:], value)
         else:
             obj[keys[0]] = _set_rec({}, keys[1:], value)
-    
+
         return obj
 
 
@@ -27,10 +27,10 @@ for test in os.listdir(tmp_dir):
     for tool in os.listdir("{}/{}".format(tmp_dir, test)):
         for filename in os.listdir("{}/{}/{}".format(tmp_dir, test, tool)):
             fn_split = filename.split(".")[0].split("_")
-            if fn_split[-2] != "times":
+            if "times" not in fn_split:
                 continue
 
-            name = "_".join(fn_split[:-2])
+            name = "_".join(fn_split[:fn_split.index("times")])
 
             file = open("{}/{}/{}/{}".format(tmp_dir, test, tool, filename))
             contents = file.read()
@@ -108,6 +108,7 @@ for tool in results["gmm"]:
 
 # Show 3D legend
 pyplot.figure(1)
+axes.set_zscale("log")
 pyplot.legend()
 
 # Show 2D legend, and log-scale axes
@@ -122,10 +123,11 @@ pyplot.legend()
 pyplot.figure(3)
 
 for tool in results["ba"]:
-    n_vals = list(map(lambda key: key[2:], results["ba"][tool].keys()))
-    t_vals = results["ba"][tool].values()
+    n_vals = sorted(list(map(lambda key: int(key[2:]), results["ba"][tool].keys())))
+    t_vals = list(map(lambda key: results["ba"][tool]["ba" + str(key)], n_vals))
     pyplot.plot(n_vals, t_vals, marker="x", label=tool)
 
+pyplot.yscale("log")
 pyplot.legend()
 
 
