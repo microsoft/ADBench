@@ -1,7 +1,10 @@
 #Pkg.add("ForwardDiff")
+#Pkg.add("SpecialFunctions")
 #Pkg.update()
 #Pkg.checkout("ForwardDiff")
 #Pkg.status()
+using Printf
+using SpecialFunctions
 using ForwardDiff
 
 include("common.jl")
@@ -9,7 +12,7 @@ include("common.jl")
 # input should be 1 dimensional
 function logsumexp(x)
   mx = maximum(x)
-  log(sum(exp(x - mx))) + mx
+  log.(sum(exp.(x .- mx))) .+ mx
 end
 
 @inbounds function gmm_objective(alphas,means,icf,x,wishart::Wishart)
@@ -17,7 +20,7 @@ end
   n = size(x,2)
   CONSTANT = -n*d*0.5*log(2 * pi)
 
-  sum_qs = sum(icf[1:d,:],1)
+  sum_qs = sum(icf[1:d,:],dims=1)
   slse = sum(sum_qs)
   Qs = [get_Q(d,icf[:,ik]) for ik in 1:k]
   main_term = zeros(eltype(alphas),1,k)
@@ -25,7 +28,7 @@ end
   slse = 0.
   for ix=1:n
     for ik=1:k
-      main_term[ik] = -0.5*sumabs2(Qs[ik] * (x[:,ix] - means[:,ik]))
+      main_term[ik] = -0.5*sum(abs2, Qs[ik] * (x[:,ix] - means[:,ik]))
     end
     slse += logsumexp(alphas + sum_qs + main_term)
   end
@@ -34,6 +37,10 @@ end
 end
 
 # Read instance
+if length(ARGS) < 5
+  throw("Too few args")
+end
+
 dir_in = ARGS[1]
 dir_out = ARGS[2]
 fn = ARGS[3]
@@ -50,12 +57,12 @@ k = size(means,2)
 n = size(x,2)
 
 # Objective
-precompile(gmm_objective,(typeof(alphas),typeof(means),typeof(icf),typeof(x),Wishart))
-tic()
-for i in 1:nruns_f
-  err = gmm_objective(alphas,means,icf,x,wishart)
+err = gmm_objective(alphas,means,icf,x,wishart)
+
+tf = @elapsed for i in 1:nruns_f
+  gmm_objective(alphas,means,icf,x,wishart)
 end
-tf = toq()/nruns_f;
+tf = tf/nruns_f;
 @printf "tf: %g\n" tf
 #@printf "err: %f\n" err
 
@@ -66,15 +73,15 @@ function wrapper_gmm_objective(packed)
 end
 
 # Gradient
-g = ForwardDiff.gradient(wrapper_gmm_objective)
-precompile(pack,(typeof(alphas),typeof(means),typeof(icf)))
-precompile(g,(typeof(alphas),typeof(means),typeof(icf)))
-J = zeros(1,length(alphas)+length(means)+length(icf))
-tic()
-for i in 1:nruns_J
-  J = g(pack(alphas,means,icf))
+g = x-> ForwardDiff.gradient(wrapper_gmm_objective, x)
+
+#precompile(pack,(typeof(alphas),typeof(means),typeof(icf)))
+#precompile(g,(typeof(alphas),typeof(means),typeof(icf)))
+J = g(pack(alphas,means,icf))
+tJ = @elapsed for i in 1:nruns_J
+  g(pack(alphas,means,icf))
 end
-tJ = toq()/nruns_J;
+tJ = tJ/nruns_J;
 @printf "tJ: %g\n" tJ
 #println("J:")
 #println(J)

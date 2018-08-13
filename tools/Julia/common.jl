@@ -1,5 +1,7 @@
 include("common_io.jl")
-type Wishart
+using LinearAlgebra
+
+struct Wishart
   gamma::Float64
   m::Int
 end
@@ -8,12 +10,12 @@ function ltri_unpack(D, LT)
   d=length(D)
   make_row(r::Int, L) = hcat(reshape([ L[i] for i=1:r-1 ],1,r-1), D[r], zeros(1,d-r))
   row_start(r::Int) = div((r-1)*(r-2),2)
-  inds(r) = row_start(r)+(1:r-1)
+  inds(r) = row_start(r) .+ (1:r-1)
   vcat([ make_row(r, LT[inds(r)]) for r=1:d ]...)
 end
 
 function get_Q(d,icf)
-  ltri_unpack(exp(icf[1:d]),icf[d+1:end])
+  ltri_unpack(exp.(icf[1:d]),icf[d+1:end])
 end
 
 # Gradient helpers
@@ -24,7 +26,7 @@ end
 function unpack(d,k,packed)
   alphas = reshape(packed[1:k],1,k)
   off = k
-  means = reshape(packed[(1:d*k)+off],d,k)
+  means = reshape(packed[(1:d*k) .+ off],d,k)
   icf_sz = div(d*(d + 1),2)
   off += d*k
   icf = reshape(packed[off+1:end],icf_sz,k)
@@ -46,9 +48,9 @@ function log_wishart_prior(wishart::Wishart, sum_qs, Qs, icf)
 
   frobenius = 0.
   for Q in Qs
-    frobenius += sumabs2(diag(Q))
+    frobenius += sum(abs2,diag(Q))
   end
-  frobenius += sumabs2(icf[d+1:end,:])
+  frobenius += sum(abs2,icf[d+1:end,:])
 	0.5*wishart.gamma^2 * frobenius - wishart.m*sum(sum_qs) - k*C
 end
 
@@ -94,7 +96,7 @@ function read_gmm_instance(fn,replicate_point)
     for id in 1:d
       x_[id] = parse(Float64,line[id])
     end
-    x = repmat(x_,1,n)
+    x = repeat(x_,1,n)
     off += 1
   else
     x = zeros(Float64,d,n)
