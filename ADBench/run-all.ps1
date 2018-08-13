@@ -112,10 +112,11 @@ Class Tool {
 $tools = @(
 	[Tool]::new("Adept", 1, "bin", 0),
 	[Tool]::new("ADOLC", 1, "bin", 0),
-	[Tool]::new("Ceres", 0, "bin", 1)
-	[Tool]::new("Manual", 0, "bin", 0)
+	[Tool]::new("Ceres", 0, "bin", 1),
+	[Tool]::new("Manual", 0, "bin", 0),
+	#[Tool]::new("DiffSharp", 1, "bin", 0)
 	#[Tool]::new("Autograd", 1, "py", 0)
-	#[Tool]::new("Theano", $TRUE, "py")
+	#[Tool]::new("Theano", 1, "py")
 )
 
 # Run all tests on each tool
