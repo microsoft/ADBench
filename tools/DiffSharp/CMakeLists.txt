@@ -1,5 +1,13 @@
-project("Tools-DiffSharp" "F#")
+project("Tools-DiffSharp")
 
-add_executable("Tools-DiffSharp-GMM" "Program.fs")
-target_compile_definitions("Tools-DiffSharp-GMM" PUBLIC "DO_GMM_FULL")
-#target_link_libraries("Tools-DiffSharp-GMM" "${CMAKE_CURRENT_BINARY_DIR}/Adept-2d.lib")
+set(DIFFSHARP_CONFIGS "Debug-BA")
+
+if (WIN32)
+	foreach(config ${DIFFSHARP_CONFIGS})
+		message("Running DiffSharpTests build.bat, config=${config}")
+		execute_process(COMMAND "${CMAKE_CURRENT_LIST_DIR}/build.bat" "${CMAKE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_BINARY_DIR}" "${config}")
+		message("Finished DiffSharpTests build.bat, config=${config}")
+	endforeach(config)
+endif()
+
+# TODO support non-windows platforms

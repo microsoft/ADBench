@@ -7,8 +7,8 @@ find_package(Ceres CONFIG REQUIRED)
 include_directories("${CERES_INCLUDE_DIRS}")
 
 # Create GMM with different #define D and K values
-foreach (D_VAL ${D_VALS})
-	foreach (K_VAL ${K_VALS})
+foreach (D_VAL ${GMM_D_VALS})
+	foreach (K_VAL ${GMM_K_VALS})
 		add_executable("Tools-Ceres-GMM-d${D_VAL}-K${K_VAL}" "main.cpp" "${CERES-SOLVER_ROOT}/include/ceres/ceres.h")
 		target_compile_definitions("Tools-Ceres-GMM-d${D_VAL}-K${K_VAL}" PUBLIC "DO_GMM" GMM_D=${D_VAL} GMM_K=${K_VAL})
 		target_link_libraries("Tools-Ceres-GMM-d${D_VAL}-K${K_VAL}" "${CERES-SOLVER_ROOT}/lib/ceres-debug.lib" "${CERES-SOLVER_ROOT}/lib/glogd.lib")
