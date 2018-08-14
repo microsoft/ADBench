@@ -131,7 +131,7 @@ def gmm_objective(alphas, means, icf, x, wishart_gamma, wishart_m):
 d_ = 3
 k_ = 5
 n_ = 10
-icf_sz_ = d_ * (d_ + 1) / 2
+icf_sz_ = int(d_ * (d_ + 1) / 2)
 alphas_ = mkvec('alphas', k_)
 means_ = mkmat('means', k_, d_)
 icf_ = mkmat('icf', k_, icf_sz_)

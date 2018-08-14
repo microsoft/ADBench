@@ -17,7 +17,10 @@ Output a set of relevant graphs.
 	- scipy
 	- matplotlib
 	- autograd
-	- Theano
+- [Miniconda](https://conda.io/miniconda.html) (only required to run Theano)
+	- Once installed, open the Anaconda Prompt as an administrator and run:
+	- `conda install numpy scipy mkl-service libpython m2w64-toolchain`
+	- `conda install theano pygpu`
 - Powershell (default on Windows)
 
 ## Installation/Usage
@@ -83,6 +86,7 @@ Checked items are built by CMake and can be run by run-all.ps1
 ## Known Issues
 - Only tested on Windows (64-bit)
 	- Should mostly work on other platforms, but ADOL-C may not build properly
+	- Hard-coded paths (which may be wrong on some systems) in batch files (for ADOL-C, DiffSharp and Theano)
 - Ceres only builds up to certain d (20) and k (50) values, due to memory issue
 	- Should be solvable, but needs looking into
 - DiffSharp GMM builds fail

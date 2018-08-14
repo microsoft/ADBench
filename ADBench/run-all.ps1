@@ -73,9 +73,11 @@ Class Tool {
 			$cmdargs = @("$script:dir/tools/$($this.name)/$($this.name)_$objective.py") + $cmdargs
 		}
 
+		if ($this.name -eq "Theano") { $cmd = "$script:dir/tools/Theano/run.bat" }
+		
 		$output = & $cmd @cmdargs
 		foreach($line in $output) {
-			Write-Host "        " $line
+			Write-Host "        $line"
 		}
 	}
 
