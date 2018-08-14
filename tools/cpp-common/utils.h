@@ -6,6 +6,9 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <functional>
+#include <limits>
+#include <chrono>
 
 #ifdef DO_EIGEN
 #include <Eigen/Dense>
@@ -22,6 +25,7 @@ using std::endl;
 using std::string;
 using std::vector;
 using std::getline;
+using namespace std::chrono;
 
 
 typedef struct { int verts[3]; } Triangle;
@@ -629,11 +633,7 @@ void read_hand_instance(const string& model_dir, const string& fn_in,
 
 
 
-#include <functional>
-#include <limits>
-#include <chrono>
 
-using namespace std::chrono;
 
 // Time a function
 double timer(std::function<void()> func, int nruns=10, double limit=std::numeric_limits<double>::max()) {

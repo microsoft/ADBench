@@ -11,7 +11,11 @@ def timer(func, args, nruns=10, limit=float("inf"), ret_val=False):
         end = t.time()
         total += end - start
         i += 1
-    result = total / nruns if nruns > 0 else 0
+
+    if i < nruns:
+        print("Hit time limit after {} loops".format(i))
+
+    result = total / i if i > 0 else 0
     return (result, value) if ret_val else result
 
 

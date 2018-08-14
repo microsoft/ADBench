@@ -6,8 +6,9 @@ from scipy import special as scipy_special
 import autograd.numpy as np
 from autograd import value_and_grad
 
-from ..python_common import utils
-from ..python_common import gmm_io
+sys.path.append(sys.path[0] + ("/" if sys.path[0] else None) + "..")
+from python_common import utils
+from python_common import gmm_io
 
 import gmm_objective as gmm
 
@@ -28,7 +29,7 @@ def gmm_objective_wrapper(params, x, wishart_gamma, wishart_m):
     return gmm.gmm_objective(params[0], params[1], params[2], x, wishart_gamma, wishart_m)
 
 
-alphas, means, icf, x, wishart_gamma, wishart_m = gmm.read_gmm_instance(fn_in + ".txt", replicate_point)
+alphas, means, icf, x, wishart_gamma, wishart_m = gmm_io.read_gmm_instance(fn_in + ".txt", replicate_point)
 
 
 tf = utils.timer(gmm.gmm_objective, (alphas, means, icf, x, wishart_gamma, wishart_m), nruns=nruns_f, limit=time_limit)

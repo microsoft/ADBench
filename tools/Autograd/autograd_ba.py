@@ -8,8 +8,9 @@ from autograd import jacobian
 from autograd import elementwise_grad
 from autograd.core import primitive
 
-from ..python_common import utils
-from ..python_common import ba_io
+sys.path.append(sys.path[0] + ("/" if sys.path[0] else None) + "..")
+from python_common import utils
+from python_common import ba_io
 
 # implementing derivative of cross
 

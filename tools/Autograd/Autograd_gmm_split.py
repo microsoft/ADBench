@@ -6,8 +6,9 @@ from scipy import special as scipy_special
 import autograd.numpy as np
 from autograd import value_and_grad
 
-from ..python_common import utils
-from ..python_common import gmm_io
+sys.path.append(sys.path[0] + ("/" if sys.path[0] else None) + "..")
+from python_common import utils
+from python_common import gmm_io
 
 import gmm_objective as gmm
 

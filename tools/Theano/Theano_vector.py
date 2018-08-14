@@ -12,8 +12,9 @@ import theano.ifelse
 import theano.compile
 import theano.compile.mode
 
-from ..python_common import utils
-from ..python_common import gmm_io
+sys.path.append(sys.path[0] + ("/" if sys.path[0] else None) + "..")
+from python_common import utils
+from python_common import gmm_io
 
 
 ############## Objective in theano ##################

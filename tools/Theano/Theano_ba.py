@@ -10,8 +10,9 @@ import theano.tensor as T
 import theano.compile
 import theano.compile.mode
 
-from ..python_common import utils
-from ..python_common import ba_io
+sys.path.append(sys.path[0] + ("/" if sys.path[0] else None) + "..")
+from python_common import utils
+from python_common import ba_io
 
 
 ############## Objective in theano ##################

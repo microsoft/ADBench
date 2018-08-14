@@ -1,5 +1,5 @@
 # Accept command-line args
-param([int]$nruns_f=10, [int]$nruns_J=10, [double]$time_limit=20, [string]$tmpdir="")
+param([int]$nruns_f=10, [int]$nruns_J=10, [double]$time_limit=60, [string]$tmpdir="", [bool]$repeat=$FALSE)
 
 # Assert function
 function assert ($expr) {
@@ -54,6 +54,15 @@ Class Tool {
 
 	# Run a single test
 	[void] run ([string]$objective, [string]$dir_in, [string]$dir_out, [string]$fn) {
+		if ($this.name -eq "Manual" -and $objective -eq "BA") { $out_name = "manual_eigen" }
+		elseif ($objective -eq "GMM-SPLIT") { $out_name = "$($this.name)_split" }
+		else { $out_name = $this.name }
+		$output_file = "$($dir_out)$($fn)_times_$($out_name).txt"
+		if (!$script:repeat -and (Test-Path $output_file)) {
+			Write-Host "        Skipped test (already completed)"
+			return
+		}
+
 		$cmd = ""
 		$cmdargs = @($dir_in, $dir_out, $fn, $script:nruns_f, $script:nruns_J, $script:time_limit)
 		if ($this.type -eq "bin") {
@@ -81,7 +90,7 @@ Class Tool {
 		Write-Host "  GMM$type"
 
 		$dir_out = "$script:tmpdir/gmm/$($this.name)/"
-		if (-Not (Test-Path $dir_out)) { mkdir $dir_out }
+		if (!(Test-Path $dir_out)) { mkdir $dir_out }
 
 		foreach ($d in $script:gmm_d_vals) {
 			Write-Host "    d=$d"
@@ -99,7 +108,7 @@ Class Tool {
 		Write-Host "  BA"
 
 		$dir_out = "$script:tmpdir/ba/$($this.name)/"
-		if (-Not (Test-Path $dir_out)) { mkdir $dir_out }
+		if (!(Test-Path $dir_out)) { mkdir $dir_out }
 
 		for ($n = [Tool]::ba_min_n; $n -le [Tool]::ba_max_n; $n++) {
 			Write-Host "    $n"
@@ -115,8 +124,8 @@ $tools = @(
 	[Tool]::new("Ceres", 0, "bin", 1),
 	[Tool]::new("Manual", 0, "bin", 0),
 	#[Tool]::new("DiffSharp", 1, "bin", 0)
-	#[Tool]::new("Autograd", 1, "py", 0)
-	#[Tool]::new("Theano", 1, "py")
+	[Tool]::new("Autograd", 1, "py", 0),
+	[Tool]::new("Theano", 0, "py", 0)
 )
 
 # Run all tests on each tool
