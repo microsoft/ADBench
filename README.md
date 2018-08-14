@@ -68,8 +68,8 @@ Checked items are built by CMake and can be run by run-all.ps1
 - [ ] Tapenade
 
 ### Python
-- [ ] [Autograd](https://github.com/HIPS/autograd)
-- [ ] [Theano](https://github.com/Theano/Theano)
+- [x] [Autograd](https://github.com/HIPS/autograd)
+- [x] [Theano](https://github.com/Theano/Theano)
 
 ### Matlab
 - [ ] ADiMat
