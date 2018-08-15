@@ -32,13 +32,19 @@ for test in os.listdir(tmp_dir):
 
             name = "_".join(fn_split[:fn_split.index("times")])
 
+            tool_name = [s.capitalize() for s in fn_split[fn_split.index("times") + 1:]]
+            if len(tool_name) > 1:
+                tool_name = "{} ({})".format(tool_name[0], " ".join(tool_name[1:]))
+            else:
+                tool_name = tool_name[0]
+
             file = open("{}/{}/{}/{}".format(tmp_dir, test, tool, filename))
             contents = file.read()
             file.close()
 
             time = float(contents.replace("\n", " ").split(" ")[1])
 
-            _set_rec(results, [test, tool, name], time)
+            _set_rec(results, [test, tool_name, name], time)
 
 
 # PLOT GMM GRAPHS
@@ -51,9 +57,6 @@ axes = figure.add_subplot(111, projection="3d")
 axes.set_xlabel("D values")
 axes.set_ylabel("K values")
 axes.set_zlabel("Time taken")
-
-# Color constants
-COLORS = ["b", "g", "r", "c", "m", "y", "k", "w"]
 
 
 # Functions to sort results
@@ -90,9 +93,9 @@ for tool in results["gmm"]:
     Z = numpy.array([[getz(X[i, j], Y[i, j]) for j in range(len(d_vals))] for i in range(len(k_vals))])
 
     # Plot
-    axes.plot_wireframe(X, Y, Z, label=tool, color=COLORS[list(results["gmm"].keys()).index(tool)])
-    # axes.scatter(X, Y, Z, label=tool, color=COLORS[list(results["gmm"].keys()).index(tool)])
-    # axes.plot_surface(X, Y, Z, color=COLORS[list(results["gmm"].keys()).index(tool)])
+    axes.plot_wireframe(X, Y, Z, label=tool, color=numpy.random.random((1, 3)))
+    # axes.scatter(X, Y, Z, label=tool, color=numpy.random.random((1, 3)))
+    # axes.plot_surface(X, Y, Z, numpy.random.random((1, 4)))
 
     # 2D plot
     pyplot.figure(2)
