@@ -30,6 +30,7 @@ Class Tool {
 	[bool]$gmm_both
 	[string]$type
 	[bool]$gmm_use_defs
+	[bool]$ba_eigen
 
 	# Static constants
 	static [string]$gmm_dir_in = "$dir/data/gmm/1k/"
@@ -38,11 +39,12 @@ Class Tool {
 	static [int]$ba_max_n = 5
 
 	# Constructor
-	Tool ([string]$name, [bool]$gmm_both, [string]$type, [bool]$gmm_use_defs) {
+	Tool ([string]$name, [bool]$gmm_both, [string]$type, [bool]$gmm_use_defs, [bool]$ba_eigen) {
 		$this.name = $name
 		$this.gmm_both = $gmm_both
 		$this.type = $type
 		$this.gmm_use_defs = $gmm_use_defs
+		$this.ba_eigen = $ba_eigen
 	}
 
 	# Run all tests for this tool
@@ -54,7 +56,7 @@ Class Tool {
 
 	# Run a single test
 	[void] run ([string]$objective, [string]$dir_in, [string]$dir_out, [string]$fn) {
-		if ($this.name -eq "Manual" -and $objective -eq "BA") { $out_name = "manual_eigen" }
+		if ($this.ba_eigen -and $objective -eq "BA") { $out_name = "$($this.name.ToLower())_eigen" }
 		elseif ($objective -eq "GMM-SPLIT") { $out_name = "$($this.name)_split" }
 		else { $out_name = $this.name }
 		$output_file = "$($dir_out)$($fn)_times_$($out_name).txt"
@@ -67,18 +69,23 @@ Class Tool {
 		$cmdargs = @($dir_in, $dir_out, $fn, $script:nruns_f, $script:nruns_J, $script:time_limit)
 		if ($this.type -eq "bin") {
 			$cmd = "$script:bindir\tools\$($this.name)\Tools-$($this.name)-$objective.exe"
-		} elseif ($this.type -eq "py") {
+		} elseif ($this.type -eq "py" -or $this.type -eq "pybat") {
 			$objective = $objective.ToLower().Replace("-", "_")
-			$cmd = "python"
+			if ($this.type -eq "py") { $cmd = "python" }
+			elseif ($this.type -eq "pybat") { $cmd = "$script:dir/tools/$($this.name)/run.bat" }
 			$cmdargs = @("$script:dir/tools/$($this.name)/$($this.name)_$objective.py") + $cmdargs
+		} elseif ($this.type -eq "matlab") {
+			$objective = $objective.ToLower().Replace("-", "_")
+			$cmd = "matlab"
+			$cmdargs = @("-nosplash", "-nodesktop", "-r") + @("$($this.name)_$objective $cmdargs")
 		}
-
-		if ($this.name -eq "Theano") { $cmd = "$script:dir/tools/Theano/run.bat" }
 		
-		$output = & $cmd @cmdargs
-		foreach($line in $output) {
-			Write-Host "        $line"
-		}
+		Write-Host $cmd @cmdargs
+
+		#$output = & $cmd @cmdargs
+		#foreach($line in $output) {
+		#	Write-Host "        $line"
+		#}
 	}
 
 	# Run all gmm tests for this tool
@@ -91,7 +98,7 @@ Class Tool {
 
 		Write-Host "  GMM$type"
 
-		$dir_out = "$script:tmpdir/gmm/$($this.name)/"
+		$dir_out = "$script:tmpdir/$script:buildtype/gmm/$($this.name)/"
 		if (!(Test-Path $dir_out)) { mkdir $dir_out }
 
 		foreach ($d in $script:gmm_d_vals) {
@@ -109,7 +116,7 @@ Class Tool {
 	[void] testba () {
 		Write-Host "  BA"
 
-		$dir_out = "$script:tmpdir/ba/$($this.name)/"
+		$dir_out = "$script:tmpdir/$script:buildtype/ba/$($this.name)/"
 		if (!(Test-Path $dir_out)) { mkdir $dir_out }
 
 		for ($n = [Tool]::ba_min_n; $n -le [Tool]::ba_max_n; $n++) {
@@ -121,13 +128,14 @@ Class Tool {
 
 # Full list of tools
 $tools = @(
-	[Tool]::new("Adept", 1, "bin", 0),
-	[Tool]::new("ADOLC", 1, "bin", 0),
-	[Tool]::new("Ceres", 0, "bin", 1),
-	[Tool]::new("Manual", 0, "bin", 0),
-	#[Tool]::new("DiffSharp", 1, "bin", 0)
-	[Tool]::new("Autograd", 1, "py", 0),
-	[Tool]::new("Theano", 0, "py", 0)
+	[Tool]::new("Adept", 1, "bin", 0, 0),
+	[Tool]::new("ADOLC", 1, "bin", 0, 0),
+	[Tool]::new("Ceres", 0, "bin", 1, 0),
+	[Tool]::new("Manual", 0, "bin", 0, 1),
+	#[Tool]::new("DiffSharp", 1, "bin", 0, 0)
+	[Tool]::new("Autograd", 1, "py", 0, 0),
+	[Tool]::new("Theano", 0, "pybat", 0, 0),
+	#[Tool]::new("MuPad", 0, "matlab", 0, 0)
 )
 
 # Run all tests on each tool
