@@ -91,3 +91,8 @@ Checked items are built by CMake and can be run by run-all.ps1
 	- Should be solvable, but needs looking into
 - DiffSharp GMM builds fail
 - run-all.ps1 does not currently run all tools
+
+## Example Graphs
+
+![BA Graph](/Documents/New%20Figures/BA%20Graph.png)
+![GMM Graph](/Documents/New%20Figures/GMM%20Graph.png)
