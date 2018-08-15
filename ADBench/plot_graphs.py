@@ -51,6 +51,7 @@ for test in os.listdir(tmp_dir):
 
 # Create axes
 figure = pyplot.figure(1)
+pyplot.title("GMM")
 axes = figure.add_subplot(111, projection="3d")
 
 # Label axes
@@ -116,14 +117,16 @@ pyplot.legend()
 
 # Show 2D legend, and log-scale axes
 pyplot.figure(2)
+pyplot.title("GMM")
 pyplot.xscale("log")
 pyplot.yscale("log")
-pyplot.legend()
+pyplot.legend(loc=4, bbox_to_anchor=(1.1, -0.1))
 
 
 # PLOT BA GRAPHS
 
 pyplot.figure(3)
+pyplot.title("BA")
 
 for tool in results["ba"]:
     n_vals = sorted(list(map(lambda key: int(key[2:]), results["ba"][tool].keys())))
