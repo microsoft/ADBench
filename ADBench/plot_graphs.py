@@ -1,9 +1,12 @@
 import os
+import sys
 import numpy
 from matplotlib import pylab, pyplot
 from mpl_toolkits.mplot3d import Axes3D
 
 tmp_dir = "../tmp"
+out_dir = "../Documents/New Figures/"
+do_save = len(sys.argv) >= 2 and sys.argv[1] == "--save"
 
 
 # Recursively set in nested dictionary
@@ -52,16 +55,6 @@ plot_idx = 0
 for build in results:
     # PLOT GMM GRAPHS
 
-    # Create axes
-    figure = pyplot.figure(plot_idx + 1)
-    pyplot.title("GMM")
-    axes = figure.add_subplot(111, projection="3d")
-
-    # Label axes
-    axes.set_xlabel("D values")
-    axes.set_ylabel("K values")
-    axes.set_zlabel("Time taken")
-
     # Functions to sort results
     def getd(key):
         return int(key.split("_")[1][1:])
@@ -78,10 +71,16 @@ for build in results:
     def getz(d, k):
         return results[build]["gmm"][tool][getkey(d, k)] if getkey(d, k) in results[build]["gmm"][tool] else float("inf")
 
+    # Create 3D axes
+    figure = pyplot.figure(plot_idx + 1, figsize=(12, 8), dpi=96)
+    pyplot.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
+    axes = figure.add_subplot(111, projection="3d")
+
+
     # Loop through tools
     for tool in results[build]["gmm"]:
         # 3D Plot
-        pyplot.figure(plot_idx + 1)
+        pyplot.figure(plot_idx + 1, figsize=(12, 8), dpi=96)
 
         # Get values
         d_vals = numpy.unique(list(map(getd, results[build]["gmm"][tool])))
@@ -96,7 +95,7 @@ for build in results:
         # axes.plot_surface(X, Y, Z, numpy.random.random((1, 4)))
 
         # 2D plot
-        pyplot.figure(plot_idx + 2)
+        pyplot.figure(plot_idx + 2, figsize=(12, 8), dpi=96)
 
         # Get values
         key_n_vals = {key: getn(key) for key in results[build]["gmm"][tool]}
@@ -106,22 +105,36 @@ for build in results:
         # Plot
         pyplot.plot(n_vals, t_vals, marker="x", label=tool)
 
-    # Show 3D legend
-    pyplot.figure(plot_idx + 1)
+    # Setup 3d figure
+    pyplot.figure(plot_idx + 1, figsize=(12, 8), dpi=96)
+    pyplot.title("GMM ({})".format(build))
+    pyplot.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
+    axes.set_xlabel("D values")
+    axes.set_ylabel("K values")
+    axes.set_zlabel("Time taken")
     axes.set_zscale("log")
     pyplot.legend()
 
-    # Show 2D legend, and log-scale axes
-    pyplot.figure(plot_idx + 2)
+    # Setup 2D figure
+    pyplot.figure(plot_idx + 2, figsize=(12, 8), dpi=96)
     pyplot.title("GMM ({})".format(build))
+    pyplot.subplots_adjust(left=0.08, right=0.95, top=0.93, bottom=0.1)
+    pyplot.xlabel("Input size [d * (d - 1) / 2 * k]")
+    pyplot.ylabel("Running time (s)")
     pyplot.xscale("log")
     pyplot.yscale("log")
-    pyplot.legend(loc=4, bbox_to_anchor=(1.1, -0.1))
+    pyplot.legend(loc=2, bbox_to_anchor=(0, 1))
+
+    if do_save:
+        pyplot.savefig(out_dir + "GMM ({}) Graph.png".format(build), dpi=144)
 
     # PLOT BA GRAPHS
 
-    pyplot.figure(plot_idx + 3)
+    pyplot.figure(plot_idx + 3, figsize=(12, 8), dpi=96)
     pyplot.title("BA ({})".format(build))
+    pyplot.subplots_adjust(left=0.08, right=0.95, top=0.93, bottom=0.1)
+    pyplot.xlabel("Input size")
+    pyplot.ylabel("Running time (s)")
 
     for tool in results[build]["ba"]:
         n_vals = sorted(list(map(lambda key: int(key[2:]), results[build]["ba"][tool].keys())))
@@ -129,10 +142,14 @@ for build in results:
         pyplot.plot(n_vals, t_vals, marker="x", label=tool)
 
     pyplot.yscale("log")
-    pyplot.legend()
+    pyplot.legend(loc=2, bbox_to_anchor=(0, 1))
+
+    if do_save:
+        pyplot.savefig(out_dir + "BA ({}) Graph.png".format(build), dpi=144)
 
     plot_idx += 3
 
 
 # Display all figures
-pyplot.show()
+if not do_save:
+    pyplot.show()
