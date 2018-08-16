@@ -1,6 +1,6 @@
 project("Tools-DiffSharp")
 
-set(DIFFSHARP_CONFIGS "Debug-BA")
+set(DIFFSHARP_CONFIGS "${AD_BUILD_TYPE}-BA")
 
 if (WIN32)
 	foreach(config ${DIFFSHARP_CONFIGS})
