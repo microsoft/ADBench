@@ -79,13 +79,11 @@ Class Tool {
 			$cmd = "matlab"
 			$cmdargs = @("-nosplash", "-nodesktop", "-r") + @("$($this.name)_$objective $cmdargs")
 		}
-		
-		Write-Host $cmd @cmdargs
 
-		#$output = & $cmd @cmdargs
-		#foreach($line in $output) {
-		#	Write-Host "        $line"
-		#}
+		$output = & $cmd @cmdargs
+		foreach($line in $output) {
+			Write-Host "        $line"
+		}
 	}
 
 	# Run all gmm tests for this tool
