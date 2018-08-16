@@ -132,7 +132,7 @@ $tools = @(
 	[Tool]::new("Manual", 0, "bin", 0, 1),
 	#[Tool]::new("DiffSharp", 1, "bin", 0, 0)
 	[Tool]::new("Autograd", 1, "py", 0, 0),
-	[Tool]::new("Theano", 0, "pybat", 0, 0),
+	[Tool]::new("Theano", 0, "pybat", 0, 0)
 	#[Tool]::new("MuPad", 0, "matlab", 0, 0)
 )
 
