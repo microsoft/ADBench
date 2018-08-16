@@ -94,5 +94,5 @@ Checked items are built by CMake and can be run by run-all.ps1
 
 ## Example Graphs
 
-![BA Graph](/Documents/New%20Figures/BA%20Graph.png)
-![GMM Graph](/Documents/New%20Figures/GMM%20Graph.png)
+![BA Graph](/Documents/New%20Figures/BA%20(Debug)%20Graph.png)
+![GMM Graph](/Documents/New%20Figures/GMM%20(Debug)%20Graph.png)
