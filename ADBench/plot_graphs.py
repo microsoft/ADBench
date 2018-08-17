@@ -6,11 +6,12 @@ from mpl_toolkits.mplot3d import Axes3D
 import plotly
 
 tmp_dir = "../tmp"
-out_dir = "../Documents/New Figures"
+root_out_dir = "../Documents/New Figures"
 do_save = "--save" in sys.argv
 do_plotly = "--plotly" in sys.argv
 
 figure_size = (9, 6) if do_plotly else (12, 8)
+
 
 # Recursively set in nested dictionary
 def _set_rec(obj, keys, value):
@@ -28,7 +29,8 @@ def _set_rec(obj, keys, value):
 
 # READ IN RESULTS FROM OUTPUT FILES
 
-results = {}
+results_f = {"type": "tf"}
+results_J = {"type": "tJ"}
 for build in os.listdir(tmp_dir):
     for test in os.listdir("/".join([tmp_dir, build])):
         for tool in os.listdir("/".join([tmp_dir, build, test])):
@@ -49,121 +51,134 @@ for build in os.listdir(tmp_dir):
                 contents = file.read()
                 file.close()
 
-                time = float(contents.replace("\n", " ").split(" ")[1])
+                times = contents.replace("\n", " ").split(" ")
+                tf = float(times[0])
+                tJ = float(times[1])
 
-                _set_rec(results, [build, test, tool_name, name], time)
+                _set_rec(results_f, [build, test, tool_name, name], tf)
+                _set_rec(results_J, [build, test, tool_name, name], tJ)
 
 
 plot_idx = 0
-for build in results:
-    # PLOT GMM GRAPHS
+for results in [results_f, results_J]:
+    func_name = "autodiff" if results["type"] == "tJ" else "objective"
+    out_dir = "{}/{}".format(root_out_dir, func_name)
 
-    # Functions to sort results
-    def getd(key):
-        return int(key.split("_")[1][1:])
+    if not os.path.isdir("{}/{}".format(out_dir, "plotly")):
+        os.makedirs("{}/{}".format(out_dir, "plotly"))
 
-    def getk(key):
-        return int(key.split("_")[2][1:])
+    for build in results:
+        if build == "type":
+            continue
 
-    def getn(key):
-        return int(getd(key) * (getd(key) - 1) / 2 * getk(key))
+        # PLOT GMM GRAPHS
 
-    def getkey(d, k):
-        return "gmm_d{}_K{}".format(d, k)
+        # Functions to sort results
+        def getd(key):
+            return int(key.split("_")[1][1:])
 
-    def getz(d, k):
-        return results[build]["gmm"][tool][getkey(d, k)] if getkey(d, k) in results[build]["gmm"][tool] else float("inf")
+        def getk(key):
+            return int(key.split("_")[2][1:])
 
-    # Create 3D axes
-    figure = pyplot.figure(plot_idx + 1, figsize=figure_size, dpi=96)
-    pyplot.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
-    axes = figure.add_subplot(111, projection="3d")
+        def getn(key):
+            return int(getd(key) * (getd(key) - 1) / 2 * getk(key))
 
-    # Loop through tools
-    for tool in results[build]["gmm"]:
-        # 3D Plot
+        def getkey(d, k):
+            return "gmm_d{}_K{}".format(d, k)
+
+        def getz(d, k):
+            return results[build]["gmm"][tool][getkey(d, k)] if getkey(d, k) in results[build]["gmm"][tool] else float("inf")
+
+        # Create 3D axes
+        figure = pyplot.figure(plot_idx + 1, figsize=figure_size, dpi=96)
+        pyplot.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
+        axes = figure.add_subplot(111, projection="3d")
+
+        # Loop through tools
+        for tool in results[build]["gmm"]:
+            # 3D Plot
+            pyplot.figure(plot_idx + 1, figsize=figure_size, dpi=96)
+
+            # Get values
+            d_vals = numpy.unique(list(map(getd, results[build]["gmm"][tool])))
+            k_vals = numpy.unique(list(map(getk, results[build]["gmm"][tool])))
+            X = numpy.repeat([d_vals], len(k_vals), 0)
+            Y = numpy.repeat([[k] for k in k_vals], len(d_vals), 1)
+            Z = numpy.array([[getz(X[i, j], Y[i, j]) for j in range(len(d_vals))] for i in range(len(k_vals))])
+
+            # Plot
+            axes.plot_wireframe(X, Y, Z, label=tool, color=numpy.random.random((1, 3)))
+            # axes.scatter(X, Y, Z, label=tool, color=numpy.random.random((1, 3)))
+            # axes.plot_surface(X, Y, Z, numpy.random.random((1, 4)))
+
+            # 2D plot
+            pyplot.figure(plot_idx + 2, figsize=figure_size, dpi=96)
+
+            # Get values
+            key_n_vals = {key: getn(key) for key in results[build]["gmm"][tool]}
+            n_vals = sorted(key_n_vals.values())
+            t_vals = [results[build]["gmm"][tool][key] for key in sorted(key_n_vals.keys(), key=lambda key: key_n_vals[key])]
+
+            # Plot
+            pyplot.plot(n_vals, t_vals, marker="x", label=tool)
+
+        # Setup 3d figure
         pyplot.figure(plot_idx + 1, figsize=figure_size, dpi=96)
+        pyplot.title("GMM ({}) - {}".format(build, func_name))
+        pyplot.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
+        axes.set_xlabel("D values")
+        axes.set_ylabel("K values")
+        axes.set_zlabel("Time taken")
+        axes.set_zscale("log")
+        pyplot.legend()
 
-        # Get values
-        d_vals = numpy.unique(list(map(getd, results[build]["gmm"][tool])))
-        k_vals = numpy.unique(list(map(getk, results[build]["gmm"][tool])))
-        X = numpy.repeat([d_vals], len(k_vals), 0)
-        Y = numpy.repeat([[k] for k in k_vals], len(d_vals), 1)
-        Z = numpy.array([[getz(X[i, j], Y[i, j]) for j in range(len(d_vals))] for i in range(len(k_vals))])
+        # Setup 2D figure
+        figure = pyplot.figure(plot_idx + 2, figsize=figure_size, dpi=96)
+        pyplot.title("GMM ({}) - {}".format(build, func_name))
+        pyplot.subplots_adjust(left=0.08, right=0.95, top=0.93, bottom=0.1)
+        pyplot.xlabel("Input size [d * (d - 1) / 2 * k]")
+        pyplot.ylabel("Running time (s)")
+        pyplot.xscale("log")
+        pyplot.yscale("log")
 
-        # Plot
-        axes.plot_wireframe(X, Y, Z, label=tool, color=numpy.random.random((1, 3)))
-        # axes.scatter(X, Y, Z, label=tool, color=numpy.random.random((1, 3)))
-        # axes.plot_surface(X, Y, Z, numpy.random.random((1, 4)))
+        if do_plotly:
+            plotly_fig = plotly.tools.mpl_to_plotly(figure)
+            plotly_fig["layout"]["showlegend"] = True
+            plotly.offline.plot(plotly_fig, filename="{}/plotly/GMM ({}) Graph.html".format(out_dir, build), auto_open=False)
+        else:
+            pyplot.legend(loc=2, bbox_to_anchor=(0, 1))
 
-        # 2D plot
-        pyplot.figure(plot_idx + 2, figsize=figure_size, dpi=96)
+            if do_save:
+                pyplot.savefig("{}/GMM ({}) Graph.png".format(out_dir, build), dpi=144)
 
-        # Get values
-        key_n_vals = {key: getn(key) for key in results[build]["gmm"][tool]}
-        n_vals = sorted(key_n_vals.values())
-        t_vals = [results[build]["gmm"][tool][key] for key in sorted(key_n_vals.keys(), key=lambda key: key_n_vals[key])]
+        # PLOT BA GRAPHS
 
-        # Plot
-        pyplot.plot(n_vals, t_vals, marker="x", label=tool)
+        # Set up figure
+        figure = pyplot.figure(plot_idx + 3, figsize=figure_size, dpi=96)
+        pyplot.title("BA ({}) - {}".format(build, func_name))
+        pyplot.subplots_adjust(left=0.08, right=0.95, top=0.93, bottom=0.1)
+        pyplot.xlabel("Input size")
+        pyplot.ylabel("Running time (s)")
 
-    # Setup 3d figure
-    pyplot.figure(plot_idx + 1, figsize=figure_size, dpi=96)
-    pyplot.title("GMM ({})".format(build))
-    pyplot.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
-    axes.set_xlabel("D values")
-    axes.set_ylabel("K values")
-    axes.set_zlabel("Time taken")
-    axes.set_zscale("log")
-    pyplot.legend()
+        # Loop through tools and plot results
+        for tool in results[build]["ba"]:
+            n_vals = sorted(list(map(lambda key: int(key[2:]), results[build]["ba"][tool].keys())))
+            t_vals = list(map(lambda key: results[build]["ba"][tool]["ba" + str(key)], n_vals))
+            pyplot.plot(n_vals, t_vals, marker="x", label=tool)
 
-    # Setup 2D figure
-    figure = pyplot.figure(plot_idx + 2, figsize=figure_size, dpi=96)
-    pyplot.title("GMM ({})".format(build))
-    pyplot.subplots_adjust(left=0.08, right=0.95, top=0.93, bottom=0.1)
-    pyplot.xlabel("Input size [d * (d - 1) / 2 * k]")
-    pyplot.ylabel("Running time (s)")
-    pyplot.xscale("log")
-    pyplot.yscale("log")
+        pyplot.yscale("log")
 
-    if do_plotly:
-        plotly_fig = plotly.tools.mpl_to_plotly(figure)
-        plotly_fig["layout"]["showlegend"] = True
-        plotly.offline.plot(plotly_fig, filename="{}/plotly/GMM ({}) Graph.html".format(out_dir, build), auto_open=False)
-    else:
-        pyplot.legend(loc=2, bbox_to_anchor=(0, 1))
+        if do_plotly:
+            plotly_fig = plotly.tools.mpl_to_plotly(figure)
+            plotly_fig["layout"]["showlegend"] = True
+            plotly.offline.plot(plotly_fig, filename="{}/plotly/BA ({}) Graph.html".format(out_dir, build), auto_open=False)
+        else:
+            pyplot.legend(loc=2, bbox_to_anchor=(0, 1))
 
-        if do_save:
-            pyplot.savefig("{}/GMM ({}) Graph.png".format(out_dir, build), dpi=144)
+            if do_save:
+                pyplot.savefig("{}/BA ({}) Graph.png".format(out_dir, build), dpi=144)
 
-    # PLOT BA GRAPHS
-
-    # Set up figure
-    figure = pyplot.figure(plot_idx + 3, figsize=figure_size, dpi=96)
-    pyplot.title("BA ({})".format(build))
-    pyplot.subplots_adjust(left=0.08, right=0.95, top=0.93, bottom=0.1)
-    pyplot.xlabel("Input size")
-    pyplot.ylabel("Running time (s)")
-
-    # Loop through tools and plot results
-    for tool in results[build]["ba"]:
-        n_vals = sorted(list(map(lambda key: int(key[2:]), results[build]["ba"][tool].keys())))
-        t_vals = list(map(lambda key: results[build]["ba"][tool]["ba" + str(key)], n_vals))
-        pyplot.plot(n_vals, t_vals, marker="x", label=tool)
-
-    pyplot.yscale("log")
-
-    if do_plotly:
-        plotly_fig = plotly.tools.mpl_to_plotly(figure)
-        plotly_fig["layout"]["showlegend"] = True
-        plotly.offline.plot(plotly_fig, filename="{}/plotly/BA ({}) Graph.html".format(out_dir, build), auto_open=False)
-    else:
-        pyplot.legend(loc=2, bbox_to_anchor=(0, 1))
-
-        if do_save:
-            pyplot.savefig("{}/BA ({}) Graph.png".format(out_dir, build), dpi=144)
-
-    plot_idx += 3
+        plot_idx += 3
 
 
 # Display all figures
