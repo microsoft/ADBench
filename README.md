@@ -16,6 +16,7 @@ Output a set of relevant graphs.
 	- numpy
 	- scipy
 	- matplotlib
+	- plotly
 	- autograd
 - [Miniconda](https://conda.io/miniconda.html) (only required to run Theano)
 	- Once installed, open the Anaconda Prompt as an administrator and run:

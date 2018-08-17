@@ -3,10 +3,12 @@ import sys
 import numpy
 from matplotlib import pylab, pyplot
 from mpl_toolkits.mplot3d import Axes3D
+import plotly
 
 tmp_dir = "../tmp"
-out_dir = "../Documents/New Figures/"
-do_save = len(sys.argv) >= 2 and sys.argv[1] == "--save"
+out_dir = "../Documents/New Figures"
+do_save = "--save" in sys.argv
+do_plotly = "--plotly" in sys.argv
 
 
 # Recursively set in nested dictionary
@@ -76,7 +78,6 @@ for build in results:
     pyplot.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
     axes = figure.add_subplot(111, projection="3d")
 
-
     # Loop through tools
     for tool in results[build]["gmm"]:
         # 3D Plot
@@ -116,40 +117,54 @@ for build in results:
     pyplot.legend()
 
     # Setup 2D figure
-    pyplot.figure(plot_idx + 2, figsize=(12, 8), dpi=96)
+    figure = pyplot.figure(plot_idx + 2, figsize=(12, 8), dpi=96)
     pyplot.title("GMM ({})".format(build))
     pyplot.subplots_adjust(left=0.08, right=0.95, top=0.93, bottom=0.1)
     pyplot.xlabel("Input size [d * (d - 1) / 2 * k]")
     pyplot.ylabel("Running time (s)")
     pyplot.xscale("log")
     pyplot.yscale("log")
-    pyplot.legend(loc=2, bbox_to_anchor=(0, 1))
 
-    if do_save:
-        pyplot.savefig(out_dir + "GMM ({}) Graph.png".format(build), dpi=144)
+    if do_plotly:
+        plotly_fig = plotly.tools.mpl_to_plotly(figure)
+        plotly_fig["layout"]["showlegend"] = True
+        plotly.offline.plot(plotly_fig, filename="{}/plotly/GMM ({}) Graph.html".format(out_dir, build), auto_open=False)
+    else:
+        pyplot.legend(loc=2, bbox_to_anchor=(0, 1))
+
+        if do_save:
+            pyplot.savefig("{}/GMM ({}) Graph.png".format(out_dir, build), dpi=144)
 
     # PLOT BA GRAPHS
 
-    pyplot.figure(plot_idx + 3, figsize=(12, 8), dpi=96)
+    # Set up figure
+    figure = pyplot.figure(plot_idx + 3, figsize=(12, 8), dpi=96)
     pyplot.title("BA ({})".format(build))
     pyplot.subplots_adjust(left=0.08, right=0.95, top=0.93, bottom=0.1)
     pyplot.xlabel("Input size")
     pyplot.ylabel("Running time (s)")
 
+    # Loop through tools and plot results
     for tool in results[build]["ba"]:
         n_vals = sorted(list(map(lambda key: int(key[2:]), results[build]["ba"][tool].keys())))
         t_vals = list(map(lambda key: results[build]["ba"][tool]["ba" + str(key)], n_vals))
         pyplot.plot(n_vals, t_vals, marker="x", label=tool)
 
     pyplot.yscale("log")
-    pyplot.legend(loc=2, bbox_to_anchor=(0, 1))
 
-    if do_save:
-        pyplot.savefig(out_dir + "BA ({}) Graph.png".format(build), dpi=144)
+    if do_plotly:
+        plotly_fig = plotly.tools.mpl_to_plotly(figure)
+        plotly_fig["layout"]["showlegend"] = True
+        plotly.offline.plot(plotly_fig, filename="{}/plotly/BA ({}) Graph.html".format(out_dir, build), auto_open=False)
+    else:
+        pyplot.legend(loc=2, bbox_to_anchor=(0, 1))
+
+        if do_save:
+            pyplot.savefig("{}/BA ({}) Graph.png".format(out_dir, build), dpi=144)
 
     plot_idx += 3
 
 
 # Display all figures
-if not do_save:
+if not do_save and not do_plotly:
     pyplot.show()
