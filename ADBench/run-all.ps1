@@ -22,6 +22,9 @@ assert "Test-Path" "$dir/ADBench/cmake_vars.ps1"
 
 # Set tmpdir default
 if (!$tmpdir) { $tmpdir = "$dir/tmp" }
+$tmpdir += "/$buildtype"
+
+$datadir = "$dir/data"
 
 
 # Custom Tool class
@@ -33,8 +36,8 @@ Class Tool {
 	[bool]$ba_eigen
 
 	# Static constants
-	static [string]$gmm_dir_in = "$dir/data/gmm/1k/"
-	static [string]$ba_dir_in = "$dir/data/ba/"
+	static [string]$gmm_dir_in = "$datadir/gmm/1k/"
+	static [string]$ba_dir_in = "$datadir/ba/"
 	static [int]$ba_min_n = 1
 	static [int]$ba_max_n = 5
 
@@ -77,7 +80,7 @@ Class Tool {
 		} elseif ($this.type -eq "matlab") {
 			$objective = $objective.ToLower().Replace("-", "_")
 			$cmd = "matlab"
-			$cmdargs = @("-nosplash", "-nodesktop", "-r") + @("$($this.name)_$objective $cmdargs")
+			$cmdargs = @("-wait", "-nosplash", "-nodesktop", "-r", "cd '$script:dir/tools/$($this.name)/'; $($this.name)_$objective $cmdargs; quit")
 		}
 
 		$output = & $cmd @cmdargs
@@ -96,7 +99,7 @@ Class Tool {
 
 		Write-Host "  GMM$type"
 
-		$dir_out = "$script:tmpdir/$script:buildtype/gmm/$($this.name)/"
+		$dir_out = "$script:tmpdir/gmm/$($this.name)/"
 		if (!(Test-Path $dir_out)) { mkdir $dir_out }
 
 		foreach ($d in $script:gmm_d_vals) {
@@ -114,7 +117,7 @@ Class Tool {
 	[void] testba () {
 		Write-Host "  BA"
 
-		$dir_out = "$script:tmpdir/$script:buildtype/ba/$($this.name)/"
+		$dir_out = "$script:tmpdir/ba/$($this.name)/"
 		if (!(Test-Path $dir_out)) { mkdir $dir_out }
 
 		for ($n = [Tool]::ba_min_n; $n -le [Tool]::ba_max_n; $n++) {
@@ -134,7 +137,7 @@ $tools = @(
 	[Tool]::new("Finite", 0, "bin", 0, 0),
 	[Tool]::new("Autograd", 1, "py", 0, 0),
 	[Tool]::new("Theano", 0, "pybat", 0, 0)
-	#[Tool]::new("MuPad", 0, "matlab", 0, 0)
+	[Tool]::new("MuPad", 0, "matlab", 0, 0)
 )
 
 # Run all tests on each tool
