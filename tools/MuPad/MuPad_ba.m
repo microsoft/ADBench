@@ -16,19 +16,19 @@ disp(['nruns_f: ' nruns_f ', nruns_J: ' nruns_J]);
 time_limit = str2double(time_limit);
 
 if nruns_f > 0
-    tic
-    [ J, err ] = mupad_ba_objective(cams, X, w, obs, false);
-    if ~isempty(J)
-        tf = toc/nruns_f;
-    end
+	tic
+	for i=1:nruns_f
+		[~,reproj_err,w_err] = mupad_ba_objective(cams, X, w, obs, false);
+	end
+	tf = toc/nruns_f;
 end
 
 if nruns_J > 0
     tic
-    [ J, err ] = mupad_ba_objective(cams, X, w, obs, true);
-    if ~isempty(J)
-        tJ = toc/nruns_J;
-    end
+	for i=1:nruns_J
+		[J, reproj_err,w_err] = mupad_ba_objective(cams, X, w, obs, true);
+	end
+	tJ = toc/nruns_J;
 end
 
 fid=fopen([dir_out fn '_times_MuPad.txt'], 'w');
