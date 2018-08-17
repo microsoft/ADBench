@@ -9,10 +9,12 @@ Output a set of relevant graphs.
 
 ## Prerequisites
 
-- CMake
-- .NET
-- FSharp
-- Python (with the following `pip` modules)
+- [CMake](https://cmake.org/)
+- [.NET](https://www.microsoft.com/net)
+- [FSharp](https://fsharp.org/)
+- [Matlab](https://www.mathworks.com/products/matlab.html)
+	- **Note:** while the free trial version works, the obtrusive login dialog makes it impossible to automatically run all matlab tests without manually logging in each time
+- [Python](https://www.python.org/) (with the following `pip` modules)
 	- numpy
 	- scipy
 	- matplotlib
@@ -22,7 +24,8 @@ Output a set of relevant graphs.
 	- Once installed, open the Anaconda Prompt as an administrator and run:
 	- `conda install numpy scipy mkl-service libpython m2w64-toolchain`
 	- `conda install theano pygpu`
-- Powershell (default on Windows)
+- [Powershell](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-powershell
+) (default on Windows)
 
 ## Installation/Usage
 
