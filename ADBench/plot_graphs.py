@@ -10,6 +10,7 @@ out_dir = "../Documents/New Figures"
 do_save = "--save" in sys.argv
 do_plotly = "--plotly" in sys.argv
 
+figure_size = (9, 6) if do_plotly else (12, 8)
 
 # Recursively set in nested dictionary
 def _set_rec(obj, keys, value):
@@ -74,14 +75,14 @@ for build in results:
         return results[build]["gmm"][tool][getkey(d, k)] if getkey(d, k) in results[build]["gmm"][tool] else float("inf")
 
     # Create 3D axes
-    figure = pyplot.figure(plot_idx + 1, figsize=(12, 8), dpi=96)
+    figure = pyplot.figure(plot_idx + 1, figsize=figure_size, dpi=96)
     pyplot.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
     axes = figure.add_subplot(111, projection="3d")
 
     # Loop through tools
     for tool in results[build]["gmm"]:
         # 3D Plot
-        pyplot.figure(plot_idx + 1, figsize=(12, 8), dpi=96)
+        pyplot.figure(plot_idx + 1, figsize=figure_size, dpi=96)
 
         # Get values
         d_vals = numpy.unique(list(map(getd, results[build]["gmm"][tool])))
@@ -96,7 +97,7 @@ for build in results:
         # axes.plot_surface(X, Y, Z, numpy.random.random((1, 4)))
 
         # 2D plot
-        pyplot.figure(plot_idx + 2, figsize=(12, 8), dpi=96)
+        pyplot.figure(plot_idx + 2, figsize=figure_size, dpi=96)
 
         # Get values
         key_n_vals = {key: getn(key) for key in results[build]["gmm"][tool]}
@@ -107,7 +108,7 @@ for build in results:
         pyplot.plot(n_vals, t_vals, marker="x", label=tool)
 
     # Setup 3d figure
-    pyplot.figure(plot_idx + 1, figsize=(12, 8), dpi=96)
+    pyplot.figure(plot_idx + 1, figsize=figure_size, dpi=96)
     pyplot.title("GMM ({})".format(build))
     pyplot.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
     axes.set_xlabel("D values")
@@ -117,7 +118,7 @@ for build in results:
     pyplot.legend()
 
     # Setup 2D figure
-    figure = pyplot.figure(plot_idx + 2, figsize=(12, 8), dpi=96)
+    figure = pyplot.figure(plot_idx + 2, figsize=figure_size, dpi=96)
     pyplot.title("GMM ({})".format(build))
     pyplot.subplots_adjust(left=0.08, right=0.95, top=0.93, bottom=0.1)
     pyplot.xlabel("Input size [d * (d - 1) / 2 * k]")
@@ -138,7 +139,7 @@ for build in results:
     # PLOT BA GRAPHS
 
     # Set up figure
-    figure = pyplot.figure(plot_idx + 3, figsize=(12, 8), dpi=96)
+    figure = pyplot.figure(plot_idx + 3, figsize=figure_size, dpi=96)
     pyplot.title("BA ({})".format(build))
     pyplot.subplots_adjust(left=0.08, right=0.95, top=0.93, bottom=0.1)
     pyplot.xlabel("Input size")
