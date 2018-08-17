@@ -9,10 +9,12 @@ Output a set of relevant graphs.
 
 ## Prerequisites
 
-- CMake
-- .NET
-- FSharp
-- Python (with the following `pip` modules)
+- [CMake](https://cmake.org/)
+- [.NET](https://www.microsoft.com/net)
+- [FSharp](https://fsharp.org/)
+- [Matlab](https://www.mathworks.com/products/matlab.html)
+	- **Note:** while the free trial version works, the obtrusive login dialog makes it impossible to automatically run all matlab tests without manually logging in each time
+- [Python](https://www.python.org/) (with the following `pip` modules)
 	- numpy
 	- scipy
 	- matplotlib
@@ -22,7 +24,8 @@ Output a set of relevant graphs.
 	- Once installed, open the Anaconda Prompt as an administrator and run:
 	- `conda install numpy scipy mkl-service libpython m2w64-toolchain`
 	- `conda install theano pygpu`
-- Powershell (default on Windows)
+- [Powershell](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-powershell
+) (default on Windows)
 
 ## Installation/Usage
 
@@ -33,6 +36,25 @@ All tools should build (along with any external packages) and run very easily.
 3) Build
 4) Run `powershell ADBench/run-all.ps1`
 5) Run `python ADBench/plot_graphs.py`
+
+### CLI reference: run-all
+
+`powershell ADBench/run-all.ps1 nruns_f nruns_J time_limit tmpdir repeat`
+- `nruns_f`: Number of times to run the original functions (BA, GMM) for each tool (default = `10`)
+- `nruns_J`: Number of times to run the autodiff process for each tool (default = `10`)
+- `time_limit`: The maximum amount of time (in seconds) to spend benchmarking each tool (default = `60`)
+	- **Note**: A whole number of runs (and at least one) will always be completed
+	- **Note**: The time limits are only implemented in C++ and Python currently
+- `tmpdir`: The output directory to use (default = `tmp`)
+- `repeat`: Whether to repeat tasks for which an output file already exists (default = `false`)
+
+### CLI reference: plot_graphs
+
+`python plot_graphs.py [--save] [--plotly]`
+- With no switch, graphs are displayed in new windows
+- `--save`: Save graphs as .png files to `Documents/New Figures/`
+- `--plotly`: Save graphs as [Plot.ly](https://plot.ly/) .html files to `Documents/New Figures/plotly/`
+**Note**: The `--save` and `--plotly` switches cannot be used simultaneously due to a bug (in either matplotlib or plotly)
 
 ## Folder structure
 
