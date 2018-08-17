@@ -37,6 +37,25 @@ All tools should build (along with any external packages) and run very easily.
 4) Run `powershell ADBench/run-all.ps1`
 5) Run `python ADBench/plot_graphs.py`
 
+### CLI reference: run-all
+
+`powershell ADBench/run-all.ps1 nruns_f nruns_J time_limit tmpdir repeat`
+- `nruns_f`: Number of times to run the original functions (BA, GMM) for each tool (default = `10`)
+- `nruns_J`: Number of times to run the autodiff process for each tool (default = `10`)
+- `time_limit`: The maximum amount of time (in seconds) to spend benchmarking each tool (default = `60`)
+	- **Note**: A whole number of runs (and at least one) will always be completed
+	- **Note**: The time limits are only implemented in C++ and Python currently
+- `tmpdir`: The output directory to use (default = `tmp`)
+- `repeat`: Whether to repeat tasks for which an output file already exists (default = `false`)
+
+### CLI reference: plot_graphs
+
+`python plot_graphs.py [--save] [--plotly]`
+- With no switch, graphs are displayed in new windows
+- `--save`: Save graphs as .png files to `Documents/New Figures/`
+- `--plotly`: Save graphs as [Plot.ly](https://plot.ly/) .html files to `Documents/New Figures/plotly/`
+**Note**: The `--save` and `--plotly` switches cannot be used simultaneously due to a bug (in either matplotlib or plotly)
+
 ## Folder structure
 
 | Folder    | Purpose
