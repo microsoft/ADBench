@@ -80,7 +80,7 @@ Class Tool {
 		} elseif ($this.type -eq "matlab") {
 			$objective = $objective.ToLower().Replace("-", "_")
 			$cmd = "matlab"
-			$cmdargs = @("-wait", "-nosplash", "-nodesktop", "-r", "cd '$script:dir/tools/$($this.name)/'; $($this.name)_$objective $cmdargs; quit")
+			$cmdargs = @("-wait", "-nosplash", "-nodesktop", "-r", "cd '$script:dir/tools/$($this.name)/'; addpath('$script:bindir/tools/$($this.name)/'); $($this.name)_$objective $cmdargs; quit")
 		}
 
 		$output = & $cmd @cmdargs
