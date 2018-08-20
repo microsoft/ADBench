@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.72">
+ <TITLE>The ADiMat Handbook: Dependecy graphs and further information</TITLE>
+ <LINK HREF="adimat-13.html" REL=next>
+ <LINK HREF="adimat-11.html" REL=previous>
+ <LINK HREF="adimat.html#toc12" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="adimat-13.html">Next</A>
+<A HREF="adimat-11.html">Previous</A>
+<A HREF="adimat.html#toc12">Contents</A>
+<HR>
+<H2><A NAME="s12">12.</A> <A HREF="adimat.html#toc12">Dependecy graphs and further information</A></H2>
+
+<P>ADiMat gathers information about the Matlab project analysed the user may
+be interested in. This information may be added to the output files or written
+to distinct files, which may be analysed using third party software.</P>
+<H2><A NAME="calltree"></A> <A NAME="ss12.1">12.1</A> <A HREF="adimat.html#toc12.1">Calltree of functions</A>
+</H2>
+
+<P>The calltree shows dependencies between functions. The relation which function
+is called by which and which function calls which is generated. This
+information may be written to a file using different output-formats. The most
+convenient is the 
+<A HREF="adimat-19.html#vcg">vcg-format</A>. This graph description
+language is parsed by a visualizer and may be browsed by the user. The
+background color of an active function is changed to green. The visualizer may
+be obtained using the url in the this bibliography-entry 
+<A HREF="adimat-19.html#vcg">VCG</A>. The flag 
+<A HREF="adimat-9.html#expctvcg">--exportctvcg</A> is used to
+store the calltree in vcg-format.
+Furthermore, one human readable format is available. The calltree is written
+in simple ASCII. The file contains the list of all functions and the names
+of the functions, that are called by this function. A function name 'f' may
+occur more than once in the list functions called by a function 'g', which
+indicates that the function 'f' is called more than once in the function body
+of 'g'. Subfunctions local to a specific function are written like
+being top-level functions. The output may be generated using the option
+<A HREF="adimat-9.html#expcttxt">--exportcttxt</A>. This format is implemented only, if
+no vcg-tool is availabe.
+The last available output-format writes the calltree in a machine readable
+format. All functions get a unique number and a list of callees and callers.
+Both list enlist the numbers of the functions that are called by the current
+function (the callees-list) and that call the current function. A single
+number may occur more than once in a list, which shows that the function calls
+or is called more than once by this function. The file may be generated using
+the option 
+<A HREF="adimat-9.html#expctsimp">--exportctsimp</A>.</P>
+<H2><A NAME="vardeps"></A> <A NAME="ss12.2">12.2</A> <A HREF="adimat.html#toc12.2">Variable dependency graph</A>
+</H2>
+
+<P>ADiMat may write a file containing the dependencies between variables. A
+variable 'u' depends on a variable 'v', if the variable 'v' occurs on the
+right-hand side of an assignment to 'u'. The only available output-format is
+the vcg-format. The dependencies are shown as a graph, where the variables are
+the nodes and the dependencies are the edges. The edges are directed in the
+way, that the tip points to the variable that is on the right-hand side of the
+assignment. Each variable is displayed using a box. The variable-name is
+prefixed using the scope-name in which the variable is defined or used. Global
+variables are marked by using a rhombus instead of a box. The background color
+of the boxes or rhombuses indicate the activation state of the variable. Four
+states and therefore colors are possible. A white background indicates that
+the variable is inactive, a green background that the variable is active, a
+red background that the variable is reachable from an independent variable and
+a yellow background denotes that the variable is reachable from an dependent
+variable.
+Use the option 
+<A HREF="adimat-9.html#expdgvcg">--exportdgvcg</A> to get the file in
+<A HREF="adimat-19.html#vcg">vcg-format</A>.</P>
+<H2><A NAME="ss12.3">12.3</A> <A HREF="adimat.html#toc12.3">Debugging information</A>
+</H2>
+
+<P>Two additional options exist, that enable the debuging of an ADiMat run. Both
+deliver information about the binding of identifiers. The binding of an
+identifier to a specific environment and scope is described.
+The first option 
+<A HREF="adimat-9.html#writescopefile">--writescopefile</A> generates
+the file '&lt;OUTPUT_DIR&gt;/adimat.dbg'. The file contains a trace of the
+process of identifying identifiers, called identifier-binding. The steps
+needed to bind all identifiers are enlisted. In each step the scopes and their
+environments are printed. Every function creates its own scope. Every scope
+has three environments. One for identifiers that represent variable-names, one
+for function-names and one environment that stores identifiers, whose use is
+not yet encountered. In each environment the identifiers allready identified
+are enlisted. Each identifier shows its occurences in the code and some
+further information. The traces enables to comprehend the process and find
+errors. This file is used identify errors during the development of ADiMat.
+Tool-developers may have an interest in this file.
+The second option 
+<A HREF="adimat-9.html#envoutput">--envoutput</A> is hazardous in a
+certain point of view. If the option is used, the written Matlab-files are
+augmented with additional information for each identifier. After each
+identifier in all Matlab-.m-files the information in which scope and
+environment this specific identifier is bound. The file is no longer
+understandable by Matlab. The information added by this flag has debugging
+purpose only. The normal user does not need to bother about it.</P>
+<HR>
+<A HREF="adimat-13.html">Next</A>
+<A HREF="adimat-11.html">Previous</A>
+<A HREF="adimat.html#toc12">Contents</A>
+</BODY>
+</HTML>

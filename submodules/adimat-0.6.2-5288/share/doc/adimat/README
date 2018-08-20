@@ -1,0 +1,133 @@
+
+            ADiMat -- Automatic Differentiation for Matlab
+                      ^         ^^                  ^^^
+
+
+??? What is ADiMat?
+
+  ADiMat extends Matlab code to automatically compute derivatives. The
+tool applies the techniques of automatic differentiation (AD) (see for
+instance: http://www.autodiff.org for basic knowledge). The source
+code of the Matlab program has to be available and modifyable by
+you. It has to be completely written in Matlab. I.e. no Java method
+calls, no custom library calls (builtins are ok, though), no custom
+mex-fife calls (again Matlab provided are ok).
+
+ADiMat can differentiate code for first and second order derivatives
+in forward mode (FM) of AD and for first order derivatives in reverse
+mode (RM).
+
+                              ---------------
+                              
+??? How can I use it?
+
+  Reading this file ADiMat is installed on your system. Generate a
+small test-function like:
+
+function res=test(x)
+res= x^2;
+
+and store in a file test.m in the current directory. Apply ADiMat in
+FM to it:
+
+> x = 17;
+> Jac = admDiffFor(@test, 1, x);
+
+The variable Jac should now contain the derivative (the Jacobian
+matrix) and a file called g_test.m should be created. This command
+uses one of several derivative classes, see adimat_derivclass. GNU
+Octave can (and will) only use scalar_directderivs.
+
+For the RM you have to use the function admDiffRev, which should
+create a file called a_test.m from the input.
+
+> Jac = admDiffRev(@test, 1, x);
+
+A second FM implementation is available by admDiffVFor. This function
+implements a vector forward mode without a derivative class, so it
+works with GNU Octave.
+
+> Jac = admDiffVFor(@test, 1, x);
+
+For comparison with the well known numerical differentiation methods
+we provide two functions:
+
+> Jac = admDiffFD(@test, 1, x);
+> Jac = admDiffComplex(@test, 1, x);
+
+In all cases, the second parameter is the so called seed matrix. If 1
+is given, this means use the identity matrix of conforming size. But
+you can also specify any (conforming) real matrix here. Remember that
+in FM, you get Jac = J*S and in RM you get Jac = S*J, where S is the
+seed matrix and J is the full Jacobian.
+
+If you know the non-zero pattern of the Jacobian, you can use CPR
+coloring for compressen Jacobian computation. Just specify @cpr (or
+another coloring function of your choice) instead of a seed matrix,
+e.g. with admDiffFor:
+
+> opts = admOptions('jac_nzpattern', spones(trueJac ~= 0));
+> Jac = admDiffFor(@test, @cpr, x, opts);
+
+                              ---------------
+                              
+??? Where is the documentation?
+
+Most MATLAB functions, such as admDiffFor or adimat_derivclass have an online help
+text which can be shown by typing, for example:
+
+> help admDiffFor
+
+For more information, browse to the doc/adimat subdirectory of the
+distribution. The file adimat.html is the beginning of ADiMat's
+documentation. The same is also available in Info format.
+
+                              ---------------
+                              
+??? What are the prerequisites?
+
+  ADiMat is under development. Currently not all functions provided with
+Matlab are known to ADiMat. This database will be extend in future. Do not
+hesitate to read the documentation about builtins.
+
+The source code transformation is done at our server, which is
+currently https://adimat.sc.rwth-aachen.de. The function source code
+and that of dependent functions is sent to the server. The files are
+transfered via a SSL connection. By default, ADiMat will ask you if
+the transmission is OK. To remove this question, remove the function
+admConfirmTransmission.m from the runtime directory.
+
+Furthermore, a few constructions of Matlab are not understood by ADiMat yet.
+These are:
+
+- classes
+- calls to (f)eval-functions
+- functions in private directories.
+
+Please read the documenation for a more complete list.
+
+                              ---------------
+
+??? Am I allowed to distribute the augmented code?
+
+  Yes, the augmented code is your code with some enhancements. 
+
+                              ---------------
+  
+??? Am I allowed to distribute the ADiMat runtime environment along
+with my augmented code?
+  
+  Yes, you are allowed to distribute the ADiMat runtime environment
+(derivative classes and support functions) along with your augmented
+program. The copyright statement in each file must be kept intact and
+in place.
+
+                              ---------------
+  
+??? I only want to transform my code, not run it.
+  
+  The function admTransform performs the source code transformation.
+
+
+!!! Anything else: Please read the documentation before contacting the
+authors.

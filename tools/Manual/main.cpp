@@ -57,13 +57,13 @@ void test_gmm(const string& fn_in, const string& fn_out,
   vector<double> J(Jcols);
 
   // Test
-  double tf = timer([d, k, n, alphas, means, icf, x, wishart, &err]() {
+  double tf = timer([&]() {
 	  gmm_objective(d, k, n, alphas.data(), means.data(),
 		  icf.data(), x.data(), wishart, &err);
   }, nruns_f, time_limit);
   cout << "err: " << err << endl;
 
-  double tJ = timer([d, k, n, alphas, means, icf, x, wishart, &err, &J]() {
+  double tJ = timer([&]() {
 	  gmm_objective_d(d, k, n, alphas.data(), means.data(),
 		  icf.data(), x.data(), wishart, &err, J.data());
   }, nruns_J, time_limit);
@@ -133,12 +133,12 @@ void test_ba(const string& fn_in, const string& fn_out,
   vector<double> w_err(p);
   BASparseMat J(n,m,p);
 
-  double tf = timer([n, m, p, cams, X, w, obs, feats, &reproj_err, &w_err]() {
+  double tf = timer([&]() {
 	  ba_objective(n, m, p, cams.data(), X.data(), w.data(),
 		  obs.data(), feats.data(), reproj_err.data(), w_err.data());
   }, nruns_f, time_limit);
 
-  double tJ = timer([n, m, p, &cams, &X, &w, &obs, &feats, &reproj_err, &w_err, &J]() {
+  double tJ = timer([&]() {
 	  compute_ba_J(n, m, p, cams.data(), X.data(), w.data(), obs.data(),
 		  feats.data(), reproj_err.data(), w_err.data(), J);
   }, nruns_J, time_limit);
@@ -157,7 +157,7 @@ void test_ba(const string& fn_in, const string& fn_out,
 
 #if defined DO_HAND
 void test_hand(const string& model_dir, const string& fn_in, const string& fn_out,
-  int nruns_f, int nruns_J)
+  int nruns_f, int nruns_J, double time_limit)
 {
   vector<double> theta;
 #ifdef DO_EIGEN
@@ -171,24 +171,13 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   vector<double> err(3 * data.correspondences.size());
   vector<double> J(err.size() * theta.size());
 
-  high_resolution_clock::time_point start, end;
-  double tf = 0., tJ = 0;
+  double tf = timer([&]() {
+	  hand_objective(&theta[0], data, &err[0]);
+  }, nruns_f, time_limit);
 
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_f; i++)
-  {
-    hand_objective(&theta[0], data, &err[0]);
-  }
-  end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
-
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_J; i++)
-  {
-    hand_objective_d(&theta[0], data, &err[0], &J[0]);
-  }
-  end = high_resolution_clock::now();
-  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
+  double tJ = timer([&]() {
+	  hand_objective_d(&theta[0], data, &err[0], &J[0]);
+  }, nruns_J, time_limit);
 
   string name = "manual_eigen";
 
@@ -283,6 +272,6 @@ int main(int argc, char *argv[])
 #endif
 
 #if defined DO_HAND || defined DO_HAND_COMPLICATED
-  test_hand(dir_in + "model/", dir_in + fn, dir_out + fn, nruns_f, nruns_J);
+  test_hand(dir_in + "model/", dir_in + fn, dir_out + fn, nruns_f, nruns_J, time_limit);
 #endif
 }

@@ -1,0 +1,115 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.72">
+ <TITLE>The ADiMat Handbook: Tips and recipes</TITLE>
+ <LINK HREF="adimat-6.html" REL=next>
+ <LINK HREF="adimat-4.html" REL=previous>
+ <LINK HREF="adimat.html#toc5" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="adimat-6.html">Next</A>
+<A HREF="adimat-4.html">Previous</A>
+<A HREF="adimat.html#toc5">Contents</A>
+<HR>
+<H2><A NAME="recipes"></A> <A NAME="s5">5.</A> <A HREF="adimat.html#toc5">Tips and recipes</A></H2>
+
+<P>We think ADiMat is now fairly complete, apart from the fact that
+there are still many builtins which it cannot differentiate. However,
+our feeling is that a large number of codes can be differentiated
+straight away. In other cases, with some slight modifications you may
+be able to differentiate your code succesfully. This section lists
+some common practices.</P>
+<H2><A NAME="ss5.1">5.1</A> <A HREF="adimat.html#toc5.1">Differentiating functions with char, int, struct or cell parameters</A>
+</H2>
+
+<P>ADiMat assumes that the input and output parameters of the function
+to differentiate are double arrays. When an in- or output parameter is
+of type char, int, struct of cell instead, some special measures must
+be taken. In the following discussion we treat input parameters, output
+parameters can be handled analogously.
+We have to distinguish two possible cases:
+<OL>
+<LI>The parameter is not an independent variable: if you specify
+this, there should be no problem</LI>
+<LI>The parameter is an independent variable: you should use a
+wrapper function</LI>
+</OL>
+
+In the first case, the parameter contains values, possibly strings,
+maybe also numbers, that parametrize the function. Simply tell ADiMat
+not to differentiate w.r.t. that parameter, using the independents
+option field. For example, consider the following function:
+<PRE>
+function z = f(a, options)
+   if strcmp(options.mode, 'fast')
+      z = fast(a);
+   else
+      z = slow(a);
+   end
+   if options.postprocess == 1
+      z = post(z);
+   end
+</PRE>
+
+This function should be differentiated passing admOptions('i', 1) as
+the options structure. This excludes the second parameter from
+differentiation, and then there should be no problems.
+In the second case, the parameter contains some float values which are
+independent variables of your function. In this case you can write a
+wrapper function, which receives the independent values of interest in
+dedicated floating point parameters. The wrapper then places these
+values in the correct location in the struct or cell array and calls
+the original function. Consider the following example function:
+<PRE>
+function z = f(variables, options)
+   if strcmp(options.mode, 'fast')
+      z = fast(variables.x * 2, variables.y * 0.5);
+   else
+      z = slow(variables.x * 2, variables.y * 0.5);
+   end
+   if options.postprocess == 1
+      z = post(z);
+   end
+</PRE>
+
+The wrapper you could use might look like this:
+<PRE>
+function z = fwrap(x, y, variables, options)
+   variables.x = x;
+   variables.y = y;
+   z = f(variables, options);
+</PRE>
+
+Instead of the original f, you should now differentiate fwrap, passing
+admOptions('i', 1:2) as the options structure.</P>
+<H2><A NAME="ss5.2">5.2</A> <A HREF="adimat.html#toc5.2">Differentiating code in multiple directories</A>
+</H2>
+
+<P>The high-level interfaces of ADiMat, e.g. admDiffFor, will find the
+source code of the top-level function by using the <B>which</B> command, even
+if it resides in a different directory. It will also automatically
+append and appropriate -I switch to the command line, such that
+further functions in that directory are also found. However, if some
+of the functions called from the code reside in a second directory,
+you have to add the corresponding -I switch manually.
+Example: say your code is in two directories, src/a and
+src/b. Function f is in src/a and calls g, which is in src/b. For
+running your code you would use:
+<PRE>
+addpath('src/a');
+addpath('src/b');
+z = f(a, b);
+</PRE>
+
+As stated, f.m can be found automatically by admDiffFor via the which
+command. However, ADiMat will then complain that g is an undefined
+identifier. You must pass admOptions('f', ' -I src/b ') as the options
+structure to the AD based differentiation routines admDiffFor
+et. al. Note this is not necessary with admDiffFD or admDiffComplex.</P>
+<HR>
+<A HREF="adimat-6.html">Next</A>
+<A HREF="adimat-4.html">Previous</A>
+<A HREF="adimat.html#toc5">Contents</A>
+</BODY>
+</HTML>

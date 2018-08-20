@@ -1,0 +1,470 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Using the Taylor class of ADiMat</title><meta name="generator" content="MATLAB 7.14"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-09-17"><meta name="DC.source" content="taylor_class.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+
+  </style></head><body><div class="content"><h1>Using the Taylor class of ADiMat</h1><!--introduction--><p>ADiMat comes with a OO class type for computing Taylor series.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Setting up the Taylor class</a></li><li><a href="#2">Creating Taylor Objects</a></li><li><a href="#3">Inspecting Taylor objects</a></li><li><a href="#5">Setting the truncation order</a></li><li><a href="#6">Seeding: Initializing coefficients of independent variables</a></li><li><a href="#7">Computing with Taylor objects</a></li><li><a href="#9">Reading Taylor coefficients</a></li><li><a href="#11">Using Taylor coefficients to approximate nonlinear functions</a></li><li><a href="#15">Using Taylor objects in vector mode</a></li><li><a href="#29">Common problems with Taylor objects</a></li></ul></div><h2>Setting up the Taylor class<a name="1"></a></h2><p>This is enabled by the adimat_adjoint command.</p><pre class="codeinput">adimat_adjoint <span class="string">taylor2</span>
+</pre><h2>Creating Taylor Objects<a name="2"></a></h2><p>This adds the class tseries2 to the path. Its constructor takes a double array and creates a Taylor object of the same size, and loads the the argument in the zero order value of the object.</p><pre class="codeinput">x = rand(3,2);
+tx = tseries2(x);
+</pre><h2>Inspecting Taylor objects<a name="3"></a></h2><p>You can inspect the Taylor object using STRUCT</p><pre class="codeinput">struct(tx)
+</pre><pre class="codeoutput">ans = 
+       m_ord: 11
+    m_series: {11x1 cell}
+</pre><p>The k-th entry in m_series holds the Taylor coefficients of order k-1. That is m_series{1} holds the value, m_series{2} the first order coefficients and so on.</p><p>The official method to access the Taylor coefficients is by using cell-style subscripts with braces {}. As you can see, the higher order components are all zero by default.</p><pre class="codeinput">tx{1}
+tx{2}
+</pre><pre class="codeoutput">ans =
+    0.4241    0.9262
+    0.3411    0.2985
+    0.5414    0.3381
+ans =
+     0     0
+     0     0
+     0     0
+</pre><h2>Setting the truncation order<a name="5"></a></h2><p>In field m_ord you see that the default truncation order is 1. m_ord actually holds the number of components in the m_series cell array field. This can be changed by setting the global option 'maxorder', which however affects only newly created objects</p><pre class="codeinput">set(tx, <span class="string">'maxorder'</span>, 10);
+tx = tseries2(x);
+</pre><h2>Seeding: Initializing coefficients of independent variables<a name="6"></a></h2><p>To perform a derivative computation, you should first set (at least) the first order component of (at least) one Taylor object to non-zero values. The concatenation of the first order fields of all input Taylor objects makes up a derivative direction v:</p><pre class="codeinput">v = ones(numel(x), 1);
+tx{2}(:) = v;
+</pre><h2>Computing with Taylor objects<a name="7"></a></h2><p>Now we are ready to compute something, for example the square root of x.</p><pre class="codeinput">ty = sqrt(tx);
+</pre><p>Many other common Matlab functions are also supported. However, for each function you want to apply to the Taylor class, the function must either exist in source code or the Taylor class must have a corresponding method. In this case SQRT is a method of class tseries2.</p><h2>Reading Taylor coefficients<a name="9"></a></h2><p>In ty{1} you now find the function result, sqrt(x), and in t{2} the first order derivative along the direction v, in t{3} the second order coefficients and so on.</p><pre class="codeinput">ty{1}
+ty{2}
+ty{3}
+</pre><pre class="codeoutput">ans =
+    0.6512    0.9624
+    0.5840    0.5464
+    0.7358    0.5815
+ans =
+    0.7678    0.5195
+    0.8562    0.9152
+    0.6796    0.8599
+ans =
+   -0.4526   -0.1402
+   -0.6276   -0.7665
+   -0.3138   -0.6359
+</pre><p>You can obtain all derivative coefficients (except the zero order) in an array using the method COEFFS while the zero order values can be accessed with the method VALUE.</p><pre class="codeinput">TCs = coeffs(ty); whos <span class="string">TCs</span>
+assert(isequal(value(tx), x))
+</pre><pre class="codeoutput">  Name      Size              Bytes  Class     Attributes
+
+  TCs       3x2x10              480  double              
+
+</pre><h2>Using Taylor coefficients to approximate nonlinear functions<a name="11"></a></h2><p>The Taylor coefficients in ty may be used to compute approximations at some point sqrt(x + h.*v) without actually evaluating the function. This is done with the method EVAL.</p><pre class="codeinput">h = 0.1;
+eval(ty, h)
+</pre><pre class="codeoutput">ans =
+    0.7239    1.0130
+    0.6641    0.6313
+    0.8008    0.6619
+</pre><p>Compare this to the true function result</p><pre class="codeinput">d = eval(ty, h) - sqrt(x + h .* reshape(v, size(x)))
+</pre><pre class="codeoutput">d =
+   1.0e-07 *
+   -0.0054   -0.0000
+   -0.0513   -0.2020
+   -0.0004   -0.0561
+</pre><p>The error in the approximation by EVAL is bounded by the last term in the Taylor sum. This is returned by the method ERRORS.</p><pre class="codeinput">assert(all(all(errors(ty, h) &gt; abs(d))))
+errors(ty, h)
+</pre><pre class="codeoutput">ans =
+   1.0e-07 *
+    0.0321    0.0000
+    0.2543    0.9022
+    0.0032    0.2764
+</pre><p>As you can see the approximation is less exact for the components in x which are closer to zero. Also the approximation is more exact when h is smaller.</p><pre class="codeinput">h = 0.01;
+d = eval(ty, h) - sqrt(x + h .* reshape(v, size(x)))
+</pre><pre class="codeoutput">d =
+   1.0e-15 *
+    0.1110         0
+         0         0
+         0   -0.1110
+</pre><h2>Using Taylor objects in vector mode<a name="15"></a></h2><p>For Taylor objects in vector mode there is a separate class which is enabled by the adimat_adjoint command.</p><pre class="codeinput">adimat_adjoint <span class="string">taylor3</span>
+</pre><p>This class has the same interface.</p><pre class="codeinput">x = rand(7);
+tx = tseries2(x);
+</pre><p>It has two global options: The truncation order (maxorder) and the constructor handle of the inner derivative container class (inner). The derivative container class must also be made available in the path with adimat_derivclass.</p><pre class="codeinput">adimat_derivclass <span class="string">arrderivclass</span>
+set(tx, <span class="string">'maxorder'</span>, 50);
+set(tx, <span class="string">'inner'</span>, @arrdercont); <span class="comment">% this is the default</span>
+</pre><p>Set the global property ndd of the inner class to the desired number of directional derivatives (ndd)</p><pre class="codeinput">set(tx{2}, <span class="string">'ndd'</span>, numel(x));
+</pre><p>Changes take effect for newly created objects.</p><pre class="codeinput">tx = tseries2(x);
+
+tx{1}
+tx{2}
+</pre><pre class="codeoutput">ans =
+    0.8595    0.6279    0.5876    0.4665    0.2332    0.9806    0.5274
+    0.3405    0.4504    0.8776    0.4981    0.8616    0.6448    0.7250
+    0.1381    0.4736    0.4691    0.4874    0.7117    0.8964    0.6074
+    0.5078    0.9497    0.4374    0.2295    0.8728    0.4822    0.5884
+    0.8567    0.0835    0.7462    0.0856    0.9380    0.0141    0.4334
+    0.3843    0.2798    0.4679    0.0674    0.1397    0.6229    0.2442
+    0.6957    0.4470    0.8608    0.8884    0.3939    0.2311    0.4290
+ans = 
+	arrdercont object: 7-by-7
+</pre><p>As you can see the higher order coefficients are now objects of a derivate container class. Now we can initialize the first order coefficients with bundles of derivative directions.</p><pre class="codeinput">S = rand(numel(x));
+tx{2} = set(tx{2}, <span class="string">'deriv'</span>, reshape(S.', [numel(x), size(x)]));
+assert(isequal(admJacFor(tx{2}), S))
+</pre><p>Let us now compute the matrix exponential.</p><pre class="codeinput">fun = @expm;
+ty = fun(tx);
+</pre><p>The method COEFFS of this class will return the coefficients in the fixed format of a 3D array with dimensions [numel(x), ndd, maxOrder].</p><pre class="codeinput">TCs = coeffs(ty); whos <span class="string">TCs</span>
+</pre><pre class="codeoutput">  Name       Size                Bytes  Class     Attributes
+
+  TCs       49x49x50            960400  double              
+
+</pre><p>The method EVAL can compute approximations of the form expm(x + h(1).*S(:,1) + h(2).*S(:,2) + ...).</p><pre class="codeinput">h = rand(size(x)) .* 1e-4;
+eval(ty, h)
+</pre><pre class="codeoutput">ans =
+    7.6178    5.5898    7.3976    4.6563    6.3338    7.2655    5.9396
+    6.3066    6.3865    7.9095    4.7793    7.4294    6.7330    6.2793
+    5.1026    4.5614    7.3360    3.9895    6.1400    5.9275    5.1961
+    6.2454    5.5963    7.2256    5.3255    7.1318    6.2773    5.9108
+    5.5141    3.7621    6.0123    3.3283    6.8014    4.6659    4.6082
+    3.2034    2.6913    3.8408    2.1374    3.1367    4.7809    2.9143
+    6.3420    5.3779    7.4927    4.9989    6.6652    6.2180    6.8055
+</pre><p>Compare this to the true function result. The difference is now much larger as we compute univariate Taylor coefficients only and are ignoring the mixed derivative directions.</p><pre class="codeinput">d_vec = norm(eval(ty, h) - fun(x + h))
+</pre><pre class="codeoutput">d_vec =
+    0.3426
+</pre><p>You can set the truncation order for the evaluation of the series to a smaller value than what was computed</p><pre class="codeinput">d_o3 = norm(eval(ty, h, 3) - fun(x + h))
+d_o2 = norm(eval(ty, h, 2) - fun(x + h))
+d_o1 = norm(eval(ty, h, 1) - fun(x + h))
+</pre><pre class="codeoutput">d_o3 =
+    0.3426
+d_o2 =
+    0.3426
+d_o1 =
+    0.3426
+</pre><p>You can also evaluate just a few of the derivative directions, for example compute expm(x + h.*v1) and expm(x + h.*v2), where v1 and v2 are the first and second derivative direction. Compare that to the true result, where we get v1 and v2 back from the input Taylor object.</p><pre class="codeinput">h = 1e-1;
+d_dir1 = norm(eval(ty, h, 20, 1) - fun(x + h.*tx{2}{1}))
+d_dir2 = norm(eval(ty, h, 20, 2) - fun(x + h.*tx{2}{2}))
+d_dir3 = norm(eval(ty, h, 20, 3) - fun(x + h.*tx{2}{3}))
+</pre><pre class="codeoutput">d_dir1 =
+   1.9090e-14
+d_dir2 =
+   2.0469e-14
+d_dir3 =
+   8.3088e-14
+</pre><p>With just a single direction the Taylor series approximation is much more precise again, for we are evaluating then same things as with the scalar mode Taylor objects, but we ran the function just once for all the directions.</p><pre class="codeinput">d_dir1_o6 = norm(eval(ty, h, 6, 1) - fun(x + h.*tx{2}{1}))
+d_dir1_o3 = norm(eval(ty, h, 3, 1) - fun(x + h.*tx{2}{1}))
+d_dir1_o2 = norm(eval(ty, h, 2, 1) - fun(x + h.*tx{2}{1}))
+d_dir1_o1 = norm(eval(ty, h, 1, 1) - fun(x + h.*tx{2}{1}))
+</pre><pre class="codeoutput">d_dir1_o6 =
+   5.7434e-06
+d_dir1_o3 =
+    0.0273
+d_dir1_o2 =
+    0.3127
+d_dir1_o1 =
+    2.7330
+</pre><p>Here we are evaluating the same things as when</p><h2>Common problems with Taylor objects<a name="29"></a></h2><p>Using the Taylor objects the same problems may occur as with any other overloaded type in Matlab. Possibly the most common problem regards the indexed assignment of a Taylor object into a double array. Consider the following example:</p><pre class="codeinput"><span class="keyword">try</span>
+  tz = zeros(numel(x),1);
+  <span class="keyword">for</span> k=1:numel(x)
+    tz(k) = tx(k) .^ k;
+  <span class="keyword">end</span>
+<span class="keyword">catch</span>
+  l = lasterror;
+  disp(l.message)
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">The following error occurred converting from tseries2 to double:
+Error using double
+Conversion to double from tseries2 is not possible.
+</pre><p>This problem might be considered a bug in Matlab, for if the indexed assignment is rewritten as a call to subsasgn, the overloaded subsasgn is called with no problem.</p><pre class="codeinput"><span class="keyword">for</span> k=1:numel(x)
+  tz = subsasgn(tz, struct(<span class="string">'type'</span>, <span class="string">'()'</span>, <span class="string">'subs'</span>, {{k}}), tx(k) .^ k);
+<span class="keyword">end</span>
+</pre><p>Another common workaround however is to change to initialization of t such that it is a Taylor object from the start, taking care that the value and derivatives are still as desired. For example, by adding a zero Taylor object, which can be produced from any available Taylor object by multiplying with 0.</p><pre class="codeinput">tz = zeros(numel(x),1) + tx(1).*0;
+<span class="keyword">for</span> k=1:numel(x)
+  tz(k) = tx(k) .^ k;
+<span class="keyword">end</span>
+</pre><p class="footer"><br>
+      Published with MATLAB&reg; 7.14<br></p></div><!--
+##### SOURCE BEGIN #####
+%% Using the Taylor class of ADiMat
+% ADiMat comes with a OO class type for computing Taylor series.
+
+%% Setting up the Taylor class
+% This is enabled by the adimat_adjoint command.
+adimat_adjoint taylor2
+
+%% Creating Taylor Objects
+% This adds the class tseries2 to the path. Its constructor takes a double
+% array and creates a Taylor object of the same size, and loads the the
+% argument in the zero order value of the object.
+
+x = rand(3,2);
+tx = tseries2(x);
+
+%% Inspecting Taylor objects
+% You can inspect the Taylor object using STRUCT
+
+struct(tx)
+
+%%
+% The k-th entry in m_series holds the Taylor coefficients of order k-1.
+% That is m_series{1} holds the value, m_series{2} the first order
+% coefficients and so on. 
+%
+% The official method to access the Taylor coefficients is by using
+% cell-style subscripts with braces {}. As you can see, the higher order
+% components are all zero by default.
+
+tx{1}
+tx{2}
+
+%% Setting the truncation order
+% In field m_ord you see that the default truncation order is 1. m_ord
+% actually holds the number of components in the m_series cell array field.
+% This can be changed by setting the global option 'maxorder', which
+% however affects only newly created objects
+
+set(tx, 'maxorder', 10);
+tx = tseries2(x);
+
+%% Seeding: Initializing coefficients of independent variables
+% To perform a derivative computation, you should first set (at least) the
+% first order component of (at least) one Taylor object to non-zero values.
+% The concatenation of the first order fields of all input Taylor objects
+% makes up a derivative direction v:
+
+v = ones(numel(x), 1);
+tx{2}(:) = v;
+
+%% Computing with Taylor objects
+% Now we are ready to compute something, for example the square root of x.
+
+ty = sqrt(tx);
+
+%%
+% Many other common Matlab functions are also supported. However, for each
+% function you want to apply to the Taylor class, the function must either
+% exist in source code or the Taylor class must have a corresponding
+% method. In this case SQRT is a method of class tseries2.
+
+
+%% Reading Taylor coefficients
+% In ty{1} you now find the function result, sqrt(x), and in t{2} the first
+% order derivative along the direction v, in t{3} the second order
+% coefficients and so on.
+
+ty{1}
+ty{2}
+ty{3}
+
+%%
+% You can obtain all derivative coefficients (except the zero order)
+% in an array using the method COEFFS while the zero order values can
+% be accessed with the method VALUE.
+
+TCs = coeffs(ty); whos TCs
+assert(isequal(value(tx), x))
+
+%% Using Taylor coefficients to approximate nonlinear functions
+% The Taylor coefficients in ty may be used to compute approximations at
+% some point sqrt(x + h.*v) without actually evaluating the function. This
+% is done with the method EVAL.
+
+h = 0.1;
+eval(ty, h)
+
+%%
+% Compare this to the true function result
+
+d = eval(ty, h) - sqrt(x + h .* reshape(v, size(x)))
+
+%%
+% The error in the approximation by EVAL is bounded by the last term in the
+% Taylor sum. This is returned by the method ERRORS.
+
+assert(all(all(errors(ty, h) > abs(d))))
+errors(ty, h)
+
+%%
+% As you can see the approximation is less exact for the components in x
+% which are closer to zero. Also the approximation is more exact when h is
+% smaller.
+
+h = 0.01;
+d = eval(ty, h) - sqrt(x + h .* reshape(v, size(x)))
+
+%% Using Taylor objects in vector mode
+% For Taylor objects in vector mode there is a separate class which is
+% enabled by the adimat_adjoint command.
+
+adimat_adjoint taylor3
+
+%%
+% This class has the same interface.
+
+x = rand(7);
+tx = tseries2(x);
+
+%%
+% It has two global options: The truncation order (maxorder) and the
+% constructor handle of the inner derivative container class
+% (inner). The derivative container class must also be made available
+% in the path with adimat_derivclass.
+
+adimat_derivclass arrderivclass
+set(tx, 'maxorder', 50);
+set(tx, 'inner', @arrdercont); % this is the default
+
+%%
+% Set the global property ndd of the inner class to the desired number of
+% directional derivatives (ndd)
+set(tx{2}, 'ndd', numel(x));
+
+%%
+% Changes take effect for newly created objects.
+tx = tseries2(x);
+
+tx{1}
+tx{2}
+
+%%
+% As you can see the higher order coefficients are now objects of a
+% derivate container class. Now we can initialize the first order
+% coefficients with bundles of derivative directions.
+
+S = rand(numel(x));
+tx{2} = set(tx{2}, 'deriv', reshape(S.', [numel(x), size(x)]));
+assert(isequal(admJacFor(tx{2}), S))
+
+%%
+% Let us now compute the matrix exponential.
+fun = @expm;
+ty = fun(tx);
+
+%%
+% The method COEFFS of this class will return the coefficients in the fixed
+% format of a 3D array with dimensions [numel(x), ndd, maxOrder].
+
+TCs = coeffs(ty); whos TCs
+
+%%
+% The method EVAL can compute approximations of the form expm(x +
+% h(1).*S(:,1) + h(2).*S(:,2) + ...).
+
+h = rand(size(x)) .* 1e-4;
+eval(ty, h)
+
+%%
+% Compare this to the true function result. The difference is now much
+% larger as we compute univariate Taylor coefficients only and are ignoring
+% the mixed derivative directions.
+d_vec = norm(eval(ty, h) - fun(x + h))
+
+%%
+% You can set the truncation order for the evaluation of the series
+% to a smaller value than what was computed
+
+d_o3 = norm(eval(ty, h, 3) - fun(x + h))
+d_o2 = norm(eval(ty, h, 2) - fun(x + h))
+d_o1 = norm(eval(ty, h, 1) - fun(x + h))
+
+%% 
+% You can also evaluate just a few of the derivative directions, for
+% example compute expm(x + h.*v1) and expm(x + h.*v2), where v1 and v2
+% are the first and second derivative direction. Compare that to
+% the true result, where we get v1 and v2 back from the input
+% Taylor object.
+
+h = 1e-1;
+d_dir1 = norm(eval(ty, h, 20, 1) - fun(x + h.*tx{2}{1}))
+d_dir2 = norm(eval(ty, h, 20, 2) - fun(x + h.*tx{2}{2}))
+d_dir3 = norm(eval(ty, h, 20, 3) - fun(x + h.*tx{2}{3}))
+
+%%
+% With just a single direction the Taylor series approximation is much
+% more precise again, for we are evaluating then same things as with
+% the scalar mode Taylor objects, but we ran the function just once
+% for all the directions.
+
+d_dir1_o6 = norm(eval(ty, h, 6, 1) - fun(x + h.*tx{2}{1}))
+d_dir1_o3 = norm(eval(ty, h, 3, 1) - fun(x + h.*tx{2}{1}))
+d_dir1_o2 = norm(eval(ty, h, 2, 1) - fun(x + h.*tx{2}{1}))
+d_dir1_o1 = norm(eval(ty, h, 1, 1) - fun(x + h.*tx{2}{1}))
+
+%%
+% Here we are evaluating the same things as when
+
+%% Common problems with Taylor objects
+% Using the Taylor objects the same problems may occur as with any
+% other overloaded type in Matlab. Possibly the most common problem
+% regards the indexed assignment of a Taylor object into a double
+% array. Consider the following example:
+
+try
+  tz = zeros(numel(x),1);
+  for k=1:numel(x)
+    tz(k) = tx(k) .^ k;
+  end
+catch
+  l = lasterror;
+  disp(l.message)
+end
+
+%%
+% This problem might be considered a bug in Matlab, for if the indexed
+% assignment is rewritten as a call to subsasgn, the overloaded
+% subsasgn is called with no problem.
+
+for k=1:numel(x)
+  tz = subsasgn(tz, struct('type', '()', 'subs', {{k}}), tx(k) .^ k);
+end
+
+%%
+% Another common workaround however is to change to initialization of
+% t such that it is a Taylor object from the start, taking care that
+% the value and derivatives are still as desired. For example, by
+% adding a zero Taylor object, which can be produced from any
+% available Taylor object by multiplying with 0.
+
+tz = zeros(numel(x),1) + tx(1).*0;
+for k=1:numel(x)
+  tz(k) = tx(k) .^ k;
+end
+
+##### SOURCE END #####
+--></body></html>

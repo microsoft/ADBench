@@ -1,0 +1,163 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.72">
+ <TITLE>The ADiMat Handbook</TITLE>
+ <LINK HREF="adimat-1.html" REL=next>
+
+
+</HEAD>
+<BODY>
+<A HREF="adimat-1.html">Next</A>
+Previous
+Contents
+<HR>
+<H1>The ADiMat Handbook</H1>
+
+<H2>Johannes Willkomm <CODE>johannes@johannes-willkomm.de</CODE><BR>
+  Andre Vehreschild <CODE>vehreschild@sc.rwth-aachen.de</CODE></H2>Version 0.7, September, 2014
+<HR>
+<EM>This Handbook describes ADiMat Version 0.6.0</EM>
+<HR>
+<P>
+<H2><A NAME="toc1">1.</A> <A HREF="adimat-1.html">Introduction </A></H2>
+
+<UL>
+<LI><A NAME="toc1.1">1.1</A> <A HREF="adimat-1.html#ss1.1">Changes</A>
+</UL>
+<P>
+<H2><A NAME="toc2">2.</A> <A HREF="adimat-2.html">Installation </A></H2>
+
+<UL>
+<LI><A NAME="toc2.1">2.1</A> <A HREF="adimat-2.html#ss2.1">How to obtain ADiMat</A>
+<LI><A NAME="toc2.2">2.2</A> <A HREF="adimat-2.html#ss2.2">Requirements</A>
+<LI><A NAME="toc2.3">2.3</A> <A HREF="adimat-2.html#ss2.3">Installation on Linux or Unix systems </A>
+<LI><A NAME="toc2.4">2.4</A> <A HREF="adimat-2.html#ss2.4">Installation on Windows </A>
+<LI><A NAME="toc2.5">2.5</A> <A HREF="adimat-2.html#ss2.5">Building and installation on MacOS</A>
+</UL>
+<P>
+<H2><A NAME="toc3">3.</A> <A HREF="adimat-3.html">Supported Matlab constructs</A></H2>
+
+<UL>
+<LI><A NAME="toc3.1">3.1</A> <A HREF="adimat-3.html#ss3.1">Supported Matlab features</A>
+<LI><A NAME="toc3.2">3.2</A> <A HREF="adimat-3.html#ss3.2">Partially supported Matlab features</A>
+<LI><A NAME="toc3.3">3.3</A> <A HREF="adimat-3.html#ss3.3">Matlab features not supported at all</A>
+<LI><A NAME="toc3.4">3.4</A> <A HREF="adimat-3.html#ss3.4">Limitations of the reverse mode (admDiffRev) (in addition to the above)</A>
+<LI><A NAME="toc3.5">3.5</A> <A HREF="adimat-3.html#ss3.5">Limitations of the classless vector mode (admDiffVFor)</A>
+<LI><A NAME="toc3.6">3.6</A> <A HREF="adimat-3.html#ss3.6">Limitations of admDiffFor and admDiffRev</A>
+</UL>
+<P>
+<H2><A NAME="toc4">4.</A> <A HREF="adimat-4.html">Using ADiMat</A></H2>
+
+<UL>
+<LI><A NAME="toc4.1">4.1</A> <A HREF="adimat-4.html#ss4.1">General description</A>
+<LI><A NAME="toc4.2">4.2</A> <A HREF="adimat-4.html#ss4.2">High level user interface </A>
+<LI><A NAME="toc4.3">4.3</A> <A HREF="adimat-4.html#ss4.3">Higher order derivatives </A>
+<LI><A NAME="toc4.4">4.4</A> <A HREF="adimat-4.html#ss4.4">Source code transformation </A>
+<LI><A NAME="toc4.5">4.5</A> <A HREF="adimat-4.html#ss4.5">Running the transformed code</A>
+<LI><A NAME="toc4.6">4.6</A> <A HREF="adimat-4.html#ss4.6">Applying AD to an example</A>
+<LI><A NAME="toc4.7">4.7</A> <A HREF="adimat-4.html#ss4.7">Using sparsity exploitation or compression</A>
+</UL>
+<P>
+<H2><A NAME="toc5">5.</A> <A HREF="adimat-5.html">Tips and recipes</A></H2>
+
+<UL>
+<LI><A NAME="toc5.1">5.1</A> <A HREF="adimat-5.html#ss5.1">Differentiating functions with char, int, struct or cell parameters</A>
+<LI><A NAME="toc5.2">5.2</A> <A HREF="adimat-5.html#ss5.2">Differentiating code in multiple directories</A>
+</UL>
+<P>
+<H2><A NAME="toc6">6.</A> <A HREF="adimat-6.html">The runtime environment</A></H2>
+
+<UL>
+<LI><A NAME="toc6.1">6.1</A> <A HREF="adimat-6.html#ss6.1">High level user interface functions</A>
+<LI><A NAME="toc6.2">6.2</A> <A HREF="adimat-6.html#ss6.2">Interfaces to program transformation</A>
+<LI><A NAME="toc6.3">6.3</A> <A HREF="adimat-6.html#ss6.3">Derivative and adjoint classes </A>
+<LI><A NAME="toc6.4">6.4</A> <A HREF="adimat-6.html#ss6.4">Stacks for the reverse mode </A>
+<LI><A NAME="toc6.5">6.5</A> <A HREF="adimat-6.html#ss6.5">Other helper functions for the reverse mode</A>
+</UL>
+<P>
+<H2><A NAME="toc7">7.</A> <A HREF="adimat-7.html">The derivative classes</A></H2>
+
+<UL>
+<LI><A NAME="toc7.1">7.1</A> <A HREF="adimat-7.html#ss7.1">Structure of derivative objects</A>
+<LI><A NAME="toc7.2">7.2</A> <A HREF="adimat-7.html#ss7.2">Creation of derivative objects</A>
+<LI><A NAME="toc7.3">7.3</A> <A HREF="adimat-7.html#ss7.3">Accessing the derivative data</A>
+<LI><A NAME="toc7.4">7.4</A> <A HREF="adimat-7.html#ss7.4">Constructor functions <CODE>create...()</CODE></A>
+<LI><A NAME="toc7.5">7.5</A> <A HREF="adimat-7.html#ss7.5">The options system of the Matlab-class</A>
+<LI><A NAME="toc7.6">7.6</A> <A HREF="adimat-7.html#ss7.6">Matlab's cellarrays/structures and the derivative class</A>
+</UL>
+<P>
+<H2><A NAME="toc8">8.</A> <A HREF="adimat-8.html">Usage</A></H2>
+
+<UL>
+<LI><A NAME="toc8.1">8.1</A> <A HREF="adimat-8.html#ss8.1">Modes and Toolchains</A>
+<LI><A NAME="toc8.2">8.2</A> <A HREF="adimat-8.html#ss8.2">List of toolchains</A>
+<LI><A NAME="toc8.3">8.3</A> <A HREF="adimat-8.html#ss8.3">Transformation parameters</A>
+<LI><A NAME="toc8.4">8.4</A> <A HREF="adimat-8.html#ss8.4">List of transformation parameters</A>
+</UL>
+<P>
+<H2><A NAME="toc9">9.</A> <A HREF="adimat-9.html">Usage of classic adimat</A></H2>
+
+<UL>
+<LI><A NAME="toc9.1">9.1</A> <A HREF="adimat-9.html#ss9.1">adimat Options</A>
+</UL>
+<P>
+<H2><A NAME="toc10">10.</A> <A HREF="adimat-10.html">Directives</A></H2>
+
+<UL>
+<LI><A NAME="toc10.1">10.1</A> <A HREF="adimat-10.html#ss10.1">adimat Directives</A>
+<LI><A NAME="toc10.2">10.2</A> <A HREF="adimat-10.html#ss10.2">admproc Directives</A>
+</UL>
+<P>
+<H2><A NAME="toc11">11.</A> <A HREF="adimat-11.html">Environment variables</A></H2>
+
+<P>
+<H2><A NAME="toc12">12.</A> <A HREF="adimat-12.html">Dependecy graphs and further information</A></H2>
+
+<UL>
+<LI><A NAME="toc12.1">12.1</A> <A HREF="adimat-12.html#ss12.1">Calltree of functions</A>
+<LI><A NAME="toc12.2">12.2</A> <A HREF="adimat-12.html#ss12.2">Variable dependency graph</A>
+<LI><A NAME="toc12.3">12.3</A> <A HREF="adimat-12.html#ss12.3">Debugging information</A>
+</UL>
+<P>
+<H2><A NAME="toc13">13.</A> <A HREF="adimat-13.html">Outlining - Simplifying complex expressions</A></H2>
+
+<P>
+<H2><A NAME="toc14">14.</A> <A HREF="adimat-14.html">Builtins</A></H2>
+
+<UL>
+<LI><A NAME="toc14.1">14.1</A> <A HREF="adimat-14.html#ss14.1">.amb-files</A>
+<LI><A NAME="toc14.2">14.2</A> <A HREF="adimat-14.html#ss14.2">Builtin-declarations </A>
+<LI><A NAME="toc14.3">14.3</A> <A HREF="adimat-14.html#ss14.3">funcsig </A>
+<LI><A NAME="toc14.4">14.4</A> <A HREF="adimat-14.html#ss14.4">actionstring </A>
+<LI><A NAME="toc14.5">14.5</A> <A HREF="adimat-14.html#ss14.5">types </A>
+<LI><A NAME="toc14.6">14.6</A> <A HREF="adimat-14.html#ss14.6">BVAR</A>
+<LI><A NAME="toc14.7">14.7</A> <A HREF="adimat-14.html#ss14.7">BMFUNC </A>
+<LI><A NAME="toc14.8">14.8</A> <A HREF="adimat-14.html#ss14.8">BCFUNC</A>
+<LI><A NAME="toc14.9">14.9</A> <A HREF="adimat-14.html#ss14.9">BJFUNC</A>
+<LI><A NAME="toc14.10">14.10</A> <A HREF="adimat-14.html#ss14.10">The dbbuild tool</A>
+</UL>
+<P>
+<H2><A NAME="toc15">15.</A> <A HREF="adimat-15.html">ToDo</A></H2>
+
+<P>
+<H2><A NAME="toc16">16.</A> <A HREF="adimat-16.html">Questions and Answers</A></H2>
+
+<P>
+<H2><A NAME="toc17">17.</A> <A HREF="adimat-17.html">Examples</A></H2>
+
+<P>
+<H2><A NAME="toc18">18.</A> <A HREF="adimat-18.html">Known bugs and limitations</A></H2>
+
+<P>
+<H2><A NAME="toc19">19.</A> <A HREF="adimat-19.html">References</A></H2>
+
+<P>
+<H2><A NAME="toc20">20.</A> <A HREF="adimat-20.html">Copyright</A></H2>
+
+<HR>
+<A HREF="adimat-1.html">Next</A>
+Previous
+Contents
+</BODY>
+</HTML>

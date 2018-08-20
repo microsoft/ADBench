@@ -1,0 +1,223 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.72">
+ <TITLE>The ADiMat Handbook: Questions and Answers</TITLE>
+ <LINK HREF="adimat-17.html" REL=next>
+ <LINK HREF="adimat-15.html" REL=previous>
+ <LINK HREF="adimat.html#toc16" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="adimat-17.html">Next</A>
+<A HREF="adimat-15.html">Previous</A>
+<A HREF="adimat.html#toc16">Contents</A>
+<HR>
+<H2><A NAME="s16">16.</A> <A HREF="adimat.html#toc16">Questions and Answers</A></H2>
+
+<P>
+<DL>
+<DT><B> What is the order of derivative objects and results or parameters in a
+function call?</B><DD>
+<P>With <B>admDiffFor</B> and <B>admDiffVFor</B> the order of derivate
+objects and results or parameters in a function is: The derivative
+object preceeds its corresponding active result or active
+parameter. For example: Let [y,w]=f(a,b,c) be a function having
+the parameters a,b, and c and the results y and
+w. Assume that the parameters a and c and the output
+y are active. The correct call of this function is:
+[g_y,y,w]=f(g_a,a,b,g_c,c).</P>
+<P>With <B>admDiffRev</B> derivative outputs (adjoints of input parameters)
+get prepended to the output parameter list and derivative inputs
+(adjoints of output parameters) get appended to the input parameter
+list.
+<A NAME="q_placement_of_deriv_stmts"></A> </P>
+<DT><B>Is the derivative assignment put in front of the orginial expression?</B><DD>
+<P><B>admDiffFor</B>: The derivative assignment is put in front of the
+original assignment usually. The exceptions to this rule are
+assignments with LHSs with the backslash operator or other builtins
+with BMFUNC DIFFSTO rules that use the original expression's result
+($$). In this case the original expression is assigned
+to a temporary variable which the derivative expression can use, and
+after that the temporary expression is assigned to its original
+variable.</P>
+<P><B>admDiffVFor</B>: Only when an active variable is assigned a constant
+(non-active) value is the corresponding <CODE>d_zeros</CODE> assignment placed
+after the original assignment, so the RHSs value can be used there.</P>
+<DT><B>Which prefix do derivative objects get?</B><DD>
+<P><B>admDiffFor</B>: Derivative objects are prefixed with 'g_' by
+default. This may be changed using the
+parameter 
+<A HREF="adimat-8.html#p_gradprefix">gradprefix</A>.</P>
+<P><B>admDiffVFor</B>: Derivative objects are prefixed with 'd_'
+by default. This may be changed using the
+parameter 
+<A HREF="adimat-8.html#p_forward-deriv-variable-prefix">forward-deriv-variable-prefix</A>.</P>
+<P><B>admDiffRev</B>: Derivative objects are prefixed with 'a_'
+by default. This may be changed using the
+parameter 
+<A HREF="adimat-8.html#p_rev-prefix">rev-prefix</A>.</P>
+<DT><B>Which prefix do differentiated functions get?</B><DD>
+<P><B>admDiffFor</B>: A differentiated function gets the prefix 'g_'
+by default. This may be changed using the parameter
+option 
+<A HREF="adimat-8.html#p_funcprefix">funcprefix</A>.</P>
+<P><B>admDiffVFor</B>: Derivative functions are prefixed with
+'d_' by default. This may be changed using the
+parameter 
+<A HREF="adimat-8.html#p_forward-deriv-function-prefix">forward-deriv-function-prefix</A>.</P>
+<P><B>admDiffRev</B>: Adjoint functions are prefixed with 'a_' by
+default. This may be changed using the
+parameter 
+<A HREF="adimat-8.html#p_rev-prefix">rev-prefix</A>. Recording
+(forward-sweep) functions are prefixed with 'rec_' by default,
+changeable using the parameter 
+<A HREF="adimat-8.html#p_rec-prefix">rec-prefix</A>. Returning (reverse-sweep) functions are prefixed
+with 'ret_' by default, changeable using the
+parameter 
+<A HREF="adimat-8.html#p_ret-prefix">ret-prefix</A>.</P>
+<DT><B>How can I put each generated function into a different file</B><DD>
+<P>With <B>admDiffVFor</B> and <B>admDiffRev</B> all generated functions are
+placed into a single file. You can set the parameter
+<CODE>output-mode</CODE> to <CODE>split-all</CODE> to change that. Be careful when
+using this as this may in certain circumstances overwrite some of your
+existing files.
+<A NAME="q_how_to_avoid_subsref_subsasgn"></A> </P>
+<DT><B>How can I avoid having to use use-subsref and use-subsasgn</B><DD>
+<P>In some situations, admDiffVFor will only work if the parameters
+use-subsref and/or use-subsasgn are turned on. Since these options
+make the AD code much slower, it may be worth the effort to change the
+code in such a way that they are not necessary any more.</P>
+<P>One such situation that may cause trouble is when you have a row
+vector and in your code index into it using a single index, like this:
+v(i), or like this: v(1:n). Try to change these expressions to v(1,i)
+and v(1,1:n), resp.
+<A NAME="q_performance_tips"></A> </P>
+<DT><B>How can I achieve a better performance</B><DD>
+<P> There are several things you can try in order to achieve a better
+performance:
+<UL>
+<LI>First of all: try to write vectorized code.</LI>
+<LI>When you have a rather small function, then the high-level
+drivers such as admDiffFor and adnDiffRev may require more time for
+performing all the useful checks and tests than for the actual
+derivative computation. Most of these checks can be turned off, using
+the option <CODE>nochecks</CODE>:
+<PRE>
+  adopts = admOptions();
+  adopts.nochecks = true;
+</PRE>
+
+This is a shortcut option with the same effect as setting the
+following options:
+<PRE>
+  adopts.forceTransform = -1;
+  adopts.checkDependencies = false;
+  adopts.checkResultSizes = false;
+  adopts.checknargs = false;
+  adopts.checkoptions = false;
+</PRE>
+
+Not however that this will in particular turn off the check whether
+the differentiated files are up to date. So it may be wise to run a
+dummy call <I>without</I> option <CODE>nocheck</CODE> before turning it on.</LI>
+<LI>When using admDiffFor, try the different derivative
+classes (see 
+<A HREF="adimat-7.html#derivclass">The derivative classes</A>) to see
+which one is the fastest for you.</LI>
+<LI>When you compute a Jacobian, see if it is sparse, so you might be
+able to apply compression. In exceptional cases, compression with the
+reverse mode may be an idea, if the Jacobian can be better compressed
+along the rows. Try admColorSeed with both the pattern and the
+transposed pattern to see if it makes a difference. Certain Jacobian
+with peculiar sparsity patterns (e.g. array shape) can be efficiently
+computed by a combination of the FM and RM, though you would have to
+do that manually.</LI>
+<LI>When the NDD is low, but &gt; 1 (for example after applying
+compression), and you are using admDiffFor or admDiffRev, you may try
+whether <I>strip mining</I> is faster than vector mode. The reason is
+that vector mode needs the derivative classes, which are rather
+slow. The only amortize when there is a certain minimum NDD. There are
+two ways to do this: Either set the option scalarModeSwitch to some
+number higher that your NDD or you set the option derivClassName to
+'scalar_directderivs'.</LI>
+<LI>When using admDiffRev, try if in your code you can turn off the
+use of wrapper functions that deal with scalar expansion and implicit
+reshapes.
+<PRE>
+  adopts = admOptions();
+  adopts.parameters.allowArrayGrowth = 0;
+  adopts.parameters.adjointReductions = 'no';
+  adopts.parameters.adjointReshapes = 'no';
+  adopts.parameters.avoidVarargFunctions = 1;
+</PRE>
+</LI>
+</UL>
+
+<A NAME="q_cleanup_generated_code"></A> </P>
+<DT><B>How can I clean up the files generated by ADiMat</B><DD>
+<P>You can use the function <B>admClean</B> (cf. 
+<A HREF="adimat-6.html#admClean">admClean</A>).
+<A NAME="q_check_derivatives"></A> </P>
+<DT><B>How can I check derivatives for correctness</B><DD>
+<P>You should always check the AD derivatives that come out of ADiMat for
+correctness, at least initially and then after major changes to your
+code. We suggest that you test all three AD drivers and also the FD
+and complex variable method drivers (see 
+<A HREF="adimat-4.html#hlui">High level user interface</A>) to compute the desired derivative. Then
+compute the relative error between any two of the resulting Jacobians
+J1 and J2 like this:
+<BLOCKQUOTE><CODE>
+<PRE>
+norm(J1 - J2) ./ norm(J1)
+</PRE>
+</CODE></BLOCKQUOTE>
+
+The relative error between any of the AD and the complex variable
+method derivatives should be very small, while the relative error
+between one of these and the FD derivatives have about the size of
+<CODE>sqrt(eps)</CODE>. You can use the functions <B>admAllDiff</B> and
+<B>admAllDiffMatrix</B> for this. See also
+our 
+<A HREF="adimat-17.html#ex_check_derivatives">example notebook</A> on this
+topic.
+<A NAME="q_behind_proxy"></A> </P>
+<DT><B>I am behind a web proxy which blocks me from accessing the transformation server. What can I do?</B><DD>
+<P>The ADiMat transformation server has been configured to listen also on
+the port 10443 for SSL connections in addition to the standard port
+443. In some cases using this port allows you to get around the proxy.</P>
+<P>You can tell adimat-client to use this alternative port using one of
+these methods:
+<UL>
+<LI>On the command-line, pass the
+option <CODE>--server=https://adimat.sc.informatik.tu-darmstadt.de:10443/</CODE>
+to adimat-client.</LI>
+<LI>Within Matlab, you can add this same option to the <CODE>flags</CODE> field of admOptions.</LI>
+<LI>Or you can set the server URL using the field <CODE>server</CODE> of
+admOptions.</LI>
+</UL>
+
+<A NAME="q_ignore_unbound"></A> </P>
+<DT><B>How can I tell ADiMat to ignore unbound identifiers?</B><DD>
+<P>You can give the flag <CODE>-b</CODE> to adimat-client, which will cause it
+to not generate errors when it encounters an unbound
+identifier. Unbound identifiers are most likely toolbox functions that
+ADiMat does not know. These may also include functions from ADiMat's
+runtime environment.
+<A NAME="q_retransform"></A> </P>
+<DT><B>I want to send ADiMat generated code to the server again, but I
+get errors</B><DD>
+<P>ADiMat generates code which may contain many calls to various runtime
+functions. These have often not been added to the function data base
+yet. Hence you will get errors complaining about unbound identifiers
+when you try to tranform this code again.</P>
+<P>See the 
+<A HREF="#q_ignore_unbound">previous question</A> on how
+to suppress these.</P>
+</DL>
+</P>
+<HR>
+<A HREF="adimat-17.html">Next</A>
+<A HREF="adimat-15.html">Previous</A>
+<A HREF="adimat.html#toc16">Contents</A>
+</BODY>
+</HTML>

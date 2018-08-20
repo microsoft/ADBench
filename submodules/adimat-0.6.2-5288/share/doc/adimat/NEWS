@@ -1,0 +1,51 @@
+New feature list of ADiMat.
+
+Most recent adds occur first in the list.
+
+Version 0.5.6
+- Support for compressed Jacobian computation with CPR coloring
+- Separation into client+runtime environment and transformation server
+- High level interface commands: admDiffFor, admDiffRev
+- New forward mode (vector mode without classes): admDiffVFor. Works 
+  with Octave.
+
+Version 0.5.5
+- Several stack implementations for functions push and pop in the
+  reverse mode code.
+
+Version 0.5.4
+- First order reverse mode, using function or command admrev
+- Adjoint classes "scalar" or "default", which uses the current
+  derivative class.
+- Basic support for differentiation calls to function handles.
+
+Version 0.5
+- Several derivative classes, including sparse derivative storage.
+
+Version 0.3
+- Windows support (standalone no libraries needed)
+- Windows setup with automatic integration into MATLAB
+- processing non driver files, i.e., process function files directly
+  (funcmode)
+- enable listing of in-/dependent variables on command-line, if in funcmode
+- ADiMat call directly from MATLAB (implementing addiff())
+
+Version 0.2
+- forward AD Hessian computation
+- scalar constant folding
+- narg(in|out) mapper generation
+- vararg(in|out) handling and mapper generation (incomplete, beta)
+
+Version 0.1
+- forward AD (1st order derivatives)
+- automatic file lookup
+- built-ins database
+- code canonicalization
+- calltree construction (and export)
+- variable dependency analyse (and export)
+- optimized operators to save loops
+- local common subexpression elimination
+- global common subexpression elimination (deactivated by default, 
+  semi-functional)
+- detect overwriting of variables and prevent it
+

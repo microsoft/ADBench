@@ -1,0 +1,990 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.72">
+ <TITLE>The ADiMat Handbook: Using ADiMat</TITLE>
+ <LINK HREF="adimat-5.html" REL=next>
+ <LINK HREF="adimat-3.html" REL=previous>
+ <LINK HREF="adimat.html#toc4" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="adimat-5.html">Next</A>
+<A HREF="adimat-3.html">Previous</A>
+<A HREF="adimat.html#toc4">Contents</A>
+<HR>
+<H2><A NAME="s4">4.</A> <A HREF="adimat.html#toc4">Using ADiMat</A></H2>
+
+<P>It is assumed, that the reader is familiar with the general technique
+of automatic differentiation (AD). That is, the keywords independent and
+dependent variable and top-level function are familiar to him. Some
+recommended literature on the subject is the book 
+<A HREF="adimat-19.html#Griewank">Evaluating Derivative</A> or the papers 
+<A HREF="adimat-19.html#Iri">The History of AD</A> or 
+<A HREF="adimat-19.html#adifor">ADiFor user manual</A>.</P>
+<H2><A NAME="ss4.1">4.1</A> <A HREF="adimat.html#toc4.1">General description</A>
+</H2>
+
+<P>ADiMat applies the source transformation approach of automatic
+differentiation to Matlab programs. A Matlab program consists of one
+or more m-files defining functions. The file that contains the
+starting point of the computation (the top level function) is called
+the master file. The computation of derivatives with ADiMat consists
+of two steps:
+<OL>
+<LI><B>Transformation</B> of the source code to produce differentiated
+code.</LI>
+<LI><B>Evaluation</B> of the transformed function to compute the
+actual derivative numbers.</LI>
+</OL>
+
+For most users the best option should be to use the functions
+admDiffFor, admDiffVFor, and admDiffRev, described in
+the 
+<A HREF="#hlui">next section</A>, which perform both steps
+automatically. However, both steps can be still done individually,
+which may be necessary when you want to use special features of
+ADiMat. If you are interested in the details, read the sections
+<A HREF="#transformation">Source code transformation</A> and
+<A HREF="#evaluation">Running the transformed code</A> later in
+this chapter.</P>
+<H2><A NAME="hlui"></A> <A NAME="ss4.2">4.2</A> <A HREF="adimat.html#toc4.2">High level user interface </A>
+</H2>
+
+<P>The Jacobian matrix of the top-level function, evaluated at certain
+arguments, is computed by the functions admDiffFor, admDiffVFor, and
+admDiffRev. These functions all have the same interface, and the
+expect the name of or a handle to the top level function, the seed
+matrix and the function arguments in that order. Thus you can easily
+switch between forward and reverse mode and experiment with different
+seed matrices.
+<UL>
+<LI>
+<P>In <EM>forward mode</EM> (FM) of AD, you can compute the product J*S of the
+<EM>Jacobian matrix</EM> J of a function f at arguments arg1, ...,
+argN and a <EM>seed matrix</EM> S. In theory, the computational
+expense (time and memory) depends linearly on the number
+of <B>columns</B> of S.</P>
+<P>The following functions implement the forward mode of AD in ADiMat:
+<DL>
+<DT><B>admDiffFor(@f, S, arg1, ..., argN, opts)</B><DD>
+<P>Classic FM
+implementation in ADiMat.</P>
+<DT><B>admDiffVFor(@f, S, arg1, ..., argN, opts)</B><DD>
+<P>New FM implementation
+in ADiMat.</P>
+</DL>
+</P>
+</LI>
+<LI>
+<P>In <EM>reverse mode</EM> (RM) of AD, you can compute the product
+S*J of a seed matrix S and the Jacobian matrix J of a function f at
+arguments arg1, ..., argN. In theory, the computational expense in
+time depends linearly on the number of <B>rows</B> of S. The memory
+required is in the order of the runtime of f, as all variable values
+that are overwritten have to be recorded on one of
+the 
+<A HREF="adimat-6.html#runtime_stacks">stacks provided by ADiMat</A>. You
+can use the directive 
+<A HREF="adimat-10.html#recompute">recompute</A> to trade
+off memory for runtime.
+<DL>
+<DT><B>admDiffRev(@f, S, arg1, ..., argN, opts)</B><DD>
+<P>RM
+implementation in ADiMat.</P>
+</DL>
+</P>
+</LI>
+</UL>
+</P>
+<P>Options can be given to the <B>admDiff*</B> routines using a
+structure constructed with the function <B>admOptions</B>. It must
+be given to them as the last argument. The
+function <B>admOptions</B> takes a sequence of name and value pairs,
+as shown in the following example:
+<BLOCKQUOTE><CODE>
+<PRE>
+opts = admOptions('independents', [1]);
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>Passing this options struct to <B>admDiff*</B> tells ADiMat to
+differentiate the function only with respect to the first
+parameter. Some names can also be abbreviated, e.g. 'i' can be used as
+short for 'independendents', and 'd' can be used for 'dependendents':
+<BLOCKQUOTE><CODE>
+<PRE>
+opts = admOptions('i', [1]);
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>For the full list of abbreviations refer to the online help of
+admOptions. You can also set items of the option struct by assigning
+to it:
+<BLOCKQUOTE><CODE>
+<PRE>
+opts.independents = [1];
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>Derivatives can also be computed with ADiMat using one of two
+<EM>numerical differentiation</EM> methods. Thus you can easily check
+AD results by comparing them to the results of these two non-AD
+methods. Both methods descibed below are conceptually comparable to
+the forward mode of AD, i.e. they return a product J*S of the Jacobian
+of f and the given seed matrix S.
+<UL>
+<LI>The <EM>finite differences</EM> (FD) method, sometimes also
+called the divided differences method, is almost always applicable,
+except near discontinuities, but it produces only quite inaccurate
+derivatives, cf.
+<A HREF="http://en.wikipedia.org/wiki/Numerical_differentiation">Wikipedia, Numerical differentiation</A>. You should use the
+option fdStep to set the step length h to the adequate value for your
+problem. The central FD method is used by default, you can also
+specify the forward or backward FD method via the option fdMode.
+<DL>
+<DT><B>admDiffFD(@f, S, arg1, ..., argN, opts)</B><DD>
+<P>Implementation of the
+finite differences method in ADiMat.</P>
+</DL>
+</LI>
+<LI>The <EM>complex variable</EM> method was first divised by Lyness
+and Moler, and provides accurate derivatives, but it is only
+applicable then the function f is <EM>real analytic</EM>,
+cf. 
+<A HREF="http://en.wikipedia.org/wiki/Numerical_differentiation#Complex_variable_methods">Wikipedia, Complex variable methods</A>.
+<DL>
+<DT><B>admDiffComplex(@f, S, arg1, ..., argN, opts)</B><DD>
+<P>Implementation of
+the complex variable method in ADiMat.</P>
+</DL>
+</LI>
+</UL>
+</P>
+<P>With these two functions, you may also differentiate anonymous or
+lambda functions, as the function source code is not required. For
+example:
+<BLOCKQUOTE><CODE>
+<PRE>
+J = admDiffFD(@(x,y) atan2(x, y), 1, 1, 2)
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<H2><A NAME="higherOrder"></A> <A NAME="ss4.3">4.3</A> <A HREF="adimat.html#toc4.3">Higher order derivatives </A>
+</H2>
+
+<P>ADiMat can, to a limited extend, compute higher order derivatives
+as well. Some ADiMat interface compute univariate Taylor coefficients,
+and there is also a driver to compute Hessian matrices. In this
+section we consider the function polynom:
+<BLOCKQUOTE><CODE>
+<PRE>
+function r = polynom(x, c)
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<H3><A NAME="taylor"></A> Taylor-Coefficients </H3>
+
+<P>The function admTaylorFor can compute exact Taylor coefficients. By
+setting option derivOrder, you can specify which Taylor coefficients
+to compute. Note that all Taylor coefficients up to the maximum
+derivOrder will be computed, but only those requested will be
+returned. admTaylorFor uses an operator overloading (OO) approach, so
+there is no source transformation involved.
+<BLOCKQUOTE><CODE>
+<PRE>
+Taylor1_10 = admTaylorFor(@polynom, 1, 2, [1 1 1 1 1], admOptions('o', 1:10))
+</PRE>
+</CODE></BLOCKQUOTE>
+
+The Taylor objects that admTaylorFor uses can also be used manually,
+for more information see the example 
+<A HREF="adimat-17.html#ex_taylor_class">Using Taylor objects</A>.
+Another version of the function is admTaylorVFor, which uses a similar
+AD approach as admDiffVFor:
+<BLOCKQUOTE><CODE>
+<PRE>
+Taylor1_10 = admTaylorVFor(@polynom, 1, 2, [1 1 1 1 1], admOptions('o', 1:10))
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>admDiffFD and admDiffFor can also compute Taylor
+coefficients. admDiffFD can compute up to fourth order Taylor
+coefficients. Note that admDiffFD will only compute the derivative
+orders requested. admDiffFor can compute second order Taylor
+coefficients. Note that this is implemented by computing the full
+Hessian matrix and then returning only the diagonal.</P>
+<H3><A NAME="hessians"></A> Hessians </H3>
+
+<H3>Hessians using admHessian</H3>
+
+<P>admDiffHessian is the general driver for computing a Hessian
+matrix. You can use it as follows:
+<BLOCKQUOTE><CODE>
+<PRE>
+adopts = admOptions;
+H = admHessian(@polynom, 1, x, c, adopts)
+H = admHessian(@polynom, W, x, c, adopts)
+H = admHessian(@polynom, {Y, W}, x, c, adopts)
+H = admHessian(@polynom, {'s', W}, x, c, adopts)
+H = admHessian(@polynom, {Y, V, W}, x, c, adopts)
+H = admHessian(@polynom, {'s', V, W}, x, c, adopts)
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>It can use one of two basic strategies, which are selected by the
+option hessianStrategy in the options structure that may be given as
+the last argument:
+<UL>
+<LI>'t1rev': Forward over reverse mode</LI>
+<LI>'t2for': Interpolation of second order Taylor coefficients</LI>
+<LI>'for2': Second order forward mode</LI>
+</UL>
+</P>
+<P>The first is the default. It uses the same OO approach as
+admTaylorFor, but it runs the function differentiated in RM, not the
+original function. This approach can compute the full Hessian with an
+overhead of O(n).</P>
+<P>The second strategy, 't2for' relies on one of functions that can
+compute second order Taylor-coefficients. The option admDiffFunction
+controls which underlying function is used to compute the required
+univariate Taylor coefficients. Possible options are admTaylorFor,
+admTaylorVFor, and admDiffFD.</P>
+<P>The third strategy, 'for2' invokes the function admDiffFor2 which
+computes second order derivatives by running a code produced by
+applying the FM ST twice. This mode can be either used with the
+'scalar_directderivs' RE, which results in strip-mining in scalar
+mode, or you can use one of the derivative classes 'opt_derivclass' or
+'opt_sp_derivclass', which will use vector mode.</P>
+<P>The second argument specifies the seed matrices. It may either be a
+single matrix W, or a cell array of two matrices {Y, W}, or a cell
+array of three matrices {Y, V, W}. As usual, a scalar 1 is a shortcut
+for a conforming identity matrix. Matrices that are not specified are
+also treated as if a scalar 1 was given.</P>
+<P>If we first consider a scalar function, and let Y = 1, then
+admHessian will return the matrix product V<SUP>T</SUP> * H * W. That
+is, V must be a (n x p) matrix and W must be a (n x q) matrix. With
+strategy t1rev, such a Hessian-matrix product has an overhead of O(q),
+and with strategy t2for or for2 it has an overhead of O(p*q). Strategy t2for
+has an upper limit of costs as O(n*(n+1)/2), as these are the costs
+for computing a full Hessian.</P>
+<P>When the function is vector valued, the result will be the product
+V<SUP>T</SUP> * H * W of the <I>component Hessians</I> H of
+the m output components arranged in a (p x q x m) tensor array. With
+strategy t1rev, the overhead is then O(q*m), and with strategy t2for
+or for2 the overhead is O(p*q).</P>
+<P>The second argument may also be a cell array of three matrices {Y,
+V, W}. In this case, V and W are as above and Y must be a (r x m)
+matrix, the so called adjoint weight matrix. The result will then be a
+tensor of dimensions (p x q x r) with the r weighted sums of the
+component Hessians. In particular, if the adjoint weight matrix is a
+row vector of length m, then admHessian will compute a weighted sum of
+the Hessians. With strategy t1rev, the overhead is then O(q*r), and
+with strategy t2for or for2 the overhead is O(p*q).</P>
+<P>A special value for Y is the string 's', or 'sum', which
+expands to a row vector of ones, that is, admHessian will then compute
+the sum of Hessians. An alternative way to set a adjoint weight matrix
+Y is to use the option field seedRev.</P>
+<P>Setting a adjoint weight matrix is particularly interesting when
+the sum of component Hessians weighed by Lagrangian multipliers is
+desired, such as it is required by the fmincon solver. In this case,
+it is not necessary to construct a function for multiplying the
+contraints by the Lagrangian multiplier. Just set the adjoint weight
+matrix to the Lagrangian weights and differentiate the original
+constraints function. This has the advantage that you obtain both the
+Jacobian of the original function and the Hessian of the Lagrangian in
+one go and you can exploint the efficiency of the reverse mode.</P>
+<H3>Shortcut Hessian drivers</H3>
+
+<P>While admHessian defaults to the FM-over-RM mode, you have to set
+some options to get the other modes described in the previous
+section. Therefor we provide some convenience drivers, for the case of
+hessianStrategy set to t2for, as follows:
+<UL>
+<LI>admHessFor: admDiffFunction set to admTaylorFor</LI>
+<LI>admHessVFor: admDiffFunction set to admTaylorVFor</LI>
+<LI>admHessFD: admDiffFunction set to admDiffFD</LI>
+</UL>
+</P>
+<P>For hessianStrategy set to for2, you can also invoke admDiffFor2
+directly.</P>
+<P>Finally admHessRev is the driver for Hessians in
+forward-oer-reverse mode, which is the default strategy of admHessian.</P>
+<H3>Hessians by recursive application of admDiff</H3>
+
+<P>You can use the admDiff* functions recursively. Recall the first
+order invocation, evaluating first order derivatives of the polynom
+with coefficients <CODE>c = [1 1 1 1 1]</CODE> at <CODE>x = 2</CODE>:
+<BLOCKQUOTE><CODE>
+<PRE>
+Jacobian = admDiffFD(@polynom, 1, 2, [1 1 1 1 1])
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>You have to tell the outer invocation to differentiate the inner
+call only with the respect the function arguments. Thus, the recursive
+application for second order derivatives, using admDiffComplex as the
+outer differentiation function would be as follows:
+<BLOCKQUOTE><CODE>
+<PRE>
+Hessian = admDiffComplex(@admDiffFD, 1, @polynom, 1, 2, [1 1 1 1 1], admOptions('i', [3 4]))
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>If you also want to have the Jacobian and the function results,
+tell the outer admDiff* function how many outputs to expect from the
+inner, but also to only consider the first for differentiation:
+<BLOCKQUOTE><CODE>
+<PRE>
+[Hessian, Jacobian, r] = admDiffComplex(@admDiffFD, 1, @polynom, 1, 2, [1 1 1 1 1],
+                               admOptions('i', [3 4], 'nargout', 3, 'd', 1))
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>The following combinations of admDiff* functions are possible:
+<UL>
+<LI>FD over FD, Complex, For, VFor, or Rev</LI>
+<LI>Complex over FD, For, VFor, or Rev</LI>
+</UL>
+</P>
+<P>You cannot use one of the AD-functions on top of each other, as
+ADiMat can usually not differentiate the code it produces. Complex
+over Complex does not work as the function to differentiate has to be
+real analytic.</P>
+<P>When using FD over FD, you usually have to increase the step
+length, to approximately <CODE>h = sqrt(sqrt(eps))</CODE>, when the function
+arguments are about one:
+<BLOCKQUOTE><CODE>
+<PRE>
+admDiffFD(@admDiffFD, 1, @polynom, 1, 2, [1 1 1 1 1], admOptions('i', [3 4], 'fdStep', sqrt(sqrt(eps))))
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>You can compute products of the Hessian times a matrix or vector.
+You can pass the latter to either invocation:
+<BLOCKQUOTE><CODE>
+<PRE>
+Hv = admDiffFD(@admDiffFD, v, @polynom, 1, 2, [1 1 1 1 1], admOptions('i', [3 4], 'fdStep', 0.001))
+Hv = admDiffFD(@admDiffFD, 1, @polynom, v, 2, [1 1 1 1 1], admOptions('i', [3 4], 'fdStep', 0.001))
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>If you use AD as the inner differentiation function, use the first
+option, as then the AD process will be run just once.</P>
+<H3><A NAME="taylorrm"></A> Taylor-Coefficients in Reverse Mode </H3>
+
+<P>The function admTaylorRev can propagate Taylor coefficients across
+the function differentiated in RM. This is the same as computing a
+Hessian with hessianStrategy set to t1rev, only that option derivOrder
+is set to something larger than 1. admTaylorRev uses an operator
+overloading (OO) approach for the Taylor coefficients, just like
+admTaylorFor.
+<BLOCKQUOTE><CODE>
+<PRE>
+dTaylor1_10 = admTaylorRev(@polynom, 1, 2, [1 1 1 1 1], admOptions('o', 1:10))
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>The same kind of derivatives can be obtained with ADOL-C or CppAD
+by performing FM passes up to order M = max(derivOrder) followed by a
+single RM pass over the tape.</P>
+<P>The second argument can be a single seed matrix S, or a cell array
+of the two seed matrices Y and S. S represents the first order
+derivatives of the inputs and Y the first order adjoints of the
+outputs. When S is an (n x q) matrix and Y a (p x m) matrix, then the
+ouput will be a (n x q x p x M) tensor. As usual, a scalar one stands
+for a conforming identity matrix. In particular, setting the second
+argument to 1 or to {1, 1}, the result will be a (n x q x m x M)
+tensor.</P>
+<P>With derivOrder = 1 admTaylorRev returns the same results as
+admHessian. In particular, setting derivOrder = 1, and Y = ones(1, m)
+will yield the sum of the Hessian matrices of the outputs.</P>
+<H2><A NAME="transformation"></A> <A NAME="ss4.4">4.4</A> <A HREF="adimat.html#toc4.4">Source code transformation </A>
+</H2>
+
+<P>The source transformation step is usually performed implicitly by
+one of the 
+<A HREF="#hlui">high level interface</A> functions. They
+will check whether the required differentiated function exists and is
+up-to-date. Otherwise they use the function admTransform to produce
+the differentiated code.</P>
+<P>The following sections explains how to perform this step manually.</P>
+<H3>Source transformation from within Matlab</H3>
+
+<P>From within Matlab, differentiated code can be produced by the
+function admTransform. For forward mode transformation is done using
+the command:
+<BLOCKQUOTE><CODE>
+<PRE>
+admTransform(@lighthouse)
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>Otherwise, you have to specify the desired transformation mode using
+the options structure. For the alternative forward mode transformation
+use:
+<BLOCKQUOTE><CODE>
+<PRE>
+admTransform(@lighthouse, admOptions('m', 'f'))
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>For the reverse mode transformation use:
+<BLOCKQUOTE><CODE>
+<PRE>
+admTransform(@lighthouse, admOptions('m', 'r'))
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<H3>Source transformation from the command line</H3>
+
+<P>The transformation can also be done from the command line, using
+the command adimat-client (or admproc or admproc-bin, if
+present). This requires that the environment variable ADIMAT_HOME is
+set, see the 
+<A HREF="adimat-2.html#installation">installation</A> section. The
+filename of the master file is given as the command line argument:
+<BLOCKQUOTE><CODE>
+<PRE>
+adimat-client lighthouse.m
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>This produces code differentiated in forward mode, which is written to
+the file g_lighthouse.m. The adimat command currently produces many
+errors and warning messages which can for the most part be ignored. If
+the result file is generated and the command exits with success
+everything should be fine.</P>
+<P>An alternative forward mode transformation can be done using the -f
+switch, which produces the file d_lighthouse.m..
+<BLOCKQUOTE><CODE>
+<PRE>
+adimat-client -f lighthouse.m
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>Reverse mode differentiation of code can be done using the -r
+switch, which produces the file a_lighthouse.m.
+<BLOCKQUOTE><CODE>
+<PRE>
+adimat-client -r lighthouse.m
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<H2><A NAME="ss4.5">4.5</A> <A HREF="adimat.html#toc4.5">Running the transformed code</A>
+</H2>
+
+<P>
+<A NAME="evaluation"></A> </P>
+<P>As a second step, the differentiated code must be run to compute
+the derivative for some input arguments. This should also preferably
+be done using the 
+<A HREF="#hlui">high level interface</A>
+functions. In the following section describe the steps to perform this
+process manually. You can also read this section to gain a better
+understanding into the inner workings of the high level interface
+functions.</P>
+<P>In this section we consider the function <B>f</B>:
+<BLOCKQUOTE><CODE>
+<PRE>
+function [y z] = f(a, b)
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<H3>Selecting a runtime environment</H3>
+
+
+<P>In order to run differentiated code, you must first select a
+suitable runtime environment. This is done using the function
+adimat_derivclass, for example like this:
+<BLOCKQUOTE><CODE>
+<PRE>
+adimat_derivclass('opt_derivclass')
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>The following combinations of differentiated functions and runtime
+environments are possible:
+<UL>
+<LI>Functions differentiated in forward mode (those with prefix
+<B>g_</B>): arrderivclass, arrderivclassvxdd, opt_derivclass,
+opt_sp_derivclass, mat_derivclass, or scalar_directderivs.</LI>
+<LI>Functions differentiated in alternative forward mode (those with
+prefix <B>d_</B>): vector_directderivs.</LI>
+<LI>Functions differentiated in reverse mode (those with prefix
+<B>a_</B>): arrderivclass, arrderivclassvxdd, opt_derivclass,
+opt_sp_derivclass, mat_derivclass, or scalar_directderivs.</LI>
+</UL>
+</P>
+<P>Using any of the runtime environments, except scalar_directderivs,
+enables you to use <EM>vector mode</EM>, i.e. the differentiated function
+is run just once, computing derivatives along all derivative
+directions, which are given by the columns of the seed matrix, at
+once.</P>
+<P>Using the scalar_directderivs runtime environment will use
+<EM>scalar mode</EM>, i.e. only a single directional derivative can be
+computed with each invocation of the differentiated
+function. The 
+<A HREF="#hlui">high level interface</A> functions
+will automatically revert to <EM>strip mining</EM>, i.e. run the
+differentiated function once for each derivative direction
+specified. If you do the derivative evaluation step manually you have
+to take care of this yourself.</P>
+<P>Using one of the runtime environments opt_derivclass,
+opt_sp_derivclass, or mat_derivclass, the derivative variables will be
+objects of the <EM>derivative class</EM> contained in the respective
+runtime environment. Using these classes tends to be rather slow
+because of the overloaded operator resolution at runtime. However,
+amortization starts when a large number of directional derivatives are
+compted.</P>
+<P>Using the runtime environments scalar_directderivs or
+vector_directderivs, the derivative variables will be of native arrays
+of type double.</P>
+<P>In Octave since version 3.6 classes are supported, and hence also
+the ADiMat derivative classes can be used. In older versions only the
+runtime environments scalar_directderivs and vector_directderivs are
+available.</P>
+<H3><A NAME="run_fm_funcs"></A> Running forward mode functions </H3>
+
+<P>To run one of the functions differentiated in forward mode, you
+have to perform the following steps:
+<UL>
+<LI>Create derivative input arguments from the function arguments</LI>
+<LI>Run the differentiated function</LI>
+<LI>Extract derivatives from the derivative output arguments</LI>
+</UL>
+</P>
+<P>For the first step, you should use one of the functions
+createFullGradients or createSeededGradientsFor. If you want to compute
+the full Jacobian, i.e. use the conforming identity matrix as the seed
+matrix, you can use createFullGradients:
+<BLOCKQUOTE><CODE>
+<PRE>
+[g_a g_b] = createFullGradients(a, b);
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>If you want to specify a seed matrix S, use:
+<BLOCKQUOTE><CODE>
+<PRE>
+[g_a g_b] = createSeededGradientsFor(S, a, b);
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>For the second step, running the differentiated function, place the
+derivative arguments created in the previous step before the
+respective arguments in the input argument list, and do likewise for
+derivative outputs:
+<BLOCKQUOTE><CODE>
+<PRE>
+[g_y y g_z z] = g_f(g_a, a, g_b, b);
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>If in doubt, consult the function signature in the file g_f.m or
+d_f.m.</P>
+<P>Finally you can extract the computed derivatives from the
+derivative outputs. It is recommended to do this using the function
+admJacFor:
+<BLOCKQUOTE><CODE>
+<PRE>
+Jacobian = admJacFor(g_y, g_z);
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>You can also manually extract the derivative values from the
+derivative outputs. If you are using one of the derivative classes,
+use curly brace indexing. To extract the i-th directional derivative
+of y from g_y, use the following:
+<BLOCKQUOTE><CODE>
+<PRE>
+dirder = g_y{i};
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>You can also extract all derivative values at once using the :
+wildcard index. This will concatenate all directional derivatives into
+one large array. However, the ordering of the derivative values may
+not be as you expected and it may differ depending on the derivative
+class used.
+<BLOCKQUOTE><CODE>
+<PRE>
+dvals = [g_y{:}];
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>When you used the alternative forward mode and the
+vector_directderivs runtime environment, the i-th directional
+derivative is contained in the i-th slice along the first dimension of
+the array. The expression d_y(i, :) will always return all those
+values in d_y in the form of a row vector, regardless of the number of
+dimensions of d_y. You can then use reshape to make the directional
+derivative have the same shape as y:
+<BLOCKQUOTE><CODE>
+<PRE>
+dirder = reshape(d_y(i, :), size(y));
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<H3>Running reverse mode functions</H3>
+
+<P>To run a function differentiated in reverse mode, you have to
+perform the following steps:
+<UL>
+<LI>Create derivative input arguments from the function results</LI>
+<LI>Run the differentiated function</LI>
+<LI>Extract derivatives from the derivative output arguments</LI>
+</UL>
+</P>
+<P>In the first step you create <EM>adjoint</EM> variables of the
+function's results. These will be given as <EM>input</EM> arguments to the
+adjoint (reverse mode differentiated) function.</P>
+<P>Thus, for the first step, you need the results that the function
+produces at the desired input arguments. Actually only the size and
+shape of the results is required, but for simplicity just run the
+original function once:
+<BLOCKQUOTE><CODE>
+<PRE>
+[y z] = f(a, b);
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>Using one of the 
+<A HREF="#hlui">high level interface</A>
+functions, you should pass the function results via the option field
+functionResults, otherwise admDiffRev will automatically run the
+function to obtain this information.</P>
+<P>Now you can use either createFullGradients or createSeededGradientsRev
+to construct the adjoint arguments. If you want to compute the full
+Jacobian, i.e. use the conforming identity matrix as the seed matrix,
+you can use createFullGradients:
+<BLOCKQUOTE><CODE>
+<PRE>
+[a_y a_z] = createFullGradients(y, z);
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>If you want to specify a seed matrix S, use:
+<BLOCKQUOTE><CODE>
+<PRE>
+[a_y a_z] = createSeededGradientsRev(S, y, z);
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>For the second step, running the differentiated function, place the
+derivative arguments created in the previous step at the end of the
+orignal function's argument list. The adjoint outputs come first in
+the adjoint function's output list, followed by the function
+results. Thus, run the adjoint function like this:
+<BLOCKQUOTE><CODE>
+<PRE>
+[a_a a_b y z] = a_f(a, b, a_y, a_z);
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>If in doubt, consult the function signature in the file a_f.m.</P>
+<P>The derivate output arguments a_a and a_b are the adjoints of the
+function's <EM>input</EM> parameters, and thus contain the desired
+derivative values. You can extract the computed derivatives from them
+using the function admJacRev:
+<BLOCKQUOTE><CODE>
+<PRE>
+Jacobian = admJacRev(a_a, a_b);
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>If you want to extract the derivatives manually, refer to the
+description in the previous secion: 
+<A HREF="#run_fm_funcs">here</A>.</P>
+<H2><A NAME="exampleAD"></A> <A NAME="ss4.6">4.6</A> <A HREF="adimat.html#toc4.6">Applying AD to an example</A>
+</H2>
+
+
+<P>The above steps are applied to an example code now, the lighthouse
+example which is introduced in the book by A. Griwank:
+<A HREF="adimat-19.html#Griewank">A. Griewank: Evaluating derivatives</A>. The
+function describing the coordinate where the beam of a lighthouse hits
+a quay wall is given by:
+<BLOCKQUOTE><CODE>
+<PRE>
+function y=lighthouse(nu, gamma, omega, t)
+% The lighthouse example from the book:
+% A. Griewank "Evaluating Derivatives" SIAM 2000 p. 16
+y(1) = (nu * tan(omega*t))/(gamma-tan(omega*t));
+y(2) = gamma*(nu * tan(omega*t))/(gamma-tan(omega*t));
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>You could create function input parameters and run the function as
+follows:
+<BLOCKQUOTE><CODE>
+<PRE>
+n = 10; % (m)
+g = 0.375* pi; % (bogenmass)
+o = 0.0001* pi; % (bogenmass)
+t = 2; % (s)
+y = lighthouse(n, g, o, t);
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>Look into the book for a more detailed description.</P>
+<H3>Example using the high-level interface</H3>
+
+<P>Using the high level interface you can obtain the derivative in
+forward mode by entering one of the following two commands:
+<BLOCKQUOTE><CODE>
+<PRE>
+[J y] = admDiffFor(@lighthouse, 1, n, g, o, t);
+[J y] = admDiffVFor(@lighthouse, 1, n, g, o, t);
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>In forward mode, four derivative directions are needed, as there
+are a total of four components in the four scalar inputs. The
+resulting Jacobian matrix in J will have two rows and four columns.</P>
+<P>If you want to specify a seed matrix, pass it as the second
+argument. The seed matrix must have four columns. The same result as
+in the previous example can be obtained by manually passing the
+four-by-four identity matrix:
+<BLOCKQUOTE><CODE>
+<PRE>
+S = eye(4);
+[J y] = admDiffFor(@lighthouse, S, n, g, o, t);
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>If you wanted to compute just the first column of the Jacobian, you
+could pass a single column vector of length four, setting its first
+argument to one:
+<BLOCKQUOTE><CODE>
+<PRE>
+S = [1 0 0 0]';
+[J y] = admDiffFor(@lighthouse, S, n, g, o, t);
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>However, in this case it is better to specify that only the first
+parameter shall be independent, as the derivative code will by shorter:
+<BLOCKQUOTE><CODE>
+<PRE>
+opts = admOptions('i', 1);
+[J y] = admDiffFor(@lighthouse, 1, n, g, o, t, opts);
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>In both cases the the resulting J will be a two-by-one matrix, the
+first column of the full Jacobian.</P>
+<P>For the reverse mode using the high level interface, type in the
+following command:
+<BLOCKQUOTE><CODE>
+<PRE>
+[J y] = admDiffRev(@lighthouse, 1, n, g, o, t);
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>In reverse mode, only two derivative directions are needed, as
+there are a total of two components in the single output variable
+y. The resulting Jacobian matrix in J will of course again have two
+rows and four columns.</P>
+<P>Again, if you want to specify a seed matrix, pass it as the second
+argument. The seed matrix must have two rows. The same result as in
+the previous example can be obtained by manually passing the
+two-by-two identity matrix:
+<BLOCKQUOTE><CODE>
+<PRE>
+S = eye(2);
+[J y] = admDiffRev(@lighthouse, S, n, g, o, t);
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>If you wanted to compute just the first row of the Jacobian, you
+could pass a single row vector of length two, setting its first
+argument to one:
+<BLOCKQUOTE><CODE>
+<PRE>
+S = [1 0];
+[J y] = admDiffRev(@lighthouse, S, n, g, o, t);
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>In this case you cannot use the dependent option to do this, as
+there is only a single output parameter.</P>
+<H3>Example doing the differentiation steps manually</H3>
+
+<P>You can also compute the full Jacobian in forward mode by running
+the following commands:
+<BLOCKQUOTE><CODE>
+<PRE>
+admTransform(@lighthouse); % produces g_lighthouse.m
+adimat_derivclass('opt_derivclass'); % select runtime environment
+% adimat_derivclass('arrderivclass'); % possible alternative
+S = eye(4); % create seed matrix
+[g_n g_g g_o g_t] = createSeededGradientsFor(S, n, g, o, t); % create derivative inputs
+[g_y y] = g_lighthouse(g_n, n, g_g, g, g_o, o, g_t, t); % run the differentiated function
+J = admJacFor(g_y); % extract derivative values
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>Using the alternative forward mode implementation, this becomes:
+<BLOCKQUOTE><CODE>
+<PRE>
+admTransform(@lighthouse, admOptions('m', 'f')); % produces d_lighthouse.m
+adimat_derivclass('vector_directderivs'); % select runtime environment
+S = eye(4); % create seed matrix
+[d_n d_g d_o d_t] = createSeededGradientsFor(S, n, g, o, t); % create derivative inputs
+[d_y y] = d_lighthouse(d_n, n, d_g, g, d_o, o, d_t, t); % run the differentiated function
+J = admJacFor(d_y); % extract derivative values
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>Using the reverse mode, you need to run the following commands:
+<BLOCKQUOTE><CODE>
+<PRE>
+admTransform(@lighthouse, admOptions('m', 'r')); % produces a_lighthouse.m
+adimat_derivclass('opt_derivclass'); % select runtime environment
+% adimat_derivclass('arrderivclass'); % possible alternative
+y = lighthouse(n, g, o, t); % run the original function (get y)
+S = eye(2); % create seed matrix
+[a_y] = createSeededGradientsRev(S, y); % create derivative inputs (adjoint of y)
+[a_n a_g a_o a_t y] = a_lighthouse(n, g, o, t, a_y); % run the differentiated function
+J = admJacRev(a_n, a_g, a_o, a_t); % extract derivative values
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<H3>Example using the scalar mode manually</H3>
+
+<P>In this example we will do as many steps as possible without using
+the runtime environment functions. You can compute a certain
+directional derivative along the direction four-vector [a b c d] in
+scalar mode by running the following commands:
+<BLOCKQUOTE><CODE>
+<PRE>
+admTransform(@lighthouse); % produces g_lighthouse.m
+adimat_derivclass('scalar_directderivs'); % select runtime environment for scalar mode
+g_n = zeros(size(n)); % create zero derivative inputs
+g_g = zeros(size(g)); % create zero derivative inputs
+g_o = zeros(size(o)); % create zero derivative inputs
+g_t = zeros(size(t)); % create zero derivative inputs
+g_n(1) = a; % set derivative direction
+g_g(1) = b; % set derivative direction
+g_o(1) = c; % set derivative direction
+g_t(1) = d; % set derivative direction
+[g_y y] = g_lighthouse(g_n, n, g_g, g, g_o, o, g_t, t); % run the differentiated function
+dirder = g_y(:); % extract derivative values
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>Using the reverse mode, you can compute a certain reverse
+directional derivative along the direction two-vector [a b] in scalar
+mode by running the following commands:
+<BLOCKQUOTE><CODE>
+<PRE>
+admTransform(@lighthouse, admOptions('m', 'r')); % produces a_lighthouse.m
+adimat_derivclass('scalar_directderivs'); % select runtime environment for scalar mode
+y = lighthouse(n, g, o, t); % run the original function (get y)
+a_y = zeros(size(y)); % create zero derivative inputs
+a_y(1) = a; % set derivative direction
+a_y(2) = b; % set derivative direction
+[a_n a_g a_o a_t y] = a_lighthouse(n, g, o, t, a_y); % run the differentiated function
+rdirder = [a_n a_g a_o a_t]; % extract derivative values
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>If you want to compute the gradient of a scalar function f(a, b,
+c), simply stick a one into the adjoint input parameter:
+<BLOCKQUOTE><CODE>
+<PRE>
+admTransform(@f, admOptions('m', 'r')); % produces a_f.m
+adimat_derivclass('scalar_directderivs'); % select runtime environment for scalar mode
+[a_a a_b a_c z] = a_f(a, b, c, 1); % run the differentiated function
+gradient = [a_a(:).' a_b(:).' a_c(:).'];                        % concatenate derivative values into gradient
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<H2><A NAME="ss4.7">4.7</A> <A HREF="adimat.html#toc4.7">Using sparsity exploitation or compression</A>
+</H2>
+
+<P>In first order FM or RM, when the Jacobian matrix is sparse,
+i.e. it has a lot of zero entries, then the number of directional
+derivatives can often be reduced drastically, which is called
+<I>sparsity exploitation</I>. This works by <I>compressing</I> the
+Jacobian matrix. The non-zero pattern of the Jacobian is required for
+this.</P>
+<P>You can obtain the non-zero pattern P approximately by first
+computing the full Jacobian J and then setting <CODE>P = J ~=
+0</CODE>. This is however slightly dangerous, because some entries in J may
+just happen to be zero at the particular point where you evaluated the
+derivative, but be non-zero at other points. You can be conservative
+in choosing P, i.e. mark more components of J as non-zeros than
+necessary.</P>
+<H3>Using sparsity exploitation with the high-level interface</H3>
+
+<P>Using the high-level interface, you have to set the option field
+JPattern to the non-zero pattern P. Then you can run admDiffFor as
+usual, compression will automatically be used:
+<BLOCKQUOTE><CODE>
+<PRE>
+opts.JPattern = P;
+admDiffFor(@f, 1, arg1, ..., argN, opts)
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>The same thing works with admDiffVFor, admDiffRev, admDiffFD, and
+admDiffComplex. The example above will implicitly use the conforming
+identity matrix as the seed matrix, and compress it using the
+<I>coloring heuristic</I> function <B>cpr</B>. This results in a compressed
+seed matrix, which often has significantly fewer columns (fewer rows
+in RM), thereby allowing for a faster derivative computation. The
+results is a <I>compressed Jacobian</I>, which will automatically be
+unpacked to a sparse matrix, identical to J.</P>
+<P>The coloring heuristic <B>cpr</B> comes with ADiMat and implements the
+Curtis-Powell-Reed heuristic. You can replace this heuristic by
+another function with a similar signature.</P>
+<P>You can also use sparsity exploitation on top of a custom seed
+matrix S. Also, you can set a custom coloring function using the
+option <CODE>coloringFunction</CODE>.
+<BLOCKQUOTE><CODE>
+<PRE>
+opts.JPattern = P;
+opts.coloringFunction = 'mycoloring';
+admDiffFor(@f, S, arg1, ..., argN, opts)
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<H3>Using sparsity exploitation manually</H3>
+
+<P>If you compute derivatives repeatedly, but with a fixed non-zero
+pattern, you may want to factor out the coloring and seed matrix
+compression process from the differentiation process. This can be done
+as follows:
+<BLOCKQUOTE><CODE>
+<PRE>
+[cS coloring] = admColorSeed(P, opts); % construct compressed seed matrix
+cJac = admDiffFor(@f, cS, arg1, ..., argN, opts); % run differentiation
+Jac = admUncompressJac(cJac, P, coloring); % unpack the compressed Jacobian
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>The same thing works with admDiffVFor, admDiffFD, and
+admDiffComplex. You can also 
+<A HREF="#evaluation">run the transformed code</A> manually. You could even use an entirely different
+FM AD tool to compute the compressed Jacobian in the second line
+instead of ADiMat.</P>
+<P>In RM, however, you have to do something slightly
+different. Instead of compressing columns of the seed matrix, you have
+to compress rows. This can be achieved as follows, using transpose
+operations:
+<BLOCKQUOTE><CODE>
+<PRE>
+[cS coloring] = admColorSeed(P.');                       % construct compressed seed matrix
+cJac = admDiffRev(@f, cS.', arg1, ..., argN, opts);      % run differentiation
+Jac = admUncompressJac(cJac.', P.', coloring); % unpack the compressed Jacobian
+Jac = Jac.';                                             % final transpose
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<HR>
+<A HREF="adimat-5.html">Next</A>
+<A HREF="adimat-3.html">Previous</A>
+<A HREF="adimat.html#toc4">Contents</A>
+</BODY>
+</HTML>

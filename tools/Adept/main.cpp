@@ -56,7 +56,7 @@ double compute_gmm_J(int nruns, double time_limit,
   adouble *ameans = new adouble[d*k];
   adouble *aicf = new adouble[icf_sz*k];
 
-  double tJ = timer([d, k, n, alphas, means, icf, aalphas, ameans, aicf, icf_sz, wishart, x, &stack, J, &err]() {
+  double tJ = timer([&]() {
 	  adept::set_values(aalphas, k, alphas);
 	  adept::set_values(ameans, d*k, means);
 	  adept::set_values(aicf, icf_sz*k, icf);
@@ -106,9 +106,7 @@ double compute_gmm_J_split(int nruns, double time_limit,
   adouble *aicf = new adouble[icf_sz*k];
   adouble aerr;
 
-  double tJ = timer([d, k, n, alphas, means, icf,
-	  aalphas, ameans, aicf, icf_sz, wishart, &err, &aerr, &J, &stack,
-	  J_alphas, J_means, J_icf, Jtmp_alphas, Jtmp_means, Jtmp_icf, Jcols, Jtmp, x]() {
+  double tJ = timer([&]() {
 	  adept::set_values(aalphas, k, alphas);
 	  adept::set_values(ameans, d*k, means);
 	  adept::set_values(aicf, icf_sz*k, icf);
@@ -172,7 +170,7 @@ void test_gmm(const string& fn_in, const string& fn_out,
   vector<double> J(Jcols);
 
   // Test
-  double tf = timer([d, k, n, alphas, means, icf, x, wishart, &err]() {
+  double tf = timer([&]() {
 	  gmm_objective(d, k, n, alphas.data(), means.data(), icf.data(), x.data(), wishart, &err);
   }, nruns_f, time_limit);
   cout << "err: " << err << endl;
@@ -207,7 +205,7 @@ double compute_ba_J(int nruns, double time_limit, int n, int m, int p,
   int n_new_cols = BA_NCAMPARAMS + 3 + 1;
   vector<double> reproj_err_d(2 * n_new_cols);
 
-  double t_J = timer([n, m, p, J, reproj_err, &reproj_err_d, n_new_cols, obs, cams, X, w, feats, &acam, &aX, &aw, &aw_err, w_err, &areproj_err, &stack]() {
+  double t_J = timer([&]() {
 	  *J = BASparseMat(n, m, p);
 
 	  for (int i = 0; i < p; i++)
@@ -267,7 +265,7 @@ void test_ba(const string& fn_in, const string& fn_out,
   vector<double> w_err(p);
   BASparseMat J(n, m, p);
 
-  double tf = timer([n, m, p, cams, X, w, obs, feats, &reproj_err, &w_err]() {
+  double tf = timer([&]() {
 	  ba_objective(n, m, p, cams.data(), X.data(),
 		  w.data(), obs.data(), feats.data(),
 		  reproj_err.data(), w_err.data());
@@ -283,7 +281,7 @@ void test_ba(const string& fn_in, const string& fn_out,
 
 #elif defined DO_HAND
 
-double compute_hand_J(int nruns,
+double compute_hand_J(int nruns, double time_limit,
   const vector<double>& theta, const HandDataType& data,
   vector<double> *perr, vector<double> *pJ)
 {
@@ -293,26 +291,22 @@ double compute_hand_J(int nruns,
   vector<adouble> atheta(theta.size());
   vector<adouble> aerr(err.size());
 
-  high_resolution_clock::time_point start, end;
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns; i++)
-  {
-    adept::set_values(&atheta[0], theta.size(), &theta[0]);
+  double tJ = timer([&]() {
+	  adept::set_values(&atheta[0], theta.size(), &theta[0]);
 
-    stack.new_recording();
-    //hand_objective(&atheta[0], data, &aerr[0]);
-    stack.independent(&atheta[0], atheta.size());
-    stack.dependent(&aerr[0], aerr.size());
-    stack.jacobian_forward(&J[0]);
-    adept::get_values(&aerr[0], err.size(), &err[0]);
-  }
-  end = high_resolution_clock::now();
+	  stack.new_recording();
+	  //hand_objective(&atheta[0], data, &aerr[0]);
+	  stack.independent(&atheta[0], atheta.size());
+	  stack.dependent(&aerr[0], aerr.size());
+	  stack.jacobian_forward(&J[0]);
+	  adept::get_values(&aerr[0], err.size(), &err[0]);
+  }, nruns, time_limit);
 
-  return duration_cast<duration<double>>(end - start).count() / nruns;
+  return tJ;
 }
 
 void test_hand(const string& model_dir, const string& fn_in, const string& fn_out,
-  int nruns_f, int nruns_J)
+  int nruns_f, int nruns_J, double time_limit)
 {
   vector<double> theta;
   HandDataType data;
@@ -322,19 +316,12 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   vector<double> err(3 * data.correspondences.size());
   vector<double> J(err.size() * theta.size());
 
-  high_resolution_clock::time_point start, end;
-  double tf = 0., tJ = 0;
-
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_f; i++)
-  {
-    hand_objective(&theta[0], data, &err[0]);
-  }
-  end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
+  double tf = timer([&]() {
+	  hand_objective(&theta[0], data, &err[0]);
+  }, nruns_f, time_limit);
 
   string name = "Adept_light";
-  tJ = compute_hand_J(nruns_J, theta, data, &err, &J);
+  double tJ = compute_hand_J(nruns_J, time_limit, theta, data, &err, &J);
 
   write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), (int)theta.size(), &J[0]);
   //write_times(tf, tJ);
@@ -348,7 +335,7 @@ void set_gradients(double val, vector<adouble> *aparams)
     (*aparams)[i].set_gradient(val);
 }
 
-double compute_hand_J(int nruns,
+double compute_hand_J(int nruns, double time_limit,
   const vector<double>& theta, const vector<double>& us,
   const HandDataType& data,
   vector<double> *perr, vector<double> *pJ)
@@ -429,7 +416,7 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
 
   string name = "Adept_light";
-  tJ = compute_hand_J(nruns_J, theta, us, data, &err, &J);
+  tJ = compute_hand_J(nruns_J, time_limit, theta, us, data, &err, &J);
 
   write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), 2+(int)theta.size(), &J[0]);
   //write_times(tf, tJ);
@@ -457,6 +444,6 @@ int main(int argc, char *argv[])
 #elif defined DO_BA
   test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J, time_limit);
 #elif defined DO_HAND || defined DO_HAND_COMPLICATED
-  test_hand(dir_in + "model/", dir_in + fn, dir_out + fn, nruns_f, nruns_J);
+  test_hand(dir_in + "model/", dir_in + fn, dir_out + fn, nruns_f, nruns_J, time_limit);
 #endif
 }

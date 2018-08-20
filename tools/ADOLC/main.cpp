@@ -120,11 +120,6 @@ double compute_gmm_J(int nruns, double time_limit,
 	delete[] aicf;
 
 	// Compute J
-
-	// TODO this was timed before - what to do?
-
-	//high_resolution_clock::time_point start = high_resolution_clock::now();
-	
 	double *in = new double[Jcols];
 	memcpy(in, alphas, k * sizeof(double));
 	int off = k;
@@ -132,10 +127,7 @@ double compute_gmm_J(int nruns, double time_limit,
 	off += d * k;
 	memcpy(in + off, icf, icf_sz*k * sizeof(double));
 
-	//high_resolution_clock::time_point end = high_resolution_clock::now();
-	//double tInit = duration_cast<duration<double>>(end - start).count();
-
-	double tJ = timer([tapeTag, Jcols, in, J]() {
+	double tJ = timer([&]() {
 		gradient(tapeTag, Jcols, in, J);
 
 		//int keepValues = 1;
@@ -145,9 +137,6 @@ double compute_gmm_J(int nruns, double time_limit,
 	}, nruns, time_limit);
 
 	delete[] in;
-
-	//cout << "t_init: " << tInit << endl;
-	//tJ += tInit;
 
 	return tJ;
 }
@@ -187,9 +176,6 @@ double compute_gmm_J_split(int nruns, double time_limit,
   trace_off();
 
   // Compute J
-  // TODO again, this was timed before
-  //high_resolution_clock::time_point start = high_resolution_clock::now();
-
   double *in = new double[Jcols];
   memcpy(in, alphas, k * sizeof(double));
   int off = k;
@@ -198,9 +184,6 @@ double compute_gmm_J_split(int nruns, double time_limit,
   memcpy(in + off, icf, icf_sz*k * sizeof(double));
 
   double *Jtmp = new double[Jcols];
-
-  //high_resolution_clock::time_point end = high_resolution_clock::now();
-  //double tInit = duration_cast<duration<double>>(end - start).count();
 
   double tJ = timer([n, d, k, Jcols, in, J, x, otherTapeTag, innerTapeTag,
 	  alphas, means, icf, aalphas, ameans, aicf, wishart, &aerr, icf_sz, &err, Jtmp]() {
@@ -245,9 +228,6 @@ double compute_gmm_J_split(int nruns, double time_limit,
   delete[] aicf;
   delete[] Jtmp;
   delete[] in;
-
-  //cout << "t_init: " << tInit << endl;
-  //tJ += tInit;
 
   return tJ;
 }
@@ -539,7 +519,7 @@ void test_ba(const string& fn_in, const string& fn_out,
   vector<double> w_err(p);
   BASparseMat J(n, m, p);
 
-  double tf = timer([n, m, p, cams, X, w, obs, feats, &reproj_err, &w_err]() {
+  double tf = timer([&]() {
 	  ba_objective(n, m, p, cams.data(), X.data(),
 		  w.data(), obs.data(), feats.data(),
 		  reproj_err.data(), w_err.data());
@@ -553,7 +533,7 @@ void test_ba(const string& fn_in, const string& fn_out,
 #if defined DO_BA_BLOCK
   string name("ADOLC" + postfix);
 
-  double tJ = timer([n, m, p, &cams, &X, &w, &obs, &feats, &reproj_err, &w_err, &J]() {
+  double tJ = timer([&]() {
 	  compute_ba_J(n, m, p, cams.data(), X.data(), w.data(),
 		  obs.data(), feats.data(), reproj_err.data(), w_err.data(), &J);
   }, nruns_J, time_limit);
@@ -676,7 +656,7 @@ void get_hand_nnz_pattern(int n_rows,
 
 #endif
 
-double compute_hand_J(int nruns, 
+double compute_hand_J(int nruns, double time_limit,
   vector<double>& theta, 
   const HandDataType& data,
   vector<double> *perr,
@@ -709,17 +689,10 @@ double compute_hand_J(int nruns,
   
   trace_off();
 
-  // Compute J
-  high_resolution_clock::time_point start, end;
 #ifdef DO_HAND
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns; i++)
-  {
-    jacobian(tapeTag, Jrows, Jcols, &theta[0], *pJ);
-  }
   *t_sparsity = 0;
-
 #elif defined DO_HAND_SPARSE
+  high_resolution_clock::time_point start, end;
   start = high_resolution_clock::now();
   int opt[4];
   opt[0] = 0; // default
@@ -737,30 +710,33 @@ double compute_hand_J(int nruns,
   double **seed = nullptr;
   int n_colors;
   generate_seed_jac((int)err.size(), (int)theta.size(), row_sparsity_pattern,//row_sparsity_pattern,
-    &seed, &n_colors, opt[3]);
+	  &seed, &n_colors, opt[3]);
   end = high_resolution_clock::now();
   *t_sparsity = duration_cast<duration<double>>(end - start).count() / nruns;
 
-  start = high_resolution_clock::now();
   int samePattern = 1;
-  for (int i = 0; i < nruns; i++)
-  {
-    forward(tapeTag, (int)err.size(), (int)theta.size(), n_colors,
-      &theta[0], seed, &err[0], J);
-  }
-
-  for (size_t i = 0; i < err.size(); i++)
-    delete[] row_sparsity_pattern[i];
-  delete[] row_sparsity_pattern;
-
 #endif
 
-  end = high_resolution_clock::now();
-  return duration_cast<duration<double>>(end - start).count() / nruns;
+  double tJ = timer([&]() {
+#ifdef DO_HAND
+	jacobian(tapeTag, Jrows, Jcols, &theta[0], *pJ);
+#elif defined DO_HAND_SPARSE
+	forward(tapeTag, (int)err.size(), (int)theta.size(), n_colors,
+		&theta[0], seed, &err[0], J);
+#endif
+  }, nruns, time_limit);
+
+#ifdef DO_HAND_SPARSE
+  for (size_t i = 0; i < err.size(); i++)
+	  delete[] row_sparsity_pattern[i];
+  delete[] row_sparsity_pattern;
+#endif
+  
+  return tJ;
 }
 
 void test_hand(const string& model_dir, const string& fn_in, const string& fn_out,
-  int nruns_f, int nruns_J)
+  int nruns_f, int nruns_J, double time_limit)
 {
   vector<double> params;
   HandDataType data;
@@ -772,23 +748,17 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   for (size_t i = 0; i < err.size(); i++)
     J[i] = new double[params.size()];
 
-  high_resolution_clock::time_point start, end;
-  double tf = 0., tJ = 0, t_sparsity = 0;
-
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_f; i++)
-  {
-    hand_objective(&params[0], data, &err[0]);
-  }
-  end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
+  double tf = timer([&]() {
+	  hand_objective(&params[0], data, &err[0]);
+  }, nruns_f, time_limit);
 
 #ifdef DO_EIGEN
   string name("ADOLC_eigen");
 #elif defined DO_LIGHT_MATRIX
   string name("ADOLC_light");
 #endif
-  tJ = compute_hand_J(nruns_J, params, data, &err, &J, &t_sparsity);
+  double t_sparsity;
+  double tJ = compute_hand_J(nruns_J, time_limit, params, data, &err, &J, &t_sparsity);
 
 #ifdef DO_HAND_SPARSE
   name = name + "_sparse";
@@ -961,6 +931,6 @@ int main(int argc, char *argv[])
 #elif defined DO_BA_BLOCK || defined DO_BA_SPARSE
   test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J, time_limit);
 #elif defined DO_HAND || defined DO_HAND_SPARSE || defined DO_HAND_COMPLICATED
-  test_hand(dir_in + "model/", dir_in + fn, dir_out + fn, nruns_f, nruns_J);
+  test_hand(dir_in + "model/", dir_in + fn, dir_out + fn, nruns_f, nruns_J, time_limit);
 #endif
 }

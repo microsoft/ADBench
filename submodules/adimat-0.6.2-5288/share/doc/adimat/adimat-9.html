@@ -1,0 +1,384 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.72">
+ <TITLE>The ADiMat Handbook: Usage of classic adimat</TITLE>
+ <LINK HREF="adimat-10.html" REL=next>
+ <LINK HREF="adimat-8.html" REL=previous>
+ <LINK HREF="adimat.html#toc9" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="adimat-10.html">Next</A>
+<A HREF="adimat-8.html">Previous</A>
+<A HREF="adimat.html#toc9">Contents</A>
+<HR>
+<H2><A NAME="s9">9.</A> <A HREF="adimat.html#toc9">Usage of classic adimat</A></H2>
+
+<P>The classic adimat binary is still in use on the transformation server
+and will be available to those users who obtain a standalone version.</P>
+<P>The options and flags of the adimat program as they are listed
+below can be specified using transformation parameters. Basically,
+fields of the corresponding names can be found in the
+<CODE>parameters</CODE> sub struct of
+<B>admOptions</B> (see 
+<A HREF="adimat-8.html#parameters">Transformation parameters</A>). Parameters can also be given in the command line to
+<B>adimat-client</B>. In general, an option like
+<CODE>--gradprefix=GG_</CODE> should be specified to adimat-client as
+<CODE>-s gradprefix=GG_</CODE>. A flag <CODE>--tmpclear</CODE> should be
+specified to adimat-client as <CODE>-s tmpclear=1</CODE> or just
+<CODE>-s tmpclear</CODE>. You can also use a prefix <CODE>no</CODE> to negate a
+flag. That is, <CODE>-s tmpclear=0</CODE>, <CODE>-s notmpclear</CODE>,
+<CODE>-s notmpclear=1</CODE>, and even <CODE>-s nonotmpclear=0</CODE>, are all
+equivalent.</P>
+<P>The usage of adimat is:
+<BLOCKQUOTE><CODE>
+<PRE>
+adimat [options] inputfilename
+</PRE>
+</CODE></BLOCKQUOTE>
+
+adimat produces code differentiated in forward mode AD. If no output
+filename is given, then the differentiated files will be prefixed with g_.
+Most options have a short and a long name. This way '-h' and '--help' have
+the same meaning. (Long options are prefixed by two '-', only in case it is
+undistinguishable in the printout.)
+The available options with the same meaning are enumerate here. A commata ','
+is used to seperate options having the same meaning. Directives are named
+with their corresponding option embracing them in square brackets
+[...]. Default values are written in braces (&lt;N&gt;=6).</P>
+<H2><A NAME="ss9.1">9.1</A> <A HREF="adimat.html#toc9.1">adimat Options</A>
+</H2>
+
+<P>
+<BLOCKQUOTE><CODE>
+ 
+<DL>
+<DT><B>-h, -?, --help</B><DD>
+<P>Prints a help message and exits the application.</P>
+<DT><B>--version</B><DD>
+<P>Print the current version of ADiMat.</P>
+<DT><B>-v&lt;N&gt;, --verblevel=&lt;N&gt;</B><DD>
+<P>Set the verbositylevel to &lt;N&gt;(&lt;N&gt;=6)
+ADiMat's output routines know a level based system for issuing
+messages depending on how much the user wants to know. The availabe level
+range from 0 -> no output at all upto 12 -> output every single step. The
+table below gives a summary of the available outputlevels:
+<BLOCKQUOTE><CODE>
+<DL>
+<DT><B>0</B><DD>
+<P>no output at all</P>
+<DT><B>1</B><DD>
+<P>output only critical errors (like no memory,...)</P>
+<DT><B>2</B><DD>
+<P>errors which can be recovered by stepping over the erroneous
+instruction, but this may cause more errors.</P>
+<DT><B>4</B><DD>
+<P>write warnings for everything that is not clear to ADiMat or may
+result in unexpected programbehaviour</P>
+<DT><B>6</B><DD>
+<P>(the default) print a small version information at programstart
+and some statistics at programmtermination</P>
+<DT><B>8</B><DD>
+<P>print every major program step</P>
+<DT><B>10</B><DD>
+<P>print every minor program step</P>
+<DT><B>12</B><DD>
+<P>prints most information. This will print a real lot of lines.
+Do not blame me, if it clutters your screen.</P>
+</DL>
+</CODE></BLOCKQUOTE>
+
+The higher numbers include the lesser ones. All output is written to
+standard error.</P>
+<DT><B>-p&lt;OUTPUTDIR&gt;, --outputpath=&lt;OUTPUTDIR&gt;,
+[AD_OUTPUT_DIR=&#34;&lt;OUTPUTDIR&gt;&#34;]</B><DD>
+<P>The path where ADiMat puts the augmented files. (&lt;OUTPUTDIR&gt;='.')
+ADiMats default is the local directory, but it is not really clever to use it,
+because ADiMat will produce a huge number of files. It may overwrite some
+existing files, too. Using a subdir is highly encouraged. The subdir has to
+exist, it will not be created.</P>
+<DT><B>-d&lt;DVARLIST&gt;, [AD_DVARS=&lt;DVARLIST&gt;]</B><DD>
+<P>Specify the list of dependent variables. This flag is only read if the
+<CODE>inputfilename</CODE> specifies a file containing a function. The flag can be
+used to select some or all of the variables of the result list of the function
+to be dependent variables. If the flag is not specified and the inputfilename
+specifies a function, then all results are treated to be dependent variables.
+<B>The command line switch overrides the directive AD_DVARS!!!</B></P>
+<DT><B>-i&lt;IVARLIST&gt;, [AD_IVARS=&lt;IVARLIST&gt;]</B><DD>
+<P>Like -d but for the independent variables. All parameters are selected to be
+independent, if the inputfilename is a function and the flag is not given.
+<B>The command line switch overrides the directive AD_IVARS!!!</B></P>
+<DT><B>-I&lt;PATH&gt;</B><DD>
+<P>
+<A NAME="-I"></A>  Add the directories given in &lt;PATH&gt;to the path, where ADiMat looks for matlab m-files. The option -I&lt;PATH&gt;
+may occur more than once. The valid paths of each occurrence of -I&lt;PATH&gt;
+will be appended to the list of directories scanned for missing functions.
+Invalid paths will be discarded. Environments variables are valid and will be
+expanded. The special tag '@BUILTINS' may be inserted anywhere, but it is not
+allowed to habe more than one occurrence of it in the list. &lt;PATH&gt; may
+contain multiple directories seperated by colons ':'.
+(&lt;PATH&gt;='.:@BUILTINS')</P>
+<DT><B>--noforwardvarresolv, [GLOBAL NOFORWARDVARRESOLVE]</B><DD>
+<P>This options prevents that ADiMat looks forward in the code to learn, if an
+unknown identifier is a variable. For example in: 'b=a; a=5;' the 'a' in 'b=a'
+is bound to the same 'a' as in 'a=5'. This, of course, is an error in this
+case, because 'a' was not defined before use. The flag exists for the rare
+situations, where a function has the same name, like a variable and the
+variable is defined later on. Consider this bad programming style.</P>
+<DT><B>--writescopefile, [GLOBAL WRITESCOPEFILE]></B><DD>
+<P>
+<A NAME="writescopefile"></A> 
+Write the file '&lt;OUTPUTDIR&gt;/adimat.dbg' which contains information about
+the scopes and the identifiers bound in them. The file contains a history of
+the identifier resolution process. This file is for debugging purpose only, it
+is not needed by the differentiated program. If this option is available your
+version of ADiMat was compiled with the DEBUG-symbol set.</P>
+<DT><B>--nobuiltins, [GLOBAL NOBUILTINS]</B><DD>
+<P>Skip any builtin-files. Even if there is a different builtinfilelist given,
+the builtin-files and '%ADiMat B*'-directives in the code are ignored.
+Use this option with great care. The builtin-files define many
+Matlab-functions that are used often (see section 
+<A HREF="adimat-14.html#builtins">builtins</A> for further information).</P>
+<DT><B>--builtinspath=&lt;BUILDINSPATH&gt;</B><DD>
+<P>
+<A NAME="builtinspath"></A> 
+This path is scanned for the builtins-declaration file 'ADiMat.amb'. Specifing
+a new path discards the old one. Look at 
+<A HREF="adimat-14.html#builtins">builtins</A>
+for a more detailed description.
+(&lt;BUILTINSPATH&gt;='${ADIMAT_HOME}/share/adimat:~/.
+adimat:.').</P>
+<DT><B>--exportctvcg=&lt;FNAME&gt;</B><DD>
+<P>
+<A NAME="expctvcg"></A>  Write the calltree of
+the functions to the file &lt;FNAME&gt;. The file will be written to the
+&lt;OUTPUTDIR&gt;. No absolute paths are possible, only paths relative to the
+&lt;OUTPUTDIR&gt;. The calltree is stored using the vcg format. The file gets
+the suffix '.vcg'. See section 
+<A HREF="adimat-12.html#calltree">calltree</A> for more
+information.</P>
+<DT><B>--exportctsimp=&lt;FNAME&gt;</B><DD>
+<P>
+<A NAME="expctsimp"></A>  Write the
+information gathered about caller-callees dependencies between function (the
+calltree) to the file &lt;FNAME&gt; in a simple text fashion. This file is
+intended for use with other programs, use --exportcttxt for a more human
+readable format. No suffix is appended to the filename. The file is put into
+the &lt;OUTPUTDIR&gt;. No absolute paths are allowed here. See section 
+<A HREF="adimat-12.html#calltree">calltree</A> for more information.</P>
+<DT><B>--exportcttxt=&lt;FNAME&gt;</B><DD>
+<P>
+<A NAME="expcttxt"></A>  Write the calltree to
+the file '&lt;OUTPUTDIR&gt;/&lt;FNAME&gt;' in a human readable format. No
+suffix is appended, but '.txt' is proposed here. See section 
+<A HREF="adimat-12.html#calltree">calltree</A> for more information.</P>
+<DT><B>--exportdgvcg=&lt;FNAME&gt;</B><DD>
+<P>
+<A NAME="expdgvcg"></A>  The dependencies
+between all variables of the current project are written to the file
+'&lt;OUTPUTDIR&gt;/&lt;FNAME&gt;'. The filename-suffix '.vcg' is ensured. The
+variable dependency graph is only available in this format, because it is
+huge most of the time and other formats are not applicable. For documentation
+of the vcg format see section 
+<A HREF="adimat-19.html#vcg">VCG</A>.</P>
+<DT><B>--nolocalmfiles, [GLOBAL NOLOCALMFILES]</B><DD>
+<P>Files that contain only statements and no function declarations are normaly
+copied into the scope they are called from and the file is renamed to meet the
+pattern: &lt;calling_function_name&gt;_&lt;original_filename&gt;. However, in
+some circumstances this may not be desired. Using this switch, will prevent
+the localization of these files. But make sure, that no activ variables
+are used or altered in the command-file. (The default is to use local
+files.)</P>
+<DT><B>--envoutput, [GLOBAL ENVOUTPUT]</B><DD>
+<P>
+<A NAME="envoutput"></A> 
+This option writes more information about each identifier into the m-files
+written by ADiMat. The files are no longer Matlab-complient than. This option
+is for debuging purpose only. If this option is available your executable was
+compiled using the DEBUG-flag.</P>
+<DT><B>--gradprefix=&lt;PREFIX&gt;</B><DD>
+<P>
+<A NAME="gradprefix"></A> 
+This prefix is added to each active variable. The prefix is used for variables,
+when ADiMat is in forward mode. (&lt;PREFIX&gt;='g_')</P>
+<DT><B>--hessprefix=&lt;PREFIX&gt;</B><DD>
+<P>
+<A NAME="hessprefix"></A> 
+If the 
+<A HREF="#secondorderfwd">second order forward mode</A> flag is set,
+then this prefix is used to preceed the variables that store Hessians.
+(&lt;PREFIX&gt;='h_')</P>
+<DT><B>--funcprefix=&lt;PREFIX&gt;</B><DD>
+<P>
+<A NAME="funcprefix"></A> 
+The prefix is added to each function that is augemented in forward mode. There
+is no distinction between functions that are differentiated once or twice.
+They all get this prefix.
+(&lt;PREFIX&gt;='g_')</P>
+<DT><B>-f, --forward-mode, [GLOBAL FORWARD-MODE]</B><DD>
+<P>Differentiate using the forward mode. For the reverse mode you have to
+use the command admrev.</P>
+<DT><B>-r, --reverse-mode, [GLOBAL REVERSE-MODE]</B><DD>
+<P>Differentiate the functions using the reverse mode. This mode is not available
+yet in the adimat binary. For the reverse mode source transformation you have to
+use the command admrev.</P>
+<DT><B>-m, --hybrid-mode, [GLOBAL HYBRID-MODE]</B><DD>
+<P>Differentiate the project using forward and reverse mode interchangeably. The
+decision when to switch modes is not yet defined. This flag is non-functional.
+It is defined to prevent future misuse. The mode will be forced to forward
+even if this flag is used.</P>
+<DT><B>--outl_comp=&lt;NUM&gt;</B><DD>
+<P>Set the limit when a subexpression is truncated to the number given by
+&lt;NUM&gt;. See section 
+<A HREF="adimat-13.html#outlining">outlining</A> for further
+information. (&lt;NUM&gt;=1)</P>
+<DT><B>--nooperoptim, [GLOBAL NOOPEROPTIM]</B><DD>
+<P>During differentiation operations like a*b*c are joined to a single subroutine
+call times3(a, b, c) if a derivative object is involved. This flag prevents
+the optimization.</P>
+<DT><B>--nolocalcse, [GLOBAL NOLOCALCSE]</B><DD>
+<P>
+<A NAME="nolocalcse"></A> 
+ADiMat splits up expressions that consist of more than one operation into many
+small expressions. Each expression is assigned to a temporary variable. While
+ADiMat operates on one such big expression it may encounter, that the same
+small expression is found several times. Instead of recomputing it each time,
+the expression is evaluated only once and the temporary variable is inserted
+multiple times into the expression. This switch turns this behaviour off. It
+may be of use if a function that manipulates a global variable is called
+multiple times.</P>
+<DT><B>--noglobalcse, [GLOBAL NOGLOBALCSE]</B><DD>
+<P>
+<A NAME="noglobalcse"></A> 
+Similiar behaviour like 
+<A HREF="#nolocalcse">--nolocalcse</A>, but this
+time not only the expressions, which are generated during splitting the bigger
+expressions are taken into account. ADiMat will look at all expression in the
+program and replaces expressions which compute the same values with a
+temporary variable. The value of the temporary variable is then computed only
+once. This feature is switched off, whenever the flag --nolocalcse or its
+corresponding directive is used. Use this flag, if you use functions which
+have sideeffects and you encounter a wrong program behaviour after
+differentiation. !!! This flag is default currently due to a deficiency in the
+implementation. !!!</P>
+<DT><B>--globalcse, [GLOBAL GLOBALCSE]</B><DD>
+<P>Explicitly switch on global common subexpression elimination. Danger!!! The
+algorithm is buggy. Use at your own risk.
+<A NAME="--noloopsaving"></A> </P>
+<DT><B>--noloopsaving, [GLOBAL NOLOOPSAVING]</B><DD>
+<P>ADiMat uses so called loopsaving operators when invoked without this flag. A
+loopsaving operator enables faster derivative computation, because several
+loops are joined togehter into one loop, therefore reducing the number of
+cycles needed. It is usually not a good idea to switch of the feature, because
+the differentiated code will perform badly then.</P>
+<DT><B>--nooverwrtchk, [GLOBAL NOOVERWRITINGCHECK]</B><DD>
+<P>Prevents "update" of variables. An expression <CODE>v=v*...;</CODE> is called an
+update of <CODE>v</CODE>. This is a bad idea, because <CODE>v</CODE> is most likely used in
+the derivative computation of <CODE>g_v=...</CODE>. The outcome of the expression will
+be assigned to a temporary variable. The temporary will be assigned to <CODE>v</CODE>
+in a successive statement. This switch turns off the check for variable
+updates. Again, be carefull if you use this switch.</P>
+<DT><B>--2ndorderfwd, [GLOBAL SECONDORDERFWDMD]</B><DD>
+<P>
+<A NAME="secondorderfwd"></A> 
+Insert statements to compute second order derivative using forward mode. In
+fact, the routines to compute first order derivatives are simply repeated once
+more.</P>
+<DT><B>--parentcheck, [GLOBAL PARENTCHECK]</B><DD>
+<P>
+<A NAME="parentcheck"></A> 
+Switch on parent checking in AST. This is flag is available only, if ADiMat
+was compiled with DEBUG-support. The check is done directly after all files
+are read.</P>
+<DT><B>--canonparentcheck, [GLOBAL CANON_PARENTCHECK]</B><DD>
+<P>Check that the AST is correctly linked. The check is applied after code
+canonicalization. Debugging.</P>
+<DT><B>--postparentcheck, [GLOBAL POST_PARENTCHECK]</B><DD>
+<P>Check correct linking of the AST after augmentation and shortly before output.
+Debugging.</P>
+<DT><B>--allparentchecks</B><DD>
+<P>Use all of the above checks. This flag is available only, if ADiMat was
+compiled in DEBUG mode.</P>
+<DT><B>--noscalarfolding, [GLOBAL NOSCALARFOLDING]</B><DD>
+<P>
+<A NAME="noscalarfolding"></A> 
+Suppress folding of constant real scalar expressions. Scalarfolding examines
+expressions and computes the result of constant expressions, like <CODE>3+4</CODE>.
+This option disables all folding of scalar values.</P>
+<DT><B>--noprescalarfolding, [GLOBAL NOPRESCALARFOLDING]</B><DD>
+<P>Suppress scalar folding before the augmentation step.</P>
+<DT><B>--nopostscalarfolding, [GLOBAL NOPOSTSCALARFOLDING]</B><DD>
+<P>Suppress scalar folding after the augmentation step. It is not advisable to
+switch of scalarfolding, because ADiMat will generate some constant
+expressions, e.g. <CODE>2*x^(2-1)*g_x</CODE> for the derivative of <CODE>x^2</CODE>, where a
+constant term could be eliminated. Use this switch if you believe, that ADiMat
+does incorrect folding.</P>
+<DT><B>--noconstfoldmult0, [GLOBAL NOCONSTFOLDMULT0]</B><DD>
+<P>Suppress folding of expressions with one factor being zero. ADiMat usually
+folds products of the kind <CODE>bar= foo*0</CODE> to <CODE>bar= 0</CODE>. In some special,
+and seldom cases this may be undesireable. E.g. if foo is a function call
+having side effects.</P>
+<DT><B>--nonargsupport, [GLOBAL NONARGINMAPPER], [GLOBAL
+NONARGOUTMAPPER]</B><DD>
+<P>
+<A NAME="nonargmapper"></A> 
+Suppress the generation of mapping arrays for nargin and nargout identifiers.
+In Matlab a function can check how many arguments are set by the calling
+context by checking the nargin identifier. During augmentation the parameter
+list is changed. The mapping arrays take care about mapping the number of
+arguments correctly to the number of arguments the code expects without the
+derivative objects in the parameter list. Usually there is no need to
+deactivate generation of narg-mapper.</P>
+<DT><B>--notmpclear, [GLOBAL NOTMPCLEAR]</B><DD>
+<P>
+<A NAME="notmpclear"></A> 
+ADiMat generates <CODE>clear</CODE> instructions for temporary variables, that are
+inserted by ADiMat itself. This conserves memory and speeds up computation,
+because Matlab's workspace size is smaller. It is usually a bad idea to
+switch off the generation of these clear commands, but it may be necessary, if
+temporary variables are cleared, that ought to exist longer. Normally this
+occurs only, if some tricky programming is used. Note, these clear commands
+only free memory of temporary variables introduced by ADiMat.</P>
+<DT><B>--visitfwdmd, [GLOBAL VISITFWDMD]</B><DD>
+<P>
+<A NAME="visitfwdmd"></A> 
+This is a new implementation of the forward mode
+differentation approach of AD. It is currently in beta state, but enables the
+use of more complex source code analysis and application of replace actions for
+toolbox-functions. This is the default. The flag is present for backward
+compatibilty and will be deleted in future versions.</P>
+<DT><B>--novisitfwdmd, [GLOBAL NOVISITFWDMD]</B><DD>
+<P>Switch back to old
+AST-driven differentiation of AD. Beware, this mode is not able to different
+every Matlab-program. It is not advised to switch off visitfwdmd. If you do not
+know what we are talking about, then do not use this flag.</P>
+<DT><B>--no0pow0check, [GLOBAL NOZEROPOWZEROCHECK]</B><DD>
+<P>
+<A NAME="nozeropowzerocheck"></A> 
+If Matlab has to compute x^y where x and y are zero,
+then the result is set to 1. This behaviour is choosen by Matlab. To mimick
+this behaviour correctly, ADiMat has to check if 0^0 operations occur and set
+the derivative at these entries to 0.0. This flag prevents ADiMat from
+inserting the code executing these checks. If you know, that your code never
+computes 0^0, then you may switch off generation of this code. But note, that
+the derivative code may possibly compute incorrect derivatives (NaN values!).
+If you get NaN's and have used this flag, then try again without the flag.</P>
+<DT><B>--nosigensure, [GLOBAL NOSIGNATUREENSURE]</B><DD>
+<P>
+<A NAME="nosigensure"></A> 
+If functions are called by distinct functions using
+varying parameter lists, then ADiMat computes the transitive closure of all
+variables that need derivative objects associated to it. For most functions the
+sets of variables that need derivative objects are equal, but in some cases the
+sets differ and dummy derivative objects and results have to be inserted to
+call the function correctly. This switch prevents ADiMat from inserting these
+dummy derivative objects and the dummy results.</P>
+</DL>
+</CODE></BLOCKQUOTE>
+</P>
+<HR>
+<A HREF="adimat-10.html">Next</A>
+<A HREF="adimat-8.html">Previous</A>
+<A HREF="adimat.html#toc9">Contents</A>
+</BODY>
+</HTML>

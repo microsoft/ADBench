@@ -1,0 +1,16 @@
+function fNargout = admGetNargout(functionName, admOpts)
+  if isempty(admOpts.nargout)
+    fNargout = nargout(functionName);
+    if fNargout < 0
+      fNargout = 1;
+      warning('adimat:cannotGetNargout', ['Could not ' ...
+                          'determine nargout of the function ' ...
+                          '%s,\npresumably because it has a variable number of ' ...
+                          'output arguments (varargout).\nAssuming nargout(%s) ' ...
+                          '= 1,\notherwise you can use nargout option ' ...
+                          'field to specify the correct value.'], functionName, functionName);
+    end
+  else
+    fNargout = admOpts.nargout;
+  end
+end

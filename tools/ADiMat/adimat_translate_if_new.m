@@ -1,8 +1,8 @@
 function adimat_translate_if_new(func,independents,do_forward_mode)
 
-addpath('adimat-0.6.0-4971');
-start_adimat
-addpath('awful\matlab');
+addpath('../../submodules/adimat-0.6.2-5288');
+ADiMat_startup
+addpath('../../submodules/awful/matlab');
 
 func_name = [func2str(func) '.m'];
 if do_forward_mode
@@ -17,8 +17,12 @@ b = dir(d_name);
 d_age = datetime(b.date);
 if isempty(b) || d_age < func_age
     if do_forward_mode
-        admTransform(func, admOptions('m', 'f','independents',independents));
+        adopts = admOptions('m', 'f','independents',independents);
+        adopts.flags = '--server=http://adimat.sc.informatik.tu-darmstadt.de/';
+        admTransform(func, adopts);
     else
-        admTransform(func, admOptions('m', 'r','independents',independents));
+        adopts = admOptions('m', 'r','independents',independents);
+        adopts.flags = '--server=http://adimat.sc.informatik.tu-darmstadt.de/';
+        admTransform(func, adopts);
     end
 end
