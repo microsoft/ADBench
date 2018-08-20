@@ -25,3 +25,7 @@ target_link_libraries("Tools-Adept-GMM-SPLIT" ${ADEPT_LIB})
 add_executable("Tools-Adept-BA" "main.cpp" "${ADEPT_DIR}/include/adept.h")
 target_compile_definitions("Tools-Adept-BA" PUBLIC "DO_BA")
 target_link_libraries("Tools-Adept-BA" ${ADEPT_LIB})
+
+add_executable("Tools-Adept-Hand" "main.cpp" "${ADEPT_DIR}/include/adept.h")
+target_compile_definitions("Tools-Adept-Hand" PUBLIC "DO_HAND")
+target_link_libraries("Tools-Adept-Hand" ${ADEPT_LIB})

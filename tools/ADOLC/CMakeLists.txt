@@ -34,5 +34,10 @@ add_executable("Tools-ADOLC-BA" "main.cpp" "${ADOLC_INCLUDE_DIR}/adolc/adolc.h")
 target_compile_definitions("Tools-ADOLC-BA" PUBLIC "DO_BA_BLOCK" "DO_CPP")
 target_link_libraries("Tools-ADOLC-BA" "${CMAKE_CURRENT_BINARY_DIR}/adol-c/adolc.lib")
 
+# Build Hand
+add_executable("Tools-ADOLC-Hand" "main.cpp" "${ADOLC_INCLUDE_DIR}/adolc/adolc.h")
+target_compile_definitions("Tools-ADOLC-Hand" PUBLIC "DO_HAND")
+target_link_libraries("Tools-ADOLC-Hand" "${CMAKE_CURRENT_BINARY_DIR}/adol-c/adolc.lib")
+
 # Copy DLL
 file(COPY "${ADOLC_BIN_DIR}/adolc.dll" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")

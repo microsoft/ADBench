@@ -31,5 +31,10 @@ add_executable("Tools-Ceres-BA" "main.cpp" "${CERES-SOLVER_ROOT}/include/ceres/c
 target_compile_definitions("Tools-Ceres-BA" PUBLIC "DO_BA")
 target_link_libraries("Tools-Ceres-BA" ${CERES_LIB} ${GLOG_LIB})
 
+# Create Hand
+add_executable("Tools-Ceres-Hand" "main.cpp" "${CERES-SOLVER_ROOT}/include/ceres/ceres.h")
+target_compile_definitions("Tools-Ceres-Hand" PUBLIC "DO_HAND")
+target_link_libraries("Tools-Ceres-Hand" ${CERES_LIB} ${GLOG_LIB})
+
 # Copy GLOG DLL
 file(COPY ${GLOG_DLL} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")

@@ -6,3 +6,6 @@ target_compile_definitions("Tools-Manual-GMM" PUBLIC "DO_GMM")
 
 add_executable("Tools-Manual-BA" "main.cpp" "ba_d.cpp" "ba_d.h")
 target_compile_definitions("Tools-Manual-BA" PUBLIC "DO_BA" "DO_EIGEN")
+
+add_executable("Tools-Manual-Hand" "main.cpp" "hand_eigen_d.h")
+target_compile_definitions("Tools-Manual-Hand" PUBLIC "DO_HAND" "DO_EIGEN")

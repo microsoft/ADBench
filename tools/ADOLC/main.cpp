@@ -122,12 +122,18 @@ double compute_gmm_J(int nruns, double time_limit,
 	// Compute J
 
 	// TODO this was timed before - what to do?
+
+	//high_resolution_clock::time_point start = high_resolution_clock::now();
+	
 	double *in = new double[Jcols];
-	memcpy(in, alphas, k*sizeof(double));
+	memcpy(in, alphas, k * sizeof(double));
 	int off = k;
-	memcpy(in + off, means, d*k*sizeof(double));
-	off += d*k;
-	memcpy(in + off, icf, icf_sz*k*sizeof(double));
+	memcpy(in + off, means, d*k * sizeof(double));
+	off += d * k;
+	memcpy(in + off, icf, icf_sz*k * sizeof(double));
+
+	//high_resolution_clock::time_point end = high_resolution_clock::now();
+	//double tInit = duration_cast<duration<double>>(end - start).count();
 
 	double tJ = timer([tapeTag, Jcols, in, J]() {
 		gradient(tapeTag, Jcols, in, J);
@@ -139,6 +145,9 @@ double compute_gmm_J(int nruns, double time_limit,
 	}, nruns, time_limit);
 
 	delete[] in;
+
+	//cout << "t_init: " << tInit << endl;
+	//tJ += tInit;
 
 	return tJ;
 }
@@ -179,15 +188,20 @@ double compute_gmm_J_split(int nruns, double time_limit,
 
   // Compute J
   // TODO again, this was timed before
+  //high_resolution_clock::time_point start = high_resolution_clock::now();
+
   double *in = new double[Jcols];
-  memcpy(in, alphas, k*sizeof(double));
+  memcpy(in, alphas, k * sizeof(double));
   int off = k;
-  memcpy(in + off, means, d*k*sizeof(double));
-  off += d*k;
-  memcpy(in + off, icf, icf_sz*k*sizeof(double));
+  memcpy(in + off, means, d*k * sizeof(double));
+  off += d * k;
+  memcpy(in + off, icf, icf_sz*k * sizeof(double));
 
   double *Jtmp = new double[Jcols];
-  
+
+  //high_resolution_clock::time_point end = high_resolution_clock::now();
+  //double tInit = duration_cast<duration<double>>(end - start).count();
+
   double tJ = timer([n, d, k, Jcols, in, J, x, otherTapeTag, innerTapeTag,
 	  alphas, means, icf, aalphas, ameans, aicf, wishart, &aerr, icf_sz, &err, Jtmp]() {
 	  gradient(otherTapeTag, Jcols, in, J);
@@ -232,6 +246,9 @@ double compute_gmm_J_split(int nruns, double time_limit,
   delete[] Jtmp;
   delete[] in;
 
+  //cout << "t_init: " << tInit << endl;
+  //tJ += tInit;
+
   return tJ;
 }
 
@@ -274,6 +291,8 @@ void test_gmm(const string& fn_in, const string& fn_out,
   string name = "ADOLC_split";
   tJ = compute_gmm_J_split(nruns_J, time_limit, d, k, n, alphas.data(), means.data(), icf.data(),
     x.data(), wishart, err, J.data());
+#else
+  throw "Error: must define DO_GMM_FULL or DO_GMM_SPLIT";
 #endif
   cout << "err: " << err << endl;
   write_J(fn_out + "_J_" + name + ".txt", Jrows, Jcols, J.data());

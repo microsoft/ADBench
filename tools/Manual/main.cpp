@@ -160,7 +160,11 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   int nruns_f, int nruns_J)
 {
   vector<double> theta;
+#ifdef DO_EIGEN
+  HandDataEigen data;
+#else
   HandDataLightMatrix data;
+#endif
 
   read_hand_instance(model_dir, fn_in + ".txt", &theta, &data);
 
@@ -279,6 +283,6 @@ int main(int argc, char *argv[])
 #endif
 
 #if defined DO_HAND || defined DO_HAND_COMPLICATED
-  test_hand(dir_in + "hand/model/", dir_in + fn, dir_out + fn, nruns_f, nruns_J);
+  test_hand(dir_in + "model/", dir_in + fn, dir_out + fn, nruns_f, nruns_J);
 #endif
 }

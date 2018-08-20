@@ -22,17 +22,13 @@ time_limit = str2double(time_limit);
 if nruns_f > 0
     tic
     [ J, err ] = mupad_gmm_objective(nruns_f, paramsGMM, x, hparams, false);
-    if ~isempty(J)
-        tf = toc/nruns_f;
-    end
+    au_assert ~isempty(J)
 end
 
 if nruns_J > 0
     tic
     [ J, err ] = mupad_gmm_objective(nruns_J, paramsGMM, x, hparams, true);
-    if ~isempty(J)
-        tJ = toc/nruns_J;
-    end
+	au_assert ~isempty(J)
 end
 
 fid=fopen([dir_out fn '_times_MuPad.txt'], 'w');

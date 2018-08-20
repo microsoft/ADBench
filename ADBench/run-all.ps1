@@ -16,8 +16,8 @@ $dir = Split-Path $dir
 
 Write-Host "$dir"
 
-# Load bindir variable
-assert "Test-Path" "$dir/ADBench/cmake_vars.ps1"
+# Load cmake variables
+assert Test-Path "$dir/ADBench/cmake_vars.ps1"
 . $dir/ADBench/cmake_vars.ps1
 
 # Set tmpdir default
@@ -38,8 +38,11 @@ Class Tool {
 	# Static constants
 	static [string]$gmm_dir_in = "$datadir/gmm/1k/"
 	static [string]$ba_dir_in = "$datadir/ba/"
+	static [string]$hand_dir_in = "$datadir/hand/simple_small/"
 	static [int]$ba_min_n = 1
 	static [int]$ba_max_n = 5
+	static [int]$hand_min_n = 1
+	static [int]$hand_max_n = 5
 
 	# Constructor
 	Tool ([string]$name, [bool]$gmm_both, [string]$type, [bool]$gmm_use_defs, [bool]$ba_eigen) {
@@ -55,10 +58,12 @@ Class Tool {
 		Write-Host $this.name
 		$this.testgmm("")
 		$this.testba()
+		$this.testhand()
 	}
 
 	# Run a single test
 	[void] run ([string]$objective, [string]$dir_in, [string]$dir_out, [string]$fn) {
+		# TODO eigen for hand
 		if ($this.ba_eigen -and $objective -eq "BA") { $out_name = "$($this.name.ToLower())_eigen" }
 		elseif ($objective -eq "GMM-SPLIT") { $out_name = "$($this.name)_split" }
 		else { $out_name = $this.name }
@@ -125,6 +130,19 @@ Class Tool {
 			$this.run("BA", [Tool]::ba_dir_in, $dir_out, "ba$n")
 		}
 	}
+
+	# Run all Hand tests for this tool
+	[void] testhand () {
+		Write-Host "  Hand"
+
+		$dir_out = "$script:tmpdir/hand/$($this.name)/"
+		if (!(Test-Path $dir_out)) { mkdir $dir_out }
+
+		for ($n = [Tool]::hand_min_n; $n -le [Tool]::hand_max_n; $n++) {
+			Write-Host "    $n"
+			$this.run("Hand", [Tool]::hand_dir_in, $dir_out, "hand$n")
+		}
+	}
 }
 
 # Full list of tools
@@ -135,9 +153,10 @@ $tools = @(
 	[Tool]::new("Manual", 0, "bin", 0, 1),
 	#[Tool]::new("DiffSharp", 1, "bin", 0, 0)
 	[Tool]::new("Finite", 0, "bin", 0, 0),
-	[Tool]::new("Autograd", 1, "py", 0, 0),
+	#[Tool]::new("Autograd", 1, "py", 0, 0),
 	[Tool]::new("Theano", 0, "pybat", 0, 0)
-	[Tool]::new("MuPad", 0, "matlab", 0, 0)
+	#[Tool]::new("MuPad", 0, "matlab", 0, 0)
+	#[Tool]::new("ADiMat", 0, "matlab", 0, 0)
 )
 
 # Run all tests on each tool
