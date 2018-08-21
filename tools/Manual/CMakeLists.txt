@@ -18,7 +18,7 @@ build_manual("GMM-Eigen" "DO_GMM" ON "gmm_d.cpp" "gmm_d.h")
 build_manual("BA-Eigen" "DO_BA" ON "ba_d.cpp" "ba_d.h")
 # TODO this builds BA with Eigen only, because fails without
 
-# build_manual("Hand-simple" "DO_HAND" OFF)
-# build_manual("Hand-complicated" "DO_HAND_COMPLICATED" OFF)
+# build_manual("Hand-Light-simple" "DO_HAND" OFF)
+# build_manual("Hand-Light-complicated" "DO_HAND_COMPLICATED" OFF)
 build_manual("Hand-Eigen-simple" "DO_HAND" ON "hand_eigen_d.h")
 build_manual("Hand-Eigen-complicated" "DO_HAND_COMPLICATED" ON "hand_eigen_d.h")

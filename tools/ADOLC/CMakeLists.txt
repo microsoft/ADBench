@@ -33,8 +33,8 @@ build_adolc("BA" "DO_BA_BLOCK" "DO_CPP")
 # build_adolc("BA-Eigen" "DO_BA_BLOCK" "DO_EIGEN")
 # TODO this doesn't work
 
-build_adolc("Hand-simple" "DO_HAND")
-build_adolc("Hand-complicated" "DO_HAND_COMPLICATED")
+build_adolc("Hand-Light-simple" "DO_HAND")
+build_adolc("Hand-Light-complicated" "DO_HAND_COMPLICATED")
 build_adolc("Hand-Eigen-simple" "DO_HAND" "DO_EIGEN")
 build_adolc("Hand-Eigen-complicated" "DO_HAND_COMPLICATED" "DO_EIGEN")
 

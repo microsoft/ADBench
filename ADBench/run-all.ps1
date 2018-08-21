@@ -30,8 +30,9 @@ $datadir = "$dir/data"
 # Custom Tool class
 Class Tool {
 	[string]$name
-	[bool]$gmm_both
 	[string]$type
+	[array]$objectives
+	[bool]$gmm_both
 	[bool]$gmm_use_defs
 	[array]$eigen_config
 
@@ -39,18 +40,19 @@ Class Tool {
 	static [string]$gmm_dir_in = "$datadir/gmm/"
 	static [string]$ba_dir_in = "$datadir/ba/"
 	static [string]$hand_dir_in = "$datadir/hand/"
-	static [string]$gmm_sizes = @("1k") # @("1k", "10k", "2.5M")
-	static [string]$hand_sizes = @("small") # @("small", "big")
+	static [array]$gmm_sizes = @("1k", "10k") # @("1k", "10k", "2.5M")
+	static [array]$hand_sizes = @("small", "big") # @("small", "big")
 	static [int]$ba_min_n = 1
 	static [int]$ba_max_n = 5
 	static [int]$hand_min_n = 1
 	static [int]$hand_max_n = 5
 
 	# Constructor
-	Tool ([string]$name, [bool]$gmm_both, [string]$type, [bool]$gmm_use_defs, [string]$eigen_config) {
+	Tool ([string]$name, [string]$type, [string]$objectives, [bool]$gmm_both, [bool]$gmm_use_defs, [string]$eigen_config) {
 		$this.name = $name
-		$this.gmm_both = $gmm_both
 		$this.type = $type
+		$this.objectives = $objectives.ToCharArray() | % { $_ -band "1" }
+		$this.gmm_both = $gmm_both
 		$this.gmm_use_defs = $gmm_use_defs
 		$this.eigen_config = $eigen_config.ToCharArray() | % { $_ -band "1" }
 	}
@@ -58,14 +60,15 @@ Class Tool {
 	# Run all tests for this tool
 	[void] runall () {
 		Write-Host $this.name
-		$this.testgmm()
-		$this.testba()
-		$this.testhand()
+		if ($this.objectives[0]) { $this.testgmm() }
+		if ($this.objectives[1]) { $this.testba() }
+		if ($this.objectives[2]) { $this.testhand() }
 	}
 
 	# Run a single test
 	[void] run ([string]$objective, [string]$dir_in, [string]$dir_out, [string]$fn) {
-		if ($objective.endswith("Eigen")) { $out_name = "$($this.name.ToLower())_eigen" }
+		if ($objective.contains("Eigen")) { $out_name = "$($this.name.ToLower())_eigen" }
+		elseif ($objective.contains("Light")) { $out_name = "$($this.name.ToLower())_light" }
 		elseif ($objective.endswith("SPLIT")) { $out_name = "$($this.name)_split" }
 		else { $out_name = $this.name }
 		$output_file = "$($dir_out)$($fn)_times_$($out_name).txt"
@@ -151,7 +154,7 @@ Class Tool {
 	# Run all Hand tests for this tool
 	[void] testhand () {
 		$objs = @()
-		if ($this.eigen_config[4]) { $objs += @("Hand") }
+		if ($this.eigen_config[4]) { $objs += @("Hand-Light") }
 		if ($this.eigen_config[5]) {$objs += @("Hand-Eigen") }
 
 		foreach ($obj in $objs) {
@@ -177,16 +180,16 @@ Class Tool {
 
 # Full list of tools
 $tools = @(
-	[Tool]::new("Adept", 1, "bin", 0, "101010"),
-	[Tool]::new("ADOLC", 1, "bin", 0, "101011"),
-	[Tool]::new("Ceres", 0, "bin", 1, "101011"),
-	[Tool]::new("Finite", 0, "bin", 0, "101011"),
-	[Tool]::new("Manual", 0, "bin", 0, "110101")
-	#[Tool]::new("DiffSharp", 1, "bin", 0, 0)
-	#[Tool]::new("Autograd", 1, "py", 0, 0),
-	#[Tool]::new("Theano", 0, "pybat", 0, 0)
-	#[Tool]::new("MuPad", 0, "matlab", 0, 0)
-	#[Tool]::new("ADiMat", 0, "matlab", 0, 0)
+	[Tool]::new("Adept", "bin", "111", 1, 0, "101010"),
+	[Tool]::new("ADOLC", "bin", "111", 1, 0, "101011"),
+	[Tool]::new("Ceres", "bin", "110", 0, 1, "101011"),
+	[Tool]::new("Finite", "bin", "111", 0, 0, "101011"),
+	[Tool]::new("Manual", "bin", "111", 0, 0, "110101")
+	#[Tool]::new("DiffSharp", "bin", 1, 0, 0)
+	#[Tool]::new("Autograd", "py", 1, 0, 0),
+	#[Tool]::new("Theano", "pybat", 0, 0, 0)
+	#[Tool]::new("MuPad", "matlab", 0, 0, 0)
+	#[Tool]::new("ADiMat", "matlab", 0, 0, 0)
 )
 
 # Run all tests on each tool

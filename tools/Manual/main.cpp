@@ -182,7 +182,7 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
 #ifdef DO_EIGEN
   string name = "manual_eigen";
 #else
-  string name = "manual";
+  string name = "manual_light";
 #endif
 
   write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), (int)theta.size(), &J[0]);
@@ -217,7 +217,7 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
 #ifdef DO_EIGEN
   string name = "manual_eigen";
 #else
-  string name = "manual";
+  string name = "manual_light";
 #endif
 
   write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), 2+(int)theta.size(), &J[0]);

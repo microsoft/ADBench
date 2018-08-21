@@ -31,8 +31,10 @@ foreach (D_VAL ${GMM_D_VALS})
 endforeach(D_VAL)
 
 build_ceres("BA" "DO_BA")
-build_ceres("Hand" "DO_HAND")
-build_ceres("Hand-Eigen" "DO_HAND" "DO_EIGEN")
+build_ceres("Hand-Light-simple" "DO_HAND")
+build_ceres("Hand-Light-complicated" "DO_HAND")
+build_ceres("Hand-Eigen-simple" "DO_HAND" "DO_EIGEN")
+build_ceres("Hand-Eigen-complicated" "DO_HAND" "DO_EIGEN")
 
 # Copy GLOG DLL
 file(COPY ${GLOG_DLL} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
