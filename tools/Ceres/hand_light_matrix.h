@@ -3,8 +3,8 @@
 #include <vector>
 #include <string>
 
-#include "../matrix.h"
-#include "../defs.h"
+#include "../cpp-common/matrix.h"
+#include "../cpp-common/defs.h"
 
 using std::vector;
 using std::string;
@@ -19,7 +19,7 @@ using std::string;
 template<typename T>
 void hand_objective(
   const T* const theta,
-  const HandDataEigen& data,
+  const HandDataLightMatrix& data,
   T *err);
 
 ////////////////////////////////////////////////////////////

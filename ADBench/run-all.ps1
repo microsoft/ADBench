@@ -33,43 +33,44 @@ Class Tool {
 	[bool]$gmm_both
 	[string]$type
 	[bool]$gmm_use_defs
-	[bool]$ba_eigen
+	[array]$eigen_config
 
 	# Static constants
-	static [string]$gmm_dir_in = "$datadir/gmm/1k/"
+	static [string]$gmm_dir_in = "$datadir/gmm/"
 	static [string]$ba_dir_in = "$datadir/ba/"
-	static [string]$hand_dir_in = "$datadir/hand/simple_small/"
+	static [string]$hand_dir_in = "$datadir/hand/"
+	static [string]$gmm_sizes = @("1k") # @("1k", "10k", "2.5M")
+	static [string]$hand_sizes = @("small") # @("small", "big")
 	static [int]$ba_min_n = 1
 	static [int]$ba_max_n = 5
 	static [int]$hand_min_n = 1
 	static [int]$hand_max_n = 5
 
 	# Constructor
-	Tool ([string]$name, [bool]$gmm_both, [string]$type, [bool]$gmm_use_defs, [bool]$ba_eigen) {
+	Tool ([string]$name, [bool]$gmm_both, [string]$type, [bool]$gmm_use_defs, [string]$eigen_config) {
 		$this.name = $name
 		$this.gmm_both = $gmm_both
 		$this.type = $type
 		$this.gmm_use_defs = $gmm_use_defs
-		$this.ba_eigen = $ba_eigen
+		$this.eigen_config = $eigen_config.ToCharArray() | % { $_ -band "1" }
 	}
 
 	# Run all tests for this tool
 	[void] runall () {
 		Write-Host $this.name
-		$this.testgmm("")
+		$this.testgmm()
 		$this.testba()
 		$this.testhand()
 	}
 
 	# Run a single test
 	[void] run ([string]$objective, [string]$dir_in, [string]$dir_out, [string]$fn) {
-		# TODO eigen for hand
-		if ($this.ba_eigen -and $objective -eq "BA") { $out_name = "$($this.name.ToLower())_eigen" }
-		elseif ($objective -eq "GMM-SPLIT") { $out_name = "$($this.name)_split" }
+		if ($objective.endswith("Eigen")) { $out_name = "$($this.name.ToLower())_eigen" }
+		elseif ($objective.endswith("SPLIT")) { $out_name = "$($this.name)_split" }
 		else { $out_name = $this.name }
 		$output_file = "$($dir_out)$($fn)_times_$($out_name).txt"
 		if (!$script:repeat -and (Test-Path $output_file)) {
-			Write-Host "        Skipped test (already completed)"
+			Write-Host "          Skipped test (already completed)"
 			return
 		}
 
@@ -90,71 +91,100 @@ Class Tool {
 
 		$output = & $cmd @cmdargs
 		foreach($line in $output) {
-			Write-Host "        $line"
+			Write-Host "          $line"
 		}
 	}
 
 	# Run all gmm tests for this tool
-	[void] testgmm ([string]$type="") {
-		if ($this.gmm_both -and !$type) {
-			$this.testgmm("-FULL")
-			$this.testgmm("-SPLIT")
-			return
-		}
+	[void] testgmm () {
+		$objs = @()
+		if ($this.eigen_config[0]) { $objs += @("GMM") }
+		if ($this.eigen_config[1]) { $objs += @("GMM-Eigen") }
 
-		Write-Host "  GMM$type"
+		if ($this.gmm_both) { $types = @("-FULL", "-SPLIT") }
+		else { $types = @("") }
 
-		$dir_out = "$script:tmpdir/gmm/$($this.name)/"
-		if (!(Test-Path $dir_out)) { mkdir $dir_out }
+		foreach ($obj in $objs) {
+			foreach ($type in $types) {
+				Write-Host "  $obj$type"
 
-		foreach ($d in $script:gmm_d_vals) {
-			Write-Host "    d=$d"
-			foreach ($k in $script:gmm_k_vals) {
-				Write-Host "      K=$k"
-				$obj = "GMM$type"
-				if ($this.gmm_use_defs) { $obj += "-d$d-K$k" }
-				$this.run($obj, [Tool]::gmm_dir_in, $dir_out, "gmm_d$($d)_K$($k)")
+				foreach ($sz in [Tool]::gmm_sizes) {
+					Write-Host "    $sz"
+
+					$dir_in = "$([Tool]::gmm_dir_in)$sz/"
+					$dir_out = "$script:tmpdir/gmm/$sz/$($this.name)/"
+					if (!(Test-Path $dir_out)) { mkdir $dir_out }
+
+					foreach ($d in $script:gmm_d_vals) {
+						Write-Host "      d=$d"
+						foreach ($k in $script:gmm_k_vals) {
+							Write-Host "        K=$k"
+							$run_obj = "$obj$type"
+							if ($this.gmm_use_defs) { $run_obj += "-d$d-K$k" }
+							$this.run($run_obj, $dir_in, $dir_out, "gmm_d$($d)_K$($k)")
+						}
+					}
+				}
 			}
 		}
 	}
 
 	# Run all BA tests for this tool
 	[void] testba () {
-		Write-Host "  BA"
+		$objs = @()
+		if ($this.eigen_config[2]) { $objs += @("BA") }
+		if ($this.eigen_config[3]) {$objs += @("BA-Eigen") }
 
 		$dir_out = "$script:tmpdir/ba/$($this.name)/"
 		if (!(Test-Path $dir_out)) { mkdir $dir_out }
 
-		for ($n = [Tool]::ba_min_n; $n -le [Tool]::ba_max_n; $n++) {
-			Write-Host "    $n"
-			$this.run("BA", [Tool]::ba_dir_in, $dir_out, "ba$n")
+		foreach ($obj in $objs) {
+			Write-Host "  $obj"
+
+			for ($n = [Tool]::ba_min_n; $n -le [Tool]::ba_max_n; $n++) {
+				Write-Host "    $n"
+				$this.run("$obj", [Tool]::ba_dir_in, $dir_out, "ba$n")
+			}
 		}
 	}
 
 	# Run all Hand tests for this tool
 	[void] testhand () {
-		Write-Host "  Hand"
+		$objs = @()
+		if ($this.eigen_config[4]) { $objs += @("Hand") }
+		if ($this.eigen_config[5]) {$objs += @("Hand-Eigen") }
 
-		$dir_out = "$script:tmpdir/hand/$($this.name)/"
-		if (!(Test-Path $dir_out)) { mkdir $dir_out }
+		foreach ($obj in $objs) {
+			Write-Host "  $obj"
 
-		for ($n = [Tool]::hand_min_n; $n -le [Tool]::hand_max_n; $n++) {
-			Write-Host "    $n"
-			$this.run("Hand", [Tool]::hand_dir_in, $dir_out, "hand$n")
+			foreach ($type in @("simple", "complicated")) {
+				foreach ($sz in [Tool]::hand_sizes) {
+					Write-Host "    $($type)_$sz"
+
+					$dir_in = "$([Tool]::hand_dir_in)$($type)_$sz/"
+					$dir_out = "$script:tmpdir/hand/$($type)_$sz/$($this.name)/"
+					if (!(Test-Path $dir_out)) { mkdir $dir_out }
+
+					for ($n = [Tool]::hand_min_n; $n -le [Tool]::hand_max_n; $n++) {
+						Write-Host "      $n"
+						$this.run("$obj-$($type)", $dir_in, $dir_out, "hand$n")
+					}
+				}
+			}
 		}
 	}
 }
 
 # Full list of tools
 $tools = @(
-	[Tool]::new("Adept", 1, "bin", 0, 0),
-	[Tool]::new("ADOLC", 1, "bin", 0, 0),
-	[Tool]::new("Ceres", 0, "bin", 1, 0),
-	[Tool]::new("Manual", 0, "bin", 0, 1),
+	[Tool]::new("Adept", 1, "bin", 0, "101010"),
+	[Tool]::new("ADOLC", 1, "bin", 0, "101011"),
+	[Tool]::new("Ceres", 0, "bin", 1, "101011"),
+	[Tool]::new("Finite", 0, "bin", 0, "101011"),
+	[Tool]::new("Manual", 0, "bin", 0, "110101")
 	#[Tool]::new("DiffSharp", 1, "bin", 0, 0)
-	[Tool]::new("Finite", 0, "bin", 0, 0),
 	#[Tool]::new("Autograd", 1, "py", 0, 0),
-	[Tool]::new("Theano", 0, "pybat", 0, 0)
+	#[Tool]::new("Theano", 0, "pybat", 0, 0)
 	#[Tool]::new("MuPad", 0, "matlab", 0, 0)
 	#[Tool]::new("ADiMat", 0, "matlab", 0, 0)
 )

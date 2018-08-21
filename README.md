@@ -114,6 +114,9 @@ Checked items are built by CMake and can be run by run-all.ps1
 	- Should be solvable, but needs looking into
 - DiffSharp GMM builds fail
 - run-all.ps1 does not currently run all tools
+- ADiMat BA seems to crash during a loop calculating tJ
+- ADOL-C BA should be able to run with Eigen, but this fails to build
+- Manual BA and Hand can't be run without Eigen
 
 ## Example Graphs
 

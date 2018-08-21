@@ -554,6 +554,134 @@ void test_ba(const string& fn_in, const string& fn_out,
 #elif (defined DO_GMM_FULL || defined DO_GMM_SPLIT)
 
 
+
+#elif defined DO_HAND_COMPLICATED
+
+double compute_hand_J(int nruns, double time_limit,
+	const vector<double>& theta, const vector<double>& us,
+	const HandDataType& data,
+	vector<double> *perr, vector<double> *pJ)
+{
+	if (nruns == 0)
+		return 0;
+
+	auto &err = *perr;
+	auto &J = *pJ;
+
+	int tapeTag = 1;
+	int Jrows = (int)err.size();
+	int n_independents = (int)(us.size() + theta.size());
+	size_t n_pts = err.size() / 3;
+	int ndirs = 2 + (int)theta.size();
+	vector<adouble> aus(us.size());
+	vector<adouble> atheta(theta.size());
+	vector<adouble> aerr(err.size());
+
+#ifndef ADOLC_TAPELESS
+	vector<double> all_params(n_independents);
+	for (size_t i = 0; i < us.size(); i++)
+		all_params[i] = us[i];
+	for (size_t i = 0; i < theta.size(); i++)
+		all_params[i + us.size()] = theta[i];
+
+	// create seed matrix
+	Pointer2 seed(n_independents, ndirs);
+	for (int i = 0; i < n_independents; i++)
+		memset(seed[i], 0, ndirs * sizeof(double));
+	for (size_t i = 0; i < n_pts; i++)
+	{
+		seed[2 * i][0] = 1.;
+		seed[2 * i + 1][1] = 1.;
+	}
+	for (size_t i = 0; i < theta.size(); i++)
+		seed[us.size() + i][2 + i] = 1.;
+
+	Pointer2 J_tmp(Jrows, ndirs);
+#endif
+
+	double tJ = timer([&]() {
+#ifdef ADOLC_TAPELESS
+		for (size_t i = 0; i < us.size(); i++)
+			aus[i] = us[i];
+		for (size_t i = 0; i < theta.size(); i++)
+			atheta[i] = theta[i];
+
+		// Compute wrt. us
+		for (size_t i = 0; i < n_pts; i++)
+		{
+			aus[2 * i].setADValue(0, 1.);
+			aus[2 * i + 1].setADValue(1, 1.);
+		}
+		for (size_t i = 0; i < theta.size(); i++)
+			atheta[i].setADValue(2 + i, 1.);
+
+		hand_objective(&atheta[0], &aus[0], data, &aerr[0]);
+
+		for (int j = 0; j < ndirs; j++)
+		{
+			for (size_t i = 0; i < aerr.size(); i++)
+			{
+				J[j*aerr.size() + i] = aerr[i].getADValue(j);
+			}
+		}
+#else
+		// Record on a tape
+		trace_on(tapeTag);
+		for (size_t i = 0; i < us.size(); i++)
+			aus[i] <<= us[i];
+		for (size_t i = 0; i < theta.size(); i++)
+			atheta[i] <<= theta[i];
+
+		hand_objective(&atheta[0], &aus[0], data, &aerr[0]);
+
+		for (int i = 0; i < Jrows; i++)
+			aerr[i] >>= err[i];
+
+		trace_off();
+
+		fov_forward(tapeTag, Jrows, n_independents, ndirs, &all_params[0], seed.data, &err[0], J_tmp.data);
+#endif
+	}, nruns, time_limit);
+
+#ifndef ADOLC_TAPELESS
+	for (int i = 0; i < Jrows; i++)
+		for (int j = 0; j < ndirs; j++)
+			J[j*Jrows + i] = J_tmp[i][j];
+#endif
+
+	return tJ;
+}
+
+void test_hand(const string& model_dir, const string& fn_in, const string& fn_out,
+	int nruns_f, int nruns_J, double time_limit)
+{
+	vector<double> theta, us;
+	HandDataType data;
+
+	read_hand_instance(model_dir, fn_in + ".txt", &theta, &data, &us);
+
+	vector<double> err(3 * data.correspondences.size());
+	vector<double> J(err.size() * (2 + theta.size()));
+
+	double tf = timer([&]() {
+		hand_objective(&theta[0], &us[0], data, &err[0]);
+	}, nruns_f, time_limit);
+
+	double tJ = compute_hand_J(nruns_J, time_limit, theta, us, data, &err, &J);
+
+#ifdef DO_EIGEN
+	string name("ADOLC_eigen");
+#elif defined DO_LIGHT_MATRIX
+	string name("ADOLC_light");
+#endif
+#ifdef ADOLC_TAPELESS
+	name = name + "_tapeless";
+#endif
+	write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), 2 + (int)theta.size(), &J[0]);
+	//write_times(tf, tJ);
+	write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
+}
+
 #elif defined DO_HAND || defined DO_HAND_SPARSE
 
 #ifdef DO_HAND_SPARSE
@@ -772,143 +900,6 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   delete[] J;
 }
 
-#elif defined DO_HAND_COMPLICATED
-
-double compute_hand_J(int nruns,
-  const vector<double>& theta, const vector<double>& us,
-  const HandDataType& data,
-  vector<double> *perr, vector<double> *pJ)
-{
-  if (nruns == 0)
-    return 0;
-
-  auto &err = *perr;
-  auto &J = *pJ;
-
-  int tapeTag = 1;
-  int Jrows = (int)err.size();
-  int n_independents = (int)(us.size()+theta.size());
-  size_t n_pts = err.size() / 3;
-  int ndirs = 2 + (int)theta.size();
-  vector<adouble> aus(us.size());
-  vector<adouble> atheta(theta.size());
-  vector<adouble> aerr(err.size());
-
-#ifndef ADOLC_TAPELESS
-  vector<double> all_params(n_independents);
-  for (size_t i = 0; i < us.size(); i++)
-    all_params[i] = us[i];
-  for (size_t i = 0; i < theta.size(); i++)
-    all_params[i+us.size()] = theta[i];
-
-  // create seed matrix
-  Pointer2 seed(n_independents, ndirs);
-  for (int i = 0; i < n_independents; i++)
-    memset(seed[i], 0, ndirs*sizeof(double));  
-  for (size_t i = 0; i < n_pts; i++)
-  {
-    seed[2 * i][0] = 1.;
-    seed[2 * i + 1][1] = 1.;
-  }
-  for (size_t i = 0; i < theta.size(); i++)
-    seed[us.size() + i][2 + i] = 1.;
-
-  Pointer2 J_tmp(Jrows, ndirs);
-#endif
-
-  high_resolution_clock::time_point start, end;
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns; i++)
-  {
-#ifdef ADOLC_TAPELESS
-    for (size_t i = 0; i < us.size(); i++)
-      aus[i] = us[i];
-    for (size_t i = 0; i < theta.size(); i++)
-      atheta[i] = theta[i];
-
-    // Compute wrt. us
-    for (size_t i = 0; i < n_pts; i++)
-    {
-      aus[2 * i].setADValue(0, 1.);
-      aus[2 * i + 1].setADValue(1, 1.);
-    }
-    for (size_t i = 0; i < theta.size(); i++)
-      atheta[i].setADValue(2 + i, 1.);
-
-    hand_objective(&atheta[0], &aus[0], data, &aerr[0]);
-
-    for (int j = 0; j < ndirs; j++)
-    {
-      for (size_t i = 0; i < aerr.size(); i++)
-      {
-        J[j*aerr.size() + i] = aerr[i].getADValue(j);
-      }
-    }
-#else
-    // Record on a tape
-    trace_on(tapeTag);
-    for (size_t i = 0; i < us.size(); i++)
-      aus[i] <<= us[i];
-    for (size_t i = 0; i < theta.size(); i++)
-      atheta[i] <<= theta[i];
-
-    hand_objective(&atheta[0], &aus[0], data, &aerr[0]);
-
-    for (int i = 0; i < Jrows; i++)
-      aerr[i] >>= err[i];
-
-    trace_off();
-
-    fov_forward(tapeTag, Jrows, n_independents, ndirs, &all_params[0], seed.data, &err[0], J_tmp.data);
-#endif
-  }
-  end = high_resolution_clock::now();
-
-#ifndef ADOLC_TAPELESS
-  for (int i = 0; i < Jrows; i++)
-    for (int j = 0; j < ndirs; j++)
-      J[j*Jrows + i] = J_tmp[i][j];
-#endif
-
-  return duration_cast<duration<double>>(end - start).count() / nruns;
-}
-
-void test_hand(const string& model_dir, const string& fn_in, const string& fn_out,
-  int nruns_f, int nruns_J)
-{
-  vector<double> theta, us;
-  HandDataType data;
-
-  read_hand_instance(model_dir, fn_in + ".txt", &theta, &data, &us);
-
-  vector<double> err(3 * data.correspondences.size());
-  vector<double> J(err.size() * (2 + theta.size()));
-
-  high_resolution_clock::time_point start, end;
-  double tf = 0., tJ = 0;
-
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_f; i++)
-  {
-    hand_objective(&theta[0], &us[0], data, &err[0]);
-  }
-  end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
-
-  tJ = compute_hand_J(nruns_J, theta, us, data, &err, &J);
-
-#ifdef DO_EIGEN
-  string name("ADOLC_eigen");
-#elif defined DO_LIGHT_MATRIX
-  string name("ADOLC_light");
-#endif
-#ifdef ADOLC_TAPELESS
-  name = name + "_tapeless";
-#endif
-  write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), 2 + (int)theta.size(), &J[0]);
-  //write_times(tf, tJ);
-  write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
-}
 
 #endif
 

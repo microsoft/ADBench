@@ -279,6 +279,89 @@ void test_ba(const string& fn_in, const string& fn_out,
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
 }
 
+#elif defined DO_HAND_COMPLICATED
+
+void set_gradients(double val, vector<adouble> *aparams)
+{
+	for (size_t i = 0; i < aparams->size(); i++)
+		(*aparams)[i].set_gradient(val);
+}
+
+double compute_hand_J(int nruns, double time_limit,
+	const vector<double>& theta, const vector<double>& us,
+	const HandDataType& data,
+	vector<double> *perr, vector<double> *pJ)
+{
+	auto &err = *perr;
+	auto &J = *pJ;
+	adept::Stack stack;
+	vector<adouble> atheta(theta.size());
+	vector<adouble> aus(us.size());
+	vector<adouble> aerr(err.size());
+	size_t n_pts = us.size() / 2;
+
+	return timer([&]() {
+		adept::set_values(&atheta[0], theta.size(), &theta[0]);
+		adept::set_values(&aus[0], us.size(), &us[0]);
+
+		stack.new_recording();
+		hand_objective(&atheta[0], &aus[0], data, &aerr[0]);
+		adept::get_values(&aerr[0], err.size(), &err[0]);
+
+		// Compute wrt. us
+		set_gradients(0., &atheta);
+		for (size_t i = 0; i < n_pts; i++)
+		{
+			aus[2 * i].set_gradient(1.);
+			aus[2 * i + 1].set_gradient(0.);
+		}
+		stack.forward();
+		adept::get_gradients(&aerr[0], aerr.size(), &J[0]);
+		for (size_t i = 0; i < n_pts; i++)
+		{
+			aus[2 * i].set_gradient(0.);
+			aus[2 * i + 1].set_gradient(1.);
+		}
+		stack.forward();
+		adept::get_gradients(&aerr[0], aerr.size(), &J[aerr.size()]);
+		for (size_t i = 0; i < n_pts; i++)
+			aus[2 * i + 1].set_gradient(0.);
+		int offset = 2;
+
+		// Compute wrt. theta
+		for (size_t i_param = 0; i_param < theta.size(); i_param++)
+		{
+			atheta[i_param].set_gradient(1.);
+			stack.forward();
+			adept::get_gradients(&aerr[0], aerr.size(), &J[(offset + i_param)*aerr.size()]);
+			atheta[i_param].set_gradient(0.);
+		}
+  }, nruns, time_limit);
+}
+
+void test_hand(const string& model_dir, const string& fn_in, const string& fn_out,
+	int nruns_f, int nruns_J, double time_limit)
+{
+	vector<double> theta, us;
+	HandDataType data;
+
+	read_hand_instance(model_dir, fn_in + ".txt", &theta, &data, &us);
+
+	vector<double> err(3 * data.correspondences.size());
+	vector<double> J(err.size() * (2 + theta.size()));
+
+	double tf = timer([&]() {
+		hand_objective(&theta[0], &us[0], data, &err[0]);
+	}, nruns_f, time_limit);
+
+	string name = "Adept_light";
+	double tJ = compute_hand_J(nruns_J, time_limit, theta, us, data, &err, &J);
+
+	write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), 2 + (int)theta.size(), &J[0]);
+	//write_times(tf, tJ);
+	write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
+}
+
 #elif defined DO_HAND
 
 double compute_hand_J(int nruns, double time_limit,
@@ -324,101 +407,6 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   double tJ = compute_hand_J(nruns_J, time_limit, theta, data, &err, &J);
 
   write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), (int)theta.size(), &J[0]);
-  //write_times(tf, tJ);
-  write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
-}
-#elif defined DO_HAND_COMPLICATED
-
-void set_gradients(double val, vector<adouble> *aparams)
-{
-  for (size_t i = 0; i < aparams->size(); i++)
-    (*aparams)[i].set_gradient(val);
-}
-
-double compute_hand_J(int nruns, double time_limit,
-  const vector<double>& theta, const vector<double>& us,
-  const HandDataType& data,
-  vector<double> *perr, vector<double> *pJ)
-{
-  auto &err = *perr;
-  auto &J = *pJ;
-  adept::Stack stack;
-  vector<adouble> atheta(theta.size());
-  vector<adouble> aus(us.size());
-  vector<adouble> aerr(err.size());
-  size_t n_pts = us.size() / 2;
-
-  high_resolution_clock::time_point start, end;
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns; i++)
-  {
-    adept::set_values(&atheta[0], theta.size(), &theta[0]);
-    adept::set_values(&aus[0], us.size(), &us[0]);
-
-    stack.new_recording();
-    hand_objective(&atheta[0], &aus[0], data, &aerr[0]);
-    adept::get_values(&aerr[0], err.size(), &err[0]);
-
-    // Compute wrt. us
-    set_gradients(0., &atheta);
-    for (size_t i = 0; i < n_pts; i++)
-    {
-      aus[2 * i].set_gradient(1.);
-      aus[2 * i + 1].set_gradient(0.);
-    }
-    stack.forward();
-    adept::get_gradients(&aerr[0], aerr.size(), &J[0]);
-    for (size_t i = 0; i < n_pts; i++)
-    {
-      aus[2 * i].set_gradient(0.);
-      aus[2 * i + 1].set_gradient(1.);
-    }
-    stack.forward();
-    adept::get_gradients(&aerr[0], aerr.size(), &J[aerr.size()]);
-    for (size_t i = 0; i < n_pts; i++)
-      aus[2 * i + 1].set_gradient(0.);
-    int offset = 2;
-
-    // Compute wrt. theta
-    for (size_t i_param = 0; i_param < theta.size(); i_param++)
-    {
-      atheta[i_param].set_gradient(1.);
-      stack.forward();
-      adept::get_gradients(&aerr[0], aerr.size(), &J[(offset+i_param)*aerr.size()]);
-      atheta[i_param].set_gradient(0.);
-    }
-  }
-  end = high_resolution_clock::now();
-
-  return duration_cast<duration<double>>(end - start).count() / nruns;
-}
-
-void test_hand(const string& model_dir, const string& fn_in, const string& fn_out,
-  int nruns_f, int nruns_J)
-{
-  vector<double> theta, us;
-  HandDataType data;
-
-  read_hand_instance(model_dir, fn_in + ".txt", &theta, &data, &us);
-
-  vector<double> err(3 * data.correspondences.size());
-  vector<double> J(err.size() * (2 + theta.size()));
-
-  high_resolution_clock::time_point start, end;
-  double tf = 0., tJ = 0;
-
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_f; i++)
-  {
-    hand_objective(&theta[0], &us[0], data, &err[0]);
-  }
-  end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
-
-  string name = "Adept_light";
-  tJ = compute_hand_J(nruns_J, time_limit, theta, us, data, &err, &J);
-
-  write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), 2+(int)theta.size(), &J[0]);
   //write_times(tf, tJ);
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
 }

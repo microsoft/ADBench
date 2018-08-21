@@ -1,11 +1,14 @@
 
 project("Tools-Finite")
 
-add_executable("Tools-Finite-GMM" "main.cpp")
-target_compile_definitions("Tools-Finite-GMM" PUBLIC "DO_GMM")
+function(build_finite EXE_NAME)
+	add_executable("Tools-Finite-${EXE_NAME}" "main.cpp")
+	target_compile_definitions("Tools-Finite-${EXE_NAME}" PUBLIC ${ARGN})
+endfunction(build_finite)
 
-add_executable("Tools-Finite-BA" "main.cpp")
-target_compile_definitions("Tools-Finite-BA" PUBLIC "DO_BA")
-
-add_executable("Tools-Finite-Hand" "main.cpp")
-target_compile_definitions("Tools-Finite-Hand" PUBLIC "DO_HAND" "DO_EIGEN")
+build_finite("GMM" "DO_GMM")
+build_finite("BA" "DO_BA")
+build_finite("Hand-simple" "DO_HAND")
+build_finite("Hand-complicated" "DO_HAND")
+build_finite("Hand-Eigen-simple" "DO_HAND" "DO_EIGEN")
+build_finite("Hand-Eigen-complicated" "DO_HAND" "DO_EIGEN")

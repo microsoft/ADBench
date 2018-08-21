@@ -9,8 +9,8 @@
 #define DO_HAND
 
 //#define DO_CPP
-#define DO_EIGEN
-//#define DO_LIGHT_MATRIX
+//#define DO_EIGEN
+#define DO_LIGHT_MATRIX
 
 #include "ceres/ceres.h"
 #include "../cpp-common/utils.h"

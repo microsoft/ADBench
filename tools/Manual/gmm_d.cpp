@@ -81,6 +81,8 @@ double logsumexp_d(int n, const double* const x, double *logsumexp_partial_d)
   return log(semx) + mx;
 }
 
+#ifndef DO_EIGEN
+
 void gmm_objective_d(int d, int k, int n,
   const double *alphas,
   const double *means,
@@ -165,11 +167,13 @@ void gmm_objective_d(int d, int k, int n,
   *err += log_wishart_prior(d, k, wishart, sum_qs.data(), Qdiags.data(), icf);
 }
 
+#endif
+
 #if defined DO_EIGEN || defined DO_EIGEN_VECTOR
 
 #include "Eigen\Dense"
 
-#include "../gmm_eigen.h"
+#include "../cpp-common/gmm_eigen.h"
 
 using Eigen::Map;
 using Eigen::VectorXd;

@@ -70,7 +70,7 @@ void test_gmm(const string& fn_in, const string& fn_out,
   cout << "err: " << err << endl;
 
 #ifdef DO_CPP
-  string name("manual_cpp");
+  string name("manual");
 #elif defined DO_EIGEN
   string name("manual_eigen");
 #elif defined DO_EIGEN_VECTOR
@@ -146,7 +146,7 @@ void test_ba(const string& fn_in, const string& fn_out,
 #ifdef DO_EIGEN
   string name("manual_eigen");
 #else
-  string name("manual_cpp");
+  string name("manual");
 #endif
   write_J_sparse(fn_out + "_J_" + name + ".txt", J);
   write_times(tf, tJ);
@@ -179,7 +179,11 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
 	  hand_objective_d(&theta[0], data, &err[0], &J[0]);
   }, nruns_J, time_limit);
 
+#ifdef DO_EIGEN
   string name = "manual_eigen";
+#else
+  string name = "manual";
+#endif
 
   write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), (int)theta.size(), &J[0]);
   //write_times(tf, tJ);
@@ -188,36 +192,33 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
 
 #elif defined DO_HAND_COMPLICATED
 void test_hand(const string& model_dir, const string& fn_in, const string& fn_out,
-  int nruns_f, int nruns_J)
+  int nruns_f, int nruns_J, double time_limit)
 {
   vector<double> theta, us;
+#ifdef DO_EIGEN
   HandDataEigen data;
+#else
+  HandDataLightMatrix data;
+#endif
 
   read_hand_instance(model_dir, fn_in + ".txt", &theta, &data, &us);
 
   vector<double> err(3 * data.correspondences.size());
   vector<double> J(err.size() * (2+theta.size()));
 
-  high_resolution_clock::time_point start, end;
-  double tf = 0., tJ = 0;
+  double tf = timer([&]() {
+	  hand_objective(&theta[0], &us[0], data, &err[0]);
+  }, nruns_f, time_limit);
 
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_f; i++)
-  {
-    hand_objective(&theta[0], &us[0], data, &err[0]);
-  }
-  end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
+  double tJ = timer([&]() {
+	  hand_objective_d(&theta[0], &us[0], data, &err[0], &J[0]);
+  }, nruns_J, time_limit);
 
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_J; i++)
-  {
-    hand_objective_d(&theta[0], &us[0], data, &err[0], &J[0]);
-  }
-  end = high_resolution_clock::now();
-  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
-
+#ifdef DO_EIGEN
   string name = "manual_eigen";
+#else
+  string name = "manual";
+#endif
 
   write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), 2+(int)theta.size(), &J[0]);
   //write_times(tf, tJ);

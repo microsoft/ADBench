@@ -17,24 +17,22 @@ else ()
 	set(GLOG_DLL "${CERES-SOLVER_ROOT}/bin/glog.dll")
 endif ()
 
+function(build_ceres EXE_NAME)
+	add_executable("Tools-Ceres-${EXE_NAME}" "main.cpp" "${CERES-SOLVER_ROOT}/include/ceres/ceres.h")
+	target_compile_definitions("Tools-Ceres-${EXE_NAME}" PUBLIC ${ARGN})
+	target_link_libraries("Tools-Ceres-${EXE_NAME}" ${CERES_LIB} ${GLOG_LIB})
+endfunction(build_ceres)
+
 # Create GMM with different #define D and K values
 foreach (D_VAL ${GMM_D_VALS})
 	foreach (K_VAL ${GMM_K_VALS})
-		add_executable("Tools-Ceres-GMM-d${D_VAL}-K${K_VAL}" "main.cpp" "${CERES-SOLVER_ROOT}/include/ceres/ceres.h")
-		target_compile_definitions("Tools-Ceres-GMM-d${D_VAL}-K${K_VAL}" PUBLIC "DO_GMM" GMM_D=${D_VAL} GMM_K=${K_VAL})
-		target_link_libraries("Tools-Ceres-GMM-d${D_VAL}-K${K_VAL}" ${CERES_LIB} ${GLOG_LIB})
+		build_ceres("GMM-d${D_VAL}-K${K_VAL}" "DO_GMM" GMM_D=${D_VAL} GMM_K=${K_VAL})
 	endforeach(K_VAL)
 endforeach(D_VAL)
 
-# Create BA
-add_executable("Tools-Ceres-BA" "main.cpp" "${CERES-SOLVER_ROOT}/include/ceres/ceres.h")
-target_compile_definitions("Tools-Ceres-BA" PUBLIC "DO_BA")
-target_link_libraries("Tools-Ceres-BA" ${CERES_LIB} ${GLOG_LIB})
-
-# Create Hand
-add_executable("Tools-Ceres-Hand" "main.cpp" "${CERES-SOLVER_ROOT}/include/ceres/ceres.h")
-target_compile_definitions("Tools-Ceres-Hand" PUBLIC "DO_HAND")
-target_link_libraries("Tools-Ceres-Hand" ${CERES_LIB} ${GLOG_LIB})
+build_ceres("BA" "DO_BA")
+build_ceres("Hand" "DO_HAND")
+build_ceres("Hand-Eigen" "DO_HAND" "DO_EIGEN")
 
 # Copy GLOG DLL
 file(COPY ${GLOG_DLL} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
