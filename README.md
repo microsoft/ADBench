@@ -14,12 +14,13 @@ Output a set of relevant graphs.
 - [FSharp](https://fsharp.org/)
 - [Matlab](https://www.mathworks.com/products/matlab.html)
 	- **Note:** while the free trial version works, the obtrusive login dialog makes it impossible to automatically run all matlab tests without manually logging in each time
-- [Python](https://www.python.org/) (with the following `pip` modules)
+- [Python](https://www.python.org/), with the following `pip` modules:
 	- numpy
 	- scipy
 	- matplotlib
 	- plotly
 	- autograd
+	- PyTorch (install from [here](https://pytorch.org/))
 - [Miniconda](https://conda.io/miniconda.html) (only required to run Theano)
 	- Once installed, open the Anaconda Prompt as an administrator and run:
 	- `conda install numpy scipy mkl-service libpython m2w64-toolchain`
@@ -86,25 +87,36 @@ Checked items are built by CMake and can be run by run-all.ps1
 	- HunterGate packages
 	- Built with shared libs
 	- For GMM, relies on `#define` for d and k values, so multiple executables are built
-- [x] Manual AD
+	- Doesn't run Hand tests
+- [x] Finite
+	- Computes numeric derivatives (finite differences) for comparison
+	- No external dependencies
+- [x] Manual
+	- Manually-differentiated C++ functions
 	- No external dependencies
 - [ ] Tapenade
 
 ### Python
-- [x] [Autograd](https://github.com/HIPS/autograd)
-- [x] [Theano](https://github.com/Theano/Theano)
+All Python tools use pip/conda modules. See list under [Prerequisites](#prerequisites).
+- [ ] [Autograd](https://github.com/HIPS/autograd)
+	- Doesn't run Hand tests
+- [ ] [Theano](https://github.com/Theano/Theano)
+- [ ] [PyTorch](https://pytorch.org/)
+	- Only running GMM as yet
 
 ### Matlab
 - [ ] ADiMat
+	- Hand not yet run
 - [ ] [MuPad](https://www.mathworks.com/discovery/mupad.html)
+	- Hand not yet run
 
 ### F#
-- [x] [DiffSharp](https://github.com/DiffSharp/DiffSharp)
+- [ ] [DiffSharp](https://github.com/DiffSharp/DiffSharp)
 	- Built using `dotnet build` (in batch file), which restores NuGet packages
 	- GMM builds fail
 
 ### Julia
-- [ ] Julia AD
+- [ ] ForwardDiff.jl
 
 ## Known Issues
 - Only tested on Windows (64-bit)
@@ -123,14 +135,13 @@ Checked items are built by CMake and can be run by run-all.ps1
 ### Debug
 
 <div>
-	<img src="/Documents/New%20Figures/BA%20(Debug)%20Graph.png" width="49%" />
-	<img src="/Documents/New%20Figures/GMM%20(Debug)%20Graph.png" width="49%" />
+	<img src="/Documents/New%20Figures/autodiff/BA%20(Debug)%20Graph.png" width="49%" />
+	<img src="/Documents/New%20Figures/autodiff/GMM%20(Debug)%20Graph.png" width="49%" />
 </div>
 
 ### Release
 
 <div>
-	<img src="/Documents/New%20Figures/BA%20(Release)%20Graph.png" width="49%" />
-	<img src="/Documents/New%20Figures/GMM%20(Release)%20Graph.png" width="49%" />
+	<img src="/Documents/New%20Figures/autodiff/BA%20(Release)%20Graph.png" width="49%" />
+	<img src="/Documents/New%20Figures/autodiff/GMM%20(Release)%20Graph.png" width="49%" />
 </div>
-
