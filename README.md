@@ -9,12 +9,12 @@ Output a set of relevant graphs.
 
 ## Prerequisites
 
-- [CMake](https://cmake.org/)
-- [.NET](https://www.microsoft.com/net)
+- [CMake](https://cmake.org/) (see [Installation](#installation) for details)
+- [.NET](https://www.microsoft.com/net) (should be in PATH)
 - [FSharp](https://fsharp.org/)
-- [Matlab](https://www.mathworks.com/products/matlab.html)
+- [Matlab](https://www.mathworks.com/products/matlab.html) (in PATH)
 	- **Note:** while the free trial version works, the obtrusive login dialog makes it impossible to automatically run all matlab tests without manually logging in each time
-- [Python](https://www.python.org/), with the following `pip` modules:
+- [Python](https://www.python.org/) (in PATH), with the following `pip` modules:
 	- numpy
 	- scipy
 	- matplotlib
@@ -28,25 +28,45 @@ Output a set of relevant graphs.
 - [Powershell](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-powershell
 ) (default on Windows)
 
-## Installation/Usage
+## Installation
 
-All tools should build (along with any external packages) and run very easily.
+All tools should build (along with any external packages) and run very easily, provided you are able to use CMake. CMake should always work similarly, but the easiest methods may vary by operating system.
+
+The basic steps (more specific instructions for Windows are below):
 
 1) Clone the repository (make sure submodules are cloned properly)
 2) Run cmake
+	- If contributing, install to an external folder so build files are not confused with source files.
 3) Build
-4) Run `powershell ADBench/run-all.ps1`
-5) Run `python ADBench/plot_graphs.py`
+
+### Windows
+
+The easiest way to build on windows is using [CMake tools for Visual Studio](https://blogs.msdn.microsoft.com/vcblog/2016/10/05/cmake-support-in-visual-studio/), which can be installed as a component in the [Visual Studio Installer](https://docs.microsoft.com/en-us/visualstudio/install/install-visual-studio).
+
+1) Open Visual Studio
+2) [Clone](http://www.malgreve.net/2014/06/17/cloning-getting-code-from-git-repository-to-visual-studio/) this repository
+3) Open the cloned folder in Visual Studio. CMake should run automatically, but it may need to be started manually.
+	- **NOTE:** CMake (specifically HunterGate) often seems to crash the first time it is run, so try re-running several times.
+4) When CMake has finished, run CMake>Build All
+	- **NOTE:** this is sometimes not available as an option. Try restarting Visual Studio or waiting a while.
+
+All tools should now be built. See [Usage](#usage) below.
+
+## Usage
+
+1) Run `powershell ADBench/run-all.ps1` to run all of the tools and write the timings to `/tmp/`.
+2) Run `python ADBench/plot_graphs.py` to plot graphs of the resulting timings and write them to `/Documents/New Figures/`
 
 ### CLI reference: run-all
 
-`powershell ADBench/run-all.ps1 nruns_f nruns_J time_limit tmpdir repeat`
+`powershell ADBench/run-all.ps1 buildtype nruns_f nruns_J time_limit tmpdir repeat`
+- `buildtype`: The build configuration of the tests to be run (`Debug` or `Release`). By default, both will be run (pass an empty string `""` to replicate this).
 - `nruns_f`: Number of times to run the original functions (BA, GMM) for each tool (default = `10`)
 - `nruns_J`: Number of times to run the autodiff process for each tool (default = `10`)
 - `time_limit`: The maximum amount of time (in seconds) to spend benchmarking each tool (default = `60`)
 	- **Note**: A whole number of runs (and at least one) will always be completed
 	- **Note**: The time limits are only implemented in C++ and Python currently
-- `tmpdir`: The output directory to use (default = `tmp`)
+- `tmpdir`: The output directory to use (default = `/tmp/`)
 - `repeat`: Whether to repeat tasks for which an output file already exists (default = `false`)
 
 ### CLI reference: plot_graphs
@@ -63,7 +83,7 @@ All tools should build (along with any external packages) and run very easily.
 | --------- | ------- |
 | ADBench   | Orchestration scripts, plotting etc
 | Backup	| Old files
-| Documents | Papers, presentations etc
+| Documents | Graphs, papers, presentations etc
 | bak		| Old files
 | data      | Data files for different examples 
 | etc		| [HunterGate](https://github.com/ruslo/hunter) files
@@ -74,7 +94,7 @@ All tools should build (along with any external packages) and run very easily.
 
 ## Tools
 
-Checked items are built (where relevant) by CMake and can be run by run-all.ps1
+Checked items are built (where relevant) by CMake and *can* be run by run-all.ps1
 
 ### C++
 - [x] [Adept](https://github.com/rjhogan/Adept-2)
@@ -105,10 +125,11 @@ All Python tools use pip/conda modules. See list under [Prerequisites](#prerequi
 	- Only running GMM as yet
 
 ### Matlab
-- [ ] [ADiMat](http://www.sc.informatik.tu-darmstadt.de/res/sw/adimat/)
+Matlab tools are not currently run by `run-all.ps1` due to the limitations of the Matlab free trial. With the full version, they *should* run correctly.
+- [x] [ADiMat](http://www.sc.informatik.tu-darmstadt.de/res/sw/adimat/)
 	- Latest release downloaded into folder in /submodules/ (although not a submodule)
 	- Hand not yet run
-- [ ] [MuPad](https://www.mathworks.com/discovery/mupad.html)
+- [x] [MuPad](https://www.mathworks.com/discovery/mupad.html)
 	- Hand not yet run
 
 ### F#
