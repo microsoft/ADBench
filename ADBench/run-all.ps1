@@ -1,5 +1,5 @@
 # Accept command-line args
-param([int]$nruns_f=10, [int]$nruns_J=10, [double]$time_limit=60, [string]$tmpdir="", [bool]$repeat=$FALSE)
+param([string]$buildtype_="", [int]$nruns_f=10, [int]$nruns_J=10, [double]$time_limit=60, [string]$tmpdir="", [bool]$repeat=$FALSE)
 
 # Assert function
 function assert ($expr) {
@@ -8,8 +8,15 @@ function assert ($expr) {
     }
 }
 
-# Get source dir
+# Run command and (reliably) get output
+function run_command ($indent, $cmd) {
+	$output = & $cmd @args
+	foreach ($line in $output) {
+		Write-Host "$indent$line"
+	}
+}
 
+# Get source dir
 $dir = split-path ($MyInvocation.MyCommand.Path)
 assert { $dir -match 'ADbench$' }
 $dir = Split-Path $dir
@@ -17,14 +24,22 @@ $dir = Split-Path $dir
 Write-Host "Root Directory: $dir"
 
 # Load cmake variables
-assert Test-Path "$dir/ADBench/cmake_vars.ps1"
-. $dir/ADBench/cmake_vars.ps1
+if ($buildtype_) { $buildtype = $buildtype_ }
+else {
+	if (Test-Path "$dir/ADBench/cmake-vars-Release.ps1") { $buildtype = "Release" }
+	elseif (Test-Path "$dir/ADBench/cmake-vars-Debug.ps1") { $buildtype = "Debug" }
+	else { throw "No cmake-vars file found. Remember to run cmake before running this script." }
+}
+assert Test-Path "$dir/ADBench/cmake-vars-$buildtype.ps1"
+. $dir/ADBench/cmake-vars-$buildtype.ps1
 
 # Set tmpdir default
 if (!$tmpdir) { $tmpdir = "$dir/tmp" }
 $tmpdir += "/$buildtype"
 
 $datadir = "$dir/data"
+
+Write-Host "Build Type: $buildtype`n"
 
 
 # Custom Tool class
@@ -92,10 +107,7 @@ Class Tool {
 			$cmdargs = @("-wait", "-nosplash", "-nodesktop", "-r", "cd '$script:dir/tools/$($this.name)/'; addpath('$script:bindir/tools/$($this.name)/'); $($this.name)_$objective $cmdargs; quit")
 		}
 
-		$output = & $cmd @cmdargs
-		foreach($line in $output) {
-			Write-Host "          $line"
-		}
+		run_command "          " $cmd @cmdargs
 	}
 
 	# Run all gmm tests for this tool
@@ -183,15 +195,15 @@ Class Tool {
 
 # Full list of tools
 $tools = @(
-	[Tool]::new("Adept", "bin", "111", 1, 0, "101010"),
-	[Tool]::new("ADOLC", "bin", "111", 1, 0, "101011"),
-	[Tool]::new("Ceres", "bin", "110", 0, 1, "101011"),
-	[Tool]::new("Finite", "bin", "111", 0, 0, "101011"),
-	[Tool]::new("Manual", "bin", "111", 0, 0, "110101"),
-	[Tool]::new("DiffSharp", "bin", "010", 1, 0, "101010"),
-	[Tool]::new("Autograd", "py", "110", 1, 0, "101010"),
-	[Tool]::new("PyTorch", "py", "100", 0, 0, "101010"),
-	[Tool]::new("Theano", "pybat", "111", 0, 0, "101010")
+	#[Tool]::new("Adept", "bin", "111", 1, 0, "101010"),
+	#[Tool]::new("ADOLC", "bin", "111", 1, 0, "101011"),
+	#[Tool]::new("Ceres", "bin", "110", 0, 1, "101011"),
+	#[Tool]::new("Finite", "bin", "111", 0, 0, "101011"),
+	[Tool]::new("Manual", "bin", "111", 0, 0, "110101")
+	#[Tool]::new("DiffSharp", "bin", "010", 1, 0, "101010"),
+	#[Tool]::new("Autograd", "py", "110", 1, 0, "101010"),
+	#[Tool]::new("PyTorch", "py", "100", 0, 0, "101010"),
+	#[Tool]::new("Theano", "pybat", "111", 0, 0, "101010")
 	#[Tool]::new("MuPad", "matlab", 0, 0, 0)
 	#[Tool]::new("ADiMat", "matlab", 0, 0, 0)
 )
@@ -199,4 +211,14 @@ $tools = @(
 # Run all tests on each tool
 foreach ($tool in $tools) {
 	$tool.runall()
+}
+
+if (!$buildtype_ -and $buildtype -eq "Release") {
+	if (Test-Path "$dir/ADBench/cmake-vars-Debug.ps1") {
+		Write-Host "`n`n"
+
+		$cmd = $MyInvocation.MyCommand.Path
+		$cmdargs = @("Debug", $nruns_f, $nruns_J, $time_limit, "", $repeat)
+		run_command "" $cmd @cmdargs
+	}
 }

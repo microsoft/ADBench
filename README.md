@@ -74,7 +74,7 @@ All tools should build (along with any external packages) and run very easily.
 
 ## Tools
 
-Checked items are built by CMake and can be run by run-all.ps1
+Checked items are built (where relevant) by CMake and can be run by run-all.ps1
 
 ### C++
 - [x] [Adept](https://github.com/rjhogan/Adept-2)
@@ -98,22 +98,24 @@ Checked items are built by CMake and can be run by run-all.ps1
 
 ### Python
 All Python tools use pip/conda modules. See list under [Prerequisites](#prerequisites).
-- [ ] [Autograd](https://github.com/HIPS/autograd)
+- [x] [Autograd](https://github.com/HIPS/autograd)
 	- Doesn't run Hand tests
-- [ ] [Theano](https://github.com/Theano/Theano)
-- [ ] [PyTorch](https://pytorch.org/)
+- [x] [Theano](https://github.com/Theano/Theano)
+- [x] [PyTorch](https://pytorch.org/)
 	- Only running GMM as yet
 
 ### Matlab
-- [ ] ADiMat
+- [ ] [ADiMat](http://www.sc.informatik.tu-darmstadt.de/res/sw/adimat/)
+	- Latest release downloaded into folder in /submodules/ (although not a submodule)
 	- Hand not yet run
 - [ ] [MuPad](https://www.mathworks.com/discovery/mupad.html)
 	- Hand not yet run
 
 ### F#
-- [ ] [DiffSharp](https://github.com/DiffSharp/DiffSharp)
+- [x] [DiffSharp](https://github.com/DiffSharp/DiffSharp)
 	- Built using `dotnet build` (in batch file), which restores NuGet packages
 	- GMM builds fail
+	- Not building hand yet
 
 ### Julia
 - [ ] ForwardDiff.jl
@@ -132,7 +134,7 @@ All Python tools use pip/conda modules. See list under [Prerequisites](#prerequi
 
 ## Example Graphs
 
-Below are two examples of the graphs produced by ADBench/plot_graphs.py. The full range of graphs (over 40) can be found in both static (png) and [Plot.ly](https://plot.ly/) (html) formats in [Documents/New%20Figures](/Documents/New%20Figures/).
+Below are two examples of the graphs produced by ADBench/plot_graphs.py. The full range of graphs (over 40) can be found in both static (png) and [Plot.ly](https://plot.ly/) (html) formats in [Documents/New Figures](/Documents/New%20Figures/).
 
 ![GMM 1k Jacobian Release Graph](/Documents/New%20Figures/static/Release/jacobian/GMM%20%281k%29%20[Jacobian]%20-%20Release%20Graph.png)
 

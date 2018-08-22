@@ -14,5 +14,5 @@ JOIN("${GMM_D_VALS}" ", " GMM_D_STR)
 JOIN("${GMM_K_VALS}" ", " GMM_K_STR)
 
 # Output CMake variables to powershell script
-file(WRITE "${CMAKE_CURRENT_LIST_DIR}/cmake_vars.ps1"
+file(WRITE "${CMAKE_CURRENT_LIST_DIR}/cmake-vars-${AD_BUILD_TYPE}.ps1"
 	"$bindir = \"${CMAKE_BINARY_DIR}\"\n$buildtype = \"${AD_BUILD_TYPE}\"\n$gmm_d_vals = @(${GMM_D_STR})\n$gmm_k_vals = @(${GMM_K_STR})\n")
