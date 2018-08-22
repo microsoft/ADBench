@@ -51,11 +51,11 @@ All tools should build (along with any external packages) and run very easily.
 
 ### CLI reference: plot_graphs
 
-`python plot_graphs.py [--save] [--plotly]`
-- With no switch, graphs are displayed in new windows
+`python plot_graphs.py [--save] [--plotly] [--show]`
 - `--save`: Save graphs as .png files to `Documents/New Figures/`
 - `--plotly`: Save graphs as [Plot.ly](https://plot.ly/) .html files to `Documents/New Figures/plotly/`
-**Note**: The `--save` and `--plotly` switches cannot be used simultaneously due to a bug (in either matplotlib or plotly)
+- `--show`: Display graphs in new windows
+- If neither `--save` or `--plotly` are included, `--show` will be `True` by default - otherwise, it must be manually enabled
 
 ## Folder structure
 
@@ -132,16 +132,8 @@ All Python tools use pip/conda modules. See list under [Prerequisites](#prerequi
 
 ## Example Graphs
 
-### Debug
+Below are two examples of the graphs produced by ADBench/plot_graphs.py. The full range of graphs (over 40) can be found in both static (png) and [Plot.ly](https://plot.ly/) (html) formats in [Documents/New%20Figures](/Documents/New%20Figures/).
 
-<div>
-	<img src="/Documents/New%20Figures/autodiff/BA%20(Debug)%20Graph.png" width="49%" />
-	<img src="/Documents/New%20Figures/autodiff/GMM%20(Debug)%20Graph.png" width="49%" />
-</div>
+![GMM 1k Jacobian Release Graph](/Documents/New%20Figures/static/Release/jacobian/GMM%20%281k%29%20[Jacobian]%20-%20Release%20Graph.png)
 
-### Release
-
-<div>
-	<img src="/Documents/New%20Figures/autodiff/BA%20(Release)%20Graph.png" width="49%" />
-	<img src="/Documents/New%20Figures/autodiff/GMM%20(Release)%20Graph.png" width="49%" />
-</div>
+![Hand Simple Small Jacobian÷Objective Debug Graph](/Documents/New%20Figures/static/Debug/jacobian%20÷%20objective/HAND%20%28Simple,%20Small%29%20[Jacobian%20÷%20objective]%20-%20Debug%20Graph.png)

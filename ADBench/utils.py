@@ -30,6 +30,15 @@ def _scandir_rec(folder, depth=0):
     return results
 
 
+# Recursively make directories for file/directory
+def _mkdir_if_none(path):
+    if not os.path.exists(path):
+        if len(os.path.splitext(path)[1]) > 0:
+            _mkdir_if_none(os.path.dirname(path))
+        else:
+            os.makedirs(path)
+
+
 # Capitalise the first letter of a string, but leave others unaffected
 def cap_str(s):
     return s[0].upper() + (s[1:] if len(s) > 1 else "")
@@ -61,7 +70,14 @@ def read_time(path, func_type):
     file = open(path)
     times = file.read().replace("\n", " ").split(" ")
     file.close()
-    return float(times[{"objective": 0, "jacobian": 1}[func_type]])
+
+    func_times = {
+        "objective": lambda times: float(times[0]),
+        "jacobian": lambda times: float(times[1]),
+        "jacobian ÷ objective": lambda times: float(times[1]) / float(times[0]),
+    }
+
+    return func_times[func_type](times)
 
 
 # Get the GMM D value from a key

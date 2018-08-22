@@ -2,17 +2,21 @@ import os
 import sys
 import copy
 # import numpy
-from matplotlib import pyplot
+from matplotlib import pyplot, rcParams
 # from mpl_toolkits.mplot3d import Axes3D
 import plotly
 
 import utils
 
+rcParams.update({"figure.max_open_warning": 0})
 
 # Script arguments
 do_save = "--save" in sys.argv
 do_plotly = "--plotly" in sys.argv
 do_show = "--show" in sys.argv or not (do_save or do_plotly)
+
+if do_show:
+    print("WARNING: `--show` enabled. This script can produce a lot of graphs and you may not wish to display all of them.\n")
 
 # Script constants
 figure_size = (9, 6) if do_plotly else (12, 8)
@@ -23,31 +27,37 @@ marker = "x"
 # Folders
 adbench_dir = os.path.dirname(os.path.realpath(__file__))
 ad_root_dir = os.path.dirname(adbench_dir)
-in_dir = "{}/tmp".format(ad_root_dir)
-out_dir = "{}/Documents/New Figures".format(ad_root_dir)
-plotly_out_dir = "{}/plotly".format(out_dir)
-if not os.path.isdir(out_dir):
-    os.makedirs(out_dir)
-if not os.path.isdir(plotly_out_dir):
-    os.makedirs(plotly_out_dir)
+in_dir = f"{ad_root_dir}/tmp"
+out_dir = f"{ad_root_dir}/Documents/New Figures"
+static_out_dir_rel = "/static"
+plotly_out_dir_rel = "/plotly"
+static_out_dir = f"{out_dir}/{static_out_dir_rel}"
+plotly_out_dir = f"{out_dir}/{plotly_out_dir_rel}"
+
+print(f"Output directory is: {out_dir}\n")
 
 
 # Scan folder for all files, and determine which graphs to create
 all_files = [path for path in utils._scandir_rec(in_dir) if "times" in path[-1]]
 all_graphs = [path.split("/") for path in list(set(["/".join(path[:-2]) for path in all_files]))]
-all_graphs = [path + ["objective"] for path in all_graphs] + [path + ["jacobian"] for path in all_graphs]
+all_graphs = ([path + ["objective"] for path in all_graphs]
+    + [path + ["jacobian"] for path in all_graphs]
+    + [path + ["jacobian ÷ objective"] for path in all_graphs])
+
+print("Plotting graphs:")
 
 # Loop through each of graphs to be created
 figure_idx = 1
 for graph in all_graphs:
     # Extract graph variables
     build_type, objective = graph[:2]
-    test_size = graph[2] if len(graph) == 4 else None
+    test_size = ", ".join([utils.cap_str(s) for s in graph[2].split("_")]) if len(graph) == 4 else None
     function_type = graph[-1]
-    graph_name = "{}{} {} - {}".format(objective.upper(), " ({})".format(test_size) if test_size is not None else "", function_type.capitalize(), build_type)
-    print("Plotting:", graph_name)
+    graph_name = f"{objective.upper()}{f' ({test_size})' if test_size is not None else ''} [{function_type.capitalize()}] - {build_type}"
+    graph_save_location = f"{build_type}/{function_type}/{graph_name} Graph"
+    print(f"\n  {graph_name}")
 
-    # Select figure
+    # Create figure
     figure = pyplot.figure(figure_idx, figsize=figure_size, dpi=fig_dpi)
 
     # Extract file details
@@ -73,7 +83,7 @@ for graph in all_graphs:
     # Setup graph attributes
     pyplot.title(graph_name)
     pyplot.xlabel("No. independent variables")
-    pyplot.ylabel("Running time (s) for {}".format(function_type))
+    pyplot.ylabel(f"Running time (s) for [{function_type.capitalize()}]")
     pyplot.xscale("log")
     pyplot.yscale("log")
 
@@ -81,19 +91,32 @@ for graph in all_graphs:
     if do_plotly:
         plotly_fig = plotly.tools.mpl_to_plotly(copy.copy(figure))
         plotly_fig["layout"]["showlegend"] = True
-        plotly.offline.plot(plotly_fig, filename="{}/{} Graph.html".format(plotly_out_dir, graph_name), auto_open=False)
+
+        print(f"    Saving plotly: {plotly_out_dir_rel}/{graph_save_location}.html")
+        plotly_save_location = f"{plotly_out_dir}/{graph_save_location}.html"
+        utils._mkdir_if_none(plotly_save_location)
+        plotly.offline.plot(plotly_fig, filename=plotly_save_location, auto_open=False)
 
     # Add legend (after plotly to avoid error)
     pyplot.legend(loc=4, bbox_to_anchor=(1, 0))
 
     # Save graph (if selected)
     if do_save:
-        pyplot.savefig("{}/{} Graph.png".format(out_dir, graph_name), dpi=save_dpi)
+        print(f"    Saving static: {static_out_dir_rel}/{graph_save_location}.png")
+        static_save_location = f"{static_out_dir}/{graph_save_location}.png"
+        utils._mkdir_if_none(static_save_location)
+        pyplot.savefig(static_save_location, dpi=save_dpi)
+
+    if not do_show:
+        pyplot.close(figure)
 
     # Increment current figure
     figure_idx += 1
 
+print(f"\nPlotted {figure_idx - 1} graphs")
+
 if do_show:
+    print("\nDisplaying graphs...\n")
     pyplot.show()
 
 
