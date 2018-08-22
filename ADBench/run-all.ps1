@@ -14,7 +14,7 @@ $dir = split-path ($MyInvocation.MyCommand.Path)
 assert { $dir -match 'ADbench$' }
 $dir = Split-Path $dir
 
-Write-Host "$dir"
+Write-Host "Root Directory: $dir"
 
 # Load cmake variables
 assert Test-Path "$dir/ADBench/cmake_vars.ps1"
@@ -154,8 +154,11 @@ Class Tool {
 	# Run all Hand tests for this tool
 	[void] testhand () {
 		$objs = @()
-		if ($this.eigen_config[4]) { $objs += @("Hand-Light") }
-		if ($this.eigen_config[5]) {$objs += @("Hand-Eigen") }
+		if ($this.eigen_config[4]) {
+			if ($this.type -eq "bin") { $objs += @("Hand-Light") }
+			else { $objs += @("Hand") }
+		}
+		if ($this.eigen_config[5]) { $objs += @("Hand-Eigen") }
 
 		foreach ($obj in $objs) {
 			Write-Host "  $obj"
@@ -184,10 +187,11 @@ $tools = @(
 	[Tool]::new("ADOLC", "bin", "111", 1, 0, "101011"),
 	[Tool]::new("Ceres", "bin", "110", 0, 1, "101011"),
 	[Tool]::new("Finite", "bin", "111", 0, 0, "101011"),
-	[Tool]::new("Manual", "bin", "111", 0, 0, "110101")
-	#[Tool]::new("DiffSharp", "bin", 1, 0, 0)
-	#[Tool]::new("Autograd", "py", 1, 0, 0),
-	#[Tool]::new("Theano", "pybat", 0, 0, 0)
+	[Tool]::new("Manual", "bin", "111", 0, 0, "110101"),
+	[Tool]::new("DiffSharp", "bin", "010", 1, 0, "101010"),
+	[Tool]::new("Autograd", "py", "110", 1, 0, "101010"),
+	[Tool]::new("PyTorch", "py", "100", 0, 0, "101010"),
+	[Tool]::new("Theano", "pybat", "111", 0, 0, "101010")
 	#[Tool]::new("MuPad", "matlab", 0, 0, 0)
 	#[Tool]::new("ADiMat", "matlab", 0, 0, 0)
 )
