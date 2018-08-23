@@ -64,8 +64,12 @@ All tools should now be built. See [Usage](#usage) below.
 - `nruns_f`: Number of times to run the original functions (BA, GMM) for each tool (default = `10`)
 - `nruns_J`: Number of times to run the autodiff process for each tool (default = `10`)
 - `time_limit`: The maximum amount of time (in seconds) to spend benchmarking each tool (default = `60`)
-	- **Note**: A whole number of runs (and at least one) will always be completed
+	- After each run, the program will check if it has exceeded the time limit
+	- `time_limit` will never cause a task to run less than once, and the program will always output a resultant time
 	- **Note**: The time limits are only implemented in C++ and Python currently
+- `timeout`: The maximum amount of time (in seconds) to allow each tool to run for
+	- If a program exceeds this time limit, PowerShell kills it
+	- This may result in no runs being completed, and no output being produced (PowerShell will output a file with `inf` timings in it to mark the test as failed)
 - `tmpdir`: The output directory to use (default = `/tmp/`)
 - `repeat`: Whether to repeat tasks for which an output file already exists (default = `false`)
 
