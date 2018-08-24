@@ -57,16 +57,16 @@ void test_gmm(const string& fn_in, const string& fn_out,
   vector<double> J(Jcols);
 
   // Test
-  double tf = timer([&]() {
+  double tf = timer(nruns_f, time_limit, [&]() {
 	  gmm_objective(d, k, n, alphas.data(), means.data(),
 		  icf.data(), x.data(), wishart, &err);
-  }, nruns_f, time_limit);
+  });
   cout << "err: " << err << endl;
 
-  double tJ = timer([&]() {
+  double tJ = timer(nruns_J, time_limit, [&]() {
 	  gmm_objective_d(d, k, n, alphas.data(), means.data(),
 		  icf.data(), x.data(), wishart, &err, J.data());
-  }, nruns_J, time_limit);
+  });
   cout << "err: " << err << endl;
 
 #ifdef DO_CPP
@@ -133,15 +133,15 @@ void test_ba(const string& fn_in, const string& fn_out,
   vector<double> w_err(p);
   BASparseMat J(n,m,p);
 
-  double tf = timer([&]() {
+  double tf = timer(nruns_f, time_limit, [&]() {
 	  ba_objective(n, m, p, cams.data(), X.data(), w.data(),
 		  obs.data(), feats.data(), reproj_err.data(), w_err.data());
-  }, nruns_f, time_limit);
+  });
 
-  double tJ = timer([&]() {
+  double tJ = timer(nruns_J, time_limit, [&]() {
 	  compute_ba_J(n, m, p, cams.data(), X.data(), w.data(), obs.data(),
 		  feats.data(), reproj_err.data(), w_err.data(), J);
-  }, nruns_J, time_limit);
+  });
 
 #ifdef DO_EIGEN
   string name("manual_eigen");
@@ -171,13 +171,13 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   vector<double> err(3 * data.correspondences.size());
   vector<double> J(err.size() * theta.size());
 
-  double tf = timer([&]() {
+  double tf = timer(nruns_f, time_limit, [&]() {
 	  hand_objective(&theta[0], data, &err[0]);
-  }, nruns_f, time_limit);
+  });
 
-  double tJ = timer([&]() {
+  double tJ = timer(nruns_J, time_limit, [&]() {
 	  hand_objective_d(&theta[0], data, &err[0], &J[0]);
-  }, nruns_J, time_limit);
+  });
 
 #ifdef DO_EIGEN
   string name = "manual_eigen";
@@ -206,13 +206,13 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   vector<double> err(3 * data.correspondences.size());
   vector<double> J(err.size() * (2+theta.size()));
 
-  double tf = timer([&]() {
+  double tf = timer(nruns_f, time_limit, [&]() {
 	  hand_objective(&theta[0], &us[0], data, &err[0]);
-  }, nruns_f, time_limit);
+  });
 
-  double tJ = timer([&]() {
+  double tJ = timer(nruns_J, time_limit, [&]() {
 	  hand_objective_d(&theta[0], &us[0], data, &err[0], &J[0]);
-  }, nruns_J, time_limit);
+  });
 
 #ifdef DO_EIGEN
   string name = "manual_eigen";

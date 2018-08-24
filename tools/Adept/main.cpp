@@ -56,7 +56,7 @@ double compute_gmm_J(int nruns, double time_limit,
   adouble *ameans = new adouble[d*k];
   adouble *aicf = new adouble[icf_sz*k];
 
-  double tJ = timer([&]() {
+  double tJ = timer(nruns, time_limit, [&]() {
 	  adept::set_values(aalphas, k, alphas);
 	  adept::set_values(ameans, d*k, means);
 	  adept::set_values(aicf, icf_sz*k, icf);
@@ -72,7 +72,7 @@ double compute_gmm_J(int nruns, double time_limit,
 	  adept::get_gradients(ameans, d*k, &J[k]);
 	  adept::get_gradients(aicf, icf_sz*k, &J[k + d * k]);
 	  err = aerr.value();
-  }, nruns, time_limit);
+  });
 
   delete[] aalphas;
   delete[] ameans;
@@ -106,7 +106,7 @@ double compute_gmm_J_split(int nruns, double time_limit,
   adouble *aicf = new adouble[icf_sz*k];
   adouble aerr;
 
-  double tJ = timer([&]() {
+  double tJ = timer(nruns, time_limit, [&]() {
 	  adept::set_values(aalphas, k, alphas);
 	  adept::set_values(ameans, d*k, means);
 	  adept::set_values(aicf, icf_sz*k, icf);
@@ -139,7 +139,7 @@ double compute_gmm_J_split(int nruns, double time_limit,
 			  J[i] += Jtmp[i];
 		  }
 	  }
-  }, nruns, time_limit);
+  });
 
   delete[] aalphas;
   delete[] ameans;
@@ -170,9 +170,9 @@ void test_gmm(const string& fn_in, const string& fn_out,
   vector<double> J(Jcols);
 
   // Test
-  double tf = timer([&]() {
+  double tf = timer(nruns_f, time_limit, [&]() {
 	  gmm_objective(d, k, n, alphas.data(), means.data(), icf.data(), x.data(), wishart, &err);
-  }, nruns_f, time_limit);
+  });
   cout << "err: " << err << endl;
 
   double tJ;
@@ -205,7 +205,7 @@ double compute_ba_J(int nruns, double time_limit, int n, int m, int p,
   int n_new_cols = BA_NCAMPARAMS + 3 + 1;
   vector<double> reproj_err_d(2 * n_new_cols);
 
-  double t_J = timer([&]() {
+  double t_J = timer(nruns, time_limit, [&]() {
 	  *J = BASparseMat(n, m, p);
 
 	  for (int i = 0; i < p; i++)
@@ -245,7 +245,7 @@ double compute_ba_J(int nruns, double time_limit, int n, int m, int p,
 
 		  J->insert_w_err_block(i, err_d);
 	  }
-  }, nruns, time_limit);
+  });
   cout << "t_J:" << t_J << endl;
 
   return t_J;
@@ -265,11 +265,11 @@ void test_ba(const string& fn_in, const string& fn_out,
   vector<double> w_err(p);
   BASparseMat J(n, m, p);
 
-  double tf = timer([&]() {
+  double tf = timer(nruns_f, time_limit, [&]() {
 	  ba_objective(n, m, p, cams.data(), X.data(),
 		  w.data(), obs.data(), feats.data(),
 		  reproj_err.data(), w_err.data());
-  }, nruns_f, time_limit);
+  });
 
   string name("Adept");
   double tJ = compute_ba_J(nruns_J, time_limit, n, m, p, cams.data(), X.data(), w.data(),
@@ -300,7 +300,7 @@ double compute_hand_J(int nruns, double time_limit,
 	vector<adouble> aerr(err.size());
 	size_t n_pts = us.size() / 2;
 
-	return timer([&]() {
+	return timer(nruns, time_limit, [&]() {
 		adept::set_values(&atheta[0], theta.size(), &theta[0]);
 		adept::set_values(&aus[0], us.size(), &us[0]);
 
@@ -336,7 +336,7 @@ double compute_hand_J(int nruns, double time_limit,
 			adept::get_gradients(&aerr[0], aerr.size(), &J[(offset + i_param)*aerr.size()]);
 			atheta[i_param].set_gradient(0.);
 		}
-  }, nruns, time_limit);
+  });
 }
 
 void test_hand(const string& model_dir, const string& fn_in, const string& fn_out,
@@ -350,9 +350,9 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
 	vector<double> err(3 * data.correspondences.size());
 	vector<double> J(err.size() * (2 + theta.size()));
 
-	double tf = timer([&]() {
+	double tf = timer(nruns_f, time_limit, [&]() {
 		hand_objective(&theta[0], &us[0], data, &err[0]);
-	}, nruns_f, time_limit);
+	});
 
 	string name = "Adept_light";
 	double tJ = compute_hand_J(nruns_J, time_limit, theta, us, data, &err, &J);
@@ -374,7 +374,7 @@ double compute_hand_J(int nruns, double time_limit,
   vector<adouble> atheta(theta.size());
   vector<adouble> aerr(err.size());
 
-  double tJ = timer([&]() {
+  double tJ = timer(nruns, time_limit, [&]() {
 	  adept::set_values(&atheta[0], theta.size(), &theta[0]);
 
 	  stack.new_recording();
@@ -383,7 +383,7 @@ double compute_hand_J(int nruns, double time_limit,
 	  stack.dependent(&aerr[0], aerr.size());
 	  stack.jacobian_forward(&J[0]);
 	  adept::get_values(&aerr[0], err.size(), &err[0]);
-  }, nruns, time_limit);
+  });
 
   return tJ;
 }
@@ -399,9 +399,9 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   vector<double> err(3 * data.correspondences.size());
   vector<double> J(err.size() * theta.size());
 
-  double tf = timer([&]() {
+  double tf = timer(nruns_f, time_limit, [&]() {
 	  hand_objective(&theta[0], data, &err[0]);
-  }, nruns_f, time_limit);
+  });
 
   string name = "Adept_light";
   double tJ = compute_hand_J(nruns_J, time_limit, theta, data, &err, &J);

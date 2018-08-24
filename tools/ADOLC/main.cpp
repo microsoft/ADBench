@@ -127,14 +127,14 @@ double compute_gmm_J(int nruns, double time_limit,
 	off += d * k;
 	memcpy(in + off, icf, icf_sz*k * sizeof(double));
 
-	double tJ = timer([&]() {
+	double tJ = timer(nruns, time_limit, [&]() {
 		gradient(tapeTag, Jcols, in, J);
 
 		//int keepValues = 1;
 		//double errd = 1;
 		//zos_forward(tapeTag, Jrows, Jcols, keepValues, in, &err);
 		//fos_reverse(tapeTag, Jrows, Jcols, &errd, J[0]);
-	}, nruns, time_limit);
+	});
 
 	delete[] in;
 
@@ -185,8 +185,7 @@ double compute_gmm_J_split(int nruns, double time_limit,
 
   double *Jtmp = new double[Jcols];
 
-  double tJ = timer([n, d, k, Jcols, in, J, x, otherTapeTag, innerTapeTag,
-	  alphas, means, icf, aalphas, ameans, aicf, wishart, &aerr, icf_sz, &err, Jtmp]() {
+  double tJ = timer(nruns, time_limit, [&]() {
 	  gradient(otherTapeTag, Jcols, in, J);
 	  for (int i = 0; i < n; i++)
 	  {
@@ -221,7 +220,7 @@ double compute_gmm_J_split(int nruns, double time_limit,
 	  //double errd = 1;
 	  //zos_forward(tapeTag, Jrows, Jcols, keepValues, in, &err);
 	  //fos_reverse(tapeTag, Jrows, Jcols, &errd, J[0]);
-  }, nruns, time_limit);
+  });
 
   delete[] aalphas;
   delete[] ameans;
@@ -254,11 +253,10 @@ void test_gmm(const string& fn_in, const string& fn_out,
   vector<double> J(Jcols);
 
   // Test
-  double tf = timer([d, k, n, alphas, means,
-	  icf, x, wishart, &err]() {
+  double tf = timer(nruns_f, time_limit, [&]() {
 	  gmm_objective(d, k, n, alphas.data(), means.data(),
 		  icf.data(), x.data(), wishart, &err);
-  }, nruns_f, time_limit);
+  });
   cout << "err: " << err << endl;
 
   double tJ;
@@ -519,11 +517,11 @@ void test_ba(const string& fn_in, const string& fn_out,
   vector<double> w_err(p);
   BASparseMat J(n, m, p);
 
-  double tf = timer([&]() {
+  double tf = timer(nruns_f, time_limit, [&]() {
 	  ba_objective(n, m, p, cams.data(), X.data(),
 		  w.data(), obs.data(), feats.data(),
 		  reproj_err.data(), w_err.data());
-  }, nruns_f, time_limit);
+  });
 
 #ifdef DO_CPP
   string postfix("");
@@ -533,10 +531,10 @@ void test_ba(const string& fn_in, const string& fn_out,
 #if defined DO_BA_BLOCK
   string name("ADOLC" + postfix);
 
-  double tJ = timer([&]() {
+  double tJ = timer(nruns_J, time_limit, [&]() {
 	  compute_ba_J(n, m, p, cams.data(), X.data(), w.data(),
 		  obs.data(), feats.data(), reproj_err.data(), w_err.data(), &J);
-  }, nruns_J, time_limit);
+  });
 
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
 #elif defined DO_BA_SPARSE
@@ -599,7 +597,7 @@ double compute_hand_J(int nruns, double time_limit,
 	Pointer2 J_tmp(Jrows, ndirs);
 #endif
 
-	double tJ = timer([&]() {
+	double tJ = timer(nruns, time_limit, [&]() {
 #ifdef ADOLC_TAPELESS
 		for (size_t i = 0; i < us.size(); i++)
 			aus[i] = us[i];
@@ -641,7 +639,7 @@ double compute_hand_J(int nruns, double time_limit,
 
 		fov_forward(tapeTag, Jrows, n_independents, ndirs, &all_params[0], seed.data, &err[0], J_tmp.data);
 #endif
-	}, nruns, time_limit);
+	});
 
 #ifndef ADOLC_TAPELESS
 	for (int i = 0; i < Jrows; i++)
@@ -663,9 +661,9 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
 	vector<double> err(3 * data.correspondences.size());
 	vector<double> J(err.size() * (2 + theta.size()));
 
-	double tf = timer([&]() {
+	double tf = timer(nruns_f, time_limit, [&]() {
 		hand_objective(&theta[0], &us[0], data, &err[0]);
-	}, nruns_f, time_limit);
+	});
 
 	double tJ = compute_hand_J(nruns_J, time_limit, theta, us, data, &err, &J);
 
@@ -845,14 +843,14 @@ double compute_hand_J(int nruns, double time_limit,
   int samePattern = 1;
 #endif
 
-  double tJ = timer([&]() {
+  double tJ = timer(nruns, time_limit, [&]() {
 #ifdef DO_HAND
 	jacobian(tapeTag, Jrows, Jcols, &theta[0], *pJ);
 #elif defined DO_HAND_SPARSE
 	forward(tapeTag, (int)err.size(), (int)theta.size(), n_colors,
 		&theta[0], seed, &err[0], J);
 #endif
-  }, nruns, time_limit);
+  });
 
 #ifdef DO_HAND_SPARSE
   for (size_t i = 0; i < err.size(); i++)
@@ -876,9 +874,9 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   for (size_t i = 0; i < err.size(); i++)
     J[i] = new double[params.size()];
 
-  double tf = timer([&]() {
+  double tf = timer(nruns_f, time_limit, [&]() {
 	  hand_objective(&params[0], data, &err[0]);
-  }, nruns_f, time_limit);
+  });
 
 #ifdef DO_EIGEN
   string name("ADOLC_eigen");

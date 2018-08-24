@@ -636,7 +636,7 @@ void read_hand_instance(const string& model_dir, const string& fn_in,
 
 
 // Time a function
-double timer(std::function<void()> func, int nruns=10, double limit=std::numeric_limits<double>::max()) {
+double timer(int nruns, double limit, std::function<void()> func) {
 	if (limit < 0) limit = std::numeric_limits<double>::max();
 
 	double total = 0;
