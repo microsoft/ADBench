@@ -47,6 +47,7 @@ The easiest way to build on windows is using [CMake tools for Visual Studio](htt
 2) [Clone](http://www.malgreve.net/2014/06/17/cloning-getting-code-from-git-repository-to-visual-studio/) this repository
 3) Open the cloned folder in Visual Studio. CMake should run automatically, but it may need to be started manually.
 	- **NOTE:** CMake (specifically HunterGate) often seems to crash the first time it is run, so try re-running several times.
+	- **NOTE:** HunterGate requires that the path to the folder does not contain spaces. This can be disabled but is not currently.
 4) When CMake has finished, run CMake>Build All
 	- **NOTE:** this is sometimes not available as an option. Try restarting Visual Studio or waiting a while.
 

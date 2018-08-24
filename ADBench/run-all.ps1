@@ -1,3 +1,29 @@
+<#
+
+.SYNOPSIS
+This is a PowerShell script to run all autodiff benchmarking tests.
+
+.DESCRIPTION
+This script loops through each of a set of tools (defined using the Tool class) and runs a set of test functions on each of them.
+
+.EXAMPLE
+./run-all.ps1 "Release" 10 10 180 600 "C:/path/to/tmp/" $FALSE
+This will:
+- run only release builds
+- aim to run 10 tests of each function, and 10 tests of the derivative of each function
+- stop (having completed a whole number of tests) at any point after 3 minutes
+- allow each program a maximum of 10 minutes to run all tests
+- output results to "C:/path/to/tmp/"
+- not repeat any tests for which there already exist a results file
+
+.NOTES
+See below for adding new tools or tests.
+
+.LINK
+https://github.com/awf/autodiff/
+
+#>
+
 # Accept command-line args
 param([string]$buildtype_="", [int]$nruns_f=10, [int]$nruns_J=10, [double]$time_limit=120, [double]$timeout=300, [string]$tmpdir="", [bool]$repeat=$FALSE)
 
@@ -81,6 +107,25 @@ Class Tool {
 
 	# Constructor
 	Tool ([string]$name, [string]$type, [string]$objectives, [bool]$gmm_both, [bool]$gmm_use_defs, [string]$eigen_config) {
+		<#
+		.SYNOPSIS
+		Create a new Tool object to be run
+
+		.EXAMPLE
+		[Tool]::new("Finite", "bin", "111", 0, 0, "101011")
+		This will create a Tool:
+		- called "Finite"
+		- run from binary executables
+		- runs all three tests 
+		- does not do GMM in separate FULL and SPLIT modes
+		- doesn't require separate executables for different GMM sizes
+		- Runs all tests without eigen, and Hand tests with Eigen
+
+		.NOTES
+		$objectives is a binary string used to represent a boolean array, where each element determines whether to run a certain objective.
+		$eigen_config works similarly, but now each pair of elements determines firstly whether to run the objective with eigen, and secondly whether to run it without.
+		#>
+
 		$this.name = $name
 		$this.type = $type
 		$this.objectives = $objectives.ToCharArray() | % { $_ -band "1" }
@@ -145,7 +190,7 @@ Class Tool {
 
 					$dir_in = "$([Tool]::gmm_dir_in)$sz/"
 					$dir_out = "$script:tmpdir/gmm/$sz/$($this.name)/"
-					if (!(Test-Path $dir_out)) { mkdir $dir_out }
+					mkdir -force $dir_out
 
 					foreach ($d in $script:gmm_d_vals) {
 						Write-Host "      d=$d"
@@ -198,7 +243,7 @@ Class Tool {
 
 					$dir_in = "$([Tool]::hand_dir_in)${type}_$sz/"
 					$dir_out = "$script:tmpdir/hand/${type}_$sz/$($this.name)/"
-					if (!(Test-Path $dir_out)) { mkdir $dir_out }
+					mkdir -force $dir_out
 
 					for ($n = [Tool]::hand_min_n; $n -le [Tool]::hand_max_n; $n++) {
 						Write-Host "      $n"
