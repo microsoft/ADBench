@@ -1,0 +1,679 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Adding missing derivatives of builtins to ADiMat</title><meta name="generator" content="MATLAB 7.14"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-09-15"><meta name="DC.source" content="add_missing_derivative.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+
+  </style></head><body><div class="content"><h1>Adding missing derivatives of builtins to ADiMat</h1><!--introduction--><p>In this tutorial, we will explore how to add derivative support for builtin functions that have not yet been handled by us, the developers of ADiMat. We strongly believe that, by now, ADiMat covers a relatively large range of builtin functions. In particular, ADiMat does offer derivative support for all commonly used builtin functions. However, there are so many builtin functions in MATLAB that we cannot treat them all at once. Instead, we handle missing builtins on a case-by-case basis. That is, when ADiMat reports an error about a missing builtin function, please contact us, preferably via the mailing list <a href="mailto:adimat-users@lists.sc.informatik.tu-darmstadt.de">adimat-users@lists.sc.informatik.tu-darmstadt.de</a>. We will then strive to add derivative support for the functions your code uses as quickly as possible.</p><p>In this tutorial, we explain how you can help yourself in this situation. More precisely, we show how you can add this derivative support to your local installation of ADiMat. This requires (i) that you know the derivative(s) of the builtin in question and (ii) that you manually write code that can compute these derivative(s). What we explain here is how to hook up this manually written code with the ADiMat differentiation process.</p><p>Once you have done these steps for some builtin function, we would still be happy to hear from you. So, please let us know and we will integrate this missing builtin into ADiMat making it available for all users.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">An illustrating example: The builtin function <tt>quad</tt></a></li><li><a href="#3">ADiMat's handling of missing builtins in <tt>admDiffFor</tt></a></li><li><a href="#5">ADiMat's handling of missing builtins in <tt>admDiffVFor</tt> and <tt>admDiffRev</tt></a></li><li><a href="#8">The analytic derivative of <tt>quad</tt></a></li><li><a href="#10">Adding support for a derivative in <tt>admDiffFor</tt></a></li><li><a href="#13">Adding support for a derivative in <tt>admDiffVFor</tt></a></li><li><a href="#15">Adding support for a derivative in <tt>admDiffRev</tt></a></li><li><a href="#17">Overriding existing derivative declarations</a></li><li><a href="#18">Specifying derivative declarations for unknown functions</a></li><li><a href="#24">Treating undefined derivatives</a></li><li><a href="#25">Summary</a></li></ul></div><h2>An illustrating example: The builtin function <tt>quad</tt><a name="1"></a></h2><p>Let's consider the builtin <tt>quad</tt> as an example. It has not yet been added to the derivative database of ADiMat. More precisely, it is listed there as a builtin for which the derivative is unknown. This means that ADiMat knows that the builtin exists, otherwise you would get an unbound identifier error. This case will be treated in a different example. So, let's assume that you wrote some function that calls the builtin <tt>quad</tt> and that you want to differentiate this function. Here is an example where this function is called <tt>intsin</tt>:</p><pre class="codeinput">type <span class="string">intsin</span>
+</pre><pre class="codeoutput">
+function z = intsin(a, b)
+  z = quad(@sin, a, b);
+
+</pre><p>This function uses <tt>quad</tt> to numerically approximate the area under the sine function between points <tt>a</tt> and <tt>b</tt>, which are given as parameters. Let us first describe what happens in such a situation. When you try to differentiate this function with ADiMat, you will receive errors, which we will explain in detail in the following sections.</p><h2>ADiMat's handling of missing builtins in <tt>admDiffFor</tt><a name="3"></a></h2><p>With <tt>admDiffFor</tt> you will get the following error message during the transformation process.</p><pre class="codeinput">J = admDiffFor(@intsin, 1, 1, 3)
+</pre><pre class="codeoutput">Differentiated function g_intsin does not exist.
+Differentiating function intsin in forward mode (FM) to produce
+ g_intsin...
+Creating ADiMat status directory .adimat
+ERROR: './intsin.m' at 2,11: the builtin quad has a derivative, but it has not been implemented yet!
+Warning: system command: /home/joy/sw/amd64-gcc/adimat-0.6.0/bin/admwrap -K
+"/opt/matlab/R2012a" "/home/joy/sw/amd64-gcc/adimat-0.6.0/bin/admproc-bin"  -M
+".adimat/intsin.admdeps" -F    "intsin.m"
+generated ERRORs
+message is: ERROR: './intsin.m' at 2,11: the builtin quad has a derivative, but
+it has not been implemented yet! 
+Differentiation took 0.071344 s.
+J =
+     0     0
+</pre><p>It is important to understand that, after the error message of the transformation process, the (wrong) derivative code is also executed. The effect of this execution is that the partial derivative of the builtin is zero. In our simple example function, this means that you get a zero Jacobian <tt>J</tt>. In more complex and realistic codes however, the call to <tt>quad</tt> will usually correspond to just a single edge in the computational graph. The computational graph consists of many edges that all contribute to the final derivative result. The zero Jacobian of <tt>quad</tt> then means the following: The contribution of that single edge to the final derivative is ignored while the contributions of all other edges are accumulated correctly. This can lead to rather subtle errors that are difficult to debug.  This is why you have to pay close attention whether this message occurs. You should always check ADiMat's derivative results for correctness, for example against finite differences, cf. our corresponding tutorial.</p><h2>ADiMat's handling of missing builtins in <tt>admDiffVFor</tt> and <tt>admDiffRev</tt><a name="5"></a></h2><p>With <tt>admDiffVFor</tt> and <tt>admDiffRev</tt> the situation is a little bit easier. You will get a transformation error message as just discussed. However, ADiMat will also produce code that will not run out of the box. That is, ADiMat will execute the (wrong) derivative code but will also report an error at run time. So, you should be safe even if you overlook the error message of the transformation process. With <tt>admDiffVFor</tt> you will get the following:</p><pre class="codeinput"><span class="keyword">try</span>
+  J = admDiffVFor(@intsin, 1, 1, 3)
+<span class="keyword">catch</span> ME
+  errmsg = ME.message
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">Differentiated function d_intsin does not exist.
+Differentiating function intsin in (new) forward mode (FM) to produce
+ d_intsin...
+./intsin.m:2:11: note: The argument 1 given to quad is not active while the parameter is: A zero derivative object will have to be generated.
+./intsin.m:2:11: warning: (this variant of) the builtin quad has a derivative, but it has not been implemented yet
+Differentiation took 0.546317 s.
+errmsg =
+Undefined function 'adimat_diff_quad' for input arguments of type 'function_handle'.
+</pre><p>The result is very similar with <tt>admDiffRev</tt>:</p><pre class="codeinput"><span class="keyword">try</span>
+  J = admDiffRev(@intsin, 1, 1, 3)
+<span class="keyword">catch</span> ME
+  errmsg = ME.message
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">Differentiated function a_intsin does not exist.
+Differentiating function intsin in reverse mode (RM) to produce
+ a_intsin...
+Differentiation took 0.638398 s.
+errmsg =
+Undefined function 'adimat_a_quad_011' for input arguments of type 'function_handle'.
+</pre><p>As you see, in both cases, the transformed code attempts to call a function which does not exist in ADiMat's runtime environment.</p><h2>The analytic derivative of <tt>quad</tt><a name="8"></a></h2><p>Let us now derive the derivative of <tt>quad</tt> analytically. The call <tt>quad(f,a,b)</tt> evaluates the integral of a function <img src="add_missing_derivative_eq85998.png" alt="$f$"> in the interval between <img src="add_missing_derivative_eq34276.png" alt="$a$"> and <img src="add_missing_derivative_eq28812.png" alt="$b$">. This value is well known to be <img src="add_missing_derivative_eq75138.png" alt="$F(b)  \ ^\_ \ F(a)$">, where <img src="add_missing_derivative_eq86924.png" alt="$F$"> is the antiderivative of <img src="add_missing_derivative_eq85998.png" alt="$f$">. That is, <img src="add_missing_derivative_eq86924.png" alt="$F$"> is a function whose derivative is <img src="add_missing_derivative_eq85998.png" alt="$f$">. Since Matlab cannot know <img src="add_missing_derivative_eq86924.png" alt="$F$"> for a general given function <img src="add_missing_derivative_eq85998.png" alt="$f$">, the function <tt>quad</tt> computes the result numerically by Riemann sums.</p><p>However, from the mathematical background, we see immediately that the derivative of <tt>quad(f,a,b)</tt> is <img src="add_missing_derivative_eq61375.png" alt="$F'(b){\rm d}b \ ^\_ \ F'(a){\rm d}a$">, where <img src="add_missing_derivative_eq84272.png" alt="${\rm d}a$"> and <img src="add_missing_derivative_eq45445.png" alt="${\rm d}b$"> are the derivatives of <img src="add_missing_derivative_eq34276.png" alt="$a$"> and <img src="add_missing_derivative_eq28812.png" alt="$b$">, respectively. Since, by definition, the derivative of <img src="add_missing_derivative_eq86924.png" alt="$F$"> is given by <img src="add_missing_derivative_eq85998.png" alt="$f$">, we immediately arrive at <img src="add_missing_derivative_eq27119.png" alt="$f(b){\rm d}b  \ ^\_ \ f(a){\rm d}a$">. So, fortunately, we only need the given function <img src="add_missing_derivative_eq85998.png" alt="$f$"> to compute the derivative of <tt>quad</tt>.</p><p>In the forward mode <tt>admDiffFor</tt> and <tt>admDiffVFor</tt>, the derivatives <img src="add_missing_derivative_eq84272.png" alt="${\rm d}a$"> and <img src="add_missing_derivative_eq45445.png" alt="${\rm d}b$"> come out of the differentiation process up to the point where <tt>quad(fun,a,b)</tt> is called in your code. In the reverse mode <tt>admDiffRev</tt>, the situation is a little bit different.</p><p>In our example case <img src="add_missing_derivative_eq84272.png" alt="${\rm d}a$"> and <img src="add_missing_derivative_eq45445.png" alt="${\rm d}b$"> can be assumed to be 1. We can use the finite difference driver of ADiMat to compute the derivative and check our analytic result:</p><pre class="codeinput">J = admDiffFD(@intsin, 1, 1, 3)
+[ -sin(1) sin(3) ]
+</pre><pre class="codeoutput">J =
+   -0.8415    0.1411
+ans =
+   -0.8415    0.1411
+</pre><p>What we can immediately do with our result is to write two functions which return the partial derivatives of <tt>quad</tt> w.r.t.  <tt>a</tt> and <tt>b</tt>, resp.</p><pre class="codeinput">type <span class="string">partial_quad_a</span>
+type <span class="string">partial_quad_b</span>
+</pre><pre class="codeoutput">
+function dqda = partial_quad_a(fun, a, b)
+  dqda = -fun(a);
+
+
+function dqdb = partial_quad_b(fun, a, b)
+  dqdb = fun(b);
+
+</pre><h2>Adding support for a derivative in <tt>admDiffFor</tt><a name="10"></a></h2><p>To tell the <tt>admDiffFor</tt> driver of ADiMat to inject the right code when differentiating <tt>quad</tt>, you have to use the <tt>BMFUNC</tt> directives, using the scripting language described in Bischof et al. (2005) "A Macro Language for Derivative Definition in ADiMat". These have to be added to the source code of <tt>intsin</tt>, producing a modified file <tt>intsin_bmfunc.m</tt>:</p><pre class="codeinput">type <span class="string">intsin_bmfunc.m</span>
+</pre><pre class="codeoutput">
+function z = intsin_bmfunc(a, b)
+%ADiMat BMFUNC $$ = quad($1, $2, $3) DIFFTO partial_quad_a($1, $2, $3) .* $@2 + partial_quad_b($1, $2, $3) .* $@3
+%ADiMat BMFUNC $$ = partial_quad_a($1, $2, $3) NODIFF
+%ADiMat BMFUNC $$ = partial_quad_b($1, $2, $3) NODIFF
+  z = quad(@sin, a, b);
+
+</pre><p>The directive <tt>BMFUNC</tt> declares that a call to <tt>quad</tt> with one output and three input parameters (<tt>$$ = quad($1,$2,$3)</tt>) differentiates to (<tt>DIFFTO</tt>) the following expression. Here, the variables <tt>$1</tt>, <tt>$2</tt>, and <tt>$3</tt> are replaced by the first, second, and third function argument of <tt>quad</tt>. So, in our example, <tt>$2</tt> corresponds to <tt>a</tt> and <tt>$3</tt> to <tt>b</tt>, while <tt>$1</tt> stands for <tt>@sin</tt>. Furthermore, <tt>$@2</tt> and <tt>$@3</tt> refer to the derivatives of <tt>$2</tt> and <tt>$3</tt>, respectively, representing the quantities <img src="add_missing_derivative_eq84272.png" alt="${\rm d}a$"> and <img src="add_missing_derivative_eq45445.png" alt="${\rm d}b$"> in our mathematical derivation above. Putting it all together we see that the <tt>DIFFTO</tt> expression is nothing but the total differential of the call to <tt>quad</tt>.</p><p>When we now apply <tt>admDiffFor</tt> to the new function containing the directive, we get the correct result:</p><pre class="codeinput">J = admDiffFor(@intsin_bmfunc, 1, 1, 3)
+</pre><pre class="codeoutput">Differentiated function g_intsin_bmfunc does not exist.
+Differentiating function intsin_bmfunc in forward mode (FM) to produce
+ g_intsin_bmfunc...
+Differentiation took 0.081025 s.
+J =
+   -0.8415    0.1411
+</pre><p>The further two <tt>BMFUNC NODIFF</tt> directives suppress some nagging warning messages, since ADiMat also wants to know about the two functions used in the declaration for <tt>quad</tt>.</p><h2>Adding support for a derivative in <tt>admDiffVFor</tt><a name="13"></a></h2><p>In the case of <tt>admDiffVFor</tt>, the situation is a little bit simpler. You just have to implement the missing function, namely <tt>adimat_diff_quad</tt>. ADiMat produces a generic call to that function in the differentiated code. The corresponding statement in the transformed function <tt>d_intsin</tt> is:</p><p><tt>d_z = adimat_diff_quad(d_zeros(@sin), @sin, d_a, a, d_b, b);</tt></p><p>Here, the argument sequence is constructed so that the derivative of an argument is placed before its associated argument. The first argument, the function handle, is differentiated as well because ADiMat conservatively assumes that all arguments may be active, i.e., relevant for differentiation.</p><p>In order to implement the missing function, you have to know about the data layout of the derivative values used by <tt>admDiffVFor</tt>. When a variable <tt>x</tt> holds an array with <img src="add_missing_derivative_eq86607.png" alt="$k$"> dimensions <img src="add_missing_derivative_eq82158.png" alt="$[n_1, n_2, \dots, n_k]$">, then the corresponding derivative variable <tt>d_x</tt> holds an array with <img src="add_missing_derivative_eq21144.png" alt="$k+1$"> dimensions <img src="add_missing_derivative_eq01425.png" alt="$[n_{\rm dd}, n_1, n_2, \dots, n_k]$">, where <img src="add_missing_derivative_eq87117.png" alt="$n_{\rm dd}$"> is the <i>number of directional derivatives</i>. Sometimes you can treat all directional derivatives at once, but in general you have to loop over <img src="add_missing_derivative_eq05521.png" alt="$1, 2, \dots, n_{\rm dd}$"> and handle each directional derivative separately. The <img src="add_missing_derivative_eq28128.png" alt="$i$">-th directional derivative can be extracted from <tt>d_x</tt> by the expression <tt>reshape(d_x(i,:), size(x))</tt>. The value <tt>d_x(i,:)</tt> is the vector of all components in the <img src="add_missing_derivative_eq28128.png" alt="$i$">-th slice along the first dimension, and with reshape we bring that into the same shape that <tt>x</tt> has.</p><p>Putting it all together, the missing function should be something like this:</p><pre class="codeinput">copyfile <span class="string">magic_hat/adimat_diff_quad.m</span> <span class="string">.</span>
+type <span class="string">adimat_diff_quad</span>
+</pre><pre class="codeoutput">
+function [d_r, r] = adimat_diff_quad(d_fun, fun, d_a, a, d_b, b)
+  % compute the function value (optional)
+  r = quad(fun, a, b);
+
+  % initialize the derivative result (could also use d_zeros(1) here)
+  d_r = d_zeros(r);
+
+  % get number of directional derivatives from one of the arguments
+  ndd = size(d_a, 1);
+
+  % precompute the partials
+  p1 = partial_quad_a(fun, a, b);
+  p2 = partial_quad_b(fun, a, b);
+
+  for i=1:ndd
+    dd = p1 * reshape(d_a(i,:), size(a)) + p2 *  reshape(d_b(i,:), size(b));
+    d_r(i,:) = dd(:).';
+  end
+
+</pre><p>The code shown above implements the general approach that will have to be used in most cases. However, in the case of <tt>quad</tt>, we know that <tt>a</tt> and <tt>b</tt> and also the result are scalars. So, the reshape operations are superfluous and the code could be greatly simplified.</p><p>Now, verify that <tt>admDiffVFor</tt> also returns the expected result:</p><pre class="codeinput">J = admDiffVFor(@intsin, 1, 1, 3)
+</pre><pre class="codeoutput">J =
+   -0.8415    0.1411
+</pre><h2>Adding support for a derivative in <tt>admDiffRev</tt><a name="15"></a></h2><p>In the case of <tt>admDiffRev</tt>, the situation is similar to <tt>admDiffVFor</tt> and in some respect even simpler. It is simpler because by virtue of ADiMat's derivative classes, you can handle the derivative variables much more naturally. When there are several directional derivatives, these are hidden inside the derivative class objects.</p><p>Recall that we differentiate the statement</p><p><tt>z = quad(@sin, a, b);</tt></p><p>contained in <tt>intsin</tt>. Let's look at the generated reverse mode code in <tt>a_intsin</tt> which includes the following statements:</p><pre>[tmpadjc2 tmpadjc3] = adimat_a_quad_011(@sin, a, b, a_z);
+a_a = adimat_adjsum(a_a, tmpadjc2);
+a_b = adimat_adjsum(a_b, tmpadjc3);</pre><p>There are two statements for updating the adjoint of each of the active arguments, <tt>a_a</tt> and <tt>a_b</tt>. The adjoint increment shall be returned by the calls to <tt>a_quad</tt>. It receives as the first argument the adjoint of the call's result, which was <tt>z</tt>. The second argument is an integer describing the adjoint of which of the parameters shall be returned. Then follow the arguments of the original call.</p><p>The adjoint of the second parameter <tt>a</tt> is obtained by multiplying the <tt>a_z</tt> with the partial w.r.t. <tt>a</tt>, and likewise for <tt>b</tt>. Hence the missing runtime function <tt>a_quad</tt> could be implemented as follows:</p><pre class="codeinput">copyfile <span class="string">magic_hat/adimat_a_quad_011.m</span> <span class="string">.</span>
+type <span class="string">adimat_a_quad_011</span>
+</pre><pre class="codeoutput">
+function [adj_a adj_b] = adimat_a_quad_011(fun, a, b, adj)
+  adj_a = adj .* partial_quad_a(fun, a, b);
+  adj_b = adj .* partial_quad_b(fun, a, b);
+
+</pre><p>Verify that <tt>admDiffRev</tt> now also returns the expected result:</p><pre class="codeinput">J = admDiffRev(@intsin, 1, 1, 3)
+</pre><pre class="codeoutput">J =
+   -0.8415    0.1411
+</pre><h2>Overriding existing derivative declarations<a name="17"></a></h2><p>The same techinques shown here can also be used to override existing derivative rules in ADiMat.</p><p>With <tt>admDiffFor</tt>, use <tt>BMFUNC</tt> directives. For example, you can override ADiMat's handling of <tt>sin</tt> with a directive like this:</p><pre>%ADiMat BMFUNC $$ = sin($1) DIFFTO times(cos($1), $@1)</pre><p>With <tt>admDiffVFor</tt>, every call to a builtin <tt>foo</tt> is handled by a runtime function <tt>adimat_diff_foo</tt>. You can find this runtime function in your ADiMat installation and just change it.</p><p>With <tt>admDiffRev</tt>, runtime functions are also used often, and you can make changes there. However, there is currently no way to change the actual derivative rules of the reverse mode. So if ADiMat generates the adjoint computation inline, you are out of luck, unless you patch the generated code.</p><h2>Specifying derivative declarations for unknown functions<a name="18"></a></h2><p>The procedure for adding derivative support is a little bit different when the function in question is not already contained in ADiMat's derivative database. This may happen with new builtin functions, functions from third party toolboxes, or with MEX functions in your code.</p><p>As an example, let's consider a MEX function <tt>cquad</tt> that we created and that is supposed to be a simple replacement for the builtin <tt>quad</tt>.</p><pre class="codeinput">type <span class="string">cquad.c</span>
+</pre><pre class="codeoutput">
+/*==========================================================
+ * cquad.c - example MEX function for an ADiMat tutorial
+ * Copyright 2013 Johannes Willkomm
+ *  
+ * This file is based on the example file from the MATLAB
+ * documentation:
+ *
+ * arrayProduct.c - example in MATLAB External Interfaces
+ *
+ * Multiplies an input scalar (multiplier) 
+ * times a 1xN matrix (inMatrix)
+ * and outputs a 1xN matrix (outMatrix)
+ *
+ * The calling syntax is:
+ *
+ *		outMatrix = arrayProduct(multiplier, inMatrix)
+ *
+ * This is a MEX-file for MATLAB.
+ * Copyright 2007-2008 The MathWorks, Inc.
+ *
+ *========================================================*/
+/* $Revision: 1.1.10.2 $ */
+
+#include "mex.h"
+#include &lt;math.h&gt;
+
+double const tolerance = 1e-4;
+long ninter;
+
+double evalFunction(double x, mxArray const *funPtr) {
+  mxArray *lhs[1];
+  mxArray *rhs[2];
+  rhs[0] = (mxArray*) funPtr;
+  rhs[1] = mxCreateDoubleScalar(mxREAL);
+  double *xPtr = mxGetPr(rhs[1]);
+  *xPtr = x;
+
+  int const cres = mexCallMATLAB(1, lhs, 2, rhs, "feval");
+  if (cres != 0) {
+    mexErrMsgIdAndTxt("ADiMat:examples:cquad:evalFailed", "feval failed");
+  }
+  double const res = mxGetScalar(lhs[0]);
+
+  mxDestroyArray(rhs[1]);
+  return res;
+}
+
+/* The computational routine */
+void cquad(double a, double b, double *result, mxArray const *funPtr, double fx0) {
+  ++ninter;
+  double const dx = (b - a);
+  double const x05 = a + dx * 0.5;
+  double const fx05 = evalFunction(x05, funPtr);
+
+  double res;
+  if (fabs(fx05 - fx0) / fx0 &gt; tolerance) {
+    double s1, s2;
+    cquad(a, x05, &amp;s1, funPtr, fx0);
+    cquad(x05, b, &amp;s2, funPtr, fx05);
+    *result = s1 + s2;
+  } else {
+    *result = fx05 * dx;
+  }
+}
+
+/* The gateway function */
+void mexFunction( int nlhs, mxArray *plhs[],
+                  int nrhs, const mxArray *prhs[])
+{
+    double left_bound, right_bound;
+    double *result;
+
+    /* check for proper number of arguments */
+    if(nrhs!=3) {
+        mexErrMsgIdAndTxt("ADiMat:examples:cquad:nrhs","Three inputs required.");
+    }
+    if(nlhs!=1) {
+        mexErrMsgIdAndTxt("ADiMat:examples:cquad:nlhs","One output required.");
+    }
+
+    /* check that the first argument is a funtion vector TBD */
+
+    if(mxGetClassID(prhs[0]) != mxFUNCTION_CLASS) {
+      mexErrMsgIdAndTxt("ADiMat:examples:cquad:notFunction","First input must be a function handle.");
+    }
+
+    /* make sure the first and second input arguments are scalar */
+    if( !mxIsDouble(prhs[1]) || 
+         mxIsComplex(prhs[1]) ||
+         mxGetNumberOfElements(prhs[1])!=1 ) {
+        mexErrMsgIdAndTxt("ADiMat:examples:cquad:notScalar","Second input must be a scalar.");
+    }
+    if( !mxIsDouble(prhs[2]) || 
+         mxIsComplex(prhs[2]) ||
+         mxGetNumberOfElements(prhs[2])!=1 ) {
+        mexErrMsgIdAndTxt("ADiMat:examples:cquad:notScalar","Third input must be a scalar.");
+    }
+    
+    /* get the value of the left integral boundary  */
+    left_bound = mxGetScalar(prhs[1]);
+
+    /* get the value of the right integral boundary  */
+    right_bound = mxGetScalar(prhs[2]);
+
+    /* create the output matrix */
+    plhs[0] = mxCreateDoubleScalar(mxREAL);
+
+    result = mxGetPr(plhs[0]);
+
+    double const fx0 = evalFunction(left_bound, prhs[0]);
+
+    /* call the computational routine */
+    cquad(left_bound, right_bound, result, prhs[0], fx0);
+}
+
+</pre><p>Compile the MEX function.</p><pre class="codeinput">mex <span class="string">cquad.c</span>
+</pre><pre class="codeoutput">
+Warning: You are using gcc version "4.9.1-11)".  The version
+         currently supported with MEX is "4.4.6".
+         For a list of currently supported compilers see: 
+         http://www.mathworks.com/support/compilers/current_release/
+
+</pre><p>Let's assume further that you execute <tt>cquad</tt> in a function called <tt>cintsin</tt>.</p><pre class="codeinput">type <span class="string">cintsin</span>
+</pre><pre class="codeoutput">
+function z = cintsin(a, b)
+  z = cquad(@sin, a, b);
+
+</pre><p>When you try to differentiate this function with ADiMat, you will get transformation errors regarding the unbound identifier <tt>cquad</tt>, because ADiMat does not know that function and since it is a MEX function it cannot parse and differentiate it.</p><p>Using the <tt>BMFUNC</tt> directive you can declare the identifier <tt>cquad</tt> and also specify the derivative rule, although that will only be used by <tt>admDiffFor</tt>.</p><pre class="codeinput">copyfile <span class="string">magic_hat/cintsin_bmfunc.m</span> <span class="string">cintsin.m</span>
+type <span class="string">cintsin</span>
+</pre><pre class="codeoutput">
+function z = cintsin(a, b)
+%ADiMat BMFUNC $$ = cquad($1, $2, $3) DIFFTO partial_quad_a($1, $2, $3) .* $@2 + partial_quad_b($1, $2, $3) .* $@3
+%ADiMat BMFUNC $$ = partial_quad_a($1, $2, $3) NODIFF
+%ADiMat BMFUNC $$ = partial_quad_b($1, $2, $3) NODIFF
+  z = cquad(@sin, a, b);
+
+</pre><p>Now you can already use the modified function with <tt>admDiffFor</tt>:</p><pre class="codeinput">J = admDiffFor(@cintsin, 1, 1, 3)
+</pre><pre class="codeoutput">Differentiated function g_cintsin does not exist.
+Differentiating function cintsin in forward mode (FM) to produce
+ g_cintsin...
+Differentiation took 0.0828 s.
+J =
+   -0.8415    0.1411
+</pre><p>For <tt>admDiffVFor</tt> and <tt>admDiffRev</tt> the procedure is now the same as before. In this case we can reuse the functions we created above:</p><pre class="codeinput">copyfile <span class="string">adimat_diff_quad.m</span> <span class="string">adimat_diff_cquad.m</span>
+copyfile <span class="string">adimat_a_quad_011.m</span> <span class="string">a_cquad_011.m</span>
+
+J = admDiffVFor(@cintsin, 1, 1, 3)
+J = admDiffRev(@cintsin, 1, 1, 3)
+</pre><pre class="codeoutput">Differentiated function d_cintsin does not exist.
+Differentiating function cintsin in (new) forward mode (FM) to produce
+ d_cintsin...
+./cintsin.m:5:12: warning: (this variant of) the builtin cquad has a derivative, but it has not been implemented yet
+Differentiation took 0.534691 s.
+J =
+   -0.8415    0.1411
+Differentiated function a_cintsin does not exist.
+Differentiating function cintsin in reverse mode (RM) to produce
+ a_cintsin...
+Differentiation took 0.659991 s.
+J =
+   -0.8415    0.1411
+</pre><h2>Treating undefined derivatives<a name="24"></a></h2><p>At some points the derivative of a builtin may be undefined. This may include points where the original function is well defined. For example consider the derivative of sqrt at 0 or the derivative <img src="add_missing_derivative_eq91582.png" alt="$\frac{{\rm d} x^y}{{\rm d} y}$"> at <img src="add_missing_derivative_eq43289.png" alt="$x = 0$">.</p><p>We recommend that you emit a warning in these cases that clearly states the issue. The other question is what value should be returned as the derivative value. In some cases 0 and in others NaN may be reasonable or preferable. Either directly place these values in the derivative in the runtime function or you can consider using the function <tt>adimat_missing_derivative_value</tt> for that purpose, which allows the user to choose his preference (globally).</p><h2>Summary<a name="25"></a></h2><p>If you want to apply ADiMat to a code that uses some function whose derivative support in ADiMat is currently missing, there is the option to specify the corresponding derivative to ADiMat. This tutorial demonstrates how to add these given derivative information to ADiMat. The procedure is different for the following two classes of drivers. For the <tt>admDiffFor</tt> driver, the definition of derivatives is carried out by a macrolanguage. For the <tt>admDiffVFor</tt> and <tt>admDiffRev</tt> drivers, the derivatives are implemented explicitly via functions whose calling sequence is predetermined by ADiMat. The same techniques may also be used to override existing derivative declarations in ADiMat.</p><p class="footer"><br>
+      Published with MATLAB&reg; 7.14<br></p></div><!--
+##### SOURCE BEGIN #####
+%% Adding missing derivatives of builtins to ADiMat
+% In this tutorial, we will explore how to add derivative support for
+% builtin functions that have not yet been handled by us, the developers of
+% ADiMat. We strongly believe that, by now, ADiMat covers a relatively
+% large range of builtin functions. In particular, ADiMat does offer
+% derivative support for all commonly used builtin functions. However,
+% there are so many builtin functions in MATLAB that we cannot treat them
+% all at once. Instead, we handle missing builtins on a case-by-case basis.
+% That is, when ADiMat reports an error about a missing builtin function,
+% please contact us, preferably via the mailing list
+% adimat-users@lists.sc.informatik.tu-darmstadt.de. We will then strive to
+% add derivative support for the functions your code uses as quickly as
+% possible.
+%
+% In this tutorial, we explain how you can help yourself in this situation.
+% More precisely, we show how you can add this derivative support to your
+% local installation of ADiMat. This requires (i) that you know the
+% derivative(s) of the builtin in question and (ii) that you manually write
+% code that can compute these derivative(s). What we explain here is how to
+% hook up this manually written code with the ADiMat differentiation
+% process. 
+%
+% Once you have done these steps for some builtin function, we would still
+% be happy to hear from you. So, please let us know and we will integrate
+% this missing builtin into ADiMat making it available for all users.  
+
+%% An illustrating example: The builtin function |quad|
+% Let's consider the builtin |quad| as an example. It has not yet been
+% added to the derivative database of ADiMat. More precisely, it is listed
+% there as a builtin for which the derivative is unknown. This means
+% that ADiMat knows that the builtin exists, otherwise you would get
+% an unbound identifier error. This case will be treated in a
+% different example. So, let's assume that you wrote some function that
+% calls the builtin |quad| and that you want to differentiate this function.
+% Here is an example where this function is called |intsin|:
+
+type intsin
+
+%%
+% This function uses |quad| to numerically approximate the area under the
+% sine function between points |a| and |b|, which are given as parameters. Let
+% us first describe what happens in such a situation. When you try to
+% differentiate this function with ADiMat, you will receive errors,
+% which we will explain in detail in the following sections.
+
+%% ADiMat's handling of missing builtins in |admDiffFor|
+% With |admDiffFor| you will get the following error message during the
+% transformation process. 
+
+J = admDiffFor(@intsin, 1, 1, 3)
+
+%%
+% It is important to understand that, after the error message of the
+% transformation process, the (wrong) derivative code is also executed. The
+% effect of this execution is that the partial derivative of the builtin 
+% is zero. In our simple example function, this means that you get a
+% zero Jacobian |J|. In more complex and realistic codes however, the
+% call to |quad| will usually correspond to just a single edge in the
+% computational graph. The computational graph consists of many
+% edges that all contribute to the final derivative result. The zero
+% Jacobian of |quad| then means the following: The contribution of that
+% single edge to the final derivative is ignored while the contributions of
+% all other edges are accumulated correctly. This can lead to rather subtle
+% errors that are difficult to debug.  This is why you have to pay close
+% attention whether this message occurs. You should always check ADiMat's
+% derivative results for correctness, for example against finite
+% differences, cf. our corresponding tutorial. 
+
+%% ADiMat's handling of missing builtins in |admDiffVFor| and |admDiffRev|
+% With |admDiffVFor| and |admDiffRev| the situation is a little bit
+% easier. You will get a transformation error message as just discussed.
+% However, ADiMat will also produce code that will not run out of the box.
+% That is, ADiMat will execute the (wrong) derivative code but will also
+% report an error at run time. So, you should be safe even if you overlook
+% the error message of the transformation process. With |admDiffVFor| you
+% will get the following:
+
+try
+  J = admDiffVFor(@intsin, 1, 1, 3)
+catch ME
+  errmsg = ME.message
+end
+
+%%
+% The result is very similar with |admDiffRev|:
+
+try
+  J = admDiffRev(@intsin, 1, 1, 3)
+catch ME
+  errmsg = ME.message
+end
+
+%%
+% As you see, in both cases, the transformed code attempts to call a
+% function which does not exist in ADiMat's runtime environment.
+
+%% The analytic derivative of |quad|
+% Let us now derive the derivative of |quad| analytically. The call
+% |quad(f,a,b)| evaluates the integral of a function $f$ in the
+% interval between $a$ and $b$. This value is well known to be $F(b)  \ ^\_ \ 
+% F(a)$, where $F$ is the antiderivative of $f$. That is, $F$ is a
+% function whose derivative is $f$. Since Matlab cannot know $F$ for a
+% general given function $f$, the function |quad| computes the result
+% numerically by Riemann sums.
+%
+% However, from the mathematical background, we see immediately that
+% the derivative of |quad(f,a,b)| is $F'(b){\rm d}b \ ^\_ \ F'(a){\rm
+% d}a$, where ${\rm d}a$ and ${\rm d}b$ are the derivatives of $a$ and $b$,
+% respectively. Since, by definition, the derivative of $F$ is given by $f$, we
+% immediately arrive at $f(b){\rm d}b  \ ^\_ \ f(a){\rm d}a$. So,
+% fortunately, we only need the given function $f$ to compute the derivative of
+% |quad|. 
+%
+% In the forward mode |admDiffFor| and |admDiffVFor|, the derivatives ${\rm
+% d}a$ and ${\rm d}b$ come out of the differentiation process up to the
+% point where |quad(fun,a,b)| is called in your code. In the reverse mode
+% |admDiffRev|, the situation is a little bit different.
+%
+% In our example case ${\rm d}a$ and ${\rm d}b$ can be assumed to be 1. We
+% can use the finite difference driver of ADiMat to compute the
+% derivative and check our analytic result:
+
+J = admDiffFD(@intsin, 1, 1, 3)
+[ -sin(1) sin(3) ]
+
+%%
+% What we can immediately do with our result is to write two functions
+% which return the partial derivatives of |quad| w.r.t.  |a| and |b|, resp.
+
+type partial_quad_a
+type partial_quad_b
+
+%% Adding support for a derivative in |admDiffFor|
+% To tell the |admDiffFor| driver of ADiMat to inject the right
+% code when differentiating |quad|, you have to use the |BMFUNC|
+% directives, using the scripting language described in Bischof et
+% al. (2005) "A Macro Language for Derivative Definition in
+% ADiMat". These have to be added to the source code of |intsin|,
+% producing a modified file |intsin_bmfunc.m|:
+
+type intsin_bmfunc.m
+
+%%
+% The directive |BMFUNC| declares that a call to |quad| with one output
+% and three input parameters (|$$ = quad($1,$2,$3)|) differentiates
+% to (|DIFFTO|) the following expression. Here, the variables |$1|,
+% |$2|, and |$3| are replaced by the first, second, and third function
+% argument of |quad|. So, in our example, |$2| corresponds to |a| and |$3| to |b|,
+% while |$1| stands for |@sin|. Furthermore, |$@2| and |$@3| refer to the
+% derivatives of |$2| and |$3|, respectively, representing the
+% quantities ${\rm d}a$ and ${\rm d}b$ in our mathematical derivation
+% above. Putting it all together we see that the |DIFFTO| expression
+% is nothing but the total differential of the call to |quad|.
+%
+% When we now apply |admDiffFor| to the new function containing the
+% directive, we get the correct result:
+
+J = admDiffFor(@intsin_bmfunc, 1, 1, 3)
+
+%%
+% The further two |BMFUNC NODIFF| directives suppress some nagging
+% warning messages, since ADiMat also wants to know about the two
+% functions used in the declaration for |quad|.
+
+%% Adding support for a derivative in |admDiffVFor|
+% In the case of |admDiffVFor|, the situation is a little bit simpler.
+% You just have to implement the missing function, namely
+% |adimat_diff_quad|. ADiMat produces a generic call to that function in
+% the differentiated code. The corresponding statement in the transformed
+% function |d_intsin| is: 
+%
+% |d_z = adimat_diff_quad(d_zeros(@sin), @sin, d_a, a, d_b, b);|
+%
+% Here, the argument sequence is constructed so that the derivative of an
+% argument is placed before its associated argument. The first
+% argument, the function handle, is differentiated as well because
+% ADiMat conservatively assumes that all arguments may be active,
+% i.e., relevant for differentiation.
+%
+% In order to implement the missing function, you have to know about
+% the data layout of the derivative values used by |admDiffVFor|. When
+% a variable |x| holds an array with $k$ dimensions $[n_1, n_2,
+% \dots, n_k]$, then the corresponding derivative variable |d_x| holds
+% an array with $k+1$ dimensions $[n_{\rm dd}, n_1, n_2, \dots, n_k]$,
+% where $n_{\rm dd}$ is the _number of directional
+% derivatives_. Sometimes you can treat all directional derivatives at
+% once, but in general you have to loop over $1, 2, \dots, n_{\rm dd}$ and
+% handle each directional derivative separately. The $i$-th
+% directional derivative can be extracted from |d_x| by the expression
+% |reshape(d_x(i,:), size(x))|. The value |d_x(i,:)| is the vector of
+% all components in the $i$-th slice along the first dimension, and
+% with reshape we bring that into the same shape that |x| has.
+%
+% Putting it all together, the missing function should be something
+% like this:
+
+copyfile magic_hat/adimat_diff_quad.m .
+type adimat_diff_quad
+
+%%
+% The code shown above implements the general approach
+% that will have to be used in most cases. However, in the case of |quad|, we
+% know that |a| and |b| and also the result are scalars. So, the reshape
+% operations are superfluous and the code could be greatly simplified.
+%
+% Now, verify that |admDiffVFor| also returns the expected result:
+
+J = admDiffVFor(@intsin, 1, 1, 3)
+
+%% Adding support for a derivative in |admDiffRev|
+% In the case of |admDiffRev|, the situation is similar to |admDiffVFor|
+% and in some respect even simpler. It is simpler because by virtue of
+% ADiMat's derivative classes, you can handle the derivative variables
+% much more naturally. When there are several directional derivatives,
+% these are hidden inside the derivative class objects.
+%
+% Recall that we differentiate the statement
+%
+% |z = quad(@sin, a, b);|
+%
+% contained in |intsin|. Let's look at the generated reverse mode code in
+% |a_intsin| which includes the following statements:
+%
+%  [tmpadjc2 tmpadjc3] = adimat_a_quad_011(@sin, a, b, a_z);
+%  a_a = adimat_adjsum(a_a, tmpadjc2);
+%  a_b = adimat_adjsum(a_b, tmpadjc3);
+%
+% There are two statements for updating the adjoint of each of the
+% active arguments, |a_a| and |a_b|. The adjoint increment shall be
+% returned by the calls to |a_quad|. It receives as the first argument
+% the adjoint of the call's result, which was |z|. The second argument
+% is an integer describing the adjoint of which of the parameters
+% shall be returned. Then follow the arguments of the original call.
+%
+% The adjoint of the second parameter |a| is obtained by multiplying the
+% |a_z| with the partial w.r.t. |a|, and likewise for |b|. Hence the
+% missing runtime function |a_quad| could be implemented as follows:
+
+copyfile magic_hat/adimat_a_quad_011.m .
+type adimat_a_quad_011
+
+%%
+% Verify that |admDiffRev| now also returns the expected result:
+
+J = admDiffRev(@intsin, 1, 1, 3)
+
+%% Overriding existing derivative declarations
+% The same techinques shown here can also be used to override existing
+% derivative rules in ADiMat.
+% 
+% With |admDiffFor|, use |BMFUNC| directives. For example, you can
+% override ADiMat's handling of |sin| with a directive like this:
+%
+%  %ADiMat BMFUNC $$ = sin($1) DIFFTO times(cos($1), $@1)
+%
+% With |admDiffVFor|, every call to a builtin |foo| is handled by a
+% runtime function |adimat_diff_foo|. You can find this runtime function
+% in your ADiMat installation and just change it.
+%
+% With |admDiffRev|, runtime functions are also used often, and you can
+% make changes there. However, there is currently no way to change the
+% actual derivative rules of the reverse mode. So if ADiMat generates
+% the adjoint computation inline, you are out of luck, unless you
+% patch the generated code.
+
+%% Specifying derivative declarations for unknown functions
+% The procedure for adding derivative support is a little bit different
+% when the function in question is not already contained in ADiMat's
+% derivative database. This may happen with new builtin functions,
+% functions from third party toolboxes, or with MEX functions in your code.
+% 
+% As an example, let's consider a MEX function |cquad| that we created and
+% that is supposed to be a simple replacement for the builtin
+% |quad|. 
+
+type cquad.c
+
+%%
+% Compile the MEX function.
+mex cquad.c
+
+%%
+% Let's assume further that you execute |cquad| in a function called
+% |cintsin|.
+
+type cintsin
+
+%%
+% When you try to differentiate this function with ADiMat, you will
+% get transformation errors regarding the unbound identifier |cquad|,
+% because ADiMat does not know that function and since it is a MEX
+% function it cannot parse and differentiate it.
+% 
+% Using the |BMFUNC| directive you can declare the identifier |cquad| and
+% also specify the derivative rule, although that will only be used by
+% |admDiffFor|.
+
+copyfile magic_hat/cintsin_bmfunc.m cintsin.m
+type cintsin
+
+%%
+% Now you can already use the modified function with |admDiffFor|:
+
+J = admDiffFor(@cintsin, 1, 1, 3)
+
+%%
+% For |admDiffVFor| and |admDiffRev| the procedure is now the same as
+% before. In this case we can reuse the functions we created above:
+
+copyfile adimat_diff_quad.m adimat_diff_cquad.m 
+copyfile adimat_a_quad_011.m a_cquad_011.m
+
+J = admDiffVFor(@cintsin, 1, 1, 3)
+J = admDiffRev(@cintsin, 1, 1, 3)
+
+%% Treating undefined derivatives
+% At some points the derivative of a builtin may be undefined. This
+% may include points where the original function is well defined. For
+% example consider the derivative of sqrt at 0 or the derivative
+% $\frac{{\rm d} x^y}{{\rm d} y}$ at $x = 0$.
+%
+% We recommend that you emit a warning in these cases that clearly
+% states the issue. The other question is what value should be
+% returned as the derivative value. In some cases 0 and in others NaN
+% may be reasonable or preferable. Either directly place these values
+% in the derivative in the runtime function or you can consider using
+% the function |adimat_missing_derivative_value| for that purpose,
+% which allows the user to choose his preference (globally).
+
+%% Summary
+% If you want to apply ADiMat to a code that uses some function whose
+% derivative support in ADiMat is currently missing, there is the option to
+% specify the corresponding derivative to ADiMat. This tutorial
+% demonstrates how to add these given derivative information to ADiMat. The
+% procedure is different for the following two classes of drivers.
+% For the |admDiffFor| driver, the definition of derivatives is carried out
+% by a macrolanguage. For the |admDiffVFor| and |admDiffRev| drivers, the
+% derivatives are implemented explicitly via functions whose calling
+% sequence is predetermined by ADiMat.
+% The same techniques may also be used to override existing derivative
+% declarations in ADiMat.
+
+##### SOURCE END #####
+--></body></html>

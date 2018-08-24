@@ -1,0 +1,276 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Forward-over-reverse mode with reverse mode source differentiation and Taylor objects</title><meta name="generator" content="MATLAB 7.14"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-09-17"><meta name="DC.source" content="forward_oo_over_reverse_st.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+
+  </style></head><body><div class="content"><h1>Forward-over-reverse mode with reverse mode source differentiation and Taylor objects</h1><!--introduction--><p>ADiMat has a source code transformation for reverse mode differentiation which can evaluate gradients and vector-Jacobian products efficiently. By combination with the class tseries implementing truncated Taylor series by operator overloading this becomes a tool for computing derivatives of truncated Taylor series. A very common special case is obtained by setting the truncation order of the Taylor objects to one. In scalar mode, this produces a Hessian-vector evaluator. The Taylor objects compute a Jacobian-vector product and the reverse mode then gives the derivative of that w.r.t. all independent variables, which is the corresponding Hessian-vector product.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Differentiating in reverse mode</a></li><li><a href="#3">Setting up the Taylor class</a></li><li><a href="#4">Creating Taylor Objects for the inputs</a></li><li><a href="#6">Seeding: Initializing coefficients of independent variables</a></li><li><a href="#8">Running the function</a></li><li><a href="#10">Interpreting the results</a></li><li><a href="#14">Verifying the results</a></li></ul></div><h2>Differentiating in reverse mode<a name="1"></a></h2><p>Differentiate the function in question in reverse mode. Lets consider the function fprod.m</p><pre class="codeinput">type <span class="string">fprod</span>
+fun = @fprod
+admTransform(@fprod, admOptions(<span class="string">'m'</span>, <span class="string">'r'</span>))
+</pre><pre class="codeoutput">
+function z = fprod(a)
+  ind = repmat({':'}, [length(size(a)) 1]);
+  dim = 2;
+  ind{dim} = 1;
+  z = a(ind{:});
+  for i=2:size(a, dim)
+    ind{dim} = i;
+    z = z .* a(ind{:});
+  end
+
+fun = 
+    @fprod
+ans =
+     1
+</pre><p>This produces a function a_fprod which can be used to compute the gradient of the function. It has two inputs x and a_z, the latter of which must be an array of the same shape as z and must be filled with a reverse derivative direction y. The reverse mode code will compute y * J, where J is the Jacobian. Here the function result z is scalar, J is a gradient, so we just set a_z to one. If z was not scalar, we would compute a vector-Jacobian product y * J instead.</p><pre class="codeinput">adimat_derivclass <span class="string">scalar_directderivs</span>
+adimat_adjoint <span class="string">default</span>
+x = 1:6;
+a_z = 1;
+[a_x z] = a_fprod(x, a_z)
+</pre><pre class="codeoutput">a_x =
+   720   360   240   180   144   120
+z =
+   720
+</pre><h2>Setting up the Taylor class<a name="3"></a></h2><p>This is enabled by the adimat_adjoint command.</p><pre class="codeinput">adimat_adjoint <span class="string">taylor2</span>
+</pre><h2>Creating Taylor Objects for the inputs<a name="4"></a></h2><p>The differentiated function has two input parameters, x and a_z. Both are now to become Taylor objects. We set the truncation order to one.</p><pre class="codeinput">set(tseries2(), <span class="string">'maxorder'</span>, 1);
+
+tx = tseries2(x);
+ta_z = tseries2(a_z);
+</pre><p>A Taylor object contains the coefficients of the Taylor series up to the truncation order. The coefficients can be accessed by cell-style indexing with braces {}. The k-th entry holds the coefficients of order k-1. For example tx{1} holds the zeroth order coefficient, which is the value and tx{2} holds the first derivative, which is zero be default.</p><pre class="codeinput">tx{1}
+tx{2}
+</pre><pre class="codeoutput">ans =
+     1     2     3     4     5     6
+ans =
+     0     0     0     0     0     0
+</pre><h2>Seeding: Initializing coefficients of independent variables<a name="6"></a></h2><p>To perform this derivative computation, we have to initialize some of the derivatives, namely those of the input x. We fill these with a derivative direction vector v. Let's choose here the third canonical unit vector.</p><pre class="codeinput">v = zeros(numel(x), 1);
+v(3) = 1;
+tx{2}(:) = v;
+</pre><p>ta_z could also be considered a derivative. It holds the adjoint vector y, in the zero-order (value) coefficient, just as a_z does. The first order coefficient of ta_y is zero.</p><h2>Running the function<a name="8"></a></h2><p>Now we run the function with the Taylor objects.</p><pre class="codeinput">[ta_x tz] = a_fprod(tx, ta_z)
+</pre><pre class="codeoutput">ta_x = 
+	tseries2 object: 1-by-6
+tz = 
+	tseries2 object: 1-by-1
+</pre><p>Both function results are now also Taylor objects.</p><h2>Interpreting the results<a name="10"></a></h2><p>What do we have obtained now? Well to the easy parts first: We know that in the zero-order fields of the outputs ta_x and tz we will find the same values as in a_x and z. So, in tz{1} the function result, and in a_x{1} the gradient, that is y * J.</p><pre class="codeinput">assert(isequal(tz{1}, z))
+assert(isequal(ta_x{1}, a_x))
+</pre><p>Also, we should find the Jacobian-vector product J * v in the first order coefficient of tz. This is the result of the plain forward mode through the Taylor objects. Here, we should find the derivative of z w.r.t. x(3).</p><pre class="codeinput">tz{2}
+</pre><pre class="codeoutput">ans =
+   240
+</pre><p>This leaves us with ta_x{2}, the first order components of ta_x. It is the reverse mode derivative of J*v, which is in z{2}, along direction w. Here, we get the third column (or row) of the Hessian.</p><pre class="codeinput">ta_x{2}
+</pre><pre class="codeoutput">ans =
+   240   120     0    60    48    40
+</pre><p>Alternatively, ta_x{2} is the first order derivative of the gradient w * J, which is in ta_x{1}, along direction v. This is the derivative of the gradient w.r.t. x(3).</p><pre class="codeinput"><span class="comment">%                       FM-over-RM AD</span>
+<span class="comment">%</span>
+<span class="comment">% f(x) ------------- diff. in FM ---&gt; df(x)/dx * v</span>
+<span class="comment">%   |                                      |</span>
+<span class="comment">% diff. in                             diff. in</span>
+<span class="comment">%   RM                                    RM</span>
+<span class="comment">%   |                                      |</span>
+<span class="comment">%   v                                      v</span>
+<span class="comment">% d w^T*f(x)/dx  --- diff. in FM ---&gt; d w^T * (df(x)/dx * v) /dx</span>
+<span class="comment">%                                     = d d w^T*f(x)/dx /dx * v</span>
+</pre><h2>Verifying the results<a name="14"></a></h2><p>We compute the Hessian and gradient with the plain ADiMat driver for Hessians with finite differences.</p><pre class="codeinput">adopts = admOptions();
+adopts.functionResults = {z};
+[H grad] = admHessFD(fun, 1, x, adopts);
+assert(isequal(H(:,3), ta_x{2}(:)))
+assert(isequal(H(3,:), ta_x{2}))
+assert(isequal(grad, ta_x{1}))
+</pre><p>When passing both derivative direction vectors into admHessian it will perform exactly the same computation as we did here manually.</p><pre class="codeinput">[Hv grad] = admHessian(fun, {a_z(:).', 1, v}, x, adopts);
+assert(isequal(Hv, ta_x{2}(:)))
+</pre><p class="footer"><br>
+      Published with MATLAB&reg; 7.14<br></p></div><!--
+##### SOURCE BEGIN #####
+%% Forward-over-reverse mode with reverse mode source differentiation and Taylor objects
+%
+% ADiMat has a source code transformation for reverse mode
+% differentiation which can evaluate gradients and vector-Jacobian
+% products efficiently. By combination with the class tseries
+% implementing truncated Taylor series by operator overloading this
+% becomes a tool for computing derivatives of truncated Taylor
+% series. A very common special case is obtained by setting the
+% truncation order of the Taylor objects to one. In scalar mode, this
+% produces a Hessian-vector evaluator. The Taylor objects compute a
+% Jacobian-vector product and the reverse mode then gives the
+% derivative of that w.r.t. all independent variables, which is the
+% corresponding Hessian-vector product.
+
+%% Differentiating in reverse mode
+% Differentiate the function in question in reverse mode. Lets
+% consider the function fprod.m
+
+type fprod
+fun = @fprod
+admTransform(@fprod, admOptions('m', 'r'))
+
+%%
+% This produces a function a_fprod which can be used to compute the
+% gradient of the function. It has two inputs x and a_z, the latter of
+% which must be an array of the same shape as z and must be filled
+% with a reverse derivative direction y. The reverse mode code will
+% compute y * J, where J is the Jacobian. Here the function result z
+% is scalar, J is a gradient, so we just set a_z to one. If z was not
+% scalar, we would compute a vector-Jacobian product y * J instead.
+
+adimat_derivclass scalar_directderivs
+adimat_adjoint default
+x = 1:6;
+a_z = 1;
+[a_x z] = a_fprod(x, a_z)
+
+%% Setting up the Taylor class
+% This is enabled by the adimat_adjoint command.
+adimat_adjoint taylor2
+
+%% Creating Taylor Objects for the inputs
+% The differentiated function has two input parameters, x and a_z.
+% Both are now to become Taylor objects. We set the truncation
+% order to one.
+
+set(tseries2(), 'maxorder', 1);
+
+tx = tseries2(x);
+ta_z = tseries2(a_z);
+
+%%
+% A Taylor object contains the coefficients of the Taylor series up to
+% the truncation order. The coefficients can be accessed by cell-style
+% indexing with braces {}. The k-th entry holds the coefficients of
+% order k-1. For example tx{1} holds the zeroth order coefficient,
+% which is the value and tx{2} holds the first derivative, which is
+% zero be default.
+
+tx{1}
+tx{2}
+
+%% Seeding: Initializing coefficients of independent variables
+% To perform this derivative computation, we have to initialize some
+% of the derivatives, namely those of the input x. We fill these with
+% a derivative direction vector v. Let's choose here the third
+% canonical unit vector.
+
+v = zeros(numel(x), 1);
+v(3) = 1;
+tx{2}(:) = v;
+
+%%
+% ta_z could also be considered a derivative. It holds the adjoint
+% vector y, in the zero-order (value) coefficient, just as a_z
+% does. The first order coefficient of ta_y is zero.
+
+%% Running the function
+% Now we run the function with the Taylor objects.
+
+[ta_x tz] = a_fprod(tx, ta_z)
+
+%% 
+% Both function results are now also Taylor objects.
+
+%% Interpreting the results
+% What do we have obtained now? Well to the easy parts first: We know
+% that in the zero-order fields of the outputs ta_x and tz we will
+% find the same values as in a_x and z. So, in tz{1} the function
+% result, and in a_x{1} the gradient, that is y * J.
+
+assert(isequal(tz{1}, z))
+assert(isequal(ta_x{1}, a_x))
+
+%%
+% Also, we should find the Jacobian-vector product J * v in the first
+% order coefficient of tz. This is the result of the plain forward
+% mode through the Taylor objects. Here, we should find the derivative
+% of z w.r.t. x(3).
+
+tz{2}
+
+%%
+% This leaves us with ta_x{2}, the first order components of ta_x. It
+% is the reverse mode derivative of J*v, which is in z{2}, along
+% direction w. Here, we get the third column (or row) of the Hessian.
+
+ta_x{2}
+
+%%
+% Alternatively, ta_x{2} is the first order derivative of the gradient
+% w * J, which is in ta_x{1}, along direction v. This is the
+% derivative of the gradient w.r.t. x(3).
+
+%                       FM-over-RM AD
+%
+% f(x) REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH- diff. in FM REPLACE_WITH_DASH_DASH-> df(x)/dx * v
+%   |                                      |
+% diff. in                             diff. in
+%   RM                                    RM
+%   |                                      |
+%   v                                      v
+% d w^T*f(x)/dx  REPLACE_WITH_DASH_DASH- diff. in FM REPLACE_WITH_DASH_DASH-> d w^T * (df(x)/dx * v) /dx
+%                                     = d d w^T*f(x)/dx /dx * v
+
+%% Verifying the results
+% We compute the Hessian and gradient with the plain ADiMat driver for
+% Hessians with finite differences.
+adopts = admOptions();
+adopts.functionResults = {z};
+[H grad] = admHessFD(fun, 1, x, adopts);
+assert(isequal(H(:,3), ta_x{2}(:)))
+assert(isequal(H(3,:), ta_x{2}))
+assert(isequal(grad, ta_x{1}))
+
+%%
+% When passing both derivative direction vectors into admHessian it
+% will perform exactly the same computation as we did here manually.
+
+[Hv grad] = admHessian(fun, {a_z(:).', 1, v}, x, adopts);
+assert(isequal(Hv, ta_x{2}(:)))
+
+##### SOURCE END #####
+--></body></html>

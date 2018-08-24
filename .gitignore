@@ -47,3 +47,5 @@ __pycache__
 *.exe
 ba - Copy.txt
 ba-old.txt
+
+.vscode

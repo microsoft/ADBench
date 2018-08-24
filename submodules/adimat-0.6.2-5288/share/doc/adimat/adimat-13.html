@@ -1,0 +1,98 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.72">
+ <TITLE>The ADiMat Handbook: Outlining - Simplifying complex expressions</TITLE>
+ <LINK HREF="adimat-14.html" REL=next>
+ <LINK HREF="adimat-12.html" REL=previous>
+ <LINK HREF="adimat.html#toc13" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="adimat-14.html">Next</A>
+<A HREF="adimat-12.html">Previous</A>
+<A HREF="adimat.html#toc13">Contents</A>
+<HR>
+<H2><A NAME="outlining"></A> <A NAME="s13">13.</A> <A HREF="adimat.html#toc13">Outlining - Simplifying complex expressions</A></H2>
+
+<P>Matlab enables the use of rather complex formula. These expressions are
+unwieldy. ADiMat may break up complex active expressions into many smaller
+expressions, this process is called 'outlining' in contrast to the inlining
+process performed by many compilers. The 'outlined' subexpressions are
+assigned to uniquely generated temporary variables. The temporary variables
+are inserted into the complex expression where the subexpression was removed.
+This process has some advantages:
+<OL>
+<LI> during the computation of the derivatives the differentiated
+expressions are shorter,</LI>
+<LI> the differentiated code is easier to check, and</LI>
+<LI> the time to compute the derivative of an expression is reduced, because
+instead of differentiating an expression a variable is used.</LI>
+</OL>
+
+The decision where to take a subexpression out of the whole expression is made
+by rating each item (variable, operator, ...) of the expression using a cost
+function. If the costs of a subexpression exceed a user-defineable limit, the
+subexpression is outlined. The costs of a subexpression are defined by the
+table given below. The costs of each item where choosen with respect to the
+expected complexity of the derivative expression. The costs do not reflect a
+meassured execution time or likewise. The symbols used in the table are:
+<DL>
+<DT><B>c</B><DD>
+<P>for constant expressions, like numbers or operations that do
+not
+contain an active variable,</P>
+<DT><B>x</B><DD>
+<P>for an active variable,</P>
+<DT><B>u,v,w</B><DD>
+<P>for subexpressions that may contain active variables,</P>
+<DT><B>f()</B><DD>
+<P>for calls to user-defined functions,</P>
+<DT><B>bui()</B><DD>
+<P>for calls to functions that are defined to be built into
+Matlab,</P>
+<DT><B>u<SUB>c</SUB>,v<SUB>c</SUB>,w<SUB>c</SUB></B><DD>
+<P>for the costs of the corresponding
+subexpression,</P>
+<DT><B><EM>infinity</EM></B><DD>
+<P>telling that the coresponding expression is outlined
+where ever it occurs (See below for more information), and </P>
+<DT><B>SUM(i=1..n,expr)</B><DD>
+<P>for the sum of n summands
+of the expressions expr using i for indexing.</P>
+</DL>
+
+<BR><CENTER>
+<TABLE BORDER><TR><TD>
+operation </TD><TD> cost </TD></TR><TR><TD>
+v = c</TD><TD>v<SUB>c</SUB> = 0</TD></TR><TR><TD>
+v = x</TD><TD>v<SUB>c</SUB> = 1</TD></TR><TR><TD>
+v = u &plusmn; w</TD><TD>v<SUB>c</SUB> = u<SUB>c</SUB> + w<SUB>c</SUB></TD></TR><TR><TD>
+v = u * w</TD><TD>v<SUB>c</SUB> = 2 * ( u<SUB>c</SUB> + w<SUB>c</SUB>)</TD></TR><TR><TD>
+</TD><TD>v<SUB>c</SUB> = 4 * ( u<SUB>c</SUB> + w<SUB>c</SUB> )</TD></TR><TR><TD>
+v = u<SUP>c</SUP></TD><TD>v<SUB>c</SUB> = 3 * u<SUB>c</SUB></TD></TR><TR><TD>
+v = u \ w</TD><TD>v<SUB>c</SUB> = <EM>infinity</EM></TD></TR><TR><TD>
+v= f(u<SUB>1</SUB>, ..., u<SUB>n</SUB>)</TD><TD>v<SUB>c</SUB> = <EM>infinity</EM></TD></TR><TR><TD>
+v = bui(u<SUB>1</SUB>, ..., u<SUB>n</SUB>)</TD><TD>v<SUB>c</SUB> =
+SUM(i=1..n,u<SUB>c,i</SUB>)/n
+</TD></TR></TABLE>
+</CENTER><BR>
+
+Two expressions are rated to have infinite costs, because they have to be
+outlined whereever they occur. The backslash operator has to be outlined
+whereever it occurs, because the derivative expression uses the result of the
+original expression y=A\d. The computation of y is
+expensive, because the backslash-operator solves the linear equation
+A*y=d. Reusing the result is recommended therefore. The second expression
+that has to outlined whereever it occurs is the call of a user-defined
+function. The differentiated version of a user-defined function returns the
+double number of active results. A function that returns only one result in
+the original version, returns the original result and a derivative object in
+the differentiated version. To get both results of the differentiated version
+the function has to be called using an expression like [g&thinsp;y, y]=
+g&thinsp;f(...).</P>
+<HR>
+<A HREF="adimat-14.html">Next</A>
+<A HREF="adimat-12.html">Previous</A>
+<A HREF="adimat.html#toc13">Contents</A>
+</BODY>
+</HTML>

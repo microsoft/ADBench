@@ -1,0 +1,213 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.72">
+ <TITLE>The ADiMat Handbook: Usage</TITLE>
+ <LINK HREF="adimat-9.html" REL=next>
+ <LINK HREF="adimat-7.html" REL=previous>
+ <LINK HREF="adimat.html#toc8" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="adimat-9.html">Next</A>
+<A HREF="adimat-7.html">Previous</A>
+<A HREF="adimat.html#toc8">Contents</A>
+<HR>
+<H2><A NAME="usage"></A> <A NAME="s8">8.</A> <A HREF="adimat.html#toc8">Usage</A></H2>
+
+
+<H2><A NAME="toolchains"></A> <A NAME="ss8.1">8.1</A> <A HREF="adimat.html#toc8.1">Modes and Toolchains</A>
+</H2>
+
+<P>ADiMat defines several different modes of source code
+transformation, which are called <I>toolchains</I>. The most prominent
+are the transformation in forward mode and reverse mode of AD, but
+there are others. All can be accessed from within Matlab via the
+admTransform command, from the command line via the adimat-client
+program or via the web interface.</P>
+<P>When you use the admTransform function, give it the name of handle of
+your function and an admOptions structure. In this structure the
+fields <CODE>mode</CODE> and <CODE>toolchain</CODE> allow you to choose the toolchain. The four
+AD transformations are set via the field mode:
+<UL>
+<LI><CODE>'F'</CODE> - perform forward mode AD transformation by the classic ADiMat
+implementation. This is used by <B>admDiffFor</B></LI>
+<LI><CODE>'f'</CODE> - run the toolchain "forward-ad", which perform the new forward
+mode AD transformation, as it is used by <B>admDiffVFor</B></LI>
+<LI><CODE>'r'</CODE> - run the toolchain "reverse-ad", which performs the reverse mode
+AD transformation, as it is used by <B>admDiffRev</B> and <B>admTaylorRev</B></LI>
+<LI><CODE>'t'</CODE> - run the toolchain "taylor-ad", which performs the new forward
+mode AD transformation for progagating univariate Taylor coefficients,
+as it is used by <B>admTaylorFor</B></LI>
+</UL>
+</P>
+<P>The other toolchains are selected by specifying their name, as it
+is given in the list of toolchains (cf. 
+<A HREF="#toolchain_list">List of toolchains</A>). The toolchain name also appears on the
+web interface.</P>
+<P>When using <CODE>adimat-client</CODE>, the four AD modes are selected by
+the short flags <CODE>-F</CODE>, <CODE>-f</CODE>, <CODE>-r</CODE>, and <CODE>-t</CODE>, with the same
+meaning as in the list above. The classic forward mode AD is the
+default, so the <CODE>-F</CODE> flag may be omitted. The other toolchains are
+selected by giving the name to the option <CODE>-T</CODE>.</P>
+<P>On the web interface of the ADiMat transformation server you can
+choose the toolchain in the select field which is in the fieldset
+labeled "Select transformation". Selecting a toolchain will show a
+corresponding fieldset. These will automatically show fields for the
+mandatory parameters. Other parameters can be added by clicking on the
+button "Add a parameter".</P>
+<H2><A NAME="toolchain_list"></A> <A NAME="ss8.2">8.2</A> <A HREF="adimat.html#toc8.2">List of toolchains</A>
+</H2>
+
+<P>This is a provisional list of the most important parameters. For
+more information please refer to the web server interface.
+<DL>
+<DT><B>classic-forward-ad</B><DD>
+<P>
+<A NAME="t_classic-forward-ad"></A> 
+This is used by admDiffFor.<BR>
+ <B>Parameters</B>:
+<DL>
+<DT><B>gradprefix=&lt;PREFIX&gt;</B><DD>
+<P>
+<A NAME="p_gradprefix"></A> 
+This prefix is added to each active variable. The prefix is used for
+variables, when ADiMat is in forward mode (&lt;PREFIX&gt;='g_').</P>
+<DT><B>hessprefix=&lt;PREFIX&gt;</B><DD>
+<P>
+<A NAME="p_hessprefix"></A> 
+If the <CODE>2ndorderfwd</CODE> (
+<A HREF="adimat-9.html#secondorderfwd">2ndorderfwd</A>)
+flag is set, then this prefix is used to preceed the variables that
+store Hessians (&lt;PREFIX&gt;='h_').</P>
+<DT><B>funcprefix=&lt;PREFIX&gt;</B><DD>
+<P>
+<A NAME="p_funcprefix"></A> 
+The prefix is added to each function that is augemented in forward
+mode. There is no distinction between functions that are
+differentiated once or twice. (&lt;PREFIX&gt;='g_')</P>
+</DL>
+</P>
+<DT><B>forward-ad</B><DD>
+<P>
+<A NAME="t_forward-ad"></A> 
+This is used by admDiffVFor.</P>
+<P><B>Parameters</B>:
+<DL>
+<P>
+<A NAME="p_prefix"></A> </P>
+<DT><B>prefix=&lt;d_&gt;</B><DD>
+<P>This prefix is added to each active variable. The prefix is used for
+variables and functions.
+<A NAME="p_forward-deriv-variable-prefix"></A> </P>
+<DT><B>forward-deriv-variable-prefix=&lt;PREFIX&gt;</B><DD>
+<P>The prefix used for differentiated variables (default: &lt;PREFIX&gt;=$prefix).
+<A NAME="p_forward-deriv-function-prefix"></A> </P>
+<DT><B>forward-deriv-function-prefix=&lt;PREFIX&gt;</B><DD>
+<P>The prefix used for differentiated functions (default: &lt;PREFIX&gt;=$prefix).</P>
+<DT><B>use-subsref=&lt;1|0&gt;</B><DD>
+<P>
+<A NAME="p_use-subsref"></A> 
+Set to one to wrap index operations on RHS in calls to the
+adimat_opdiff_subsref function (default: 0). Try to turn this on when
+you get errors regarding dimension mismatches or wrong sizes. However,
+code with this option on is much slower. See
+<A HREF="adimat-16.html#q_how_to_avoid_subsref_subsasgn">How can I avoid having to use subsref and subsasgn</A>.</P>
+<DT><B>use-subsasgn=&lt;1|0&gt;</B><DD>
+<P>
+<A NAME="p_use-subsref"></A> 
+Set to one to wrap assignments to index expressions in calls to the
+adimat_opdiff_subsasgn function (default: 0). Try to turn this on when
+you get errors regarding dimension mismatches or wrong sizes. However,
+code with this option on is much slower. See
+<A HREF="adimat-16.html#q_how_to_avoid_subsref_subsasgn">How can I avoid having to use use-subsref and use-subsasgn</A>.</P>
+</DL>
+</P>
+<DT><B>reverse-ad</B><DD>
+<P>
+<A NAME="t_reverse-ad"></A> 
+This is used by admDiffRev.</P>
+<P><B>Parameters</B>:
+<DL>
+<DT><B>rev-prefix=&lt;a_&gt;</B><DD>
+<P>
+<A NAME="p_rev-prefix"></A> 
+Set the prefix of adjoint functions and variables.</P>
+<DT><B>rec-prefix=&lt;a_&gt;</B><DD>
+<P>
+<A NAME="p_rec-prefix"></A> 
+Set the prefix of recording (forward sweep) functions.</P>
+<DT><B>ret-prefix=&lt;a_&gt;</B><DD>
+<P>
+<A NAME="p_ret-prefix"></A> 
+Set the prefix of returning (reverse sweep) functions.</P>
+</DL>
+</P>
+<DT><B>brackets-to-hvcat</B><DD>
+<P>
+<A NAME="t_brackets-to-hvcat"></A> 
+Translate instances of brackets [] to calls to the functions horzcat and/or vertcat.</P>
+<DT><B>hvcat-to-brackets</B><DD>
+<P>
+<A NAME="t_hvcat-to-brackets"></A> 
+Rewrite calls of functions horzcat and/or vertcat with brackets [].</P>
+<DT><B>ind-to-subs</B><DD>
+<P>
+<A NAME="t_ind-to-subs"></A> 
+Translate index expression to calls to the functions subsref (RHSs) and subsasgn (LHSs).</P>
+<DT><B>for-insert-iteration-indexvar</B><DD>
+<P>
+<A NAME="t_for-insert-iteration-indexvar"></A> 
+Canonicalize for loops to the <CODE>for i=first:last</CODE>.</P>
+<DT><B>null</B><DD>
+<P>
+<A NAME="t_null"></A> 
+Returns the raw XML output of the parser
+in the adimat tool. Results of activity analysis for each variable and
+the function call graph are also included.</P>
+<DT><B>rename</B><DD>
+<P>
+<A NAME="t_rename"></A> 
+Renames all identifiers given by parameter "from" to the value of parameter "to".</P>
+</DL>
+</P>
+<H2><A NAME="parameters"></A> <A NAME="ss8.3">8.3</A> <A HREF="adimat.html#toc8.3">Transformation parameters</A>
+</H2>
+
+<P>ADiMat uses several parameters that can be used to influence
+certain aspects of the source code transformation. The set of
+parameters is different for each transformation toolchain.</P>
+<P>Transformation parameters are set using the sub struct parameters
+of the admOptions structure. This is contructed by the function
+admTransformParameters.
+<PRE>
+adopts = admOptions;
+adopts.parameters.useSubsref = '1';
+</PRE>
+</P>
+<P>Transformation parameters can also be set on the command line of
+adimat-client, by passing a string of the form name=value to the
+option -s, for example like this:
+<PRE>
+adimat-client -f -o- -s use-subsref=1 f.m
+</PRE>
+</P>
+<P>Parameter names are slightly different in both cases: in the
+structure, the parameter names are written in camel-style,
+e.g. "useSubsref", or "printStackInfo". On the command-line, dashed
+style is used instead: "use-subsref", or "print-stack-info".
+Parameter name are translated automatically when the command-line is
+constructed by admTransform.</P>
+<H2><A NAME="parameter_list"></A> <A NAME="ss8.4">8.4</A> <A HREF="adimat.html#toc8.4">List of transformation parameters</A>
+</H2>
+
+<P>This is a provisional list of the most important parameters. For more
+information please refer to the web server interface. For any
+toolchain you select on the web server, when you hit the button "Add a
+parameter", you will see only the parameters that are relevant for
+that toolchain.</P>
+<HR>
+<A HREF="adimat-9.html">Next</A>
+<A HREF="adimat-7.html">Previous</A>
+<A HREF="adimat.html#toc8">Contents</A>
+</BODY>
+</HTML>

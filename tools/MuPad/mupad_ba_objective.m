@@ -22,7 +22,7 @@ function [compressedJ,reproj_err,w_err] = ...
 %         W_ERR 1 x p 
 %               1-w^2 
 
-addpath('awful/matlab');
+addpath('../../submodules/awful/matlab');
 
 n = size(cams,2);
 m = size(X,2);

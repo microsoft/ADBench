@@ -1,0 +1,106 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.72">
+ <TITLE>The ADiMat Handbook: Known bugs and limitations</TITLE>
+ <LINK HREF="adimat-19.html" REL=next>
+ <LINK HREF="adimat-17.html" REL=previous>
+ <LINK HREF="adimat.html#toc18" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="adimat-19.html">Next</A>
+<A HREF="adimat-17.html">Previous</A>
+<A HREF="adimat.html#toc18">Contents</A>
+<HR>
+<H2><A NAME="s18">18.</A> <A HREF="adimat.html#toc18">Known bugs and limitations</A></H2>
+
+<P>
+<DL>
+<P>
+<A NAME="q_repeated_indices"></A> </P>
+<DT><B>Index operations with repeated indices (Rev)</B><DD>
+<P>When using repeated indices in an index expression, for example
+x([2 2 2]), the RM differentiation will return wrong results.
+<A NAME="q_tilde_results"></A> </P>
+<DT><B>Tilde ignored results (For, VFor, Rev)</B><DD>
+<P>Ignoring output arguments using tilde (example: [~, S,
+~] = svd(A)) is not supported because our parser is not able to
+recognize it. Dummy variable names must be used instead: [dummy, S, dummy] = svd(A)
+<A NAME="q_index_assign_from_call"></A> </P>
+<DT><B>Index assignment from a call RHS (For)</B><DD>
+<P>When an index expression x(i) is assigned and the RHS is a
+non-active function call f(...), admDiffFor will afterwards clear the
+entire variable g_x and not just g_x(i). Workaround: use a temporary
+variable, like this:
+<HR>
+<PRE>
+tmp = f(...);
+x(i) = tmp;
+</PRE>
+<HR>
+
+<A NAME="b_diff_interp1_wrt_argi1"></A> </P>
+<DT><B>Although certain builtins are implemented, some partials are still missing (For, VFor, Rev)</B><DD>
+<P>For certain builtins, whos derivative have been added to ADiMat,
+some partials are still missing. This means that you cannot
+differentiate those builtins w.r.t. certain parameters. The partial
+derivatives w.r.t those parameters are treated as zero, and
+unfortunately in most of the cases there will not even be a warning or
+error message. The following list attempts to collect the cases were
+we think that a builtin is differentiable w.r.t a certain parameter
+but the AD modes of ADiMat cannot compute that partial:
+<UL>
+<LI><CODE>norm(., P)</CODE> 
+<P>norm cannot be differentiated w.r.t to the second parameter P (the parameter p of the p-Norm)</P>
+</LI>
+<LI><CODE>interp1(X,.,.,METHOD,.)</CODE> 
+<P>interp1 cannot be differentiated w.r.t to
+the first parameter X (points were values are given) when METHOD is
+not 'linear'</P>
+</LI>
+<LI><CODE>besselh(NU,.,.)</CODE>, <CODE>besseli(NU,.)</CODE>, <CODE>besselj(NU,.)</CODE>,
+<CODE>besselk(NU,.)</CODE>, <CODE>bessely(NU,.)</CODE> 
+<P>Bessel functions cannot be differentiated w.r.t. the
+first parameter NU (order)</P>
+</LI>
+</UL>
+
+<A NAME="b_reuse_indexed_LHS"></A> </P>
+<DT><B>When LHS values are indexed, their reuse in derivative computations fails (For)</B><DD>
+<P>As stated in 
+<A HREF="adimat-16.html#q_placement_of_deriv_stmts">Is the derivative assignment put in front of the orginial expression?</A>
+admDiffFor will in some instances reuse the LHS of an assignment in
+derivative computations, like this:
+<HR>
+<PRE>
+   z= a/ b;
+   g_r(1: l, 1)= (b' \ (g_a' - g_b' * z' ))' ;
+</PRE>
+<HR>
+
+However, when the LHS is an indexed expression the shape of the value
+may implicitly change during the assignment, so that reusing the LHS
+value does not work as expected:
+<HR>
+<PRE>
+   r(:)= a/ b;
+   g_r(1: l, 1)= (b' \ (g_a' - g_b' * r(:)' ))' ;
+</PRE>
+<HR>
+
+The workaround is to introduce a temporary variable, like this:
+<HR>
+<PRE>
+   tmp= a/ b;
+   r(:)= tmp;
+</PRE>
+<HR>
+</P>
+</DL>
+</P>
+<HR>
+<A HREF="adimat-19.html">Next</A>
+<A HREF="adimat-17.html">Previous</A>
+<A HREF="adimat.html#toc18">Contents</A>
+</BODY>
+</HTML>

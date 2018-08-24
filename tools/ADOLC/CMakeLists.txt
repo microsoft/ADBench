@@ -20,19 +20,23 @@ endif()
 set(ADOLC_INCLUDE_DIR "${ADOLC_SRC_DIR}/ADOL-C/include")
 include_directories(${ADOLC_INCLUDE_DIR})
 
-# Build GMM
-add_executable("Tools-ADOLC-GMM-FULL" "main.cpp" "${ADOLC_INCLUDE_DIR}/adolc/adolc.h")
-target_compile_definitions("Tools-ADOLC-GMM-FULL" PUBLIC "DO_GMM_FULL" "DO_CPP")
-target_link_libraries("Tools-ADOLC-GMM-FULL" "${CMAKE_CURRENT_BINARY_DIR}/adol-c/adolc.lib")
+function(build_adolc EXE_NAME)
+	add_executable("Tools-ADOLC-${EXE_NAME}" "main.cpp" "${ADOLC_INCLUDE_DIR}/adolc/adolc.h")
+	target_compile_definitions("Tools-ADOLC-${EXE_NAME}" PUBLIC ${ARGN})
+	target_link_libraries("Tools-ADOLC-${EXE_NAME}" "${CMAKE_CURRENT_BINARY_DIR}/adol-c/adolc.lib")
+endfunction(build_adolc)
 
-add_executable("Tools-ADOLC-GMM-SPLIT" "main.cpp" "${ADOLC_INCLUDE_DIR}/adolc/adolc.h")
-target_compile_definitions("Tools-ADOLC-GMM-SPLIT" PUBLIC "DO_GMM_SPLIT" "DO_CPP")
-target_link_libraries("Tools-ADOLC-GMM-SPLIT" "${CMAKE_CURRENT_BINARY_DIR}/adol-c/adolc.lib")
+build_adolc("GMM-FULL" "DO_GMM_FULL" "DO_CPP")
+build_adolc("GMM-SPLIT" "DO_GMM_SPLIT" "DO_CPP")
 
-# Build BA
-add_executable("Tools-ADOLC-BA" "main.cpp" "${ADOLC_INCLUDE_DIR}/adolc/adolc.h")
-target_compile_definitions("Tools-ADOLC-BA" PUBLIC "DO_BA_BLOCK" "DO_CPP")
-target_link_libraries("Tools-ADOLC-BA" "${CMAKE_CURRENT_BINARY_DIR}/adol-c/adolc.lib")
+build_adolc("BA" "DO_BA_BLOCK" "DO_CPP")
+# build_adolc("BA-Eigen" "DO_BA_BLOCK" "DO_EIGEN")
+# TODO this doesn't work
+
+build_adolc("Hand-Light-simple" "DO_HAND")
+build_adolc("Hand-Light-complicated" "DO_HAND_COMPLICATED")
+build_adolc("Hand-Eigen-simple" "DO_HAND" "DO_EIGEN")
+build_adolc("Hand-Eigen-complicated" "DO_HAND_COMPLICATED" "DO_EIGEN")
 
 # Copy DLL
 file(COPY "${ADOLC_BIN_DIR}/adolc.dll" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")

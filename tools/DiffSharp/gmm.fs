@@ -7,6 +7,7 @@ open MathNet.Numerics
 
 #if MODE_AD
 open DiffSharp.AD
+open DiffSharp.AD.Float64
 #else
 open DiffSharp.AD.Specialized.Reverse1
 #endif

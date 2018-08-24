@@ -1,0 +1,250 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.72">
+ <TITLE>The ADiMat Handbook: The runtime environment</TITLE>
+ <LINK HREF="adimat-7.html" REL=next>
+ <LINK HREF="adimat-5.html" REL=previous>
+ <LINK HREF="adimat.html#toc6" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="adimat-7.html">Next</A>
+<A HREF="adimat-5.html">Previous</A>
+<A HREF="adimat.html#toc6">Contents</A>
+<HR>
+<H2><A NAME="runtime"></A> <A NAME="s6">6.</A> <A HREF="adimat.html#toc6">The runtime environment</A></H2>
+
+<P>ADiMat comes with a set of Matlab functions. The most prominent are
+the derivative classes, which are described in a
+seperate 
+<A HREF="adimat-7.html#derivclass">chapter</A>. In this chapter we
+describe the funtions that make up the ADiMat runtime environment.</P>
+<H2><A NAME="ss6.1">6.1</A> <A HREF="adimat.html#toc6.1">High level user interface functions</A>
+</H2>
+
+<P>
+<DL>
+<DT><B>admDiffFor(function, S, arg1, ..., argN, opts?)</B><DD>
+<P>Differentiate function and compute the product J*S of the Jacobian
+matrix J at arguments arg1, ..., argN and the seed matrix S. The
+computational expense depends linearly on the number of columns of S.</P>
+<P><B>admDiffFor(@f, 1, a, b, c)</B> returns the full Jacobian matrix of
+function f evaluated at the point (a, b, c). The value of 1 for the
+seed matrix is a shortcut for the identity matrix of the right size.</P>
+<P><B>admDiffFor(@f, [1 1 1]', 1, 2, 3)</B> returns the column sum of the
+Jacobian matrix of function f evaluated at the point (1, 2, 3).</P>
+<DT><B>admDiffVFor(function, S, arg1, ..., argN, opts?)</B><DD>
+<P>Differentiate function and compute the product J*S of the Jacobian
+matrix J at arguments arg1, ..., argN and the seed matrix S. The
+computational expense depends linearly on the number of columns of S.</P>
+<P>This function uses the new forward mode. Otherwise the
+functionality is the same.</P>
+<DT><B>admDiffRev(function, S, arg1, ..., argN, opts?)</B><DD>
+<P>Differentiate function in reverse mode and compute the product S*J
+of the the seed matrix S and the Jacobian matrix J at arguments arg1,
+..., argN. The computational expense depends linearly on the number of
+rows of S.</P>
+<P><B>admDiffRev(@f, 1, a, b, c)</B> returns the full Jacobian matrix of
+function f evaluated at the point (a, b, c).</P>
+<P><B>admDiffRev(@f, [1 1 1], 1, 2, 3)</B> returns the row sum of the
+Jacobian matrix of function f evaluated at the point (1, 2, 3).</P>
+<DT><B>admTaylorFor(function, S, arg1, ..., argN, opts?)</B><DD>
+<P>Compute unvariate Taylor coefficients of function, with OO, see
+<A HREF="adimat-4.html#higherOrder">Higher order derivatives</A></P>
+<DT><B>admTaylorFor(function, S, arg1, ..., argN, opts?)</B><DD>
+<P>Compute unvariate Taylor coefficients of function, with FM ST, see
+<A HREF="adimat-4.html#higherOrder">Higher order derivatives</A></P>
+<DT><B>admTaylorRev(function, S, arg1, ..., argN, opts?)</B><DD>
+<P>Compute derivatives of unvariate Taylor coefficients of function,
+with OO applyied to function differentiated in RM, see
+<A HREF="adimat-4.html#higherOrder">Higher order derivatives</A></P>
+<DT><B>admHessian(function, S, arg1, ..., argN, opts?)</B><DD>
+<P>Compute Hessian of function, using one of several strategies, by
+default FM-over-RM, see
+<A HREF="adimat-4.html#higherOrder">Higher order derivatives</A></P>
+
+<DT><B>admHessFor(function, S, arg1, ..., argN, opts?)</B><DD>
+
+<DT><B>admHessVFor(function, S, arg1, ..., argN, opts?)</B><DD>
+
+<DT><B>admHessFD(function, S, arg1, ..., argN, opts?)</B><DD>
+<P>Compute Hessian of function via second order Taylor coefficients,
+see 
+<A HREF="adimat-4.html#higherOrder">Higher order derivatives</A></P>
+<DT><B>admDiffFor2(function, S, arg1, ..., argN, opts?)</B><DD>
+<P>Compute Hessian of function via second order FM differntiation,
+see 
+<A HREF="adimat-4.html#higherOrder">Higher order derivatives</A></P>
+<DT><B>admDiffComplex(function, S, arg1, ..., argN, opts?)</B><DD>
+<P>Differentiate function and compute the product J*S of the Jacobian
+matrix J at arguments arg1, ..., argN and the seed matrix S. The
+computational expense depends linearly on the number of columns of S.</P>
+<P>This function does not do AD at all, but instead uses the so called
+complex variable method to compute derivatives. The results are
+equally precise as those returned by AD, provided the function is real
+and analytic. This functions is provided in order to facilitate the
+comparison of AD results with the complex variable method.</P>
+<DT><B>admDiffFD(function, S, arg1, ..., argN, opts?)</B><DD>
+<P>Differentiate function and compute the product J*S of the Jacobian
+matrix J at arguments arg1, ..., argN and the seed matrix S. The
+computational expense depends linearly on the number of columns of S.</P>
+<P>This function does not do AD at all, but instead uses divided
+differences to evaluate the derivatives approximately. The results are
+at best precise up to half of the machines matissa bits, but may be
+less precise when the differential step h is chosen carefully. Use the
+field ddStep of the admOptions structure to adjust the differential
+step h to your function. This functions is provided in order to
+facilitate the comparison of AD results with divided differences.
+<A NAME="admOptions"></A> </P>
+<DT><B>admOptions(name1?, value1?, name2?, value2?, ...)</B><DD>
+<P>Create a structure that can be used to pass options to the admDiff*
+functions, as the last parameter, called <CODE>opts</CODE> in the synopses
+above.</P>
+</DL>
+</P>
+<H2><A NAME="ss6.2">6.2</A> <A HREF="adimat.html#toc6.2">Interfaces to program transformation</A>
+</H2>
+
+<P>
+<DL>
+<P>
+<A NAME="admTransform"></A> </P>
+<DT><B>admTransform(function, indeps, deps, flags)</B><DD>
+<P>Matlab frontend to <B>adimat-client</B> (or <B>admproc</B>, if
+present). Differentiate <CODE>function</CODE> using ADiMat. <CODE>function</CODE> can
+be a filename as a string or a function handle. <CODE>flags</CODE> is a string
+which is added to the adimat-client command line. <CODE>indeps</CODE> and
+<CODE>deps</CODE> are strings containing comma separated lists of variable
+names or positions.</P>
+<P>admTransform works by executing the program adimat-client (or
+admproc, if present) via the <B>system</B> builtin. The builtin
+<B>which</B> is used to determine the path and filename of
+function. admTransform will automatically add the options -I and -p
+with appropriate arguments to the command line, for adding the
+directory where the file resides to ADiMat's search path and writing
+the transformed file to the same directory. You can override the
+output directory by providing your own -p option in flags.</P>
+<P><B>admTransform(function)</B> transforms the function in classic
+forward mode.</P>
+<P><B>admTransform(function, indeps, deps, '-F')</B> is the same.</P>
+<P><B>admTransform(function, indeps, deps, '-f')</B> transforms the
+function in the new forward mode.</P>
+<P><B>admTransform(function, indeps, deps, '-r')</B> transforms the
+function in the reverse mode.</P>
+<P><B>admTransform(function, [1], [2], mode)</B> transforms the function
+such that you can compute the derivative of the second output
+parameter w.r.t. the first input parameter of the function.</P>
+<DT><B>addiff(function, indeps, deps, flags)</B><DD>
+<P>Deprecated: This function is now just a synonym for admTransform.</P>
+<DT><B>admrev(function, indeps, deps, flags)</B><DD>
+<P>Deprecated: This function is now just a synonym for admTransform.
+<A NAME="admClean"></A> </P>
+<DT><B>admClean(baseDir?, modes?)</B><DD>
+<P>This function deletes the ADiMat-generated functions from the
+directory <CODE>baseDir</CODE>. With the string <CODE>modes</CODE> you can choose
+which kind of files will be deleted. The letters in the string
+correspond to the mode flags (see 
+<A HREF="adimat-8.html#toolchains">Modes and toolchains</A>), plus <CODE>'s'</CODE> which refers to the status directory
+<CODE>.adimat</CODE>.</P>
+<P>Warning: Use this function with some care as the file name patterns
+might also match some other files!</P>
+</DL>
+</P>
+<H2><A NAME="runtime_classes"></A> <A NAME="ss6.3">6.3</A> <A HREF="adimat.html#toc6.3">Derivative and adjoint classes </A>
+</H2>
+
+<P>
+<DL>
+<DT><B>adimat_derivclass(name)</B><DD>
+<P>
+<A NAME="adimat_derivclass"></A> </P>
+<P>Select the derivative class. This merely modifies the Matlab
+path. For a description of the classes, see 
+<A HREF="adimat-7.html#derivclass">The derivative classes</A>. If <CODE>name</CODE> is the string 'list', a
+list of available classes is returned. With no argument, the name of
+the currently loaded derivative class is returned.</P>
+<DT><B>adimat_adjoint(name)</B><DD>
+<P>Select the adjoint class. This merely modifies the Matlab
+path. There are two options, 'default' and 'scalar'. With no
+argument, the name of the currently loaded adjoint class is returned.
+<A NAME="g_zeros"></A> </P>
+<DT><B>g_zeros(sz)</B><DD>
+<P>This is the most prominent runtime function found in the
+transformed source code. Returns zero derivative objects of dimension
+sz of the derivative class that is currently in use (see adimat_derivclass). In the case of
+scalar_directderivs, simply returns zeros(sz), i.e. a plain double
+array.</P>
+<DT><B>a_zeros(v)</B><DD>
+<P>When adimat_adjoint is 'default', then returns g_zeros(size(v)) to
+return zero adjoint objects. When adimat_adjoint is 'scalar' then
+returns zeros(size(v)), i.e. a plain double array.</P>
+</DL>
+</P>
+<H2><A NAME="runtime_stacks"></A> <A NAME="ss6.4">6.4</A> <A HREF="adimat.html#toc6.4">Stacks for the reverse mode </A>
+</H2>
+
+<P>
+<DL>
+<DT><B>adimat_stack(name)</B><DD>
+<P>Select the stack implementation. All stacks are implemented via a
+single function adimat_store. This function switches the path to
+various directories where different implementations of adimat_store
+reside. If <CODE>name</CODE> is the string 'list', a list of available
+impletations is returned. With no argument, the name of the currently
+loaded stack is returned.</P>
+<DT><B>adimat_push(v1, ...)</B><DD>
+<P>Push values on the stack. Takes any number of arguments.</P>
+<DT><B>[v1, ...] = adimat_pop</B><DD>
+<P>Pop values from the stack. Returns any number of output arguments,
+but one value is always removed from the stack.</P>
+<DT><B>adimat_store(mode, v?)</B><DD>
+<P>Operate on the stack according to mode:
+<UL>
+<LI> 0 pop one value and return it</LI>
+<LI> 1 push value v on the stack, return number of values on stack</LI>
+<LI> 2 clear the stack, delete all values, return number of values on stack</LI>
+<LI> 3 return size of stack</LI>
+<LI> 4 return size of stack in bytes. Not always available, maybe 0.</LI>
+<LI> 5 flush the stack to disk. Not always available.</LI>
+<LI> 6 return size of stack stored on disk, in bytes. Not always available, maybe 0.</LI>
+</UL>
+</P>
+<DT><B>adimat_clear_stack</B><DD>
+<P>Calls adimat_store(2)</P>
+<DT><B>adimat_stack_size</B><DD>
+<P>Calls adimat_store(3)</P>
+<DT><B>adimat_stack_byte_size</B><DD>
+<P>Calls adimat_store(4)</P>
+<DT><B>adimat_stack_file_size</B><DD>
+<P>Calls adimat_store(6)</P>
+<DT><B>adimat_flush_stack</B><DD>
+<P>Calls adimat_store(5)</P>
+<DT><B>adimat_stack_buffer_size(bytes)</B><DD>
+<P>Sets the size of the buffer used by the stack implementations with
+"buffered" in their name.</P>
+<DT><B>adimat_aio_init(numThreads, numBuffers)</B><DD>
+<P>Sets the parameters of the aio.h API calling aio_init. Used by the
+stack implementations with "abuffered" in their name.</P>
+<DT><B>adimat_stack_prefetch(n)</B><DD>
+<P>Sets a parameter of the aio.h based streambuffer, controlling how
+many preceding blocks of memory to prefetch when a read is being
+waited for.</P>
+</DL>
+</P>
+<H2><A NAME="ss6.5">6.5</A> <A HREF="adimat.html#toc6.5">Other helper functions for the reverse mode</A>
+</H2>
+
+<P>
+<DL>
+<DT><B>adimat_adjred</B><DD>
+
+<DT><B>adimat_multl, adimat_multm and adimat_multlr</B><DD>
+
+</DL>
+</P>
+<HR>
+<A HREF="adimat-7.html">Next</A>
+<A HREF="adimat-5.html">Previous</A>
+<A HREF="adimat.html#toc6">Contents</A>
+</BODY>
+</HTML>

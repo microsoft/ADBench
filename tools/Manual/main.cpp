@@ -39,9 +39,8 @@ using namespace std::chrono;
 
 #ifdef DO_GMM
 void test_gmm(const string& fn_in, const string& fn_out,
-  int nruns_f, int nruns_J, bool replicate_point)
+  int nruns_f, int nruns_J, double time_limit, bool replicate_point)
 {
-	//cout << "  GMM\n";
   int d, k, n;
   vector<double> alphas, means, icf, x;
   double err;
@@ -58,31 +57,20 @@ void test_gmm(const string& fn_in, const string& fn_out,
   vector<double> J(Jcols);
 
   // Test
-  high_resolution_clock::time_point start, end;
-  double tf, tJ = 0.;
+  double tf = timer(nruns_f, time_limit, [&]() {
+	  gmm_objective(d, k, n, alphas.data(), means.data(),
+		  icf.data(), x.data(), wishart, &err);
+  });
+  cout << "err: " << err << endl;
 
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_f; i++)
-  {
-    gmm_objective(d, k, n, alphas.data(), means.data(),
-      icf.data(), x.data(), wishart, &err);
-  }
-  end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
-  cout << "        err: " << err << endl;
-
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_J; i++)
-  {
-    gmm_objective_d(d, k, n, alphas.data(), means.data(),
-      icf.data(), x.data(), wishart, &err, J.data());
-  }
-  end = high_resolution_clock::now();
-  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
-  cout << "        err: " << err << endl;
+  double tJ = timer(nruns_J, time_limit, [&]() {
+	  gmm_objective_d(d, k, n, alphas.data(), means.data(),
+		  icf.data(), x.data(), wishart, &err, J.data());
+  });
+  cout << "err: " << err << endl;
 
 #ifdef DO_CPP
-  string name("manual_cpp");
+  string name("manual");
 #elif defined DO_EIGEN
   string name("manual_eigen");
 #elif defined DO_EIGEN_VECTOR
@@ -90,7 +78,6 @@ void test_gmm(const string& fn_in, const string& fn_out,
 #else
   string name("manual");
 #endif
-  cout << "        ";
   write_J(fn_out + "_J_" + name + ".txt", Jrows, Jcols, J.data());
   //write_times(tf, tJ);
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
@@ -108,7 +95,8 @@ void compute_ba_J(int n, int m, int p, double *cams, double *X,
   vector<double> reproj_err_d(2 * n_new_cols);
   for (int i = 0; i < p; i++)
   {
-    memset(reproj_err_d.data(), 0, 2 * n_new_cols*sizeof(double));
+	std::fill(reproj_err_d.begin(), reproj_err_d.end(), (double)0);
+    //memset(reproj_err_d.data(), 0, 2 * n_new_cols*sizeof(double));
 
     int camIdx = obs[2 * i + 0];
     int ptIdx = obs[2 * i + 1];
@@ -133,13 +121,12 @@ void compute_ba_J(int n, int m, int p, double *cams, double *X,
 }
 
 void test_ba(const string& fn_in, const string& fn_out,
-  int nruns_f, int nruns_J)
+  int nruns_f, int nruns_J, double time_limit)
 {
-	//cout << "  BA\n";
   int n, m, p;
   vector<double> cams, X, w, feats;
   vector<int> obs;
-  cout << "        ";
+
   read_ba_instance(fn_in + ".txt", n, m, p,
     cams, X, w, obs, feats);
 
@@ -147,33 +134,21 @@ void test_ba(const string& fn_in, const string& fn_out,
   vector<double> w_err(p);
   BASparseMat J(n,m,p);
 
-  high_resolution_clock::time_point start, end;
-  double tf = 0., tJ = 0.;
+  double tf = timer(nruns_f, time_limit, [&]() {
+	  ba_objective(n, m, p, cams.data(), X.data(), w.data(),
+		  obs.data(), feats.data(), reproj_err.data(), w_err.data());
+  });
 
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_f; i++)
-  {
-    ba_objective(n, m, p, cams.data(), X.data(), w.data(),
-      obs.data(), feats.data(), reproj_err.data(), w_err.data());
-  }
-  end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
-
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_J; i++)
-  {
-    compute_ba_J(n, m, p, cams.data(), X.data(), w.data(), obs.data(), 
-      feats.data(), reproj_err.data(), w_err.data(), J);
-  }
-  end = high_resolution_clock::now();
-  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
+  double tJ = timer(nruns_J, time_limit, [&]() {
+	  compute_ba_J(n, m, p, cams.data(), X.data(), w.data(), obs.data(),
+		  feats.data(), reproj_err.data(), w_err.data(), J);
+  });
 
 #ifdef DO_EIGEN
   string name("manual_eigen");
 #else
-  string name("manual_cpp");
+  string name("manual");
 #endif
-  cout << "        ";
   write_J_sparse(fn_out + "_J_" + name + ".txt", J);
   write_times(tf, tJ);
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
@@ -183,36 +158,33 @@ void test_ba(const string& fn_in, const string& fn_out,
 
 #if defined DO_HAND
 void test_hand(const string& model_dir, const string& fn_in, const string& fn_out,
-  int nruns_f, int nruns_J)
+  int nruns_f, int nruns_J, double time_limit)
 {
   vector<double> theta;
+#ifdef DO_EIGEN
+  HandDataEigen data;
+#else
   HandDataLightMatrix data;
+#endif
 
   read_hand_instance(model_dir, fn_in + ".txt", &theta, &data);
 
   vector<double> err(3 * data.correspondences.size());
   vector<double> J(err.size() * theta.size());
 
-  high_resolution_clock::time_point start, end;
-  double tf = 0., tJ = 0;
+  double tf = timer(nruns_f, time_limit, [&]() {
+	  hand_objective(&theta[0], data, &err[0]);
+  });
 
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_f; i++)
-  {
-    hand_objective(&theta[0], data, &err[0]);
-  }
-  end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
+  double tJ = timer(nruns_J, time_limit, [&]() {
+	  hand_objective_d(&theta[0], data, &err[0], &J[0]);
+  });
 
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_J; i++)
-  {
-    hand_objective_d(&theta[0], data, &err[0], &J[0]);
-  }
-  end = high_resolution_clock::now();
-  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
-
+#ifdef DO_EIGEN
   string name = "manual_eigen";
+#else
+  string name = "manual_light";
+#endif
 
   write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), (int)theta.size(), &J[0]);
   //write_times(tf, tJ);
@@ -221,36 +193,33 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
 
 #elif defined DO_HAND_COMPLICATED
 void test_hand(const string& model_dir, const string& fn_in, const string& fn_out,
-  int nruns_f, int nruns_J)
+  int nruns_f, int nruns_J, double time_limit)
 {
   vector<double> theta, us;
+#ifdef DO_EIGEN
   HandDataEigen data;
+#else
+  HandDataLightMatrix data;
+#endif
 
   read_hand_instance(model_dir, fn_in + ".txt", &theta, &data, &us);
 
   vector<double> err(3 * data.correspondences.size());
   vector<double> J(err.size() * (2+theta.size()));
 
-  high_resolution_clock::time_point start, end;
-  double tf = 0., tJ = 0;
+  double tf = timer(nruns_f, time_limit, [&]() {
+	  hand_objective(&theta[0], &us[0], data, &err[0]);
+  });
 
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_f; i++)
-  {
-    hand_objective(&theta[0], &us[0], data, &err[0]);
-  }
-  end = high_resolution_clock::now();
-  tf = duration_cast<duration<double>>(end - start).count() / nruns_f;
+  double tJ = timer(nruns_J, time_limit, [&]() {
+	  hand_objective_d(&theta[0], &us[0], data, &err[0], &J[0]);
+  });
 
-  start = high_resolution_clock::now();
-  for (int i = 0; i < nruns_J; i++)
-  {
-    hand_objective_d(&theta[0], &us[0], data, &err[0], &J[0]);
-  }
-  end = high_resolution_clock::now();
-  tJ = duration_cast<duration<double>>(end - start).count() / nruns_J;
-
+#ifdef DO_EIGEN
   string name = "manual_eigen";
+#else
+  string name = "manual_light";
+#endif
 
   write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), 2+(int)theta.size(), &J[0]);
   //write_times(tf, tJ);
@@ -275,8 +244,6 @@ char* defaults[] = {
 
 int main(int argc, char *argv[])
 {
-	//std::cout << "-Manual\n";
-	
 	if (argc < 2) {
 		argc = 6;
 		argv = defaults;
@@ -291,19 +258,22 @@ int main(int argc, char *argv[])
 	string fn(argv[3]);
 	int nruns_f = std::stoi(string(argv[4]));
     int nruns_J = std::stoi(string(argv[5]));
+	double time_limit;
+	if (argc >= 7) time_limit = std::stod(string(argv[6]));
+	else time_limit = std::numeric_limits<double>::infinity();
 
   // read only 1 point and replicate it?
   bool replicate_point = (argc > 6 && string(argv[6]).compare("-rep") == 0);
 
 #ifdef DO_GMM
-  test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, replicate_point);
+  test_gmm(dir_in + fn, dir_out + fn, nruns_f, nruns_J, time_limit, replicate_point);
 #endif
 
 #if defined DO_BA
-  test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J);
+  test_ba(dir_in + fn, dir_out + fn, nruns_f, nruns_J, time_limit);
 #endif
 
 #if defined DO_HAND || defined DO_HAND_COMPLICATED
-  test_hand(dir_in + "hand/model/", dir_in + fn, dir_out + fn, nruns_f, nruns_J);
+  test_hand(dir_in + "model/", dir_in + fn, dir_out + fn, nruns_f, nruns_J, time_limit);
 #endif
 }

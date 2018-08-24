@@ -12,7 +12,10 @@ import theano.ifelse
 import theano.compile
 import theano.compile.mode
 
-import gmm_io
+sys.path.append(sys.path[0] + ("/" if sys.path[0] else None) + "..")
+from python_common import utils
+from python_common import gmm_io
+
 
 ############## Objective in theano ##################
 
@@ -173,6 +176,4 @@ for task_id in range(ntasks):
         tJ = ((end - start)/nruns_J) + tf ###!!!!!!!!! adding this because no function value is returned by fgrad
         gmm_io.write_J(fn_out + "_J_" + name + ".txt",J)    
     
-    gmm_io.write_times(fn_out + "_times_" + name + ".txt",tf,tJ)
-
-
+    utils.write_times(fn_out + "_times_" + name + ".txt",tf,tJ)

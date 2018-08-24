@@ -6,6 +6,9 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <functional>
+#include <limits>
+#include <chrono>
 
 #ifdef DO_EIGEN
 #include <Eigen/Dense>
@@ -22,6 +25,7 @@ using std::endl;
 using std::string;
 using std::vector;
 using std::getline;
+using namespace std::chrono;
 
 
 typedef struct { int verts[3]; } Triangle;
@@ -330,9 +334,9 @@ void write_J(const string& fn, int Jrows, int Jcols, double *J)
 
 void write_times(double tf, double tJ)
 {
-  cout << "    tf = " << std::scientific << tf << "s" << endl;
-  cout << "    tJ = " << tJ << "s" << endl;
-  cout << "    tJ/tf = " << tJ / tf << "s" << endl;
+  cout << "tf = " << std::scientific << tf << "s" << endl;
+  cout << "tJ = " << tJ << "s" << endl;
+  cout << "tJ/tf = " << tJ / tf << "s" << endl;
 }
 
 void write_times(const string& fn, double tf, double tJ, double *t_sparsity = nullptr)
@@ -625,4 +629,28 @@ void read_hand_instance(const string& model_dir, const string& fn_in,
     in >> (*theta)[i];
   }
   in.close();
+}
+
+
+
+
+
+// Time a function
+double timer(int nruns, double limit, std::function<void()> func) {
+	if (limit < 0) limit = std::numeric_limits<double>::max();
+
+	double total = 0;
+	int i = 0;
+	while (i < nruns && total < limit) {
+		high_resolution_clock::time_point start = high_resolution_clock::now();
+		func();
+		high_resolution_clock::time_point end = high_resolution_clock::now();
+		total += duration_cast<duration<double>>(end - start).count();
+		i++;
+	}
+
+	if (i < nruns) std::cout << "Hit time limit after " << i << " loops" << endl;
+
+	if (i > 0) return total / i;
+	else return 0;
 }

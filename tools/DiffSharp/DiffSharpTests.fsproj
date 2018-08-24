@@ -1,0 +1,83 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net461</TargetFramework>
+	<DefineConstants>TRACE;MODE_AD</DefineConstants>
+  </PropertyGroup>
+  
+  <!-- Different configurations for different tests -->
+  
+  <!-- GMM Full -->
+  
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug-GMMFull'">
+    <AssemblyName>Tools-DiffSharp-GMM-FULL</AssemblyName>
+	<DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <Tailcalls>false</Tailcalls>
+	<DefineConstants>TRACE;MODE_AD;DEBUG;DO_GMM_FULL</DefineConstants>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)' == 'Release-GMMFull'">
+    <AssemblyName>Tools-DiffSharp-GMM-FULL</AssemblyName>
+	<DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <Tailcalls>true</Tailcalls>
+	<DefineConstants>TRACE;MODE_AD;DO_GMM_FULL</DefineConstants>
+  </PropertyGroup>
+  
+  <!-- GMM Split -->
+  
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug-GMMSplit'">
+    <AssemblyName>Tools-DiffSharp-GMM-SPLIT</AssemblyName>
+	<DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <Tailcalls>false</Tailcalls>
+	<DefineConstants>TRACE;MODE_AD;DEBUG;DO_GMM_SPLIT</DefineConstants>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)' == 'Release-GMMSplit'">
+    <AssemblyName>Tools-DiffSharp-GMM-SPLIT</AssemblyName>
+	<DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <Tailcalls>true</Tailcalls>
+	<DefineConstants>TRACE;MODE_AD;DO_GMM_SPLIT</DefineConstants>
+  </PropertyGroup>
+  
+  <!-- BA -->
+  
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug-BA'">
+    <AssemblyName>Tools-DiffSharp-BA</AssemblyName>
+	<DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <Tailcalls>false</Tailcalls>
+	<DefineConstants>TRACE;MODE_AD;DEBUG;DO_BA</DefineConstants>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)' == 'Release-BA'">
+    <AssemblyName>Tools-DiffSharp-BA</AssemblyName>
+	<DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <Tailcalls>true</Tailcalls>
+	<DefineConstants>TRACE;MODE_AD;DO_BA</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+	<Compile Include="ba.fs" />
+	<Compile Include="gmm.fs" />
+	<Compile Include="hand.fs" />
+	<Compile Include="hand_d.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DiffSharp" Version="0.7.7" />
+    <PackageReference Include="FsAlg" Version="0.5.13" />
+    <PackageReference Include="FSharp.Quotations.Evaluator" Version="1.1.2" />
+    <PackageReference Include="MathNet.Numerics" Version="4.5.1" />
+    <PackageReference Include="MathNet.Numerics.FSharp" Version="4.5.1" />
+  </ItemGroup>
+</Project>

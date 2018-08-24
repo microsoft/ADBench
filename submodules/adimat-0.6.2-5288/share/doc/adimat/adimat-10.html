@@ -1,0 +1,408 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.72">
+ <TITLE>The ADiMat Handbook: Directives</TITLE>
+ <LINK HREF="adimat-11.html" REL=next>
+ <LINK HREF="adimat-9.html" REL=previous>
+ <LINK HREF="adimat.html#toc10" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="adimat-11.html">Next</A>
+<A HREF="adimat-9.html">Previous</A>
+<A HREF="adimat.html#toc10">Contents</A>
+<HR>
+<H2><A NAME="directives"></A> <A NAME="s10">10.</A> <A HREF="adimat.html#toc10">Directives</A></H2>
+
+<P>ADiMat uses command line options or directives within the parsed sources to
+configure its behavior. In section 
+<A HREF="adimat-8.html#usage">Usage</A>
+options are described in greater detail.</P>
+<H2><A NAME="adimat_directives"></A> <A NAME="ss10.1">10.1</A> <A HREF="adimat.html#toc10.1">adimat Directives</A>
+</H2>
+
+<P>Directives are Matlab-comments starting with the keyword 'ADiMat'. A directive
+is used to manipulate the behaviour of ADiMat during its run. Nearly all
+directives may appear anywhere in the code. The expections from this rule are
+the directives starting with the prefix 'AD_'. They have to appear in the
+first input file given to ADiMat. An occurrence in any additional file is not
+forbidden, but does not make any sense.
+Directives used to switch a specific feature on or off are named together,
+seperating them using a commata. Some features of ADiMat may be selected
+using a command line option or a directive. The directive overrides the
+command line option in every case. The corresponding command line option is
+named with its directive, respectively. The directives available are:
+<BLOCKQUOTE><CODE>
+<DL>
+<DT><B>AD_TOP=&lt;FUNCNAME&gt;</B><DD>
+<P>The name of the function to differentiate. The function has to be called in
+the current file using the variables defined as independent or dependent ones
+using the AD_IVARS- and AD_DVARS-directives, respectively.</P>
+<DT><B>AD_IVARS=&lt;IVARLIST&gt;</B><DD>
+<P>Specifies the list of independent variables. The variables with which a
+function is differentiated with respect to are called independent variables.
+Multiple variables may be named here using a commata ',' to seperate them.</P>
+<DT><B>AD_IVAR=&lt;IVAR&gt;</B><DD>
+<P>A synonym for the above directive which can be used in the case of a
+single variable being specified. ADiMat will also accept a list
+though, it does not engange in english grammar checking.</P>
+<DT><B>AD_INDEPENDENT=&lt;IVARLIST&gt;</B><DD>
+<P>A synonym for the two above directives.</P>
+<DT><B>AD_DVARS=&lt;DVARLIST&gt;</B><DD>
+<P>Specifies the list of output variables of the top-level function for which
+derivatives are sought. More than one variable may be named by seperating each
+using a commata ','.</P>
+<DT><B>AD_DVAR=&lt;DVAR&gt;</B><DD>
+<P>A synonym for the above directive which can be used in the case of a
+single variable being specified. ADiMat will also accept a list
+though, it does not engange in english grammar checking.</P>
+<DT><B>AD_DEPENDENT=&lt;DVARLIST&gt;</B><DD>
+<P>A synonym for the two above directives.</P>
+<DT><B>AD_OUTPUT_DIR="&lt;OUTPUTDIR&gt;"</B><DD>
+<P>All files that are written by ADiMat will be created in the directory given by
+&lt;OUTPUTDIR&gt;. Please note the double quotes around the &lt;OUTPUTDIR&gt;.
+These are mandatory, because without them a slash within the directory would
+be considered to be the division-operator. The directive is only usefull in
+the first file of the current project to differentiate. It is optional, but
+overrides the '-p' or '--outputdir' flag of the commandline.</P>
+<DT><B>GLOBAL FORWARDMODE, GLOBAL FORWARD-MODE</B><DD>
+<P>Select the forward mode of automatic differentiation. Currently this flag has
+a global scope, that is, specifying it anywhere will switch the mode of
+differentitation of the current project to forward mode. Until now no
+alternative modes are implemented, the directive may be obmitted therefore.
+But it is considered good style to specify it, if a project is to be
+differentiated using forward mode anytime. The command line switches overriden
+by this directive are: '-f', '--forward-mode', '-r', '--reverse-mode', '-m'
+and '--hybrid-mode'.</P>
+<DT><B>GLOBAL REVERSEMODE, GLOBAL REVERSE-MODE</B><DD>
+<P>This directive is non-functional currently. The reverse mode of automatic
+differentiation is not implemented yet. Specifying this flag, yields a
+warning, but ADiMat continues to differentiate the current project using the
+forward mode.The command line switches overriden by this directive are: '-f',
+'--forward-mode', '-r', '--reverse-mode', '-m' and '--hybrid-mode'.</P>
+<DT><B>GLOBAL HYBRIDMODE, GLOBAL HYBRID-MODE</B><DD>
+<P>Same like reverse mode. Not implemented yet. Specifying it, results in a
+warning. The command line switches overriden by this directive are: '-f',
+'--forward-mode', '-r', '--reverse-mode', '-m' and '--hybrid-mode'.</P>
+<DT><B>GLOBAL NOFORWARDVARRESOLVE, GLOBAL FORWARDVARRESOLVE</B><DD>
+<P>This directive is implemented for highly sophisticated code (also called
+<I>bad style code</I>). In Matlab it is possible to use an identifier as a
+function and
+later on to denote a variable. This is considered bad style, but supported by
+ADiMat. The standard behaviour of ADiMat is to look forward in the parsed code
+to find a defining occurrence of an identifier (that is, a left-hand side
+occurrence of a variable). That is, in the example 'b=a; a=3;' ADiMat will
+treat the first 'a' like the second one, allthough 'a' was not defined before
+first use. A warning will be issued. Note, it may not be an error that a
+variable occurs in a using context before it is defined, think about an
+'if then else'- construct, where the variable is defined in the else part
+and used only in the then part. For common codes the directive
+'GLOBAL FORWARDVARRESOLVE' is suitable, which is the default. If a code
+fails to be parsed, because of problems during the identification of the
+identifiers, try this directive. This directive overrides the command line
+option '--noforwardvarresolve'.</P>
+<DT><B>GLOBAL WRITESCOPEFILE</B><DD>
+<P>Write the file '&lt;OUTPUTDIR&gt;/adimat.dbg' which contains debuging
+information about the binding of identifiers. This directive is for debugging
+use only.</P>
+<DT><B>GLOBAL NOBUILTINS</B><DD>
+<P>Switch off the builtin system. This is no good idea! Specifying this option
+hinders ADiMat's use of derivative information stored in the database. None
+of
+the hunderts of builtin Matlab-functions will get differentiated, nor is it
+possible to specify 
+<A HREF="adimat-14.html#BMFUNC">BMFUNC ...</A> directives.</P>
+<DT><B>GLOBAL NOLOCALMFILES, GLOBAL LOCALMFILES</B><DD>
+<P>Matlab allows two sorts of files. Files containing a function and files
+containing statements only. The former kind is not affected by this directive,
+but the later. A statement file (called m-file here) causes a problem, when
+called from more than one function. Different sets of variables may be active.
+If the directive 'LOCALMFILES' is used, which is the default, each m-file will
+be duplicated each time it is called from a function and the name of the
+calling function is concatenated to the m-file name. This localises the m-file
+and enables correct identification of the identifiers within the file. This
+techinque is in alpha-state and therefore not applicable every time. If ADiMat
+complains about missing identifiers and the project contains an m-file, then
+the directive 'GLOBAL NOLOCALMFILES' may solve the problem. This directive
+overrides the command line option '--nolocalmfiles'.</P>
+<DT><B>GLOBAL ENVOUTPUT</B><DD>
+<P>Each identifier in the whole program is augmented with information of its
+state within ADiMat. The output-files produced by ADiMat are no longer valid
+Matlab-files. The directive is for debuging purpose only.</P>
+<DT><B>GLOBAL NOOPEROPTIM, GLOBAL OPEROPTIM</B><DD>
+<P>These directives disable/ enable the use of an optimisation, if a binary
+operator is used more than once successively to compute a derivative. Assume
+the expression a* b* c is to be differentiated with respect to all three
+variables. If the flag NOOPEROPTIM is set, then the derivative looks like
+this: g_a* b* c+ a* g_b* c+ a* b *g_c. This code is not very efficient,
+because each multiplication of a derivative object g_? with any over object
+executes a loop for each operator. That is, for the example above 7 loops are
+executed (the product of a* b contains no derivative object and no loop
+therefore). Using the flag OPEROPTIM the above derivative expression will be
+replaced with a function call and the number of loops executed will be
+decreased significantly (currently five loops are executed, but in future
+versions only one loop may be executed). The default is to use OPEROPTIM, the
+ability to switch of the optimization of operator differentiation is merely a
+tool for performance-meassurement. This directive overrides the command line
+option '--nooperoptim'.</P>
+<DT><B>GLOBAL NOLOCALCSE, GLOBAL LOCALCSE</B><DD>
+<P>
+<A NAME="globalnolocalcse"></A> 
+Dis-/Enables local common subexpression elimination (cse). The transformation
+is applied to all files if this statement is encountered anywhere. During the
+canonicalisation step ADiMat may encounter that one subexpression is evaluated
+several times. The code is transformed in a way that the subexpression is
+evaluated only once and stored in a temporary variable. The temporary variable
+is inserted into the code where a reevaluation of the subexpression would have
+occurred. This directive switches off/on the optimization strategy. This may
+be needed, if one of the subexpressions contained a function with sideeffects.
+This directive implies setting the 
+<A HREF="#globalnoglobalcse">GLOBAL NOGLOBALCSE</A> directive. The directive overrides '--nolocalcse',
+'--localcse' and partially '--globalcse'. The latter one is only partially
+overriden, because switching off local cse switches off global cse, too.</P>
+<DT><B>GLOBAL NOGLOBALCSE, GLOBAL GLOBALCSE</B><DD>
+<P>
+<A NAME="globalnoglobalcse"></A> 
+Switches off/on global common subexpression elimination. ADiMat applies a
+common subexpression elimination algorithm to the whole code after the
+canonicalization step. This directive may be of use, if the code contains
+functions with side effects. The resulting code may be incorrect. Try this
+directive or the commandline option 
+<A HREF="adimat-9.html#noglobalcse">--noglobalcse</A> to check if the cse caused the problem. This directive
+overrides '--noglobalcse', '--globalcse' and partially '--localcse'. The latter
+one is overriden partially, because global cse needs local cse.</P>
+<DT><B>GLOBAL NOLOOPSAVING, GLOBAL LOOPSAVING</B><DD>
+<P>Disables/Enables optimized operators in derivative computations. During
+computation of derivatives loops iterate over the number of derivatives. In
+the derivative of a product three loops are run. The loopsaving operator, in
+fact a function, combines these three loops to one single loop minimizing the
+computational effort. It is highly recommended to use loopsaving
+operators/functions. The loopsaving functions are denote by the 'ls_'-prefix.
+This directive overrides the '--noloopsaving' flag.</P>
+<DT><B>GLOBAL NOOVERWRITINGCHECK, GLOBAL OVERWRITINGCHECK</B><DD>
+<P>Disable/Enable the check for variable updates. A variable update is an
+assignment to a variable <CODE>v</CODE> where the variable occurs on the right- and
+left-hand side of the assignment. In fact, it is not only checked if an update
+occured, but it is also prevented that the variable <CODE>v</CODE> is overwritten in
+the same assignment it is used in. The motivation for this check is simply the
+fact, that within the derivative expression of the assignment, the original
+value of <CODE>v</CODE> before the update may be needed. This directive overrides the
+option '--nooverwrtchk'.</P>
+<DT><B>GLOBAL SECONDORDERFWD, GLOBAL SECONDORDERFWDMD</B><DD>
+<P>Compute Hessians along with the gradients. This directive switches on the
+computation of second-order derivatives. </P>
+
+<DT><B>GLOBAL PARENTCHECK, GLOBAL CANON_PARENTCHECK, GLOBAL POST_PARENTCHECK</B><DD>
+<P>Check consistency of the AST. This is a debugging directive. See 
+<A HREF="adimat-9.html#parentcheck">--parentcheck</A> for more information.</P>
+<DT><B>GLOBAL NOSCALARFOLDING, GLOBAL SCALARFOLDING, GLOBAL NOPRESCALARFOLDING,
+GLOBAL PRESCALARFOLDING, GLOBAL NOPOSTSCALARFOLDING, GLOBAL POSTSCALARFOLDING</B><DD>
+<P>Disable/Enable folding of constant real scalar expressions at transformation
+time. Have a look at the commandline option for more information (see 
+<A HREF="adimat-9.html#noscalarfolding">--noscalarfolding</A>). These directives override:
+'--noscalarfolding', '--noprescalarfolding', and '--nopostscalarfolding'.</P>
+<DT><B>GLOBAL NOCONSTFOLDMULT0, GLOBAL CONSTFOLDMULT0</B><DD>
+<P>If 
+<A HREF="adimat-9.html#noscalarfolding">scalarfolding</A> is enabled, then this
+directive can be used to switch off and on the folding of products whose one
+factor is zero. This directive overrides: '--noconstfoldmult0'.</P>
+<DT><B>GLOBAL NONARGINMAPPER, GLOBAL NARGINMAPPER</B><DD>
+<P>Omit/permit creation of nargin mappers for functions using the Matlab
+function nargin. See command line option 
+<A HREF="adimat-9.html#nonargmapper">nonargmapper</A> for more information. This option allows a finer control
+over the created mappers, by permitting creation for nargin only.</P>
+<DT><B>GLOBAL NONARGOUTMAPPER, GLOBAL NARGOUTMAPPER</B><DD>
+<P>Omit/permit creation of nargout mappers for functions using the Matlab
+function nargout. See command line option 
+<A HREF="adimat-9.html#nonargmapper">nonargmapper</A> for more information. This option allows a finer control
+over the created mappers, by permitting creation for nargout only.</P>
+<DT><B>GLOBAL NOTMPCLEAR, GLOBAL TMPCLEAR</B><DD>
+<P>Omit/Insert statements for clearing temporary variables inserted by ADiMat. See
+command line option 
+<A HREF="adimat-9.html#notmpclear">--notmpclear</A> for more
+information.</P>
+<DT><B>GLOBAL NOVISITFWDMD, GLOBAL VISITFWDMD</B><DD>
+<P>Use the old way of computing forward mode derivatives. Beware the old way is
+not capable of treating all Matlab constructs correctly. It is strongly advised
+not to use these options. The associated command line switch is 
+<A HREF="adimat-9.html#visitfwdmd">--visitfwdmd</A>.</P>
+<DT><B>GLOBAL NOZEROPOWZEROCHECK, GLOBAL ZEROPOWZEROCHECK</B><DD>
+<P>Omit/permit creation of code for computing the correct derivative for 0^0
+statements. See 
+<A HREF="adimat-9.html#nozeropowzerocheck">--no0pow0check</A> for more
+information.</P>
+<DT><B>GLOBAL NOSIGNATUREENSURE, GLOBAL SIGNATUREENSURE</B><DD>
+<P>Prevent/Force ADiMat from/to insert dummy objects for function's
+parameter/result lists that are incompatibly called from more than two functions
+and where the transitive closure recommends a certain signature. See 
+<A HREF="adimat-9.html#nosigensure">--nosigensure</A> for more information.</P>
+<DT><B>BMFUNC ..., BJFUNC ..., BCFUNC ..., BCOMMAND ..., BVAR ...</B><DD>
+<P>
+<A NAME="directivebuiltindeclaration"></A> 
+The builtin-declarations may be used like a directive, too. For their
+description look at the chapter 
+<A HREF="adimat-14.html#builtins">builtins</A>.
+<A NAME="FUNCTION_HANDLE"></A> </P>
+<DT><B>FUNCTION_HANDLE=&lt;VARLIST&gt;</B><DD>
+<P>Specifies a list of variables that have class function_handle in the
+current scope. ADiMat needs this declaration to distinguish between
+array indexing and calls of function handles, as both are
+syntactically equal. ADiMat will treat the calls to declared function
+handles similarly as calls to user defined functions. This means that
+for any function handle foo, function handles g_foo (FM), rec_foo, and
+ret_foo (RM) must also be available. If a function parameter is
+declared to be of type function_handle, ADiMat will automatically
+augment the signature to contain these names as well.
+Consider the function signature
+<BLOCKQUOTE><CODE>
+<PRE>
+function r = someFunc(a,b,f_ptr)
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Inside the function body the directive FUNCTION_HANDLE must be used:
+<BLOCKQUOTE><CODE>
+<PRE>
+%ADiMat FUNCTION_HANDLE=f_ptr
+</PRE>
+</CODE></BLOCKQUOTE>
+
+If all parameters are active, in FM the signature will be augmented as
+follows
+<BLOCKQUOTE><CODE>
+<PRE>
+function [g_r, r] = g_someFunc(g_a,a, g_b,b, g_f_ptr,f_ptr)
+</PRE>
+</CODE></BLOCKQUOTE>
+
+In a driver routine, g_someFunc should be called something like that
+<BLOCKQUOTE><CODE>
+<PRE>
+[g_a g_b] = createFullGradients(a,b);
+[g_r r] = g_someFunc(g_a,a, g_b,b, @g_otherFunc,@otherFunc)
+</PRE>
+</CODE></BLOCKQUOTE>
+
+In RM the signature will be augmented as follows
+<BLOCKQUOTE><CODE>
+<PRE>
+function [a_a, a_b, nr_r] = a_someFunc(a,b,f_ptr,rec_ptr,ret_ptr)
+</PRE>
+</CODE></BLOCKQUOTE>
+
+In a driver routine, a_someFunc should be called something like that
+<BLOCKQUOTE><CODE>
+<PRE>
+r = someFunc(a,b,@otherFunc)
+[a_r] = createFullGradients(r);
+[a_a a_b r] = a_someFunc(a, b, @otherFunc, @rec_otherFunc, @ret_otherFunc)
+</PRE>
+</CODE></BLOCKQUOTE>
+
+The top level derivative functions must by called with additional
+arguments representing function handles to the differentiated versions
+of function otherfunc. The function otherfunc should be differentiated
+with ADiMat in a separate step.
+There are some limitations of this directive:
+<UL>
+<LI>Function handles must be declared separately in each function
+where they occur in.</LI>
+<LI>The function the handle refers to will not be differentiated
+automatically.</LI>
+<LI>All arguments of calls to functions handles will be
+differentiated.</LI>
+<LI>The activity analysis can usually detect whether a function
+handle variable is active and will not differentiate it if that is not
+necessary. However, when a function handle is not used inside a
+function f, but only passed on to a subfunction g, then it may be
+necessary to declare the function handle variable as active using
+AD_ACTIVE=f_ptr to produce the correct calls to g and the augmented
+signature in f.</LI>
+</UL>
+</P>
+<DT><B>AD_ACTIVE=&lt;VARLIST&gt;</B><DD>
+<P>Specifies a list of variables that ADiMat should treat as being active
+in the current scope (i.e. where the directive occures). Normally any
+variable on a path from a independent to a dependent variable is
+active and this will be detected by ADiMat's activiy analysis. This
+directive only serves as an escape hatch should that fail somehow. There
+are currently two possible scenarios where this directive is useful:
+<UL>
+<LI>Handling function handles that are not called in a certain
+function but passed on as arguments to subfunction calls.</LI>
+<LI>Forcing ADiMat to produce derivative parameters for
+some parameters that are not active. This can be used to force ADiMat to
+produce a certain function signature.</LI>
+</UL>
+</P>
+</DL>
+</CODE></BLOCKQUOTE>
+
+The next few lines show an example using the most commonly used directives
+within the file given to ADiMat at the command line.
+<BLOCKQUOTE><CODE>
+<PRE>
+% First the mandatory data
+%ADiMat AD_DVARS= z
+%ADiMat AD_IVARS= b
+%ADiMat AD_TOP= f
+% This is optional
+%ADiMat AD_OUTPUT_DIR="ad_out/"
+b=0.1:0.1:100;
+z=f(b);
+</PRE>
+</CODE></BLOCKQUOTE>
+
+NOTE! Each ADiMat-directive within a Matlab file has to be preceeded by
+the string '%ADiMat ' exactly as written here. No space after the percent-sign
+is allowed nor different combinations of upper- and lowercase letters in the
+word ADiMat are allowed. Using this strict rule a directive may be switched of
+by simply altering the case of one letter or inserting a space after the
+percent-sign.</P>
+
+<H2><A NAME="admrev_directives"></A> <A NAME="ss10.2">10.2</A> <A HREF="adimat.html#toc10.2">admproc Directives</A>
+</H2>
+
+<P>As with adimat, admrev directives are Matlab-comments starting with the keyword 'ADiMat'. The
+remainder of the line must be a well-formed XML subtree, however.
+<BLOCKQUOTE><CODE>
+<PRE>
+function foo = bar(x,y,z)
+%
+%ADiMat &lt;nargin>3&lt;/nargin>
+  foo = x*y+z;
+</PRE>
+</CODE></BLOCKQUOTE>
+
+There are not many directives yet.
+<BLOCKQUOTE><CODE>
+<DL>
+<DT><B>&lt;parallel/&gt;</B><DD>
+<P>Declare that the for loop in which the directive occurs is
+parallelizable. This is the case if the order of execution of the loop
+body does not matter.
+The loop iterations in the forward sweep will not be recorded, instead
+the loop is differentiated by performing little forward and return
+sweeps on the loop body during the function's return sweep.</P>
+<DT><B>&lt;nargin&gt;number&lt;/nargin&gt;</B><DD>
+<P>Declare that the function in which the directive occurs will always
+be called with at least number arguments. This helps ADiMat to decide
+which of the functions arguments are to be saved for the return sweep.</P>
+<DT><B>&lt;recompute&gt;name&lt;/recompute&gt;</B><DD>
+<P>
+<A NAME="recompute"></A> 
+Declare that the call(s) to function name in the following statement
+is to be recomputed in the reverse sweep. This has the effect that
+function name is called in the storage sweep and function a_name in
+the reverse sweep. The normal strategy is to save the computattions of
+the storage sweep, calling rec_name in the storage and ret_name in the
+reverse sweep.</P>
+</DL>
+</CODE></BLOCKQUOTE>
+</P>
+<HR>
+<A HREF="adimat-11.html">Next</A>
+<A HREF="adimat-9.html">Previous</A>
+<A HREF="adimat.html#toc10">Contents</A>
+</BODY>
+</HTML>

@@ -1,0 +1,114 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.72">
+ <TITLE>The ADiMat Handbook: Environment variables</TITLE>
+ <LINK HREF="adimat-12.html" REL=next>
+ <LINK HREF="adimat-10.html" REL=previous>
+ <LINK HREF="adimat.html#toc11" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="adimat-12.html">Next</A>
+<A HREF="adimat-10.html">Previous</A>
+<A HREF="adimat.html#toc11">Contents</A>
+<HR>
+<H2><A NAME="environment"></A> <A NAME="s11">11.</A> <A HREF="adimat.html#toc11">Environment variables</A></H2>
+
+<P>ADiMat uses some enviromnent variables to customize its behaviour. The
+directory where the additional data is installed may be modified using the
+ADIMAT_HOME environment variable, for example. If the variables introduced
+here are not set on the machine, then default values will be used.</P>
+<P>Currently these environment variables are used to customize the behaviour of
+ADiMat:
+<DL>
+<DT><B>${ADIMAT_HOME}</B><DD>
+<P>Specify the path where the
+ADiMat is installed. The default value is: '/usr/local' on Linux and
+Unix and 'c:/adimat' on Windows. In particular the binary programs
+reside in '${ADIMAT_HOME}/bin'.</P>
+<DT><B>${ADIMAT_USER_HOME}</B><DD>
+<P>Specify the path user
+information is found. The default is
+'${HOME}/.adimat/' on Linux and Unix. On Windows, the
+default is '&lt;appdata&gt;/ADiMat/', where &lt;appdata&gt; is
+determined as follows: First the APPDATA folder is searched through
+the Windows API, then '${APPDATA}' is evaluated, and
+finally '${HOMEDRIVE}${HOMEPATH}',
+which defaults to 'c:\'</P>
+<DT><B>${ADIMAT_BUILTINSPATH}</B><DD>
+<P>
+<A NAME="BUILTINSPATH"></A> 
+ADiMat looks up the file 'ADiMat.amdb' in this path. The first occurrence ,
+of this file is used (see section 
+<A HREF="adimat-14.html#builtins">builtins</A> for
+further information). The default path is:
+'${ADIMAT_HOME}/share/adimat:${HOME}/.adimat:.
+' on Unix systems and '${ADIMAT_HOME}/builtins' on Windows
+systems.</P>
+<DT><B>${ADIMAT_DERIV_CLASSPATH}</B><DD>
+<P>
+<A NAME="DERIV_CLASSPATH"></A> </P>
+<DT><B>${ADIMAT_DERIVCLASS}</B><DD>
+<P>
+<A NAME="ADIMAT_DERIVCLASS"></A> 
+The ADiMat_startup script provided with this distribution uses this
+variable to set the derivative class. Note you can also use the <CODE>adimat_derivclass</CODE>
+function after Matlab has started (see 
+<A HREF="adimat-6.html#runtime_classes">runtime functions</A>).</P>
+<DT><B>${ADIMAT_ADJOINT}</B><DD>
+<P>
+<A NAME="ADJOINT"></A> 
+The ADiMat_startup script provided with this distribution uses this
+variable to set the type of adjoints used. Note you can also use the <CODE>adimat_adjoint</CODE>
+function after Matlab has started (see 
+<A HREF="adimat-6.html#runtime_classes">runtime functions</A>).</P>
+<DT><B>${ADIMAT_STACK}</B><DD>
+<P>
+<A NAME="STACK"></A> 
+The ADiMat_startup script provided with this distribution uses this
+variable to set the stack implementation used. Note you can also use the <CODE>adimat_stack</CODE>
+function after Matlab has started (see 
+<A HREF="adimat-6.html#runtime_stacks">runtime functions</A>).</P>
+<DT><B>${ADIMAT_STACK_FILE}</B><DD>
+<P>
+<A NAME="STACK_FILE"></A> 
+This variable is used by some stack implementations as the name of the
+file to save values that are pushed on the stack. If this variables is
+not set, then that file is created in the directory named by
+${TMP}.</P>
+<DT><B>${ADMTRANSFORM_FLAGS}</B><DD>
+<P>
+<A NAME="ADMTRANSFORM_FLAGS"></A> 
+This variable is read by admTransform and can be used to add flags to
+the source transformation command. The default is empty. You can also
+use the field flags of admOptions. See 
+<A HREF="adimat-6.html#admTransform">admTransform</A> and 
+<A HREF="adimat-6.html#admOptions">admOptions</A>.</P>
+<DT><B>${ADMTRANSFORM_PROGRAM}</B><DD>
+<P>
+<A NAME="ADMTRANSFORM_PROGRAM"></A> 
+This variable is read by admTransform and can be used to set the name
+of the source transformation program. The default is ${ADIMAT_HOME}/bin/adimat-client. See 
+<A HREF="adimat-6.html#admTransform">admTransform</A>.</P>
+<DT><B>${ADMTRANSFORM_WRAP}</B><DD>
+<P>
+<A NAME="ADMTRANSFORM_WRAP"></A> 
+This variable is read by admTransform and can be used to set the name
+of the wrapper skript for the source transformation command. On Unix,
+the default is <CODE>${ADIMAT_HOME}</CODE>bin/admwrap -K
+&lt;matlabroot&gt;/, where &lt;matlabroot&gt; is the result of the
+command matlabroot. This wrapper script removes all directories under
+matlabroot from LD_LIBRARY_PATH. If this is not done, adimat-client
+find shared libraries from there, which are incompatible. On PCs
+(Windows) the default is empty. See 
+<A HREF="adimat-6.html#admTransform">admTransform</A>.</P>
+</DL>
+
+Any other environment-variable that is named in a path or likewise, will be
+replaced by the value the operating system returns when asked for it.</P>
+<HR>
+<A HREF="adimat-12.html">Next</A>
+<A HREF="adimat-10.html">Previous</A>
+<A HREF="adimat.html#toc11">Contents</A>
+</BODY>
+</HTML>

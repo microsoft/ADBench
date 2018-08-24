@@ -69,7 +69,8 @@ double logsumexp_d(int n, const double* const x, double *logsumexp_partial_d)
   }
   if (semx == 0.)
   {
-    memset(logsumexp_partial_d, 0, n*sizeof(double));
+	std::fill(logsumexp_partial_d, logsumexp_partial_d + n * sizeof(double), (double)0);
+    //memset(logsumexp_partial_d, 0, n*sizeof(double));
   }
   else
   {
@@ -80,6 +81,8 @@ double logsumexp_d(int n, const double* const x, double *logsumexp_partial_d)
   logsumexp_partial_d[max_elem] += 1.;
   return log(semx) + mx;
 }
+
+#ifndef DO_EIGEN
 
 void gmm_objective_d(int d, int k, int n,
   const double *alphas,
@@ -101,7 +104,8 @@ void gmm_objective_d(int d, int k, int n,
 
   preprocess_qs(d, k, icf, sum_qs.data(), Qdiags.data());
   
-  memset(J, 0, (k + d*k + icf_sz*k) * sizeof(double));
+  std::fill(J, J + (k + d * k + icf_sz * k) * sizeof(double), (double)0);
+  //memset(J, 0, (k + d*k + icf_sz*k) * sizeof(double));
 
   vector<double> curr_means_d(d*k);
   vector<double> curr_q_d(d*k);
@@ -165,11 +169,13 @@ void gmm_objective_d(int d, int k, int n,
   *err += log_wishart_prior(d, k, wishart, sum_qs.data(), Qdiags.data(), icf);
 }
 
+#endif
+
 #if defined DO_EIGEN || defined DO_EIGEN_VECTOR
 
 #include "Eigen\Dense"
 
-#include "../gmm_eigen.h"
+#include "../cpp-common/gmm_eigen.h"
 
 using Eigen::Map;
 using Eigen::VectorXd;
@@ -294,7 +300,8 @@ void gmm_objective_d(int d, int k, int n,
 {
   int icf_sz = d*(d + 1) / 2;
   int Jsz = k + k*d + k*icf_sz;
-  memset(J, 0, Jsz*sizeof(double));
+  std::fill(J, J + Jsz * sizeof(double), (double)0);
+  //memset(J, 0, Jsz*sizeof(double));
 
   // init eigen wrappers first
   vector<Map<const VectorXd>> mus;
@@ -413,7 +420,8 @@ void gmm_objective_d(int d, int k, int n,
 {
   int icf_sz = d*(d + 1) / 2;
   int Jsz = k + k*d + k*icf_sz;
-  memset(J, 0, Jsz*sizeof(double));
+  std::fill(J, Jsz * sizeof(double), (double)0);
+  //memset(J, 0, Jsz*sizeof(double));
 
   // init eigen wrappers first
   Map<const ArrayXd> map_alphas(alphas, k);

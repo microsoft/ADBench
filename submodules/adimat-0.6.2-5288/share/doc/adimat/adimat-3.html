@@ -1,0 +1,188 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.72">
+ <TITLE>The ADiMat Handbook: Supported Matlab constructs</TITLE>
+ <LINK HREF="adimat-4.html" REL=next>
+ <LINK HREF="adimat-2.html" REL=previous>
+ <LINK HREF="adimat.html#toc3" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="adimat-4.html">Next</A>
+<A HREF="adimat-2.html">Previous</A>
+<A HREF="adimat.html#toc3">Contents</A>
+<HR>
+<H2><A NAME="suppOps"></A> <A NAME="s3">3.</A> <A HREF="adimat.html#toc3">Supported Matlab constructs</A></H2>
+
+<P>Matlab is a language for technical-mathematical computing. The language has a
+huge number of syntactic constructs. Some are known from other languages like
+C, Fortran and so on, some are Matlab-specific. Due to the huge number of
+syntactic constructs implemented in Matlab and their sometimes slightly
+different meaning in a specific context, not all language features
+are completely implemented in ADiMat. That is, the syntactic constructs are
+parsed, but their meaning is only partially or not at all known to ADiMat.
+A warning message is printed, if ADiMat encounters an unknown construct, but
+the differentiation process continues. If a warning about unknown
+language features is printed, the differentiated code has to be checked. Below
+is a list of the most commonly used Matlab features that are supported,
+partially supported or not supported at all.
+The lists below is subject to change as development of ADiMat continues. These
+lists are set up at October 2011.</P>
+<P>If you encounter a language construct or a builtin function that is
+not treated correctly by ADiMat or not implemented at all, please tell
+the author about it. This will help us to enhance and maintain
+ADiMat. Especially Matlab builtin functions may be missing their
+derivative information in our database.</P>
+<H2><A NAME="ss3.1">3.1</A> <A HREF="adimat.html#toc3.1">Supported Matlab features</A>
+</H2>
+
+<P>These syntactic constructs are supported completely. Their differentiation is
+tested. If you encounter any problems, tell the author immediately.
+<UL>
+<LI> all mathematical operators like (+, -, *, /, \ ...)</LI>
+<LI> real and complex values</LI>
+<LI> vectors, matrices, cell arrays, structures and dynamic structures</LI>
+<LI> all flow control structures</LI>
+<LI> multiple functions per project</LI>
+<LI> local functions and nested functions</LI>
+<LI> global and persistent variables</LI>
+<LI> indexing into matrices and cellarrays</LI>
+<LI> structures</LI>
+<LI> call of nargin/nargout-functions</LI>
+</UL>
+</P>
+<H2><A NAME="ss3.2">3.2</A> <A HREF="adimat.html#toc3.2">Partially supported Matlab features</A>
+</H2>
+
+<P>Some features of Matlab are parsed by ADiMat, but they may not be treated
+correctly. That is, the differentiated code may be incorrect. Whenever such
+a feature is found, ADiMat issues a warning and continues its task. The
+features which are not completely implemented are listed below:
+<UL>
+<LI> java function calls (will be treated as structures)</LI>
+<LI> load- and save-command</LI>
+<LI> call of shell-commands (!-operator)</LI>
+<LI> varargin- and varargout-constructs</LI>
+<LI> function handles, if they are declared via the 
+<A HREF="adimat-10.html#FUNCTION_HANDLE">FUNCTION_HANDLE</A> directive</LI>
+</UL>
+</P>
+<H2><A NAME="ss3.3">3.3</A> <A HREF="adimat.html#toc3.3">Matlab features not supported at all</A>
+</H2>
+
+
+<P>Some Matlab features are not supported at all. These are listed below:
+<UL>
+<LI> classes</LI>
+<LI> private functions (functions that reside in a private directory of the
+current path).</LI>
+<LI> Matlab extension, or MEX functions, written in C/C++ or
+Fortran. If you have MEX-functions in your project, contact the
+author. Research was done to support these, too.</LI>
+</UL>
+</P>
+<H2><A NAME="ss3.4">3.4</A> <A HREF="adimat.html#toc3.4">Limitations of the reverse mode (admDiffRev) (in addition to the above)</A>
+</H2>
+
+<P>
+<UL>
+<LI>On-the-fly creation or enlargement of array and structs is
+supported. For example x(4) = 17, where x did not exist
+before. However creation or enlargement is only allowed on the last
+subscripting level. For example, in x(4).abc.def = 17 the
+subexpression x(4).abc must be valid to read before the assignment,
+and in x(4).abc.def(2) = 17 the subexpression x(4).abc.def must be
+valid to read.</LI>
+<LI>Enlargement of arrays is only supported if all the fields
+assigned to are created. E.g. x(4) = 17; x(2:6) = 12; is not allowed
+as the second assignment assigns to 2:4, which already exists, but
+also creates 5:6.</LI>
+<LI>Variables first assigned to in a loop pose a certain problem.
+ADiMat inserts initialiation with 0 at the beginning of the
+function. This fails if the first assignment is of more than one
+dimension. ADiMat may be able to detect this and create better
+initializations in the future. If the variable is recognized to have
+type struct, then the initialization is with struct instead of 0. This
+may create new problems as the next assignment may fail as the two
+structs have different components, while it does not fail when the
+variable is still unassigned. As a workaround, initialize your
+variables at the top of your functions (unconditional initialization).</LI>
+<LI><B>return</B> is not supported, more precisely, it is currently
+ignored when inside a branch. An early return on the main statement
+level is allowed. Hence, there is no problem when the return is inside
+a branch and is not actually run through, as in the following example:
+<BLOCKQUOTE><CODE>
+<PRE>
+if mistake
+  fprintf(2, 'error: a mistake occured')
+  return
+end
+more code
+return
+unused code
+</PRE>
+</CODE></BLOCKQUOTE>
+
+This should work if the mistake does not happen. The second return is
+used to basically comment out the unused code, and this is supported.</LI>
+<LI><B>try</B> and <B>catch</B> are not supported</LI>
+<LI>Missing builtin functions declared with the BMFUNC directive are
+not differentiated, the RM has its own extension mechanism</LI>
+<LI>Numeric indices must not have repeated entries. Both <CODE>x =
+y([1 1 2 2])</CODE> and <CODE>x([1 1 2 2]) = y</CODE> are nto supported.</LI>
+</UL>
+</P>
+<H2><A NAME="ss3.5">3.5</A> <A HREF="adimat.html#toc3.5">Limitations of the classless vector mode (admDiffVFor)</A>
+</H2>
+
+<P>The limitations listed here are in addition to the limitations of
+ADiMat in general.
+<UL>
+<LI>
+<P>Index operations are by default wrapped in calls to the runtime
+functions
+<CODE>adimat_opdiff_subsref</CODE>
+and <CODE>adimat_opdiff_subsasgn</CODE>. These are rather slow. However,
+your code may not actually need these runtime functions. They can be
+avoided if you set the following transformation options:
+<BLOCKQUOTE><CODE>
+<PRE>
+opts.paramaters.useSubsref = 0
+opts.paramaters.useSubsasgn = 0
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>If you do this, the indexing into matrices in your code should be
+"correct". That means, that the indices used should reflect the shape
+of the resulting value:
+<UL>
+<LI>components of a row vector s should always be indexed into with
+either s(1,ind) or s(:,ind)</LI>
+</UL>
+</P>
+</LI>
+<LI>Missing builtin functions declared with the BMFUNC directive are not differentiated</LI>
+</UL>
+</P>
+<H2><A NAME="ss3.6">3.6</A> <A HREF="adimat.html#toc3.6">Limitations of admDiffFor and admDiffRev</A>
+</H2>
+
+<P>The 
+<A HREF="adimat-4.html#hlui">high-level user interface</A> functions
+admDiffFor and admDiffRev have some limitations, which are listed
+here. In some cases there are workarounds, but in some other cases you
+may have to use the lower level interface, using the recipes explained
+in other sections of this manual.
+<UL>
+<LI>Function handles are partially supported by ADiMat using
+the 
+<A HREF="adimat-10.html#FUNCTION_HANDLE">FUNCTION_HANDLE</A> directive, but
+support for this has not yet been added to the high-level interface.</LI>
+</UL>
+</P>
+<HR>
+<A HREF="adimat-4.html">Next</A>
+<A HREF="adimat-2.html">Previous</A>
+<A HREF="adimat.html#toc3">Contents</A>
+</BODY>
+</HTML>
