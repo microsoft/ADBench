@@ -1,9 +1,0 @@
-[submodule "submodules/awful"]
-	path = submodules/awful
-	url = https://github.com/awf/awful
-[submodule "submodules/Adept-2"]
-	path = submodules/Adept-2
-	url = https://github.com/rjhogan/Adept-2
-[submodule "submodules/adol-c"]
-	path = submodules/adol-c
-	url = https://gitlab.com/adol-c/adol-c

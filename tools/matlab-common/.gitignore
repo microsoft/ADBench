@@ -1,9 +1,0 @@
-.adimat
-/adimat-0.6.0-4971/
-/adigator/
-*.asv
-/foo.m
-/d_foo.m
-/run_tools*
-/run_experiments*
-*.mexw64
