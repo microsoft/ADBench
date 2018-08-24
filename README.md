@@ -81,6 +81,10 @@ All tools should now be built. See [Usage](#usage) below.
 - `--show`: Display graphs in new windows
 - If neither `--save` or `--plotly` are included, `--show` will be `True` by default - otherwise, it must be manually enabled
 
+## Contributing
+
+Contributions to fix bugs, test on new systems or add new tools are welcomed. See [Contributing](/CONTRIBUTING.md) for details on how to add new tools, and [Issues](/ISSUES.md) for known bugs and TODOs.
+
 ## Folder structure
 
 | Folder    | Purpose
@@ -146,16 +150,13 @@ Matlab tools are not currently run by `run-all.ps1` due to the limitations of th
 - [ ] ForwardDiff.jl
 
 ## Known Issues
+
+See [Issues](/ISSUES.md) for a complete list of known problems and TODOs.
+
 - Only tested on Windows (64-bit)
-	- Should mostly work on other platforms, but ADOL-C may not build properly
-	- Hard-coded paths (which may be wrong on some systems) in batch files (for ADOL-C, DiffSharp and Theano)
-- Ceres only builds up to certain d (20) and k (50) values, due to memory issue
-	- Should be solvable, but needs looking into
-- DiffSharp GMM builds fail
-- run-all.ps1 does not currently run all tools
-- ADiMat BA seems to crash during a loop calculating tJ
-- ADOL-C BA should be able to run with Eigen, but this fails to build
-- Manual BA and Hand can't be run without Eigen
+	- Should mostly work on other platforms, but some tools currently rely on batch files to build/run
+	- Batch files contain hard-coded paths (which may be wrong on some Windows systems)
+- `run-all.ps1` has Matlab tools commented out due to an issue with the trial version - it should be possible to remove these comments and run them with the full version
 
 ## Example Graphs
 

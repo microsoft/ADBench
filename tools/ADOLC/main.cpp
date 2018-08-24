@@ -340,7 +340,8 @@ void compute_ba_J(int n, int m, int p,
   vector<double> reproj_err_d(2 * n_new_cols);
   for (int i = 0; i < p; i++)
   {
-    memset(reproj_err_d.data(), 0, 2 * n_new_cols*sizeof(double));
+	std::fill(reproj_err_d.begin(), reproj_err_d.end(), (double)0);
+    //memset(reproj_err_d.data(), 0, 2 * n_new_cols*sizeof(double));
 
     int camIdx = obs[2 * i + 0];
     int ptIdx = obs[2 * i + 1];
@@ -585,7 +586,8 @@ double compute_hand_J(int nruns, double time_limit,
 	// create seed matrix
 	Pointer2 seed(n_independents, ndirs);
 	for (int i = 0; i < n_independents; i++)
-		memset(seed[i], 0, ndirs * sizeof(double));
+		std::fill(seed[i], seed[i] + ndirs * sizeof(double), (double)0);
+		//memset(seed[i], 0, ndirs * sizeof(double));
 	for (size_t i = 0; i < n_pts; i++)
 	{
 		seed[2 * i][0] = 1.;

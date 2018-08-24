@@ -95,7 +95,8 @@ void compute_ba_J(int n, int m, int p, double *cams, double *X,
   vector<double> reproj_err_d(2 * n_new_cols);
   for (int i = 0; i < p; i++)
   {
-    memset(reproj_err_d.data(), 0, 2 * n_new_cols*sizeof(double));
+	std::fill(reproj_err_d.begin(), reproj_err_d.end(), (double)0);
+    //memset(reproj_err_d.data(), 0, 2 * n_new_cols*sizeof(double));
 
     int camIdx = obs[2 * i + 0];
     int ptIdx = obs[2 * i + 1];
