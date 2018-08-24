@@ -1,0 +1,9 @@
+deploy:
+  provider: pages
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN
+  keep-history: true
+  target-branch: gh-pages
+  local-dir: Documents/New Figures
+  on:
+    branch: cmake-reorg
