@@ -4,7 +4,8 @@ import numpy as np
 
 import utils
 
-SIG_FIGS = 3
+SIG_FIGS = 2
+MAX_DP = 4
 
 
 def load_matrix(fn):
@@ -19,12 +20,13 @@ def load_matrix(fn):
     return mat
 
 
-def round_sf(number, sf=SIG_FIGS):
+def round_sf(number, sf=SIG_FIGS, dp=MAX_DP):
     number = float(number)
     if number == 0:
         return 0
     else:
-        return round(number, math.floor(-math.log10(abs(number))) + sf)
+        rounded = round(number, math.floor(-math.log10(abs(number))) + sf)
+        return round(rounded, dp)
 
 
 def test_equality(mat1, mat2, sf=SIG_FIGS):
@@ -80,8 +82,8 @@ for graph_path in all_graphs:
             mat = load_matrix("/".join([in_dir] + graph_path + [fn]))
 
             if last_mat is not None:
-                print(f"  Compare {fn} to {all_tests[test][i - 1]} in {'/'.join(graph_path)}")
+                # print(f"  Compare {fn} to {all_tests[test][i - 1]} in {'/'.join(graph_path)}")
                 if not test_equality(mat, last_mat):
-                    print("    Mismatch in file:", "/".join(graph_path + [fn]))
+                    print(f"  Mismatch between files {fn} and {all_tests[test][i - 1]} in {'/'.join(graph_path)}")
 
             last_mat = mat

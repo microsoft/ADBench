@@ -26,3 +26,7 @@ This is a list of known issues/TODOs for the project. Any fixes are welcomed.
     - Perhaps add Hand derivative without Eigen
 - Theano
     - `run.bat` - remove hard path to Miniconda
+
+## Accuracy
+
+See [ADBench/J_Errors.txt](/ADBench/J_Errors.txt) for the output of ADBench/check_J.py, which shows a list of mismatches among output (jacobian) text files.

@@ -1,0 +1,203 @@
+Finding files for graph: Debug/gmm/10k
+  May be missing some Jacobian output files for: Debug/gmm/10k/Ceres
+  May be missing some Jacobian output files for: Debug/gmm/10k/Finite
+Comparing files for graph: Debug/gmm/10k
+  Mismatch between files Finite/gmm_d10_K10_J_Finite.txt and Ceres/gmm_d10_K10_J_Ceres.txt in Debug/gmm/10k
+  Mismatch between files Manual/gmm_d10_K10_J_manual_eigen.txt and Finite/gmm_d10_K10_J_Finite.txt in Debug/gmm/10k
+  Mismatch between files Finite/gmm_d10_K25_J_Finite.txt and ADOLC/gmm_d10_K25_J_ADOLC_split.txt in Debug/gmm/10k
+  Mismatch between files Manual/gmm_d10_K25_J_manual_eigen.txt and Finite/gmm_d10_K25_J_Finite.txt in Debug/gmm/10k
+  Mismatch between files Finite/gmm_d2_K5_J_Finite.txt and Ceres/gmm_d2_K5_J_Ceres.txt in Debug/gmm/10k
+  Mismatch between files Manual/gmm_d2_K5_J_manual_eigen.txt and Finite/gmm_d2_K5_J_Finite.txt in Debug/gmm/10k
+Finding files for graph: Release/gmm/1k
+Comparing files for graph: Release/gmm/1k
+  Mismatch between files ADOLC/gmm_d10_K10_J_ADOLC_split.txt and Adept/gmm_d10_K10_J_Adept_split.txt in Release/gmm/1k
+  Mismatch between files ADOLC/gmm_d10_K25_J_ADOLC_split.txt and Adept/gmm_d10_K25_J_Adept_split.txt in Release/gmm/1k
+  Mismatch between files Finite/gmm_d10_K25_J_Finite.txt and Ceres/gmm_d10_K25_J_Ceres.txt in Release/gmm/1k
+  Mismatch between files Manual/gmm_d10_K25_J_manual_eigen.txt and Finite/gmm_d10_K25_J_Finite.txt in Release/gmm/1k
+  Mismatch between files ADOLC/gmm_d10_K50_J_ADOLC_split.txt and Adept/gmm_d10_K50_J_Adept_split.txt in Release/gmm/1k
+  Mismatch between files Finite/gmm_d10_K50_J_Finite.txt and Ceres/gmm_d10_K50_J_Ceres.txt in Release/gmm/1k
+  Mismatch between files Manual/gmm_d10_K50_J_manual_eigen.txt and Finite/gmm_d10_K50_J_Finite.txt in Release/gmm/1k
+  Mismatch between files ADOLC/gmm_d10_K5_J_ADOLC_split.txt and Adept/gmm_d10_K5_J_Adept_split.txt in Release/gmm/1k
+  Mismatch between files Finite/gmm_d10_K5_J_Finite.txt and Ceres/gmm_d10_K5_J_Ceres.txt in Release/gmm/1k
+  Mismatch between files Manual/gmm_d10_K5_J_manual_eigen.txt and Finite/gmm_d10_K5_J_Finite.txt in Release/gmm/1k
+  Mismatch between files ADOLC/gmm_d2_K10_J_ADOLC_split.txt and Adept/gmm_d2_K10_J_Adept_split.txt in Release/gmm/1k
+  Mismatch between files ADOLC/gmm_d2_K25_J_ADOLC_split.txt and Adept/gmm_d2_K25_J_Adept_split.txt in Release/gmm/1k
+  Mismatch between files ADOLC/gmm_d2_K50_J_ADOLC_split.txt and Adept/gmm_d2_K50_J_Adept_split.txt in Release/gmm/1k
+  Mismatch between files Finite/gmm_d2_K50_J_Finite.txt and Ceres/gmm_d2_K50_J_Ceres.txt in Release/gmm/1k
+  Mismatch between files Manual/gmm_d2_K50_J_manual_eigen.txt and Finite/gmm_d2_K50_J_Finite.txt in Release/gmm/1k
+  Mismatch between files ADOLC/gmm_d2_K5_J_ADOLC_split.txt and Adept/gmm_d2_K5_J_Adept_split.txt in Release/gmm/1k
+Finding files for graph: Debug/hand/complicated_small
+Comparing files for graph: Debug/hand/complicated_small
+  Mismatch between files Finite/hand1_J_Finite_light.txt and ADOLC/hand1_J_ADOLC_light.txt in Debug/hand/complicated_small
+  Mismatch between files Manual/hand1_J_manual_eigen.txt and Finite/hand1_J_Finite_light.txt in Debug/hand/complicated_small
+  Mismatch between files Finite/hand2_J_Finite_light.txt and ADOLC/hand2_J_ADOLC_light.txt in Debug/hand/complicated_small
+  Mismatch between files Manual/hand2_J_manual_eigen.txt and Finite/hand2_J_Finite_light.txt in Debug/hand/complicated_small
+  Mismatch between files Finite/hand3_J_Finite_light.txt and ADOLC/hand3_J_ADOLC_light.txt in Debug/hand/complicated_small
+  Mismatch between files Manual/hand3_J_manual_eigen.txt and Finite/hand3_J_Finite_light.txt in Debug/hand/complicated_small
+  Mismatch between files Finite/hand4_J_Finite_light.txt and ADOLC/hand4_J_ADOLC_light.txt in Debug/hand/complicated_small
+  Mismatch between files Manual/hand4_J_manual_eigen.txt and Finite/hand4_J_Finite_light.txt in Debug/hand/complicated_small
+  Mismatch between files Finite/hand5_J_Finite_light.txt and ADOLC/hand5_J_ADOLC_light.txt in Debug/hand/complicated_small
+  Mismatch between files Manual/hand5_J_manual_eigen.txt and Finite/hand5_J_Finite_light.txt in Debug/hand/complicated_small
+Finding files for graph: Release/hand/simple_big
+  May be missing some Jacobian output files for: Release/hand/simple_big/Theano
+Comparing files for graph: Release/hand/simple_big
+  Mismatch between files ADOLC/hand1_J_ADOLC_light.txt and Adept/hand1_J_Adept_light.txt in Release/hand/simple_big
+  Mismatch between files Theano/hand1_J_Theano.txt and Manual/hand1_J_manual_eigen.txt in Release/hand/simple_big
+  Mismatch between files ADOLC/hand2_J_ADOLC_light.txt and Adept/hand2_J_Adept_light.txt in Release/hand/simple_big
+  Mismatch between files Finite/hand2_J_Finite_light.txt and ADOLC/hand2_J_ADOLC_light.txt in Release/hand/simple_big
+  Mismatch between files Manual/hand2_J_manual_eigen.txt and Finite/hand2_J_Finite_light.txt in Release/hand/simple_big
+  Mismatch between files ADOLC/hand3_J_ADOLC_light.txt and Adept/hand3_J_Adept_light.txt in Release/hand/simple_big
+  Mismatch between files Finite/hand3_J_Finite_light.txt and ADOLC/hand3_J_ADOLC_light.txt in Release/hand/simple_big
+  Mismatch between files Manual/hand3_J_manual_eigen.txt and Finite/hand3_J_Finite_light.txt in Release/hand/simple_big
+  Mismatch between files ADOLC/hand4_J_ADOLC_light.txt and Adept/hand4_J_Adept_light.txt in Release/hand/simple_big
+  Mismatch between files Finite/hand4_J_Finite_light.txt and ADOLC/hand4_J_ADOLC_light.txt in Release/hand/simple_big
+  Mismatch between files Manual/hand4_J_manual_eigen.txt and Finite/hand4_J_Finite_light.txt in Release/hand/simple_big
+  Mismatch between files ADOLC/hand5_J_ADOLC_light.txt and Adept/hand5_J_Adept_light.txt in Release/hand/simple_big
+  Mismatch between files Finite/hand5_J_Finite_light.txt and ADOLC/hand5_J_ADOLC_light.txt in Release/hand/simple_big
+  Mismatch between files Manual/hand5_J_manual_eigen.txt and Finite/hand5_J_Finite_light.txt in Release/hand/simple_big
+Finding files for graph: Release/hand/simple_small
+  May be missing some Jacobian output files for: Release/hand/simple_small/Theano
+Comparing files for graph: Release/hand/simple_small
+  Mismatch between files ADOLC/hand1_J_ADOLC_light.txt and Adept/hand1_J_Adept_light.txt in Release/hand/simple_small
+  Mismatch between files Theano/hand1_J_Theano.txt and Manual/hand1_J_manual_eigen.txt in Release/hand/simple_small
+  Mismatch between files ADOLC/hand2_J_ADOLC_light.txt and Adept/hand2_J_Adept_light.txt in Release/hand/simple_small
+  Mismatch between files Finite/hand2_J_Finite_light.txt and ADOLC/hand2_J_ADOLC_light.txt in Release/hand/simple_small
+  Mismatch between files Manual/hand2_J_manual_eigen.txt and Finite/hand2_J_Finite_light.txt in Release/hand/simple_small
+  Mismatch between files Theano/hand2_J_Theano.txt and Manual/hand2_J_manual_eigen.txt in Release/hand/simple_small
+  Mismatch between files ADOLC/hand3_J_ADOLC_light.txt and Adept/hand3_J_Adept_light.txt in Release/hand/simple_small
+  Mismatch between files Theano/hand3_J_Theano.txt and Manual/hand3_J_manual_eigen.txt in Release/hand/simple_small
+  Mismatch between files ADOLC/hand4_J_ADOLC_light.txt and Adept/hand4_J_Adept_light.txt in Release/hand/simple_small
+  Mismatch between files Finite/hand4_J_Finite_light.txt and ADOLC/hand4_J_ADOLC_light.txt in Release/hand/simple_small
+  Mismatch between files Manual/hand4_J_manual_eigen.txt and Finite/hand4_J_Finite_light.txt in Release/hand/simple_small
+  Mismatch between files ADOLC/hand5_J_ADOLC_light.txt and Adept/hand5_J_Adept_light.txt in Release/hand/simple_small
+  Mismatch between files Finite/hand5_J_Finite_light.txt and ADOLC/hand5_J_ADOLC_light.txt in Release/hand/simple_small
+  Mismatch between files Manual/hand5_J_manual_eigen.txt and Finite/hand5_J_Finite_light.txt in Release/hand/simple_small
+Finding files for graph: Release/gmm/10k
+  May be missing some Jacobian output files for: Release/gmm/10k/Autograd
+Comparing files for graph: Release/gmm/10k
+  Mismatch between files Finite/gmm_d10_K10_J_Finite.txt and Ceres/gmm_d10_K10_J_Ceres.txt in Release/gmm/10k
+  Mismatch between files Manual/gmm_d10_K10_J_manual_eigen.txt and Finite/gmm_d10_K10_J_Finite.txt in Release/gmm/10k
+  Mismatch between files Finite/gmm_d10_K25_J_Finite.txt and Ceres/gmm_d10_K25_J_Ceres.txt in Release/gmm/10k
+  Mismatch between files Manual/gmm_d10_K25_J_manual_eigen.txt and Finite/gmm_d10_K25_J_Finite.txt in Release/gmm/10k
+  Mismatch between files Finite/gmm_d10_K50_J_Finite.txt and Ceres/gmm_d10_K50_J_Ceres.txt in Release/gmm/10k
+  Mismatch between files Manual/gmm_d10_K50_J_manual_eigen.txt and Finite/gmm_d10_K50_J_Finite.txt in Release/gmm/10k
+  Mismatch between files Finite/gmm_d2_K5_J_Finite.txt and Ceres/gmm_d2_K5_J_Ceres.txt in Release/gmm/10k
+  Mismatch between files Manual/gmm_d2_K5_J_manual_eigen.txt and Finite/gmm_d2_K5_J_Finite.txt in Release/gmm/10k
+Finding files for graph: Debug/gmm/1k
+  May be missing some Jacobian output files for: Debug/gmm/1k/Ceres
+Comparing files for graph: Debug/gmm/1k
+  Mismatch between files ADOLC/gmm_d10_K10_J_ADOLC_split.txt and Adept/gmm_d10_K10_J_Adept_split.txt in Debug/gmm/1k
+  Mismatch between files ADOLC/gmm_d10_K25_J_ADOLC_split.txt and Adept/gmm_d10_K25_J_Adept_split.txt in Debug/gmm/1k
+  Mismatch between files Finite/gmm_d10_K25_J_Finite.txt and Ceres/gmm_d10_K25_J_Ceres.txt in Debug/gmm/1k
+  Mismatch between files Manual/gmm_d10_K25_J_manual_eigen.txt and Finite/gmm_d10_K25_J_Finite.txt in Debug/gmm/1k
+  Mismatch between files ADOLC/gmm_d10_K50_J_ADOLC_split.txt and Adept/gmm_d10_K50_J_Adept_split.txt in Debug/gmm/1k
+  Mismatch between files Finite/gmm_d10_K50_J_Finite.txt and Autograd/gmm_d10_K50_J_Autograd_split.txt in Debug/gmm/1k
+  Mismatch between files Manual/gmm_d10_K50_J_manual_eigen.txt and Finite/gmm_d10_K50_J_Finite.txt in Debug/gmm/1k
+  Mismatch between files ADOLC/gmm_d10_K5_J_ADOLC_split.txt and Adept/gmm_d10_K5_J_Adept_split.txt in Debug/gmm/1k
+  Mismatch between files Finite/gmm_d10_K5_J_Finite.txt and Ceres/gmm_d10_K5_J_Ceres.txt in Debug/gmm/1k
+  Mismatch between files Manual/gmm_d10_K5_J_manual_eigen.txt and Finite/gmm_d10_K5_J_Finite.txt in Debug/gmm/1k
+  Mismatch between files ADOLC/gmm_d2_K10_J_ADOLC_split.txt and Adept/gmm_d2_K10_J_Adept_split.txt in Debug/gmm/1k
+  Mismatch between files ADOLC/gmm_d2_K25_J_ADOLC_split.txt and Adept/gmm_d2_K25_J_Adept_split.txt in Debug/gmm/1k
+  Mismatch between files ADOLC/gmm_d2_K50_J_ADOLC_split.txt and Adept/gmm_d2_K50_J_Adept_split.txt in Debug/gmm/1k
+  Mismatch between files Finite/gmm_d2_K50_J_Finite.txt and Ceres/gmm_d2_K50_J_Ceres.txt in Debug/gmm/1k
+  Mismatch between files Manual/gmm_d2_K50_J_manual_eigen.txt and Finite/gmm_d2_K50_J_Finite.txt in Debug/gmm/1k
+  Mismatch between files ADOLC/gmm_d2_K5_J_ADOLC_split.txt and Adept/gmm_d2_K5_J_Adept_split.txt in Debug/gmm/1k
+Finding files for graph: Release/hand/complicated_small
+Comparing files for graph: Release/hand/complicated_small
+  Mismatch between files Finite/hand1_J_Finite_light.txt and ADOLC/hand1_J_ADOLC_light.txt in Release/hand/complicated_small
+  Mismatch between files Manual/hand1_J_manual_eigen.txt and Finite/hand1_J_Finite_light.txt in Release/hand/complicated_small
+  Mismatch between files Theano/hand1_J_Theano.txt and Manual/hand1_J_manual_eigen.txt in Release/hand/complicated_small
+  Mismatch between files Finite/hand2_J_Finite_light.txt and ADOLC/hand2_J_ADOLC_light.txt in Release/hand/complicated_small
+  Mismatch between files Manual/hand2_J_manual_eigen.txt and Finite/hand2_J_Finite_light.txt in Release/hand/complicated_small
+  Mismatch between files Theano/hand2_J_Theano.txt and Manual/hand2_J_manual_eigen.txt in Release/hand/complicated_small
+  Mismatch between files Finite/hand3_J_Finite_light.txt and ADOLC/hand3_J_ADOLC_light.txt in Release/hand/complicated_small
+  Mismatch between files Manual/hand3_J_manual_eigen.txt and Finite/hand3_J_Finite_light.txt in Release/hand/complicated_small
+  Mismatch between files Theano/hand3_J_Theano.txt and Manual/hand3_J_manual_eigen.txt in Release/hand/complicated_small
+  Mismatch between files Finite/hand4_J_Finite_light.txt and ADOLC/hand4_J_ADOLC_light.txt in Release/hand/complicated_small
+  Mismatch between files Manual/hand4_J_manual_eigen.txt and Finite/hand4_J_Finite_light.txt in Release/hand/complicated_small
+  Mismatch between files Theano/hand4_J_Theano.txt and Manual/hand4_J_manual_eigen.txt in Release/hand/complicated_small
+  Mismatch between files Finite/hand5_J_Finite_light.txt and ADOLC/hand5_J_ADOLC_light.txt in Release/hand/complicated_small
+  Mismatch between files Manual/hand5_J_manual_eigen.txt and Finite/hand5_J_Finite_light.txt in Release/hand/complicated_small
+  Mismatch between files Theano/hand5_J_Theano.txt and Manual/hand5_J_manual_eigen.txt in Release/hand/complicated_small
+Finding files for graph: Debug/hand/simple_big
+Comparing files for graph: Debug/hand/simple_big
+  Mismatch between files ADOLC/hand1_J_ADOLC_light.txt and Adept/hand1_J_Adept_light.txt in Debug/hand/simple_big
+  Mismatch between files ADOLC/hand2_J_ADOLC_light.txt and Adept/hand2_J_Adept_light.txt in Debug/hand/simple_big
+  Mismatch between files Finite/hand2_J_Finite_light.txt and ADOLC/hand2_J_ADOLC_light.txt in Debug/hand/simple_big
+  Mismatch between files Manual/hand2_J_manual_eigen.txt and Finite/hand2_J_Finite_light.txt in Debug/hand/simple_big
+  Mismatch between files ADOLC/hand3_J_ADOLC_light.txt and Adept/hand3_J_Adept_light.txt in Debug/hand/simple_big
+  Mismatch between files Finite/hand3_J_Finite_light.txt and ADOLC/hand3_J_ADOLC_light.txt in Debug/hand/simple_big
+  Mismatch between files Manual/hand3_J_manual_eigen.txt and Finite/hand3_J_Finite_light.txt in Debug/hand/simple_big
+  Mismatch between files ADOLC/hand4_J_ADOLC_light.txt and Adept/hand4_J_Adept_light.txt in Debug/hand/simple_big
+  Mismatch between files Finite/hand4_J_Finite_light.txt and ADOLC/hand4_J_ADOLC_light.txt in Debug/hand/simple_big
+  Mismatch between files Manual/hand4_J_manual_eigen.txt and Finite/hand4_J_Finite_light.txt in Debug/hand/simple_big
+  Mismatch between files ADOLC/hand5_J_ADOLC_light.txt and Adept/hand5_J_Adept_light.txt in Debug/hand/simple_big
+  Mismatch between files Finite/hand5_J_Finite_light.txt and ADOLC/hand5_J_ADOLC_light.txt in Debug/hand/simple_big
+  Mismatch between files Manual/hand5_J_manual_eigen.txt and Finite/hand5_J_Finite_light.txt in Debug/hand/simple_big
+Finding files for graph: Debug/ba
+  May be missing some Jacobian output files for: Debug/ba/Adept
+  May be missing some Jacobian output files for: Debug/ba/ADOLC
+  May be missing some Jacobian output files for: Debug/ba/Autograd
+  May be missing some Jacobian output files for: Debug/ba/Ceres
+  May be missing some Jacobian output files for: Debug/ba/Theano
+Comparing files for graph: Debug/ba
+  Mismatch between files Manual/ba1_J_manual_eigen.txt and Finite/ba1_J_Finite.txt in Debug/ba
+  Mismatch between files Manual/ba2_J_manual_eigen.txt and Finite/ba2_J_Finite.txt in Debug/ba
+  Mismatch between files Manual/ba3_J_manual_eigen.txt and Finite/ba3_J_Finite.txt in Debug/ba
+  Mismatch between files Manual/ba4_J_manual_eigen.txt and Finite/ba4_J_Finite.txt in Debug/ba
+  Mismatch between files Manual/ba5_J_manual_eigen.txt and Finite/ba5_J_Finite.txt in Debug/ba
+Finding files for graph: Release/ba
+  May be missing some Jacobian output files for: Release/ba/Adept
+  May be missing some Jacobian output files for: Release/ba/ADOLC
+  May be missing some Jacobian output files for: Release/ba/Autograd
+  May be missing some Jacobian output files for: Release/ba/Ceres
+  May be missing some Jacobian output files for: Release/ba/DiffSharp
+  May be missing some Jacobian output files for: Release/ba/Theano
+Comparing files for graph: Release/ba
+  Mismatch between files Manual/ba1_J_manual_eigen.txt and Finite/ba1_J_Finite.txt in Release/ba
+  Mismatch between files Manual/ba2_J_manual_eigen.txt and Finite/ba2_J_Finite.txt in Release/ba
+  Mismatch between files Manual/ba3_J_manual_eigen.txt and Finite/ba3_J_Finite.txt in Release/ba
+  Mismatch between files Manual/ba4_J_manual_eigen.txt and Finite/ba4_J_Finite.txt in Release/ba
+  Mismatch between files Manual/ba5_J_manual_eigen.txt and Finite/ba5_J_Finite.txt in Release/ba
+Finding files for graph: Release/hand/complicated_big
+Comparing files for graph: Release/hand/complicated_big
+  Mismatch between files Finite/hand1_J_Finite_light.txt and ADOLC/hand1_J_ADOLC_light.txt in Release/hand/complicated_big
+  Mismatch between files Manual/hand1_J_manual_eigen.txt and Finite/hand1_J_Finite_light.txt in Release/hand/complicated_big
+  Mismatch between files Theano/hand1_J_Theano.txt and Manual/hand1_J_manual_eigen.txt in Release/hand/complicated_big
+  Mismatch between files Finite/hand2_J_Finite_light.txt and ADOLC/hand2_J_ADOLC_light.txt in Release/hand/complicated_big
+  Mismatch between files Manual/hand2_J_manual_eigen.txt and Finite/hand2_J_Finite_light.txt in Release/hand/complicated_big
+  Mismatch between files Theano/hand2_J_Theano.txt and Manual/hand2_J_manual_eigen.txt in Release/hand/complicated_big
+  Mismatch between files Finite/hand3_J_Finite_light.txt and ADOLC/hand3_J_ADOLC_light.txt in Release/hand/complicated_big
+  Mismatch between files Manual/hand3_J_manual_eigen.txt and Finite/hand3_J_Finite_light.txt in Release/hand/complicated_big
+  Mismatch between files Theano/hand3_J_Theano.txt and Manual/hand3_J_manual_eigen.txt in Release/hand/complicated_big
+  Mismatch between files Finite/hand4_J_Finite_light.txt and ADOLC/hand4_J_ADOLC_light.txt in Release/hand/complicated_big
+  Mismatch between files Manual/hand4_J_manual_eigen.txt and Finite/hand4_J_Finite_light.txt in Release/hand/complicated_big
+  Mismatch between files Theano/hand4_J_Theano.txt and Manual/hand4_J_manual_eigen.txt in Release/hand/complicated_big
+  Mismatch between files Finite/hand5_J_Finite_light.txt and ADOLC/hand5_J_ADOLC_light.txt in Release/hand/complicated_big
+  Mismatch between files Manual/hand5_J_manual_eigen.txt and Finite/hand5_J_Finite_light.txt in Release/hand/complicated_big
+  Mismatch between files Theano/hand5_J_Theano.txt and Manual/hand5_J_manual_eigen.txt in Release/hand/complicated_big
+Finding files for graph: Debug/hand/simple_small
+Comparing files for graph: Debug/hand/simple_small
+  Mismatch between files ADOLC/hand1_J_ADOLC_light.txt and Adept/hand1_J_Adept_light.txt in Debug/hand/simple_small
+  Mismatch between files ADOLC/hand2_J_ADOLC_light.txt and Adept/hand2_J_Adept_light.txt in Debug/hand/simple_small
+  Mismatch between files Finite/hand2_J_Finite_light.txt and ADOLC/hand2_J_ADOLC_light.txt in Debug/hand/simple_small
+  Mismatch between files Manual/hand2_J_manual_eigen.txt and Finite/hand2_J_Finite_light.txt in Debug/hand/simple_small
+  Mismatch between files ADOLC/hand3_J_ADOLC_light.txt and Adept/hand3_J_Adept_light.txt in Debug/hand/simple_small
+  Mismatch between files ADOLC/hand4_J_ADOLC_light.txt and Adept/hand4_J_Adept_light.txt in Debug/hand/simple_small
+  Mismatch between files Finite/hand4_J_Finite_light.txt and ADOLC/hand4_J_ADOLC_light.txt in Debug/hand/simple_small
+  Mismatch between files Manual/hand4_J_manual_eigen.txt and Finite/hand4_J_Finite_light.txt in Debug/hand/simple_small
+  Mismatch between files ADOLC/hand5_J_ADOLC_light.txt and Adept/hand5_J_Adept_light.txt in Debug/hand/simple_small
+  Mismatch between files Finite/hand5_J_Finite_light.txt and ADOLC/hand5_J_ADOLC_light.txt in Debug/hand/simple_small
+  Mismatch between files Manual/hand5_J_manual_eigen.txt and Finite/hand5_J_Finite_light.txt in Debug/hand/simple_small
+Finding files for graph: Debug/hand/complicated_big
+Comparing files for graph: Debug/hand/complicated_big
+  Mismatch between files Finite/hand1_J_Finite_light.txt and ADOLC/hand1_J_ADOLC_light.txt in Debug/hand/complicated_big
+  Mismatch between files Manual/hand1_J_manual_eigen.txt and Finite/hand1_J_Finite_light.txt in Debug/hand/complicated_big
+  Mismatch between files Finite/hand2_J_Finite_light.txt and ADOLC/hand2_J_ADOLC_light.txt in Debug/hand/complicated_big
+  Mismatch between files Manual/hand2_J_manual_eigen.txt and Finite/hand2_J_Finite_light.txt in Debug/hand/complicated_big
+  Mismatch between files Finite/hand3_J_Finite_light.txt and ADOLC/hand3_J_ADOLC_light.txt in Debug/hand/complicated_big
+  Mismatch between files Manual/hand3_J_manual_eigen.txt and Finite/hand3_J_Finite_light.txt in Debug/hand/complicated_big
+  Mismatch between files Finite/hand4_J_Finite_light.txt and ADOLC/hand4_J_ADOLC_light.txt in Debug/hand/complicated_big
+  Mismatch between files Manual/hand4_J_manual_eigen.txt and Finite/hand4_J_Finite_light.txt in Debug/hand/complicated_big
+  Mismatch between files Finite/hand5_J_Finite_light.txt and ADOLC/hand5_J_ADOLC_light.txt in Debug/hand/complicated_big
+  Mismatch between files Manual/hand5_J_manual_eigen.txt and Finite/hand5_J_Finite_light.txt in Debug/hand/complicated_big
