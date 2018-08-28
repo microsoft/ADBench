@@ -4,15 +4,21 @@ import os
 
 
 # Recursively set in nested dictionary
-def _set_rec(obj, keys, value):
+def _set_rec(obj, keys, value, append=False):
     if len(keys) == 1:
-        obj[keys[0]] = value
+        if append:
+            if keys[0] in obj:
+                obj[keys[0]].append(value)
+            else:
+                obj[keys[0]] = [value]
+        else:
+            obj[keys[0]] = value
         return obj
     else:
         if keys[0] in obj:
-            obj[keys[0]] = _set_rec(obj[keys[0]], keys[1:], value)
+            obj[keys[0]] = _set_rec(obj[keys[0]], keys[1:], value, append)
         else:
-            obj[keys[0]] = _set_rec({}, keys[1:], value)
+            obj[keys[0]] = _set_rec({}, keys[1:], value, append)
 
         return obj
 
@@ -92,7 +98,9 @@ def gmm_get_k(key):
 
 # Get the problem size from a GMM key
 def gmm_get_n(key):
-    return int(gmm_get_d(key) * (gmm_get_d(key) - 1) / 2 * gmm_get_k(key))
+    d = gmm_get_d(key)
+    k = gmm_get_k(key)
+    return k + d + d * (d - 1) / 2
 
 
 # Get the problem size from a standard (BA, hand) key

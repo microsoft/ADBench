@@ -1,6 +1,7 @@
 import os
 import sys
 import copy
+import json
 # import numpy
 from matplotlib import pyplot, rcParams
 # from mpl_toolkits.mplot3d import Axes3D
@@ -43,6 +44,7 @@ all_graphs = [path.split("/") for path in list(set(["/".join(path[:-2]) for path
 all_graphs = ([path + ["objective"] for path in all_graphs]
     + [path + ["jacobian"] for path in all_graphs]
     + [path + ["jacobian ÷ objective"] for path in all_graphs])
+all_graph_dict = {}
 
 print("Plotting graphs:")
 
@@ -55,6 +57,7 @@ for graph in all_graphs:
     function_type = graph[-1]
     graph_name = f"{objective.upper()}{f' ({test_size})' if test_size is not None else ''} [{function_type.capitalize()}] - {build_type}"
     graph_save_location = f"{build_type}/{function_type}/{graph_name} Graph"
+    utils._set_rec(all_graph_dict, [build_type, function_type], graph_name, True)
     print(f"\n  {graph_name}")
 
     # Create figure
@@ -114,6 +117,11 @@ for graph in all_graphs:
     figure_idx += 1
 
 print(f"\nPlotted {figure_idx - 1} graphs")
+
+print("\nWriting graphs index...")
+index_file = open(f"{out_dir}/graphs_index.json", "w")
+index_file.write(json.dumps(all_graph_dict))
+index_file.close()
 
 if do_show:
     print("\nDisplaying graphs...\n")
