@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+
+        <style>
+            select {
+                margin: 20px;
+				margin-top: 0;
+            }
+			
+			iframe {
+				width: calc(100vw - 20px);
+				height: calc(100vh - 260px);
+				border: none;
+			}
+			
+			#graph-links, #graph-container {
+				display: none;
+			}
+        </style>
+
+    </head>
+
+    <body>
+	
+		<h2>
+			Autodiff Graph Viewer
+		</h2>
+
+        <div id="graph-selects">
+			<h4>Select Graph</h4>
+		</div>
+
+        <script>
+			function loadGraphDict (callback) {
+				var xhr = new XMLHttpRequest();
+				xhr.overrideMimeType("application/json");
+				xhr.open("GET", "graphs_index.json");
+				xhr.onload = function () {
+					callback(JSON.parse(xhr.responseText));
+				};
+				xhr.onerror = function (err) {
+					console.log(err);
+				};
+				xhr.send();
+			}
+
+			function genOptions (sel, opts) {
+				var firstOpt = sel.options[0].outerHTML;
+				sel.innerHTML = firstOpt;
+				for (var i in opts) {
+					var option = document.createElement("option");
+					option.value = opts[i];
+					option.innerText = opts[i];
+					sel.appendChild(option);
+				}
+			}
+
+			function getSelVal(select) {
+				return select.options[select.selectedIndex].value;
+			}
+
+			function createSelects () {
+				selects = ["Build Type", "Function Type", "Graph"];
+				for (var i in selects) {
+					var select = document.createElement("select");
+					select.id = "gsel-" + selects[i].split(" ")[0];
+					select.onchange = refreshSelects;
+						
+					var placeholderOption = document.createElement("option");
+					placeholderOption.disabled = true;
+					placeholderOption.selected = true;
+					placeholderOption.value = "-1";
+					placeholderOption.innerText = "Select " + selects[i];
+					select.appendChild(placeholderOption);
+
+					document.getElementById("graph-selects").appendChild(select);
+				}
+                
+				genOptions(document.getElementById("gsel-Build"), Object.keys(graphDict));
+				document.getElementById("gsel-Build").selectedIndex = 0;
+
+				refreshSelects();
+				
+                var button = document.createElement("button");
+                button.innerText = "Go";
+				button.onclick = refreshGraph;
+                document.getElementById("graph-selects").appendChild(button);
+			}
+
+			function refreshSelects () {
+				allSelects = document.getElementsByTagName("select");
+				selInd = Array.prototype.slice.call(allSelects).indexOf(this);
+				if (selInd == -1) selInd = 0;
+
+				var skippedFirst = false;
+				var notDone = false;
+				var currentGDict = graphDict;
+				for (var i = 0; i < selInd; i++) {
+					currentGDict = currentGDict[getSelVal(allSelects[i])];
+				}
+				for (var i = selInd + 1; i < allSelects.length; i++) {
+					var lastVal = getSelVal(allSelects[i - 1]);
+					if (lastVal == "-1") notDone = true;
+
+					allSelects[i].selectedIndex = 0;
+					if (notDone) {
+						allSelects[i].disabled = true;
+						continue;
+					} else allSelects[i].disabled = false;
+
+					currentGDict = currentGDict[lastVal];
+					
+					genOptions(allSelects[i], currentGDict.constructor == Array ? currentGDict : Object.keys(currentGDict));
+					allSelects[i].selectedIndex = 0;
+				}
+			}
+
+			function refreshGraph() {
+				var buildType = getSelVal(document.getElementById("gsel-Build"));
+				var funcType = getSelVal(document.getElementById("gsel-Function"));
+				var graphType = getSelVal(document.getElementById("gsel-Graph"));
+				
+				var graphPath = buildType + "/" + funcType + "/" + graphType + " Graph";
+
+				document.getElementById("graph-container").style.display = "block";
+				document.getElementById("graph-container").src = "plotly/" + graphPath + ".html";
+				
+				document.getElementById("graph-links").style.display = "block";
+				document.getElementById("graph-plotly-link").href = "plotly/" + graphPath + ".html";
+				document.getElementById("graph-static-link").href = "static/" + graphPath + ".png";
+			}
+
+			var graphDict;
+			loadGraphDict(function (data) {
+				graphDict = data;
+				createSelects();
+			});
+        </script>
+		
+		<p id="graph-links">
+			Click <a id="graph-plotly-link" target="_blank">here</a> for a standalone version of the selected graph, and <a id="graph-static-link" target="_blank">here</a> for a static (image) version.
+		</p>
+		
+		<iframe id="graph-container"></iframe>
+    </body>
+</html>
