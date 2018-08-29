@@ -23,7 +23,9 @@ if do_show:
 figure_size = (9, 6) if do_plotly else (12, 8)
 fig_dpi = 96
 save_dpi = 144
-marker = "x"
+colors = ["b", "g", "r", "c", "m", "y"]
+markers = ["x", "+", "s", "^"]
+all_styles = sum([[(c, m) for c in colors] for m in markers], [])
 
 # Folders
 adbench_dir = os.path.dirname(os.path.realpath(__file__))
@@ -41,9 +43,9 @@ print(f"Output directory is: {out_dir}\n")
 # Scan folder for all files, and determine which graphs to create
 all_files = [path for path in utils._scandir_rec(in_dir) if "times" in path[-1]]
 all_graphs = [path.split("/") for path in list(set(["/".join(path[:-2]) for path in all_files]))]
-all_graphs = ([path + ["objective"] for path in all_graphs]
-    + [path + ["jacobian"] for path in all_graphs]
-    + [path + ["jacobian ÷ objective"] for path in all_graphs])
+all_graphs = ([path + ["objective"] for path in all_graphs] +
+              [path + ["jacobian"] for path in all_graphs] +
+              [path + ["jacobian ÷ objective"] for path in all_graphs])
 all_graph_dict = {}
 
 print("Plotting graphs:")
@@ -71,6 +73,7 @@ for graph in all_graphs:
     tool_files = {tool: ["/".join(path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool] for tool in tool_names}
 
     handles, labels = [], []
+    tool_ind = 0
 
     # Loop through tools
     for tool in tool_names:
@@ -84,8 +87,9 @@ for graph in all_graphs:
         t_vals = list(map(lambda pair: pair[1], times_sorted))
 
         # Plot results
-        handles += pyplot.plot(n_vals, t_vals, marker=marker, label=utils.format_tool(tool))
+        handles += pyplot.plot(n_vals, t_vals, marker=all_styles[tool_ind][1], color=all_styles[tool_ind][0], label=utils.format_tool(tool))
         labels.append(utils.format_tool(tool))
+        tool_ind += 1
 
     # Sort handles and labels
     handles, labels = zip(*sorted(zip(handles, labels), key=lambda t: -sum(utils.get_real_y(t[0])) / len(utils.get_real_y(t[0]))))
