@@ -45,7 +45,7 @@ for layer_count in layer_counts:
 
         # Write to file
         f = open(f"lstm_l{layer_count}_c{char_count}.txt", "w")
-        f.write(f"{layer_count} {char_count}\n\n")
+        f.write(f"{layer_count} {char_count} {char_bits}\n\n")
         f_write_mat(f, main_params)
         f_write_mat(f, extra_params)
         f_write_mat(f, state)
