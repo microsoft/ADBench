@@ -92,20 +92,22 @@ def read_time(path, func_type):
 
 
 # Get the GMM D value from a key
-def gmm_get_d(key):
-    return int(key.split("_")[1][1:])
-
-
-# Get the GMM K value from a key
-def gmm_get_k(key):
-    return int(key.split("_")[2][1:])
+def key_get_val(key, ind):
+    return int(key.split("_")[ind][1:])
 
 
 # Get the problem size from a GMM key
 def gmm_get_n(key):
-    d = gmm_get_d(key)
-    k = gmm_get_k(key)
+    d = key_get_val(key, 1)
+    k = key_get_val(key, 2)
     return k + d + d * (d - 1) / 2
+
+
+# Get the problem size for an LSTM key
+def lstm_get_n(key):
+    l = key_get_val(key, 1)
+    c = key_get_val(key, 2)
+    return l * c
 
 
 # Get the problem size from a standard (BA, hand) key
@@ -117,5 +119,6 @@ def std_get_n(key):
 key_functions = {
     "gmm": gmm_get_n,
     "ba": std_get_n,
-    "hand": std_get_n
+    "hand": std_get_n,
+    "lstm": lstm_get_n
 }

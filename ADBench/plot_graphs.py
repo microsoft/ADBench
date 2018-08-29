@@ -97,10 +97,16 @@ for graph in all_graphs:
     # Draw black dots
     max_len = max(map(lambda h: len(utils.get_real_y(h)), handles))
     failed = filter(lambda h: len(utils.get_real_y(h)) < max_len, handles)
+    failed_x, failed_y = [], []
     for handle in failed:
         inf_inds = [i for i, y in enumerate(handle.get_ydata()) if y == float("inf")]
         last_ind = inf_inds[0] - 1 if len(inf_inds) > 0 else -1
-        pyplot.plot(handle.get_xdata()[last_ind], handle.get_ydata()[last_ind], marker="o", color=(0, 0, 0))
+        failed_x.append(handle.get_xdata()[last_ind])
+        failed_y.append(handle.get_ydata()[last_ind])
+        #handles += pyplot.plot(handle.get_xdata()[last_ind], handle.get_ydata()[last_ind], marker="o", color=(0, 0, 0), linestyle="None", label="Crashed/Terminated")
+    if len(failed_x) > 0:
+        handles += tuple(pyplot.plot(failed_x, failed_y, marker="o", color="k", linestyle="None", label="Crashed/Terminated"))
+        labels += ("Crashed/Terminated",)
 
     # Setup graph attributes
     pyplot.title(graph_name)
