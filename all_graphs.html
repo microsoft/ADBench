@@ -4,15 +4,42 @@
     <head>
 
         <style>
+			* {
+				font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+			}
+			
+			body {
+				margin: 0;
+			}
+			
+			#header {
+				padding: 20px;
+				box-shadow: 0 0 10px black;
+				height: 250px;
+				box-sizing: border-box;
+				overflow-y: auto;
+			}
+			
+			h2 {
+				text-align: center;
+				margin: 10px;
+			}
+		
             select {
                 margin: 20px;
 				margin-top: 0;
             }
 			
 			iframe {
-				width: calc(100vw - 20px);
+				width: 100vw;
 				height: calc(100vh - 260px);
 				border: none;
+				margin-top: 10px;
+			}
+			
+			#preseltext {
+				text-align: center;
+				margin: 100px;
 			}
 			
 			#graph-links, #graph-container {
@@ -23,15 +50,20 @@
     </head>
 
     <body>
-	
-		<h2>
-			Autodiff Graph Viewer
-		</h2>
+		<div id="header">
+			<h2>
+				Autodiff Graph Viewer
+			</h2>
 
-        <div id="graph-selects">
-			<h4>Select Graph</h4>
+			<div id="graph-selects">
+				<h4>Select Graph</h4>
+			</div>
+			
+			<p id="graph-links">
+				Click <a id="graph-plotly-link" target="_blank">here</a> for a standalone version of the selected graph, and <a id="graph-static-link" target="_blank">here</a> for a static (image) version.
+			</p>
 		</div>
-
+	
         <script>
 			function loadGraphDict (callback) {
 				var xhr = new XMLHttpRequest();
@@ -47,6 +79,9 @@
 			}
 
 			function genOptions (sel, opts) {
+				if (opts.length == 1 && !opts[0]) sel.style.display = "none";
+				else sel.style.display = "";
+				
 				var firstOpt = sel.options[0].outerHTML;
 				sel.innerHTML = firstOpt;
 				for (var i in opts) {
@@ -62,7 +97,7 @@
 			}
 
 			function createSelects () {
-				selects = ["Build Type", "Function Type", "Graph"];
+				selects = ["Build Type", "Function Type", "Objective", "Test Size"];
 				for (var i in selects) {
 					var select = document.createElement("select");
 					select.id = "gsel-" + selects[i].split(" ")[0];
@@ -120,9 +155,14 @@
 			function refreshGraph() {
 				var buildType = getSelVal(document.getElementById("gsel-Build"));
 				var funcType = getSelVal(document.getElementById("gsel-Function"));
-				var graphType = getSelVal(document.getElementById("gsel-Graph"));
+				var objective = getSelVal(document.getElementById("gsel-Objective"));
+				var testSize
+				if (document.getElementById("gsel-Test").style.display != "none") testSize = getSelVal(document.getElementById("gsel-Test"));
+				else testSize = null;
 				
-				var graphPath = buildType + "/" + funcType + "/" + graphType + " Graph";
+				var graphName = objective + (testSize !== null ? " (" + testSize + ")" : "") + " [" + funcType + "] - " + buildType;
+				
+				var graphPath = buildType + "/" + funcType + "/" + graphName + " Graph";
 
 				document.getElementById("graph-container").style.display = "block";
 				document.getElementById("graph-container").src = graphsRoot + "/plotly/" + graphPath + ".html";
@@ -130,6 +170,8 @@
 				document.getElementById("graph-links").style.display = "block";
 				document.getElementById("graph-plotly-link").href = graphsRoot + "/plotly/" + graphPath + ".html";
 				document.getElementById("graph-static-link").href = graphsRoot + "/static/" + graphPath + ".png";
+				
+				document.getElementById("preseltext").style.display = "none";
 			}
 
 			var graphsRoot = "Documents/New Figures";
@@ -140,8 +182,8 @@
 			});
         </script>
 		
-		<p id="graph-links">
-			Click <a id="graph-plotly-link" target="_blank">here</a> for a standalone version of the selected graph, and <a id="graph-static-link" target="_blank">here</a> for a static (image) version.
+		<p id="preseltext">
+			Please select a graph above.
 		</p>
 		
 		<iframe id="graph-container"></iframe>
