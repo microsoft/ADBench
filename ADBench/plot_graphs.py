@@ -84,7 +84,7 @@ for graph in all_graphs:
         t_vals = list(map(lambda pair: pair[1], times_sorted))
 
         # Plot results
-        handles += pyplot.plot(n_vals, t_vals, marker=marker)
+        handles += pyplot.plot(n_vals, t_vals, marker=marker, label=utils.format_tool(tool))
         labels.append(utils.format_tool(tool))
 
     # Sort handles and labels
