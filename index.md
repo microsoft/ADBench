@@ -2,11 +2,11 @@
 
 ## Documentation
 
-- [Mobile Documentation](/Documents/srajer-autodiff-mobile.pdf)
+- [Mobile Documentation](Documents/srajer-autodiff-mobile.pdf)
 
 ## Graphs
 
-See [here](/all_graphs) for all of the available graphs from this project.
+See [here](all_graphs) for all of the available graphs from this project.
 
 ### Example
 
