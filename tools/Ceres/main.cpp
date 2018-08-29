@@ -273,7 +273,7 @@ void test_ba(const string& fn_in, const string& fn_out,
   });
 
   string name = "Ceres";
-  //write_J_sparse(fn_out + "_J_" + name + ".txt", J);
+  write_J_sparse(fn_out + "_J_" + name + ".txt", J);
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
 }
 

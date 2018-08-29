@@ -48,9 +48,8 @@ function run_command ($indent, $outfile, $timeout, $cmd) {
 	$status = $Process.WaitForExit($timeout * 1000)
 	if ($status) {
 		$output = $Process.StandardOutput.ReadToEnd() + $Process.StandardError.ReadToEnd()
-		foreach ($line in $output) {
-			Write-Host "$indent$line"
-		}
+		$output = $output.Replace("`n", "`n$indent")
+		Write-Host "$indent$output"
 	} else {
 		$Process.Kill()
 		Write-Host "${indent}Killed after $timeout seconds"
@@ -260,13 +259,14 @@ Class Tool {
 	}
 
 	[void] testlstm () {
+		Write-Host "  LSTM"
 		$dir_out = "$script:tmpdir/lstm/$($this.name)/"
 		mkdir -force $dir_out
 
 		foreach ($l in [Tool]::lstm_l_vals) {
-			Write-Host "  l=$l"
+			Write-Host "    l=$l"
 			foreach ($c in [Tool]::lstm_c_vals) {
-				Write-Host "    c=$c"
+				Write-Host "      c=$c"
 
 				$this.run("lstm", [Tool]::lstm_dir_in, $dir_out, "lstm_l${l}_c$c")
 			}
@@ -279,12 +279,11 @@ $tools = @(
 	[Tool]::new("Adept", "bin", "1110", 1, 0, "101010"),
 	[Tool]::new("ADOLC", "bin", "1110", 1, 0, "101011"),
 	[Tool]::new("Ceres", "bin", "1100", 0, 1, "101011"),
-	[Tool]::new("Finite", "bin", "1110", 0, 0, "101011"),
+	[Tool]::new("Finite", "bin", "1111", 0, 0, "101011"),
 	[Tool]::new("Manual", "bin", "1110", 0, 0, "110101"),
 	[Tool]::new("DiffSharp", "bin", "0100", 1, 0, "101010"),
 	[Tool]::new("Autograd", "py", "1100", 1, 0, "101010"),
-	[Tool]::new("PyTorch", "py", "1000", 0, 0, "101010"),
-	[Tool]::new("PyTorch", "py", "0011", 0, 0, "101010"),
+	[Tool]::new("PyTorch", "py", "1011", 0, 0, "101010"),
 	[Tool]::new("Theano", "pybat", "1110", 0, 0, "101010")
 	#[Tool]::new("MuPad", "matlab", 0, 0, 0)
 	#[Tool]::new("ADiMat", "matlab", 0, 0, 0)

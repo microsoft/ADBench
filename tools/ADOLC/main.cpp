@@ -547,7 +547,7 @@ void test_ba(const string& fn_in, const string& fn_out,
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ, &t_sparsity);
 #endif
 
-  //write_J_sparse(fn_out + "_J_" + name + ".txt", J);
+  write_J_sparse(fn_out + "_J_" + name + ".txt", J);
 }
 
 #elif (defined DO_GMM_FULL || defined DO_GMM_SPLIT)
