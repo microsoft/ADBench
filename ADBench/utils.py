@@ -66,6 +66,11 @@ def format_tool(tool):
     return cap_str(t_split[0]) + ((" (" + ", ".join(t_split[1:]) + ")") if len(t_split) > 1 else "")
 
 
+# Get only real (non-inf) y-data for a pyplot handle
+def get_real_y(handle):
+        return [y for y in handle.get_ydata() if y != float("inf")]
+
+
 # Extract the test (i.e. type and size) from a filename
 def get_test(fn):
     return "_".join(fn.split("_")[:fn.split("_").index("times")])

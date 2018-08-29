@@ -28,7 +28,7 @@ marker = "x"
 # Folders
 adbench_dir = os.path.dirname(os.path.realpath(__file__))
 ad_root_dir = os.path.dirname(adbench_dir)
-in_dir = f"{ad_root_dir}/testtmp"
+in_dir = f"{ad_root_dir}/tmp"
 out_dir = f"{ad_root_dir}/Documents/New Figures"
 static_out_dir_rel = "/static"
 plotly_out_dir_rel = "/plotly"
@@ -58,7 +58,7 @@ for graph in all_graphs:
     has_ts = test_size is not None
     graph_name = f"{objective.upper()}{f' ({test_size})' if has_ts else ''} [{function_type.capitalize()}] - {build_type}"
     graph_save_location = f"{build_type}/{function_type}/{graph_name} Graph"
-    utils._set_rec(all_graph_dict, [build_type, function_type] + ([objective.upper()] if has_ts else []), test_size if has_ts else objective.upper(), True)
+    utils._set_rec(all_graph_dict, [build_type, function_type, objective.upper()], test_size if has_ts else "", True)
     print(f"\n  {graph_name}")
 
     # Create figure
@@ -88,13 +88,15 @@ for graph in all_graphs:
         labels.append(utils.format_tool(tool))
 
     # Sort handles and labels
-    handles, labels = zip(*sorted(zip(handles, labels), key=lambda t: -sum(t[0].get_ydata()) / len(t[0].get_ydata())))
+    handles, labels = zip(*sorted(zip(handles, labels), key=lambda t: -sum(utils.get_real_y(t[0])) / len(utils.get_real_y(t[0]))))
 
     # Draw black dots
-    max_len = max(map(lambda h: len(h.get_ydata()), handles))
-    failed = filter(lambda h: len(h.get_ydata()) < max_len, handles)
+    max_len = max(map(lambda h: len(utils.get_real_y(h)), handles))
+    failed = filter(lambda h: len(utils.get_real_y(h)) < max_len, handles)
     for handle in failed:
-        pyplot.plot(handle.get_xdata()[-1], handle.get_ydata()[-1], marker="o", color=(0, 0, 0))
+        inf_inds = [i for i, y in enumerate(handle.get_ydata()) if y == float("inf")]
+        last_ind = inf_inds[0] - 1 if len(inf_inds) > 0 else -1
+        pyplot.plot(handle.get_xdata()[last_ind], handle.get_ydata()[last_ind], marker="o", color=(0, 0, 0))
 
     # Setup graph attributes
     pyplot.title(graph_name)
@@ -115,9 +117,6 @@ for graph in all_graphs:
 
     # Add legend (after plotly to avoid error)
     pyplot.legend(handles, labels, loc=4, bbox_to_anchor=(1, 0))
-
-    pyplot.show()
-    exit()
 
     # Save graph (if selected)
     if do_save:
