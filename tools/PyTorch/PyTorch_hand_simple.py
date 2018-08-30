@@ -61,7 +61,9 @@ for task_id in range(ntasks):
         tJ += tf  # !!!!!!!!! adding this because no function value is returned by fjac
         # print("J:")
         # print(J)
-        hand_io.write_J(fn_out + "_J_" + name + ".txt", res[1].reshape((res[1].shape[0], res[1].shape[2])))
+        # print(res[1])
+        J = np.array([list(row[0]) for row in res[1]])
+        hand_io.write_J(fn_out + "_J_" + name + ".txt", J)
     else:
         tJ = 0
 
