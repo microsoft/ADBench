@@ -47,10 +47,9 @@ function run_command ($indent, $outfile, $timeout, $cmd) {
 	$Process.Start() | Out-Null
 	$status = $Process.WaitForExit($timeout * 1000)
 	if ($status) {
-		$output = $Process.StandardOutput.ReadToEnd()
-		foreach ($line in $output) {
-			Write-Host "$indent$line"
-		}
+		$output = $Process.StandardOutput.ReadToEnd() + $Process.StandardError.ReadToEnd()
+		$output = $output.Replace("`n", "`n$indent")
+		Write-Host "$indent$output"
 	} else {
 		$Process.Kill()
 		Write-Host "${indent}Killed after $timeout seconds"
@@ -98,12 +97,16 @@ Class Tool {
 	static [string]$gmm_dir_in = "$datadir/gmm/"
 	static [string]$ba_dir_in = "$datadir/ba/"
 	static [string]$hand_dir_in = "$datadir/hand/"
+	static [string]$lstm_dir_in = "$datadir/lstm/"
 	static [array]$gmm_sizes = @("1k", "10k") # @("1k", "10k", "2.5M")
 	static [array]$hand_sizes = @("small", "big") # @("small", "big")
 	static [int]$ba_min_n = 1
 	static [int]$ba_max_n = 5
 	static [int]$hand_min_n = 1
 	static [int]$hand_max_n = 5
+	static [array]$lstm_l_vals = @(2, 4)
+	static [array]$lstm_c_vals = @(1024, 4096)
+	# TODO probably want to set these in CMake somewhere
 
 	# Constructor
 	Tool ([string]$name, [string]$type, [string]$objectives, [bool]$gmm_both, [bool]$gmm_use_defs, [string]$eigen_config) {
@@ -140,6 +143,7 @@ Class Tool {
 		if ($this.objectives[0]) { $this.testgmm() }
 		if ($this.objectives[1]) { $this.testba() }
 		if ($this.objectives[2]) { $this.testhand() }
+		if ($this.objectives[3]) { $this.testlstm() }
 	}
 
 	# Run a single test
@@ -253,19 +257,34 @@ Class Tool {
 			}
 		}
 	}
+
+	[void] testlstm () {
+		Write-Host "  LSTM"
+		$dir_out = "$script:tmpdir/lstm/$($this.name)/"
+		mkdir -force $dir_out
+
+		foreach ($l in [Tool]::lstm_l_vals) {
+			Write-Host "    l=$l"
+			foreach ($c in [Tool]::lstm_c_vals) {
+				Write-Host "      c=$c"
+
+				$this.run("lstm", [Tool]::lstm_dir_in, $dir_out, "lstm_l${l}_c$c")
+			}
+		}
+	}
 }
 
 # Full list of tools
 $tools = @(
-	[Tool]::new("Adept", "bin", "111", 1, 0, "101010"),
-	[Tool]::new("ADOLC", "bin", "111", 1, 0, "101011"),
-	[Tool]::new("Ceres", "bin", "110", 0, 1, "101011"),
-	[Tool]::new("Finite", "bin", "111", 0, 0, "101011"),
-	[Tool]::new("Manual", "bin", "111", 0, 0, "110101"),
-	[Tool]::new("DiffSharp", "bin", "010", 1, 0, "101010"),
-	[Tool]::new("Autograd", "py", "110", 1, 0, "101010"),
-	[Tool]::new("PyTorch", "py", "100", 0, 0, "101010"),
-	[Tool]::new("Theano", "pybat", "111", 0, 0, "101010")
+	[Tool]::new("Adept", "bin", "1110", 1, 0, "101010"),
+	[Tool]::new("ADOLC", "bin", "1110", 1, 0, "101011"),
+	[Tool]::new("Ceres", "bin", "1100", 0, 1, "101011"),
+	[Tool]::new("Finite", "bin", "1111", 0, 0, "101011"),
+	[Tool]::new("Manual", "bin", "1110", 0, 0, "110101"),
+	[Tool]::new("DiffSharp", "bin", "0100", 1, 0, "101010"),
+	[Tool]::new("Autograd", "py", "1100", 1, 0, "101010"),
+	[Tool]::new("PyTorch", "py", "1011", 0, 0, "101010"),
+	[Tool]::new("Theano", "pybat", "1110", 0, 0, "101010")
 	#[Tool]::new("MuPad", "matlab", 0, 0, 0)
 	#[Tool]::new("ADiMat", "matlab", 0, 0, 0)
 )
@@ -275,12 +294,13 @@ foreach ($tool in $tools) {
 	$tool.runall()
 }
 
+# Run other build configuration
 if (!$buildtype_ -and $buildtype -eq "Release") {
 	if (Test-Path "$dir/ADBench/cmake-vars-Debug.ps1") {
 		Write-Host "`n`n"
 
 		$cmd = $MyInvocation.MyCommand.Path
-		$cmdargs = @("Debug", $nruns_f, $nruns_J, $time_limit, "", $repeat)
+		$cmdargs = @("Debug", $nruns_f, $nruns_J, $time_limit, $timeout, "", $repeat)
 		$output = & $cmd @cmdargs
 		foreach ($line in $output) {
 			Write-Host $line

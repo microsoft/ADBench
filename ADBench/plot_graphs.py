@@ -1,6 +1,7 @@
 import os
 import sys
 import copy
+import json
 # import numpy
 from matplotlib import pyplot, rcParams
 # from mpl_toolkits.mplot3d import Axes3D
@@ -22,7 +23,9 @@ if do_show:
 figure_size = (9, 6) if do_plotly else (12, 8)
 fig_dpi = 96
 save_dpi = 144
-marker = "x"
+colors = ["b", "g", "r", "c", "m", "y"]
+markers = ["x", "+", "s", "^"]
+all_styles = sum([[(c, m) for c in colors] for m in markers], [])
 
 # Folders
 adbench_dir = os.path.dirname(os.path.realpath(__file__))
@@ -40,9 +43,10 @@ print(f"Output directory is: {out_dir}\n")
 # Scan folder for all files, and determine which graphs to create
 all_files = [path for path in utils._scandir_rec(in_dir) if "times" in path[-1]]
 all_graphs = [path.split("/") for path in list(set(["/".join(path[:-2]) for path in all_files]))]
-all_graphs = ([path + ["objective"] for path in all_graphs]
-    + [path + ["jacobian"] for path in all_graphs]
-    + [path + ["jacobian ÷ objective"] for path in all_graphs])
+all_graphs = ([path + ["objective"] for path in all_graphs] +
+              [path + ["jacobian"] for path in all_graphs] +
+              [path + ["jacobian ÷ objective"] for path in all_graphs])
+all_graph_dict = {}
 
 print("Plotting graphs:")
 
@@ -53,8 +57,10 @@ for graph in all_graphs:
     build_type, objective = graph[:2]
     test_size = ", ".join([utils.cap_str(s) for s in graph[2].split("_")]) if len(graph) == 4 else None
     function_type = graph[-1]
-    graph_name = f"{objective.upper()}{f' ({test_size})' if test_size is not None else ''} [{function_type.capitalize()}] - {build_type}"
+    has_ts = test_size is not None
+    graph_name = f"{objective.upper()}{f' ({test_size})' if has_ts else ''} [{function_type.capitalize()}] - {build_type}"
     graph_save_location = f"{build_type}/{function_type}/{graph_name} Graph"
+    utils._set_rec(all_graph_dict, [build_type, function_type, objective.upper()], test_size if has_ts else "", True)
     print(f"\n  {graph_name}")
 
     # Create figure
@@ -65,6 +71,9 @@ for graph in all_graphs:
     file_names = list(map(utils.get_fn, graph_files))
     tool_names = list(set(map(utils.get_tool, file_names)))
     tool_files = {tool: ["/".join(path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool] for tool in tool_names}
+
+    handles, labels = [], []
+    tool_ind = 0
 
     # Loop through tools
     for tool in tool_names:
@@ -78,7 +87,26 @@ for graph in all_graphs:
         t_vals = list(map(lambda pair: pair[1], times_sorted))
 
         # Plot results
-        pyplot.plot(n_vals, t_vals, label=utils.format_tool(tool), marker=marker)
+        handles += pyplot.plot(n_vals, t_vals, marker=all_styles[tool_ind][1], color=all_styles[tool_ind][0], label=utils.format_tool(tool))
+        labels.append(utils.format_tool(tool))
+        tool_ind += 1
+
+    # Sort handles and labels
+    handles, labels = zip(*sorted(zip(handles, labels), key=lambda t: -sum(utils.get_real_y(t[0])) / len(utils.get_real_y(t[0]))))
+
+    # Draw black dots
+    max_len = max(map(lambda h: len(utils.get_real_y(h)), handles))
+    failed = filter(lambda h: len(utils.get_real_y(h)) < max_len, handles)
+    failed_x, failed_y = [], []
+    for handle in failed:
+        inf_inds = [i for i, y in enumerate(handle.get_ydata()) if y == float("inf")]
+        last_ind = inf_inds[0] - 1 if len(inf_inds) > 0 else -1
+        failed_x.append(handle.get_xdata()[last_ind])
+        failed_y.append(handle.get_ydata()[last_ind])
+        #handles += pyplot.plot(handle.get_xdata()[last_ind], handle.get_ydata()[last_ind], marker="o", color=(0, 0, 0), linestyle="None", label="Crashed/Terminated")
+    if len(failed_x) > 0:
+        handles += tuple(pyplot.plot(failed_x, failed_y, marker="o", color="k", linestyle="None", label="Crashed/Terminated"))
+        labels += ("Crashed/Terminated",)
 
     # Setup graph attributes
     pyplot.title(graph_name)
@@ -98,7 +126,7 @@ for graph in all_graphs:
         plotly.offline.plot(plotly_fig, filename=plotly_save_location, auto_open=False)
 
     # Add legend (after plotly to avoid error)
-    pyplot.legend(loc=4, bbox_to_anchor=(1, 0))
+    pyplot.legend(handles, labels, loc=4, bbox_to_anchor=(1, 0))
 
     # Save graph (if selected)
     if do_save:
@@ -114,6 +142,11 @@ for graph in all_graphs:
     figure_idx += 1
 
 print(f"\nPlotted {figure_idx - 1} graphs")
+
+print("\nWriting graphs index...")
+index_file = open(f"{out_dir}/graphs_index.json", "w")
+index_file.write(json.dumps(all_graph_dict))
+index_file.close()
 
 if do_show:
     print("\nDisplaying graphs...\n")

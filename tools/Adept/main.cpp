@@ -276,7 +276,7 @@ void test_ba(const string& fn_in, const string& fn_out,
   double tJ = compute_ba_J(nruns_J, time_limit, n, m, p, cams.data(), X.data(), w.data(),
     obs.data(), feats.data(), reproj_err.data(), w_err.data(), &J);
 
-  //write_J_sparse(fn_out + "_J_" + name + ".txt", J);
+  write_J_sparse(fn_out + "_J_" + name + ".txt", J);
   write_times(fn_out + "_times_" + name + ".txt", tf, tJ);
 }
 

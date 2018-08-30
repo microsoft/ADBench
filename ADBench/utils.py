@@ -4,15 +4,21 @@ import os
 
 
 # Recursively set in nested dictionary
-def _set_rec(obj, keys, value):
+def _set_rec(obj, keys, value, append=False):
     if len(keys) == 1:
-        obj[keys[0]] = value
+        if append:
+            if keys[0] in obj:
+                obj[keys[0]].append(value)
+            else:
+                obj[keys[0]] = [value]
+        else:
+            obj[keys[0]] = value
         return obj
     else:
         if keys[0] in obj:
-            obj[keys[0]] = _set_rec(obj[keys[0]], keys[1:], value)
+            obj[keys[0]] = _set_rec(obj[keys[0]], keys[1:], value, append)
         else:
-            obj[keys[0]] = _set_rec({}, keys[1:], value)
+            obj[keys[0]] = _set_rec({}, keys[1:], value, append)
 
         return obj
 
@@ -60,6 +66,11 @@ def format_tool(tool):
     return cap_str(t_split[0]) + ((" (" + ", ".join(t_split[1:]) + ")") if len(t_split) > 1 else "")
 
 
+# Get only real (non-inf) y-data for a pyplot handle
+def get_real_y(handle):
+        return [y for y in handle.get_ydata() if y != float("inf")]
+
+
 # Extract the test (i.e. type and size) from a filename
 def get_test(fn):
     return "_".join(fn.split("_")[:fn.split("_").index("times")])
@@ -81,18 +92,22 @@ def read_time(path, func_type):
 
 
 # Get the GMM D value from a key
-def gmm_get_d(key):
-    return int(key.split("_")[1][1:])
-
-
-# Get the GMM K value from a key
-def gmm_get_k(key):
-    return int(key.split("_")[2][1:])
+def key_get_val(key, ind):
+    return int(key.split("_")[ind][1:])
 
 
 # Get the problem size from a GMM key
 def gmm_get_n(key):
-    return int(gmm_get_d(key) * (gmm_get_d(key) - 1) / 2 * gmm_get_k(key))
+    d = key_get_val(key, 1)
+    k = key_get_val(key, 2)
+    return k + d + d * (d - 1) / 2
+
+
+# Get the problem size for an LSTM key
+def lstm_get_n(key):
+    l = key_get_val(key, 1)
+    c = key_get_val(key, 2)
+    return l * c
 
 
 # Get the problem size from a standard (BA, hand) key
@@ -104,5 +119,6 @@ def std_get_n(key):
 key_functions = {
     "gmm": gmm_get_n,
     "ba": std_get_n,
-    "hand": std_get_n
+    "hand": std_get_n,
+    "lstm": lstm_get_n
 }

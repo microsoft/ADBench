@@ -82,6 +82,13 @@ All tools should now be built. See [Usage](#usage) below.
 - `--show`: Display graphs in new windows
 - If neither `--save` or `--plotly` are included, `--show` will be `True` by default - otherwise, it must be manually enabled
 
+### check_J
+
+`python check_J.py`
+- This script compares all available Jacobian output files, and outputs results to the console
+- It will flag missing output files, and indicate where there may be a mismatch between files
+- For comparison, all derivatives are rounded to a certain number of significant figures, as specified by a constant at the top of the script
+
 ## Contributing
 
 Contributions to fix bugs, test on new systems or add new tools are welcomed. See [Contributing](/CONTRIBUTING.md) for details on how to add new tools, and [Issues](/ISSUES.md) for known bugs and TODOs.

@@ -631,7 +631,68 @@ void read_hand_instance(const string& model_dir, const string& fn_in,
   in.close();
 }
 
+void read_lstm_instance(const string& fn,
+	int *l, int *c, int *b,
+	vector<double>& main_params,
+	vector<double>& extra_params,
+	vector<double>& state,
+	vector<double>& sequence)
+{
+	FILE *fid = fopen(fn.c_str(), "r");
 
+	if (!fid) {
+		std::cerr << "Cannot open " << &fn << std::endl;
+		throw "oiks";
+	}
+
+	fscanf(fid, "%i %i %i", l, c, b);
+
+	int l_ = *l, c_ = *c, b_ = *b;
+
+	int main_sz = 2 * l_ * 4 * b_;
+	int extra_sz = 3 * b_;
+	int state_sz = 2 * l_ * b_;
+	int seq_sz = c_ * b_;
+
+	main_params.resize(main_sz);
+	extra_params.resize(extra_sz);
+	state.resize(state_sz);
+	sequence.resize(seq_sz);
+
+	for (int i = 0; i < main_sz; i++) {
+		fscanf(fid, "%lf", &main_params[i]);
+	}
+
+	for (int i = 0; i < extra_sz; i++) {
+		fscanf(fid, "%lf", &extra_params[i]);
+	}
+
+	for (int i = 0; i < state_sz; i++) {
+		fscanf(fid, "%lf", &state[i]);
+	}
+
+	char ch;
+	fscanf(fid, "%c", &ch);
+	fscanf(fid, "%c", &ch);
+
+	for (int i = 0; i < c_; i++) {
+		unsigned char ch;
+		fscanf(fid, "%c", &ch);
+		int cb = ch;
+		for (int j = b_ - 1; j >= 0; j--) {
+			int p = pow(2, j);
+			if (cb >= p) {
+				sequence[(i + 1) * b_ - j - 1] = 1;
+				cb -= p;
+			}
+			else {
+				sequence[(i + 1) * b_ - j - 1] = 0;
+			}
+		}
+	}
+
+	fclose(fid);
+}
 
 
 
