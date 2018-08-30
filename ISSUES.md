@@ -37,7 +37,7 @@ This is a list of known issues/TODOs for the project. Any fixes are welcomed.
     - No entrypoint for hand yet (i.e. `MuPad_hand.m`)
     - BA not working
 - PyTorch
-    - BA takes a *long* time, and has not been properly tested
+    - BA not done yet
 - Theano
     - `run.bat` - remove hard path to Miniconda
 

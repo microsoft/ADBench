@@ -4,8 +4,8 @@ import numpy as np
 
 import utils
 
-SIG_FIGS = 2
-MAX_DP = 4
+SIG_FIGS = 8
+MAX_DP = 12
 
 
 def load_matrix(fn):
@@ -76,14 +76,29 @@ for graph_path in all_graphs:
     print("Comparing files for graph:", "/".join(graph_path))
 
     for test in all_tests:
-        last_mat = None
-        for i in range(len(all_tests[test])):
-            fn = all_tests[test][i]
+        finite_files = [f for f in all_tests[test] if "Finite" in f]
+        manual_files = [f for f in all_tests[test] if "Manual" in f]
+        if len(finite_files) == 0:
+            print(f"No Finite output for test: {test}")
+            continue
+        elif len(manual_files) == 0:
+            print(f"No Manual output for test: {test}")
+            continue
+
+        finite_file = finite_files[0]
+        manual_file = manual_files[0]
+
+        finite_mat = load_matrix("/".join([in_dir] + graph_path + [finite_file]))
+        manual_mat = load_matrix("/".join([in_dir] + graph_path + [manual_file]))
+
+        if not test_equality(finite_mat, manual_mat, 4):
+            print(f"  Manual derivatives ({manual_file}) do not match with Finite differences ({finite_file})")
+
+        for fn in all_tests[test]:
+            if fn == finite_file or fn == manual_file:
+                continue
+
             mat = load_matrix("/".join([in_dir] + graph_path + [fn]))
 
-            if last_mat is not None:
-                # print(f"  Compare {fn} to {all_tests[test][i - 1]} in {'/'.join(graph_path)}")
-                if not test_equality(mat, last_mat):
-                    print(f"  Mismatch between files {fn} and {all_tests[test][i - 1]} in {'/'.join(graph_path)}")
-
-            last_mat = mat
+            if not test_equality(mat, manual_mat):
+                print(f"  Output file '{fn}' does not match with Manual derivatives ({manual_file})")
