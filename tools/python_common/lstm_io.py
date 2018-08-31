@@ -27,10 +27,7 @@ def read_lstm_instance(fn):
     fid.readline()
     state = np.array([parse_arr(fid.readline().split()) for i in range(2 * layer_count)])
     fid.readline()
-
-    text = fid.read(char_count)
-    
-    text_mat = text_to_matrix(text, char_bits)
+    text_mat = np.array([parse_arr(fid.readline().split()) for i in range(char_count)])
 
     fid.close()
 
