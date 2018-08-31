@@ -10,10 +10,11 @@ def recurse_backwards(output, inputs, J, flatten=False):
         for inp in inputs:
             inp.grad = None
         output.backward(retain_graph=True)
+
         if flatten:
             J.append(torch.cat(list(inp.grad.flatten() for inp in inputs)))
         else:
-            J.append(torch.stack(list(inp.grad for inp in inputs)))
+            J.append(list(inp.grad for inp in inputs))
 
 
 # Run a function with torch tensors
@@ -26,7 +27,11 @@ def torch_func(func, inputs, params, do_J, flatten=False):
     if do_J:
         J = []
         recurse_backwards(res, inputs, J, flatten)
-        J = torch.stack(J)
+        try:
+            J = torch.stack(J)
+        except TypeError:
+            if len(J) == 1:
+                J = J[0]
     else:
         J = None
 
