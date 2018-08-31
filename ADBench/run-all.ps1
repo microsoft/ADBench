@@ -47,9 +47,10 @@ function run_command ($indent, $outfile, $timeout, $cmd) {
 	$Process.Start() | Out-Null
 	$status = $Process.WaitForExit($timeout * 1000)
 	if ($status) {
-		$output = $Process.StandardOutput.ReadToEnd() + $Process.StandardError.ReadToEnd()
-		$output = $output.Replace("`n", "`n$indent")
-		Write-Host "$indent$output"
+		$stdout = $Process.StandardOutput.ReadToEnd().Trim().Replace("`n", "`n${indent}stdout> ")
+		$stderr = $Process.StandardError.ReadToEnd().Trim().Replace("`n", "`n${indent}stderr> ")
+		$allOutput = "${indent}stdout> " + $stdout + "`n${indent}stderr> " + $stderr
+		Write-Host "$allOutput"
 	} else {
 		$Process.Kill()
 		Write-Host "${indent}Killed after $timeout seconds"
