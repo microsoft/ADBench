@@ -1,11 +1,10 @@
 # ADBench - autodiff benchmarks
 
-## Aim
+This project aims to provide a running-time comparison for different tools for automatic differentiation, 
+as described in https://arxiv.org/abs/1807.10129, (source in [Documentation/ms.tex](Documentation/ms.tex)).
+It outputs a set of relevant graphs (see [Example Graphs](#Example%20Graphs)).
 
-To provide a running-time comparison for different tools for automatic differentiation, 
-as described in https://arxiv.org/abs/1807.10129, (source in Documentation/ms.tex).
-
-Output a set of relevant graphs.
+For information about the layout and status of the project, see [Status](STATUS.md).
 
 ## Prerequisites
 
@@ -93,78 +92,9 @@ All tools should now be built. See [Usage](#usage) below.
 
 Contributions to fix bugs, test on new systems or add new tools are welcomed. See [Contributing](/CONTRIBUTING.md) for details on how to add new tools, and [Issues](/ISSUES.md) for known bugs and TODOs.
 
-## Folder structure
-
-| Folder    | Purpose
-| --------- | ------- |
-| ADBench   | Orchestration scripts, plotting etc
-| Backup	| Old files
-| Documents | Graphs, papers, presentations etc
-| bak		| Old files
-| data      | Data files for different examples 
-| etc		| [HunterGate](https://github.com/ruslo/hunter) files
-| submodules| Dependencies on other git repositories
-| tmp       | Output of benchmark files, figures etc
-| tools     | Implementations for each tested tool, one folder per tool, with *-common folders for shared files by language
-| usr       | Per-user scratch folder
-
-## Tools
-
-Checked items are built (where relevant) by CMake and *can* be run by run-all.ps1
-
-### C++
-- [x] [Adept](https://github.com/rjhogan/Adept-2)
-	- Git submodule
-	- Built using custom cmake
-- [x] [ADOLC](https://gitlab.com/adol-c/adol-c)
-	- Git submodule
-	- Built using a batch file (to run `msbuild`) on windows
-- [x] [Ceres](https://github.com/ceres-solver/ceres-solver)
-	- HunterGate packages
-	- Built with shared libs
-	- For GMM, relies on `#define` for d and k values, so multiple executables are built
-	- Doesn't run Hand tests
-- [x] Finite
-	- Computes numeric derivatives (finite differences) for comparison
-	- No external dependencies
-- [x] Manual
-	- Manually-differentiated C++ functions
-	- No external dependencies
-- [ ] Tapenade
-
-### Python
-All Python tools use pip/conda modules. See list under [Prerequisites](#prerequisites).
-- [x] [Autograd](https://github.com/HIPS/autograd)
-	- Doesn't run Hand tests
-- [x] [Theano](https://github.com/Theano/Theano)
-- [x] [PyTorch](https://pytorch.org/)
-	- Only running GMM as yet
-
-### Matlab
-Matlab tools are not currently run by `run-all.ps1` due to the limitations of the Matlab free trial. With the full version, they *should* run correctly.
-- [x] [ADiMat](http://www.sc.informatik.tu-darmstadt.de/res/sw/adimat/)
-	- Latest release downloaded into folder in /submodules/ (although not a submodule)
-	- Hand not yet run
-- [x] [MuPad](https://www.mathworks.com/discovery/mupad.html)
-	- Hand not yet run
-
-### F#
-- [x] [DiffSharp](https://github.com/DiffSharp/DiffSharp)
-	- Built using `dotnet build` (in batch file), which restores NuGet packages
-	- GMM builds fail
-	- Not building hand yet
-
-### Julia
-- [ ] ForwardDiff.jl
-
 ## Known Issues
 
 See [Issues](/ISSUES.md) for a complete list of known problems and TODOs.
-
-- Only tested on Windows (64-bit)
-	- Should mostly work on other platforms, but some tools currently rely on batch files to build/run
-	- Batch files contain hard-coded paths (which may be wrong on some Windows systems)
-- `run-all.ps1` has Matlab tools commented out due to an issue with the trial version - it should be possible to remove these comments and run them with the full version
 
 ## Example Graphs
 

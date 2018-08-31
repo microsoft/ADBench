@@ -2,9 +2,11 @@
 
 This is a list of known issues/TODOs for the project. Any fixes are welcomed.
 
+
 ## ADBench
 
 - `plot_graphs.py` - integrate the old 3D graph code into the new graphing structure
+
 
 ## Documents
 
@@ -14,11 +16,13 @@ This is a list of known issues/TODOs for the project. Any fixes are welcomed.
     - Tools have been run at different times, and often the computer used was doing something else simultaneously
     - Have not run with large data sizes yet due to time constraint
 
+
 ## Tools
 
 - Test building and running on non-windows platforms
     - Will need to produce alternatives to existing batch files (currently in ADOL-C, DiffSharp, MuPad, Theano)
 - Matlab tools need testing properly
+    - `run-all.ps1` has Matlab tools commented out due to an issue with the trial version - it should be possible to remove these comments and run them with the full version
 - ADiMat
     - `ADiMat_ba.m` - test seems to crash during Jacobian loop
 - ADOLC
@@ -41,6 +45,7 @@ This is a list of known issues/TODOs for the project. Any fixes are welcomed.
 - Theano
     - `run.bat` - remove hard path to Miniconda
 
+
 ## Accuracy
 
-See [ADBench/J_Errors.txt](/ADBench/J_Errors.txt) for the output of ADBench/check_J.py, which shows a list of mismatches among output (jacobian) text files.
+Use `ADBench/check_J.py` to compare the jacobian output files. There seem to be some problems with mismatches here.
