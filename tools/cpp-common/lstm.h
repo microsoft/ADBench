@@ -57,7 +57,7 @@ void lstm_predict(int l, int b,
 	T* s,
 	const T* const x, T* x2)
 {
-	for (int i = 0; i < b; i++) x2[i] = x[i] * w2[0];
+	for (int i = 0; i < b; i++) x2[i] = x[i] * w2[i];
 
 	T* xp = x2;
 
