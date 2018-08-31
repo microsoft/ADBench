@@ -38,8 +38,7 @@ This is a list of known issues/TODOs for the project. Any fixes are welcomed.
     - `ba_d.cpp` - refactor functions under `DO_CPP` to work without Eigen
     - Perhaps add Hand derivative without Eigen
 - MuPad
-    - No entrypoint for hand yet (i.e. `MuPad_hand.m`)
-    - BA not working
+    - Missing mex files for MuPad_Hand
 - PyTorch
     - BA not done yet
 - Theano
