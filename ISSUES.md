@@ -34,13 +34,14 @@ This is a list of known issues/TODOs for the project. Any fixes are welcomed.
     - Memory issue when building GMM at instance sizes above about d=20,K=50
 - DiffSharp
     - GMM build fails (expected float[] but got D[])
+    - BA is very slow (may just be slow, but could be an error)
 - Manual
     - `ba_d.cpp` - refactor functions under `DO_CPP` to work without Eigen
     - Perhaps add Hand derivative without Eigen
 - MuPad
     - Missing mex files for MuPad_Hand
 - PyTorch
-    - BA not done yet
+    - BA times out (as with DiffSharp, may just be slow or may be an error)
 - Theano
     - `run.bat` - remove hard path to Miniconda
 
