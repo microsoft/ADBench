@@ -3,14 +3,14 @@ function err = mupad_hand_objective(params, data)
 
 if nargin == 0
     %%
-    addpath('..')
-    addpath('../awful/matlab')
+    addpath('../matlab-common')
+    addpath('../../submodules/awful/matlab')
     
-    data_dir = 'C:/Users/t-filsra/Workspace/autodiff/hand_instances/';
+    data_dir = 'C:/ZS/autodiff/data/hand/simple_small/';
     
     for i=1:10
-        path = [data_dir 'hand' num2str(i)];
-        [params, data] = load_hand_instance(path);
+        path = [data_dir 'hand' num2str(i) '.txt'];
+        [params, data] = load_hand_instance([data_dir 'model/'], path);
         
         % flatten
         params = params(:);

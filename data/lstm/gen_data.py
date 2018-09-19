@@ -21,6 +21,11 @@ def get_char_bits(text):
     return math.ceil(math.log2(max([ord(c) for c in text])))
 
 
+def text_to_matrix(text, bits):
+    # bits = math.ceil(math.log2(max([ord(c) for c in text])))
+    return np.array(list(map(lambda c: list(map(lambda b: int(b), bin(ord(c))[2:].zfill(bits))), text)))
+
+
 def f_write_mat(fid, matrix):
     for row in matrix:
         fid.write(" ".join([str(n) for n in row]))
@@ -37,6 +42,7 @@ for layer_count in layer_counts:
         # Get text extract
         use_text = full_text[: char_count]
         char_bits = get_char_bits(use_text)
+        text_mat = text_to_matrix(use_text, char_bits)
 
         # Randomly generate past state, and parameters
         state = np.random.random((2 * layer_count, char_bits))
@@ -49,6 +55,6 @@ for layer_count in layer_counts:
         f_write_mat(f, main_params)
         f_write_mat(f, extra_params)
         f_write_mat(f, state)
-        f.write(use_text)
+        f_write_mat(f, text_mat)
         f.write("\n")
         f.close()

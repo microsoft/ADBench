@@ -671,7 +671,11 @@ void read_lstm_instance(const string& fn,
 		fscanf(fid, "%lf", &state[i]);
 	}
 
-	char ch;
+	for (int i = 0; i < c_ * b_; i++) {
+		fscanf(fid, "%lf", &sequence[i]);
+	}
+
+	/*char ch;
 	fscanf(fid, "%c", &ch);
 	fscanf(fid, "%c", &ch);
 
@@ -689,7 +693,7 @@ void read_lstm_instance(const string& fn,
 				sequence[(i + 1) * b_ - j - 1] = 0;
 			}
 		}
-	}
+	}*/
 
 	fclose(fid);
 }

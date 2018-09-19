@@ -3,8 +3,6 @@ function [tf, tJ] = ...
 %adimat_hand
 %   compute derivative of hand
 
-% NOTE this is simple, find complicated differences in adimat_run_tests
-
 if nargin < 7
     do_adimat_sparse = false;
 end
