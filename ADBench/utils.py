@@ -25,7 +25,7 @@ def _set_rec(obj, keys, value, append=False):
 
 # Recursively scan a directory
 def _scandir_rec(folder, depth=0):
-    folder = folder.strip("/") + "/"
+    folder = folder.rstrip("/") + "/"
     if len(os.listdir(folder)) > 0 and os.path.isdir(folder + os.listdir(folder)[0]):
         results = []
         for fn in os.listdir(folder):
