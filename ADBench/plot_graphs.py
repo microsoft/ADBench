@@ -3,6 +3,8 @@ import sys
 import copy
 import json
 # import numpy
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot, rcParams
 # from mpl_toolkits.mplot3d import Axes3D
 import plotly
