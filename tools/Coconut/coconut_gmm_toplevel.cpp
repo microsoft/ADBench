@@ -162,15 +162,15 @@ void test_gmm(const string& fn_in, const string& fn_out,
 
 char* defaults[] = {
 	"",
-	"../../../",
-	"../../../tmpp/",
+	"../../data/gmm/",
+	"../../tmp",
 	"test",
 #ifdef _NDEBUG
 	"100",
 	"100"
 #else
-	"2",
-	"2"
+	"1000000",
+	"1000000"
 #endif
 };
 
