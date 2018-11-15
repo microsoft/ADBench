@@ -5,4 +5,4 @@ function(build_manual EXE_NAME MODE)
     target_compile_definitions("Tools-Knossos-${EXE_NAME}" PUBLIC ${MODE} "DO_CPP")
 endfunction(build_manual)
 
-build_manual("GMM" "DO_GMM" "gmm.cpp")
+build_manual("GMM" "DO_GMM" "gmm.cpp" "knossos.cpp")

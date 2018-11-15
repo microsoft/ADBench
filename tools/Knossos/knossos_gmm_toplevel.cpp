@@ -174,6 +174,7 @@ void test_gmm(const string& fn_in, const string& fn_out,
                                             lsv,
                                             wishart.gamma,
                                             wishart.m);
+        ks::g_alloc.reset();
       });
   cout << "err: " << err << endl;
 

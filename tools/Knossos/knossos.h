@@ -149,14 +149,46 @@ T const &index(int t1, vec<T> t2)
     return t2.data[t1];
 }
 
+ struct allocator {
+   size_t max_size;
+   unsigned char* buf;
+   size_t top;
+
+ allocator(size_t max_size):
+   max_size(max_size),
+     buf(new unsigned char[max_size]),
+     top(0)
+   {}
+   ~allocator() {
+     delete[] buf;
+   }
+   void* alloc(size_t size)
+   {
+     void* ret = buf + top;
+     top += ((size + 15) / 16) * 16;
+     if (top > max_size)
+       throw std::string("zoiks");
+     return ret;
+   }
+
+   void reset()
+   {
+     top = 0;
+   }
+ };
+
+extern allocator g_alloc;
+
 template <class T, class F>
-vec<T> build(int size, F f)
-{
-    vec<T> ret{size, new T[size]}; // To be replaced with DPS as appropriate
-    for (int i = 0; i < size; ++i)
-        ret.data[i] = f(i);
-    return ret;
-}
+  vec<T> build(int size, F f)
+ {
+   void *storage = g_alloc.alloc(sizeof (T) * size);
+   vec<T> ret{size, new (storage) T[size]}; // To be replaced with DPS as appropriate
+
+   for (int i = 0; i < size; ++i)
+     ret.data[i] = f(i);
+   return ret;
+ }
 
 namespace {
 // Additional Vec functions
