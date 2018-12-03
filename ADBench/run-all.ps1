@@ -284,10 +284,10 @@ $tools = @(
 	[Tool]::new("Finite", "bin", "1111", 0, 0, "101011"),
 	[Tool]::new("Knossos", "bin", "1000", 0, 0, "100000"),
 	[Tool]::new("Manual", "bin", "1110", 0, 0, "110101"),
-	[Tool]::new("DiffSharp", "bin", "0100", 1, 0, "101010"),
-	[Tool]::new("Autograd", "py", "1100", 1, 0, "101010"),
-	[Tool]::new("PyTorch", "py", "1011", 0, 0, "101010"),
-	[Tool]::new("Theano", "pybat", "1110", 0, 0, "101010")
+	[Tool]::new("DiffSharp", "bin", "0100", 1, 0, "101010")
+	#[Tool]::new("Autograd", "py", "1100", 1, 0, "101010"),
+	#[Tool]::new("PyTorch", "py", "1011", 0, 0, "101010"),
+	#[Tool]::new("Theano", "pybat", "1110", 0, 0, "101010")
 	#[Tool]::new("MuPad", "matlab", 0, 0, 0)
 	#[Tool]::new("ADiMat", "matlab", 0, 0, 0)
 )
