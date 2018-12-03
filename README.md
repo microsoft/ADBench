@@ -52,6 +52,18 @@ The easiest way to build on windows is using [CMake tools for Visual Studio](htt
 
 All tools should now be built. See [Usage](#usage) below.
 
+#### Windows from the command line
+
+Instead of using Visual Studio you can execute the following command
+
+```
+cmake -G "Ninja" '-DCMAKE_TOOLCHAIN_FILE=<path-to-top-level>\toolchain.cmake' '-DCMAKE_BUILD_TYPE="RelWithDebInfo"' "<path-to-top-level>"
+ninja
+```
+
+You have to somehow ensure that `cmake`, `cl` and `ninja` are on your
+path.
+
 ## Usage
 
 1) Run `powershell ADBench/run-all.ps1` to run all of the tools and write the timings to `/tmp/`.
