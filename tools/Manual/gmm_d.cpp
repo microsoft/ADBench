@@ -69,7 +69,7 @@ double logsumexp_d(int n, const double* const x, double *logsumexp_partial_d)
   }
   if (semx == 0.)
   {
-	std::fill(logsumexp_partial_d, logsumexp_partial_d + n * sizeof(double), (double)0);
+	std::fill(logsumexp_partial_d, logsumexp_partial_d + n, (double)0);
     //memset(logsumexp_partial_d, 0, n*sizeof(double));
   }
   else
@@ -104,7 +104,7 @@ void gmm_objective_d(int d, int k, int n,
 
   preprocess_qs(d, k, icf, sum_qs.data(), Qdiags.data());
   
-  std::fill(J, J + (k + d * k + icf_sz * k) * sizeof(double), (double)0);
+  std::fill(J, J + (k + d * k + icf_sz * k), (double)0);
   //memset(J, 0, (k + d*k + icf_sz*k) * sizeof(double));
 
   vector<double> curr_means_d(d*k);
@@ -300,7 +300,7 @@ void gmm_objective_d(int d, int k, int n,
 {
   int icf_sz = d*(d + 1) / 2;
   int Jsz = k + k*d + k*icf_sz;
-  std::fill(J, J + Jsz * sizeof(double), (double)0);
+  std::fill(J, J + Jsz, (double)0);
   //memset(J, 0, Jsz*sizeof(double));
 
   // init eigen wrappers first
@@ -420,7 +420,7 @@ void gmm_objective_d(int d, int k, int n,
 {
   int icf_sz = d*(d + 1) / 2;
   int Jsz = k + k*d + k*icf_sz;
-  std::fill(J, Jsz * sizeof(double), (double)0);
+  std::fill(J, J + Jsz, (double)0);
   //memset(J, 0, Jsz*sizeof(double));
 
   // init eigen wrappers first
