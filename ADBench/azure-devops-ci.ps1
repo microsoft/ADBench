@@ -23,7 +23,7 @@ cmake -G "Ninja" "-DCMAKE_TOOLCHAIN_FILE=$Env:BUILD_SOURCESDIRECTORY\toolchain.c
 cmake -G "Ninja" "-DCMAKE_TOOLCHAIN_FILE=$Env:BUILD_SOURCESDIRECTORY\toolchain.cmake" '-DCMAKE_BUILD_TYPE="RelWithDebInfo"' .
 
 ninja
-powershell .\ADBench\run-all.ps1 -repeat 0 -nruns_J 10 -nruns_f 10 -time_limit 5
+powershell .\ADBench\run-all.ps1 -repeat 0 -nruns_J 10 -nruns_f 10 -time_limit 5 -gmm_d_vals 2,10,20,32,64 -gmm_k_vals 5,10,25,50,100,200
 python ADBench/plot_graphs.py --save --plotly
 cp -r "Documents/New Figures" "$Env:BUILD_ARTIFACTSTAGINGDIRECTORY"
 Write-Host "##vso[artifact.upload containerfolder=;artifactname=Artifact;localpath=$Env:BUILD_ARTIFACTSTAGINGDIRECTORY;]$Env:BUILD_ARTIFACTSTAGINGDIRECTORY"
