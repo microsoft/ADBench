@@ -25,7 +25,7 @@ https://github.com/awf/autodiff/
 #>
 
 # Accept command-line args
-param([string]$buildtype_="", [int]$nruns_f=10, [int]$nruns_J=10, [double]$time_limit=120, [double]$timeout=300, [string]$tmpdir="", [bool]$repeat=$FALSE)
+param([string]$buildtype_="", [int]$nruns_f=10, [int]$nruns_J=10, [double]$time_limit=120, [double]$timeout=300, [string]$tmpdir="", [bool]$repeat=$FALSE, $gmm_d_vals_param, $gmm_k_vals_param)
 
 # Assert function
 function assert ($expr) {
@@ -75,6 +75,12 @@ else {
 }
 assert Test-Path "$dir/ADBench/cmake-vars-$buildtype.ps1"
 . $dir/ADBench/cmake-vars-$buildtype.ps1
+
+# I'm not sure why $gmm_d_vals and $gmm_k_vals are configured using
+# CMake.  That seems rather heavyweight.  Anyway, I added a way to
+# override them here.
+if ($gmm_d_vals_param) { $gmm_d_vals = $gmm_d_vals_param }
+if ($gmm_k_vals_param) { $gmm_k_vals = $gmm_k_vals_param }
 
 # Set tmpdir default
 if (!$tmpdir) { $tmpdir = "$dir/tmp" }
