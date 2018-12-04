@@ -93,8 +93,21 @@ for graph in all_graphs:
         labels.append(utils.format_tool(tool))
         tool_ind += 1
 
+    # Zak cleverly ordered the legend according to the average height
+    # of each line.  That fails when the plot contains no points so I
+    # pulled out this function to check for division by zero.  The
+    # return value when there are no points doesn't matter terribly.
+    def average_height(t):
+        s = sum(utils.get_real_y(t[0]))
+        l = len(utils.get_real_y(t[0]))
+
+        if l == 0:
+            return 0
+        else:
+            return s / l
+
     # Sort handles and labels
-    handles, labels = zip(*sorted(zip(handles, labels), key=lambda t: -sum(utils.get_real_y(t[0])) / len(utils.get_real_y(t[0]))))
+    handles, labels = zip(*sorted(zip(handles, labels), key=lambda t: -average_height(t)))
 
     # Draw black dots
     max_len = max(map(lambda h: len(utils.get_real_y(h)), handles))
