@@ -69,6 +69,26 @@ ninja
 You have to somehow ensure that `cmake`, `cl` and `ninja` are on your
 path.
 
+### Windows on a Visual Studio VM
+
+Very brief instructions
+
+```
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+Invoke-WebRequest -Uri "https://www.python.org/ftp/python/3.7.1/python-3.7.1-amd64.exe" -OutFile install-python.exe
+Invoke-WebRequest -Uri "https://github.com/ninja-build/ninja/releases/download/v1.8.2/ninja-win.zip" -OutFile ninja-win.zip
+
+git clone https://msrcambridge.visualstudio.com/Knossos/_git/autodiff
+
+$env:path="$env:path;C:\Users\toelli\AppData\Local\Programs\Python\Python37"
+$env:path="$env:path;C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
+$env:build_sourcesdirectory="C:\Users\toelli\autodiff"
+$env:path="$env:path;C:\Users\toelli\ninja-win"
+
+git submodule init
+git submodule update
+```
+
 ## Usage
 
 1) Run `powershell ADBench/run-all.ps1` to run all of the tools and write the timings to `/tmp/`.
