@@ -1,0 +1,21 @@
+trigger: none
+
+jobs:
+
+- job: 'Windows'
+  pool:
+    vmImage: 'vs2017-win2016'
+  timeoutInMinutes: 720
+
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: 3.7
+      addToPath: true
+      architecture: x64
+
+  - task: PowerShell@2
+    displayName: 'PowerShell Script'
+    inputs:
+      targetType: filePath
+      filePath: 'ADBench/azure-devops-ci.ps1'
