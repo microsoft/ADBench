@@ -16,7 +16,10 @@ set(HUNTER_STATUS_DEBUG ON)
 set(HUNTER_BUILD_SHARED_LIBS OFF)
 
 # Get HunterGate package manager
-set(ENV{HUNTER_ROOT} "etc/HunterGate-Root")
+if(NOT DEFINED ENV{HUNTER_ROOT})
+	set(ENV{HUNTER_ROOT} "etc/HunterGate-Root-awf")
+    message(STATUS "Setting HUNTER_ROOT to $ENV{HUNTER_ROOT}")
+endif()
 include("etc/HunterGate.cmake")
 
 HunterGate(
@@ -24,6 +27,8 @@ HunterGate(
     SHA1 "951e8daf57a51708b0e6a00cab342a042db57a2f"
 	LOCAL
 )
+
+set(HUNTER_STATUS_DEBUG ON)
 
 # Declare project name
 project ("ADBench")
