@@ -34,8 +34,13 @@ All tools should build (along with any external packages) and run very easily, p
 The basic steps (more specific instructions for Windows are below):
 
 1) Clone the repository (make sure submodules are cloned properly)
-2) Run cmake
-	- If contributing, install to an external folder so build files are not confused with source files.
+2) Optional: set HUNTER_ROOT environment variable to choose where HunterGate pacakges are stored.  If not set, will default to etc/HunterGate-Root.
+3) Run cmake
+	- mkdir my-build
+	- cd my-build
+	- cmake ..
+	- If you get an error of the form "The input line is too long.  The syntax of the command is incorrect.", your $ENV:PATH may be too long (!)
+
 3) Build
 
 ### Windows
