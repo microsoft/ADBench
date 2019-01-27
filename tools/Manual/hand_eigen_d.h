@@ -453,7 +453,7 @@ void hand_objective_d(
 
   size_t npts = data.correspondences.size();
   Map<Matrix3Xd> err(perr, 3, npts);
-  for (int i = 0; i < data.correspondences.size(); i++)
+  for (size_t i = 0; i < data.correspondences.size(); i++)
   {
     err.col(i) = data.points.col(i) - vertex_positions.col(data.correspondences[i]);
   }
@@ -476,7 +476,7 @@ void hand_objective_d(
   Map<Matrix3Xd> err(perr, 3, npts);
   Map<Matrix3Xd> du0(&pJ[0], 3, npts), du1(&pJ[3*npts], 3, npts);
   Vector3d hand_point;
-  for (int i = 0; i < data.correspondences.size(); i++)
+  for (size_t i = 0; i < data.correspondences.size(); i++)
   {
     const auto& verts = data.model.triangles[data.correspondences[i]].verts;
     const double* const u = &us[2 * i];
