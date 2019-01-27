@@ -238,7 +238,7 @@ void hand_objective(
   LightMatrix<T> vertex_positions;
   get_skinned_vertex_positions(data.model, pose_params, &vertex_positions, true);
 
-  for (int i = 0; i < data.correspondences.size(); i++)
+  for (size_t i = 0; i < data.correspondences.size(); i++)
     for (int j = 0; j < 3; j++)
       err[i * 3 + j] = data.points(j, i) - vertex_positions(j, data.correspondences[i]);  
 }
@@ -256,7 +256,7 @@ void hand_objective(
   LightMatrix<T> vertex_positions;
   get_skinned_vertex_positions(data.model, pose_params, &vertex_positions, true);
 
-  for (int i = 0; i < data.correspondences.size(); i++)
+  for (size_t i = 0; i < data.correspondences.size(); i++)
   {
     const auto& verts = data.model.triangles[data.correspondences[i]].verts;
     const T* const u = &us[2 * i];
