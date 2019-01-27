@@ -9,9 +9,6 @@
 
 #include "../cpp-common/defs.h"
 
-using std::vector;
-using std::unordered_map;
-using std::string;
 using Eigen::Map;
 using Eigen::Vector3d;
 using Eigen::Matrix3Xd;
@@ -26,6 +23,10 @@ template<typename T>
 using Matrix4 = Eigen::Matrix<T, 4, 4>;
 template<typename T>
 using Vector3 = Eigen::Matrix<T, 3, 1>;
+
+template<typename T>
+using vector_of_Matrix4 = std::vector<Matrix4<T>, Eigen::aligned_allocator<Matrix4<T>>>;
+
 
 ////////////////////////////////////////////////////////////
 //////////////////// Declarations //////////////////////////
@@ -94,9 +95,9 @@ void apply_global_transform(
 
 template<typename T>
 void relatives_to_absolutes(
-  const vector<Matrix4<T>>& relatives,
+  const vector_of_Matrix4<T>& relatives,
   const vector<int>& parents,
-  vector<Matrix4<T>>* pabsolutes)
+  vector_of_Matrix4<T>* pabsolutes)
 {
   auto& absolutes = *pabsolutes;
   absolutes.resize(parents.size());
@@ -113,7 +114,7 @@ template<typename T>
 void get_posed_relatives(
   const HandModelEigen& model,
   const Matrix3X<T>& pose_params,
-  vector<Matrix4<T>>* prelatives)
+  vector_of_Matrix4<T>* prelatives)
 {
   auto& relatives = *prelatives;
   relatives.resize(model.base_relatives.size());
@@ -141,7 +142,7 @@ void get_skinned_vertex_positions(
   Matrix3X<T>* positions,
   bool apply_global = true)
 {
-  vector<Matrix4<T>> relatives, absolutes, transforms;
+  vector_of_Matrix4<T> relatives, absolutes, transforms;
   get_posed_relatives(model, pose_params, &relatives);
   relatives_to_absolutes(relatives, model.parents, &absolutes);
   
@@ -213,7 +214,7 @@ void hand_objective(
   get_skinned_vertex_positions(data.model, pose_params, &vertex_positions);
 
   Map<Matrix3X<T>> err(perr, 3, data.correspondences.size());
-  for (int i = 0; i < data.correspondences.size(); i++)
+  for (size_t i = 0; i < data.correspondences.size(); i++)
   {
     err.col(i) = data.points.col(i).cast<T>() - vertex_positions.col(data.correspondences[i]);
   }
@@ -233,7 +234,7 @@ void hand_objective(
   get_skinned_vertex_positions(data.model, pose_params, &vertex_positions);
 
   Map<Matrix3X<T>> err(perr, 3, data.correspondences.size());
-  for (int i = 0; i < data.correspondences.size(); i++)
+  for (size_t i = 0; i < data.correspondences.size(); i++)
   {
     const auto& verts = data.model.triangles[data.correspondences[i]].verts;
     const T* const u = &us[2 * i];
