@@ -12,7 +12,7 @@ else ()
 endif ()
 
 
-set(HUNTER_STATUS_DEBUG ON)
+set(HUNTER_STATUS_DEBUG OFF)
 set(HUNTER_BUILD_SHARED_LIBS OFF)
 
 # Get HunterGate package manager
@@ -27,8 +27,6 @@ HunterGate(
     SHA1 "951e8daf57a51708b0e6a00cab342a042db57a2f"
 	LOCAL
 )
-
-set(HUNTER_STATUS_DEBUG ON)
 
 # Declare project name
 project ("ADBench")
