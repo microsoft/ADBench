@@ -76,19 +76,12 @@ def get_test(fn):
     return "_".join(fn.split("_")[:fn.split("_").index("times")])
 
 
-# Read a time from a file
-def read_time(path, func_type):
+# Read times (objective, Jacobian) from a file
+def read_times(path):
     file = open(path)
     times = file.read().replace("\n", " ").split(" ")
     file.close()
-
-    func_times = {
-        "objective": lambda times: float(times[0]),
-        "jacobian": lambda times: float(times[1]),
-        "jacobian ÷ objective": lambda times: float(times[1]) / float(times[0]),
-    }
-
-    return func_times[func_type](times)
+    return (float(times[0]), float(times[1]))
 
 
 # Get the GMM D value from a key
@@ -100,7 +93,7 @@ def key_get_val(key, ind):
 def gmm_get_n(key):
     d = key_get_val(key, 1)
     k = key_get_val(key, 2)
-    return k + d + d * (d - 1) / 2
+    return k *(1 + d + d * (d + 1) / 2)
 
 
 # Get the problem size for an LSTM key

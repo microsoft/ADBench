@@ -57,6 +57,7 @@ k = size(means,2)
 n = size(x,2)
 
 # Objective
+# Call once in case of precompilation etc
 err = gmm_objective(alphas,means,icf,x,wishart)
 
 tf = @elapsed for i in 1:nruns_f
@@ -75,9 +76,8 @@ end
 # Gradient
 g = x-> ForwardDiff.gradient(wrapper_gmm_objective, x)
 
-#precompile(pack,(typeof(alphas),typeof(means),typeof(icf)))
-#precompile(g,(typeof(alphas),typeof(means),typeof(icf)))
 J = g(pack(alphas,means,icf))
+
 tJ = @elapsed for i in 1:nruns_J
   g(pack(alphas,means,icf))
 end
@@ -86,7 +86,7 @@ tJ = tJ/nruns_J;
 #println("J:")
 #println(J)
 
-name = "Julia_F"
+name = "Julia"
 
 write_J(string(fn_out,"_J_",name,".txt"),J)
 write_times(string(fn_out,"_times_",name,".txt"),tf,tJ)

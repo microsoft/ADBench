@@ -11,8 +11,8 @@ This script loops through each of a set of tools (defined using the Tool class) 
 This will:
 - run only release builds
 - aim to run 10 tests of each function, and 10 tests of the derivative of each function
-- stop (having completed a whole number of tests) at any point after 3 minutes
-- allow each program a maximum of 10 minutes to run all tests
+- stop (having completed a whole number of tests) at any point after 180 seconds
+- allow each program a maximum of 600 seconds to run all tests
 - output results to "C:/path/to/tmp/"
 - not repeat any tests for which there already exist a results file
 
@@ -25,7 +25,11 @@ https://github.com/awf/autodiff/
 #>
 
 # Accept command-line args
-param([string]$buildtype_="", [int]$nruns_f=10, [int]$nruns_J=10, [double]$time_limit=120, [double]$timeout=300, [string]$tmpdir="", [bool]$repeat=$FALSE)
+param([string]$buildtype_="", 
+		[int]$nruns_f=10, [int]$nruns_J=10, 
+		[double]$time_limit=120, [double]$timeout=300, 
+		[string]$tmpdir="", [switch]$repeat,
+		[string[]]$tools=@())
 
 # Assert function
 function assert ($expr) {
@@ -36,6 +40,7 @@ function assert ($expr) {
 
 # Run command and (reliably) get output
 function run_command ($indent, $outfile, $timeout, $cmd) {
+	write-host "Run [$cmd $args]"
 	$ProcessInfo = New-Object System.Diagnostics.ProcessStartInfo
 	$ProcessInfo.FileName = $cmd
 	$ProcessInfo.RedirectStandardError = $true
@@ -44,7 +49,12 @@ function run_command ($indent, $outfile, $timeout, $cmd) {
 	$ProcessInfo.Arguments = $args
 	$Process = New-Object System.Diagnostics.Process
 	$Process.StartInfo = $ProcessInfo
-	$Process.Start() | Out-Null
+	try {
+		$Process.Start() | Out-Null
+	} catch {
+		write-error "Failed to start process $cmd $args"
+		throw "failed"
+	}
 	$status = $Process.WaitForExit($timeout * 1000)
 	if ($status) {
 		$stdout = $Process.StandardOutput.ReadToEnd().Trim().Replace("`n", "`n${indent}stdout> ")
@@ -99,8 +109,8 @@ Class Tool {
 	static [string]$ba_dir_in = "$datadir/ba/"
 	static [string]$hand_dir_in = "$datadir/hand/"
 	static [string]$lstm_dir_in = "$datadir/lstm/"
-	static [array]$gmm_sizes = @("1k", "10k") # @("1k", "10k", "2.5M")
-	static [array]$hand_sizes = @("small", "big") # @("small", "big")
+	static [array]$gmm_sizes = @("1k", "10k") # also "2.5M"
+	static [array]$hand_sizes = @("small", "big")
 	static [int]$ba_min_n = 1
 	static [int]$ba_max_n = 5
 	static [int]$hand_min_n = 1
@@ -116,18 +126,23 @@ Class Tool {
 		Create a new Tool object to be run
 
 		.EXAMPLE
-		[Tool]::new("Finite", "bin", "111", 0, 0, "101011")
+		[Tool]::new("Finite", "bin", "1111", 0, 0, "101011")
 		This will create a Tool:
 		- called "Finite"
 		- run from binary executables
-		- runs all three tests 
+		- runs all four tests 
 		- does not do GMM in separate FULL and SPLIT modes
 		- doesn't require separate executables for different GMM sizes
 		- Runs all tests without eigen, and Hand tests with Eigen
 
 		.NOTES
-		$objectives is a binary string used to represent a boolean array, where each element determines whether to run a certain objective.
-		$eigen_config works similarly, but now each pair of elements determines firstly whether to run the objective with eigen, and secondly whether to run it without.
+		$objectives is a binary string used to represent a boolean array, 
+		where each element determines whether to run a certain objective:
+		GMM, BA, HAND, LSTM
+		
+		$eigen_config works similarly, but now each pair of elements 
+		determines firstly whether to run the objective with eigen, and 
+		secondly whether to run it without.
 		#>
 
 		$this.name = $name
@@ -162,12 +177,24 @@ Class Tool {
 		$cmd = ""
 		$cmdargs = @($dir_in, $dir_out, $fn, $script:nruns_f, $script:nruns_J, $script:time_limit)
 		if ($this.type -eq "bin") {
-			$cmd = "$script:bindir\tools\$($this.name)\Tools-$($this.name)-$objective.exe"
+			if ($this.name -eq "DiffSharp") {
+				$builddir = ""
+			} else {
+				$builddir = "\$script:buildtype"
+			}
+			$cmd = "$script:bindir\tools\$($this.name)$builddir\Tools-$($this.name)-$objective.exe"
+
 		} elseif ($this.type -eq "py" -or $this.type -eq "pybat") {
 			$objective = $objective.ToLower().Replace("-", "_")
 			if ($this.type -eq "py") { $cmd = "python" }
 			elseif ($this.type -eq "pybat") { $cmd = "$script:dir/tools/$($this.name)/run.bat" }
 			$cmdargs = @("$script:dir/tools/$($this.name)/$($this.name)_$objective.py") + $cmdargs
+
+		} elseif ($this.type -eq "julia") {
+			$objective = $objective.ToLower().Replace("-", "_")
+			$cmd = "julia"
+			$cmdargs = @("$script:dir/tools/$($this.name)/${objective}_F.jl") + $cmdargs
+
 		} elseif ($this.type -eq "matlab") {
 			$objective = $objective.ToLower().Replace("-", "_")
 			$cmd = "matlab"
@@ -175,6 +202,9 @@ Class Tool {
 		}
 
 		run_command "          " $output_file $script:timeout $cmd @cmdargs
+		if (!(test-path $output_file)) {
+			throw "Command ran, but did not produce output file [$output_file]"
+		}
 	}
 
 	# Run all gmm tests for this tool
@@ -275,36 +305,51 @@ Class Tool {
 	}
 }
 
-# Full list of tools
-$tools = @(
-	[Tool]::new("Adept", "bin", "1110", 1, 0, "101010"),
-	[Tool]::new("ADOLC", "bin", "1110", 1, 0, "101011"),
-	[Tool]::new("Ceres", "bin", "1100", 0, 1, "101011"),
-	[Tool]::new("Finite", "bin", "1111", 0, 0, "101011"),
-	[Tool]::new("Manual", "bin", "1110", 0, 0, "110101"),
-	[Tool]::new("DiffSharp", "bin", "0100", 1, 0, "101010"),
-	[Tool]::new("Autograd", "py", "1100", 1, 0, "101010"),
-	[Tool]::new("PyTorch", "py", "1011", 0, 0, "101010"),
-	[Tool]::new("Theano", "pybat", "1110", 0, 0, "101010")
+# Full list of tool_descriptors
+# Name
+# runtype
+# GMM, BA, HAND, LSTM
+# Separate Full|Split?
+# Separate GMM sizes?
+$tool_descriptors = @(
+	#[Tool]::new("Adept", "bin", "1110", 1, 0, "101010")
+	#[Tool]::new("ADOLC", "bin", "1110", 1, 0, "101011")
+	#[Tool]::new("Ceres", "bin", "1100", 0, 1, "101011")
+	 [Tool]::new("Finite", "bin", "1111", 0, 0, "101011")
+	 [Tool]::new("Manual", "bin", "1110", 0, 0, "110101")
+	 [Tool]::new("DiffSharp", "bin", "0100", 1, 0, "101010")
+	 [Tool]::new("Autograd", "py", "1100", 1, 0, "101010")
+	 [Tool]::new("PyTorch", "py", "1011", 0, 0, "101010")
+	 [Tool]::new("Julia", "julia", "1100", 0, 0, "101010")
+	#[Tool]::new("Theano", "pybat", "1110", 0, 0, "101010")
 	#[Tool]::new("MuPad", "matlab", 0, 0, 0)
 	#[Tool]::new("ADiMat", "matlab", 0, 0, 0)
 )
 
-# Run all tests on each tool
-foreach ($tool in $tools) {
-	$tool.runall()
-}
-
-# Run other build configuration
-if (!$buildtype_ -and $buildtype -eq "Release") {
-	if (Test-Path "$dir/ADBench/cmake-vars-Debug.ps1") {
-		Write-Host "`n`n"
-
-		$cmd = $MyInvocation.MyCommand.Path
-		$cmdargs = @("Debug", $nruns_f, $nruns_J, $time_limit, $timeout, "", $repeat)
-		$output = & $cmd @cmdargs
-		foreach ($line in $output) {
-			Write-Host $line
+if ($tools) {
+	foreach($tool in $tools) {
+		write-host "User-specified tool $tool"
+		$tool_descriptor = $tool_descriptors | ? { $_.name -eq $tool }
+		if (!$tool_descriptor) {
+			throw "Unknown tool [$tool]"
 		}
+		$tool_descriptor.runall()
 	}
 }
+else {
+	# Run all tests on each tool
+	foreach ($tool_descriptor in $tool_descriptors) {
+		$tool_descriptor.runall()
+	}
+}
+
+# # Run Debug build configuration
+# if (!$buildtype_ -and $buildtype -eq "Release") {
+# 	if (Test-Path "$dir/ADBench/cmake-vars-Debug.ps1") {
+# 		Write-Host "`n`n"
+
+# 		$cmd = $MyInvocation.MyCommand.Path
+# 		$cmdargs = @("Debug", $nruns_f, $nruns_J, $time_limit, $timeout, "", $repeat)
+# 		& $cmd @cmdargs
+# 	}
+# }

@@ -31,7 +31,7 @@ all_styles = sum([[(c, m) for c in colors] for m in markers], [])
 adbench_dir = os.path.dirname(os.path.realpath(__file__))
 ad_root_dir = os.path.dirname(adbench_dir)
 in_dir = f"{ad_root_dir}/tmp"
-out_dir = f"{ad_root_dir}/Documents/New Figures"
+out_dir = f"{ad_root_dir}/tmp/graphs"
 static_out_dir_rel = "/static"
 plotly_out_dir_rel = "/plotly"
 static_out_dir = f"{out_dir}/{static_out_dir_rel}"
@@ -43,12 +43,20 @@ print(f"Output directory is: {out_dir}\n")
 # Scan folder for all files, and determine which graphs to create
 all_files = [path for path in utils._scandir_rec(in_dir) if "times" in path[-1]]
 all_graphs = [path.split("/") for path in list(set(["/".join(path[:-2]) for path in all_files]))]
-all_graphs = ([path + ["objective"] for path in all_graphs] +
+all_graphs = ([path + ["objective ÷ Manual"] for path in all_graphs] +
+              [path + ["objective"] for path in all_graphs] +
               [path + ["jacobian"] for path in all_graphs] +
               [path + ["jacobian ÷ objective"] for path in all_graphs])
 all_graph_dict = {}
 
-print("Plotting graphs:")
+def safe_mean(v): 
+    if len(v) > 0: 
+        return sum(v)/len(v)
+    else:
+        return 1e9
+
+def div_lists(alist,blist):
+    return [a/b for a,b in zip(alist,blist)]
 
 # Loop through each of graphs to be created
 figure_idx = 1
@@ -58,7 +66,9 @@ for graph in all_graphs:
     test_size = ", ".join([utils.cap_str(s) for s in graph[2].split("_")]) if len(graph) == 4 else None
     function_type = graph[-1]
     has_ts = test_size is not None
-    graph_name = f"{objective.upper()}{f' ({test_size})' if has_ts else ''} [{function_type.capitalize()}] - {build_type}"
+    graph_name = (f"{objective.upper()}" + 
+                  (f" ({test_size})" if has_ts else "") +
+                  f" [{function_type.capitalize()}] - {build_type}")
     graph_save_location = f"{build_type}/{function_type}/{graph_name} Graph"
     utils._set_rec(all_graph_dict, [build_type, function_type, objective.upper()], test_size if has_ts else "", True)
     print(f"\n  {graph_name}")
@@ -70,29 +80,57 @@ for graph in all_graphs:
     graph_files = [path for path in all_files if path[:len(graph) - 1] == graph[:-1]]
     file_names = list(map(utils.get_fn, graph_files))
     tool_names = list(set(map(utils.get_tool, file_names)))
+
+    # Sort "Manual" to the front
+    has_manual = lambda tool: tool == "Manual" or tool == "Finite" or tool == "manual_eigen"
+    tool_names = sorted(tool_names, key=lambda x: -1 if has_manual(x) else 1)
+
     tool_files = {tool: ["/".join(path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool] for tool in tool_names}
 
     handles, labels = [], []
     tool_ind = 0
+    manual_times = None
+    print(tool_names)
 
     # Loop through tools
     for tool in tool_names:
         # Extract times
-        times_dict = {utils.get_test(utils.get_fn(path.split("/"))): utils.read_time(in_dir + "/" + path, function_type) for path in tool_files[tool]}
-        time_pairs = [(key, times_dict[key]) for key in times_dict]
+        name_to_n = utils.key_functions[objective]
+        time_pairs = [(name_to_n(utils.get_test(utils.get_fn(path.split("/")))), 
+                       utils.read_times(in_dir + "/" + path)) 
+                       for path in tool_files[tool]]
 
         # Sort values
-        times_sorted = sorted(time_pairs, key=lambda pair: utils.key_functions[objective](pair[0]))
-        n_vals = list(map(lambda pair: utils.key_functions[objective](pair[0]), times_sorted))
-        t_vals = list(map(lambda pair: pair[1], times_sorted))
+        times_sorted = sorted(time_pairs, key=lambda pair: pair[0])
+        n_vals = list(map(lambda pair: pair[0], times_sorted))
+        t_objective_vals = list(map(lambda pair: pair[1][0], times_sorted))
+        t_jacobian_vals = list(map(lambda pair: pair[1][1], times_sorted))
+
+        if manual_times is None and has_manual(tool):
+            manual_times = t_objective_vals
+
+        if function_type == 'objective':
+            t_vals = t_objective_vals
+        elif function_type == 'jacobian':
+            t_vals = t_jacobian_vals
+        elif function_type == 'objective ÷ Manual':
+            if manual_times is None:
+                print(f"Hmmm.  Don't have manual_times yet {tool}")
+                raise Exception(f"Hmmm.  Don't have manual_times yet {tool}")
+            t_vals = div_lists(t_objective_vals, manual_times)
+        elif function_type == 'jacobian ÷ objective':
+            t_vals = div_lists(t_jacobian_vals, t_objective_vals)
+        else:
+            raise Exception(f"Unknown function type {function_type}")
 
         # Plot results
-        handles += pyplot.plot(n_vals, t_vals, marker=all_styles[tool_ind][1], color=all_styles[tool_ind][0], label=utils.format_tool(tool))
+        handles += pyplot.plot(n_vals, t_vals, 
+                               marker=all_styles[tool_ind][1], color=all_styles[tool_ind][0], label=utils.format_tool(tool))
         labels.append(utils.format_tool(tool))
         tool_ind += 1
 
     # Sort handles and labels
-    handles, labels = zip(*sorted(zip(handles, labels), key=lambda t: -sum(utils.get_real_y(t[0])) / len(utils.get_real_y(t[0]))))
+    handles, labels = zip(*sorted(zip(handles, labels), key=lambda t: -safe_mean(utils.get_real_y(t[0]))))
 
     # Draw black dots
     max_len = max(map(lambda h: len(utils.get_real_y(h)), handles))

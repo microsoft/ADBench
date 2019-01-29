@@ -6,6 +6,13 @@ struct Wishart
   m::Int
 end
 
+function logsumexp(x)
+  mx = maximum(x)
+  log.(sum(exp.(x .- mx))) .+ mx
+end
+
+sumsq(v) = sum(abs2, v)
+
 function ltri_unpack(D, LT)
   d=length(D)
   make_row(r::Int, L) = hcat(reshape([ L[i] for i=1:r-1 ],1,r-1), D[r], zeros(1,d-r))
@@ -34,7 +41,7 @@ function unpack(d,k,packed)
 end
 
 function log_gamma_distrib(a, p)
-  out = 0.25 * p * (p - 1) * log(pi)
+  out = 0.25 * p * (p - 1) * 1.1447298858494002 #convert(Float64, log(pi))
 	for j in 1:p
     out += lgamma(a + 0.5*(1 - j))
   end
