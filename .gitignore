@@ -38,8 +38,9 @@ ipch/
 .vs
 
 # Build results
-/Debug/
-/Release/
+Debug/
+Release/
+obj/
 
 # Python
 __pycache__
@@ -49,3 +50,4 @@ ba - Copy.txt
 ba-old.txt
 
 .vscode
+*-build/
