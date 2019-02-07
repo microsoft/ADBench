@@ -586,8 +586,7 @@ double compute_hand_J(int nruns, double time_limit,
 	// create seed matrix
 	Pointer2 seed(n_independents, ndirs);
 	for (int i = 0; i < n_independents; i++)
-		std::fill(seed[i], seed[i] + ndirs * sizeof(double), (double)0);
-		//memset(seed[i], 0, ndirs * sizeof(double));
+		std::fill(seed[i], seed[i] + ndirs, (double)0);
 	for (size_t i = 0; i < n_pts; i++)
 	{
 		seed[2 * i][0] = 1.;
