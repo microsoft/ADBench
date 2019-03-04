@@ -19,14 +19,6 @@ function logsumexp(x)
   log(sum(exp.(x .- mx))) + mx
 end
 
-# function diagsum(m)
-#     s = 0.
-#     for i in 1:size(m,1)
-#         s += m[i,i]
-#     end
-#     s
-# end
-
 function diagsums(Qs)
   mapslices(slice -> sum(diag(slice)), Qs; dims=[1,2])
 end
@@ -36,8 +28,7 @@ end
   function (Δ)
       Δ′ = zero(Qs)
       for (i, δ) in enumerate(Δ)
-          d = size(Qs, 1)
-          for j in 1:d
+          for j in 1:size(Qs, 1)
               Δ′[j,j,i] = δ
           end
       end
@@ -57,10 +48,8 @@ end
   function (Δ)
       Δ′ = zero(Qs)
       Δ′ .= Δ
-      k = size(Qs, 3)
-      for i in 1:k
-          d = size(Qs, 1)
-          for j in 1:d
+      for i in 1:size(Qs, 3)
+          for j in 1:size(Qs, 1)
               Δ′[j,j,i] *= exp(Qs[j,j,i])
           end
       end
@@ -70,9 +59,7 @@ end
 
 @adjoint function map(f, args...)
     map(f, args...), function (Δ)
-      @show "aaaaaaaaaaaaaaaaaaargs", args
       Δargs_tuples = Zygote.gradient.(f, args...)
-      @show Δargs_tuples
       Δargs = map(i-> Δ.*getindex.(Δargs_tuples, i), 1:length(args))
       (nothing, Δargs...)
     end
@@ -105,23 +92,9 @@ function gmm_objective(alphas,means,Qs,x,wishart::Wishart)
   d = size(x,1)
   n = size(x,2)
   CONSTANT = -n*d*0.5*log(2 * pi)
-  # @show CONSTANT
-  # sum_qs = sum(icf[1:d,:],dims=1)
   sum_qs = reshape(diagsums(Qs), 1, size(Qs, 3))
   slse = sum(sum_qs)
-  # @show size(sum_qs), typeof(sum_qs)
-  # @show "before", Qs
   Qs = expdiags(Qs)
-  # @show "after", Qs
-  # get_Q(d,icf[:,1])
-  # Qs = [get_Q(d,icf[:,ik]) for ik in 1:k]
-  # FIX WITH: broadcast over getindex
-  # @show Qs
-  # @show d
-  # @show n
-  # @show icf
-  # @show size(alphas)
-  # @show size(means)
 
   main_term = zeros(Float64,1,k)
 
@@ -131,7 +104,7 @@ function gmm_objective(alphas,means,Qs,x,wishart::Wishart)
     slse += logsumexp(alphas + sum_qs + reshape(main_term, 1, k))
   end
 
-  CONSTANT + slse - n*logsumexp(alphas) # + log_wishart_prior_zygote(wishart, sum_qs, Qs, icf)
+  CONSTANT + slse - n*logsumexp(alphas) + log_wishart_prior_zygote(wishart, sum_qs, Qs)
 end
 
 # Read instance
@@ -149,14 +122,10 @@ replicate_point = size(ARGS,1) >= 6 && ARGS[6] == "-rep"
 fn_in = string(dir_in, fn)
 fn_out = string(dir_out, fn)
 
-alphas,means,icf,x,wishart = read_gmm_instance(string(fn_in,".txt"),replicate_point)  # Tuple{Array{Float64,2},Array{Float64,2},Array{Float64,2},Array{Float64,2},Wishart}
-@show typeof((alphas,means,icf,x,wishart))
+alphas,means,icf,x,wishart = read_gmm_instance(string(fn_in,".txt"),replicate_point)
 const d = size(means,1)
 const k = size(means,2)
-# n = size(x,2)
 const Qs = cat([get_Q_zygote(d,icf[:,ik]) for ik in 1:k]...; dims=[3])
-const sum_qs = sum(icf[1:d,:],dims=1)
-@show "outside", size(sum_qs), typeof(sum_qs), sum_qs, Qs
 
 # Objective
 # Call once in case of precompilation etc
@@ -172,27 +141,22 @@ tf = tf/nruns_f;
 # Gradient helper
 # Use to avoid unnecessary calculation of gradient of x.
 function wrapper_gmm_objective(alphas, means, Qs)
-  # @show typeof(packed)
-  # alphas,means,icf = unpack(d,k,packed)
   gmm_objective(alphas,means,Qs,x,wishart)
 end
 
 # Gradient
 g = (alphas, means, Qs)-> Zygote.gradient(wrapper_gmm_objective, alphas, means, Qs)
 
-# vars = pack(alphas,means,icf)
 J = g(alphas, means, Qs)
-@show J, typeof(J)
-packed_J = J[1]
-@show packed_J
+# @show J
 
-# tJ = @elapsed for i in 1:nruns_J
-#   g(pack(alphas,means,icf))
-# end
-# tJ = tJ/nruns_J;
-# @printf "tJ: %g\n" tJ
-#println("J:")
-#println(J)
+tJ = @elapsed for i in 1:nruns_J
+  g(alphas, means, Qs)
+end
+tJ = tJ/nruns_J;
+@printf "tJ: %g\n" tJ
+println("J:")
+println(J)
 
 name = "Julia"
 
