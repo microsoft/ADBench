@@ -73,28 +73,45 @@ end
   end
 end
 
-Base.:*(::Float64, ::Nothing) = nothing
+# @adjoint function main_terms(Qs, x, means, ix)
+#   main_terms(Qs, x, means, ix),
+#   function (Δ)
+#     ΔQ = zero(Qs)
+#     Δx = zero(x)
+#     Δmeans = zero(means)
+#     Δix = nothing
+#     k = size(Qs, 3)
+#     for (ik, δ) in enumerate(Δ)
+#       formula(Qs, x, means) = -0.5*sum(abs2, Qs[:, :, ik] * (x[:,ix] .- means[:,ik]))
+#       (ΔQ, Δx, Δmeans) = (ΔQ, Δx, Δmeans) .+ δ .* Zygote.gradient(formula, Qs, x, means)
+#     end
+#     (ΔQ, Δx, Δmeans, Δix)
+#   end
+# end
 
-function logsumexp_AD_mat(X)
-    log.(sum(exp.(X); dims=[1]))
-end
+Base.:*(::Float64, ::Nothing) = nothing
 
 function gmm_objective(alphas,means,Qs,x,wishart::Wishart)
   d = size(x,1)
   n = size(x,2)
   CONSTANT = -n*d*0.5*log(2 * pi)
   sum_qs = reshape(diagsums(Qs), 1, size(Qs, 3))
+  slse = sum(sum_qs)
   Qs = expdiags(Qs)
 
   main_term = zeros(Float64,1,k)
 
-  function formula2(ik)
-    Qxcentered = abs2.(Qs[:, :, ik] * (x .- means[:,ik]))
-    alphas[ik] .+ sum_qs[ik] .- 0.5*sum(Qxcentered; dims=[1])
+  slse = 0.
+  for ix=1:n
+    formula(ik) = -0.5*sum(abs2, Qs[:, :, ik] * (x[:,ix] .- means[:,ik]))
+    sumexp = 0.
+    for ik=1:k
+      sumexp += exp(formula(ik) + alphas[ik] + sum_qs[ik])
+    end
+    slse += log(sumexp)
   end
-  main_term = vcat(map(formula2, 1:k)...)  # try reduce(hcat, ...)
 
-  CONSTANT + sum(logsumexp_AD_mat(main_term)) - n*logsumexp(alphas) + log_wishart_prior_zygote(wishart, sum_qs, Qs)
+  CONSTANT + slse - n*logsumexp(alphas) + log_wishart_prior_zygote(wishart, sum_qs, Qs)
 end
 
 # Read instance
@@ -138,7 +155,6 @@ end
 g = (alphas, means, Qs)-> Zygote.gradient(wrapper_gmm_objective, alphas, means, Qs)
 
 J = g(alphas, means, Qs)
-# @show J
 
 tJ = @elapsed for i in 1:nruns_J
   g(alphas, means, Qs)
@@ -148,7 +164,22 @@ tJ = tJ/nruns_J;
 println("J:")
 println(J)
 
-name = "Julia"
+name = "Julia_Zygote"
 
-# write_J(string(fn_out,"_J_",name,".txt"), packed_J)
-# write_times(string(fn_out,"_times_",name,".txt"),tf,tJ)
+function zygote_J_to_packed_J(J)
+  alphas = reshape(J[1], :)
+  means = reshape(J[2], :)
+  icf_unpacked = map(1:k) do Q_idx
+    Q = J[3][:, :, Q_idx]
+    lt_rows = map(2:d) do row
+      Q[row, 1:row-1]
+    end
+    vcat(diag(Q), lt_rows...)
+  end
+  icf = collect(Iterators.flatten(icf_unpacked))
+  packed_J = vcat(alphas, means, icf)
+  packed_J
+end
+
+write_J(string(fn_out,"_J_",name,".txt"), zygote_J_to_packed_J(J))
+write_times(string(fn_out,"_times_",name,".txt"),tf,tJ)

@@ -11,8 +11,8 @@ include("common.jl")
 
 # input should be 1 dimensional
 function logsumexp(x)
-  mx = maximum(x)
-  log.(sum(exp.(x .- mx))) .+ mx
+  # mx = maximum(x)
+  log.(sum(exp.(x)))
 end
 
 @inbounds function gmm_objective(alphas,means,icf,x,wishart::Wishart)
@@ -82,11 +82,11 @@ tJ = @elapsed for i in 1:nruns_J
   g(pack(alphas,means,icf))
 end
 tJ = tJ/nruns_J;
-@printf "tJ: %g\n" tJ
-#println("J:")
-#println(J)
+# @printf "tJ: %g\n" tJ
+# println("J:")
+# println(J)
 
-name = "Julia"
+name = "Julia_F"
 
 write_J(string(fn_out,"_J_",name,".txt"),J)
 write_times(string(fn_out,"_times_",name,".txt"),tf,tJ)

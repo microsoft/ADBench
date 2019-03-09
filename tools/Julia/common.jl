@@ -25,6 +25,10 @@ function get_Q(d,icf)
   ltri_unpack(exp.(icf[1:d]),icf[d+1:end])
 end
 
+function get_Q_zygote(d,icf)
+  ltri_unpack((icf[1:d]),icf[d+1:end])
+end
+
 # Gradient helpers
 function pack(alphas,means,icf)
   [alphas[:];means[:];icf[:]]
@@ -53,11 +57,29 @@ function log_wishart_prior(wishart::Wishart, sum_qs, Qs, icf)
   n = p + wishart.m + 1
   C = n*p*(log(wishart.gamma) - 0.5*log(2)) - log_gamma_distrib(0.5*n, p)
 
+  frobenius = sum(sum.(abs2, Qs))
   frobenius = 0.
   for Q in Qs
     frobenius += sum(abs2,diag(Q))
   end
   frobenius += sum(abs2,icf[d+1:end,:])
+	0.5*wishart.gamma^2 * frobenius - wishart.m*sum(sum_qs) - k*C
+end
+
+function log_wishart_prior_zygote(wishart::Wishart, sum_qs, Qs)
+  p = size(Qs[1],1)
+  n = p + wishart.m + 1
+  C = n*p*(log(wishart.gamma) - 0.5*log(2)) - log_gamma_distrib(0.5*n, p)
+
+  frobenius = sum(abs2, Qs)
+  # frobenius = 0.
+  # for Q in Qs
+  #   frobenius += sum(abs2,diag(Q))
+  # end
+  # frobenius += sum(abs2,icf[d+1:end,:])
+  # @show icf[d+1:end,:]
+  # @show icf
+  # @show Qs
 	0.5*wishart.gamma^2 * frobenius - wishart.m*sum(sum_qs) - k*C
 end
 

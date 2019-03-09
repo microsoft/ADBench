@@ -64,7 +64,7 @@ n = size(x,2)
 err = gmm_objective(alphas,means,icf,x,wishart)
 
 tf = @elapsed for i in 1:nruns_f
-  @show gmm_objective(alphas,means,icf,x,wishart)
+  gmm_objective(alphas,means,icf,x,wishart)
 end
 tf = tf/nruns_f;
 @printf "tf: %g\n" tf
@@ -89,8 +89,8 @@ tJ = tJ/nruns_J;
 println("J:")
 println(J)
 
-name = "Julia"
+name = "Julia_F_vectorized"
 
-# write_J(string(fn_out,"_J_",name,".txt"),J)
-# write_times(string(fn_out,"_times_",name,".txt"),tf,tJ)
+write_J(string(fn_out,"_J_",name,".txt"),J)
+write_times(string(fn_out,"_times_",name,".txt"),tf,tJ)
 
