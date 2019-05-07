@@ -72,6 +72,9 @@ path.
 Alternatively, you can build with MSBuild
 
 ```
+cd [directory containing this README]
+mkdir my-build
+cd my-build
 cmake .. -G 'Visual Studio 15 2017 Win64'
 MSBuild.exe .\ADBench.sln '/p:Configuration=Release'
 ..\ADBench\run-all.ps1
