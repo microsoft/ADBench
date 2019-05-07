@@ -69,6 +69,14 @@ ninja
 You have to somehow ensure that `cmake`, `cl` and `ninja` are on your
 path.
 
+Alternatively, you can build with MSBuild
+
+```
+cmake .. -G 'Visual Studio 15 2017 Win64'
+MSBuild.exe .\ADBench.sln '/p:Configuration=Release'
+..\ADBench\run-all.ps1
+```
+
 ### Windows on a Visual Studio VM
 
 Very brief instructions
@@ -78,7 +86,7 @@ Very brief instructions
 Invoke-WebRequest -Uri "https://www.python.org/ftp/python/3.7.1/python-3.7.1-amd64.exe" -OutFile install-python.exe
 Invoke-WebRequest -Uri "https://github.com/ninja-build/ninja/releases/download/v1.8.2/ninja-win.zip" -OutFile ninja-win.zip
 
-git clone https://msrcambridge.visualstudio.com/Knossos/_git/autodiff
+git clone https://github.com/awf/autodiff
 
 $env:path="$env:path;C:\Users\toelli\AppData\Local\Programs\Python\Python37"
 $env:path="$env:path;C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
