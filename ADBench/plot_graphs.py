@@ -60,16 +60,22 @@ def div_lists(alist,blist):
 
 # Loop through each of graphs to be created
 for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
-    build_type = graph[0]
     objective = graph[1]
-    test_size = ", ".join([utils.cap_str(s) for s in graph[2].split("_")]) if len(graph) == 3 else None
-    has_ts = test_size is not None
-    graph_name = (f"{objective.upper()}" + 
-                  (f" ({test_size})" if has_ts else "") +
-                  f" [{function_type.capitalize()}] - {build_type}")
-    graph_save_location = f"{build_type}/{function_type}/{graph_name} Graph"
-    utils._set_rec(all_graph_dict, [build_type, function_type, objective.upper()], test_size if has_ts else "", True)
-    print(f"\n  {graph_name}")
+
+    def graph_data():
+        build_type = graph[0]
+        test_size = ", ".join([utils.cap_str(s) for s in graph[2].split("_")]) if len(graph) == 3 else None
+        has_ts = test_size is not None
+        graph_name = (f"{objective.upper()}" +
+                      (f" ({test_size})" if has_ts else "") +
+                      f" [{function_type.capitalize()}] - {build_type}")
+        graph_save_location = f"{build_type}/{function_type}/{graph_name} Graph"
+        utils._set_rec(all_graph_dict, [build_type, function_type, objective.upper()], test_size if has_ts else "", True)
+        print(f"\n  {graph_name}")
+
+        return (graph_name, graph_save_location)
+
+    (graph_name, graph_save_location) = graph_data()
 
     # Create figure
     figure = pyplot.figure(figure_idx, figsize=figure_size, dpi=fig_dpi)
