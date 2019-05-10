@@ -45,10 +45,10 @@ print(f"Output directory is: {out_dir}\n")
 # Scan folder for all files, and determine which graphs to create
 all_files = [path for path in utils._scandir_rec(in_dir) if "times" in path[-1]]
 all_graphs = [path.split("/") for path in list(set(["/".join(path[:-2]) for path in all_files]))]
-all_graphs = ([path + ["objective ÷ Manual"] for path in all_graphs] +
-              [path + ["objective"] for path in all_graphs] +
-              [path + ["jacobian"] for path in all_graphs] +
-              [path + ["jacobian ÷ objective"] for path in all_graphs])
+all_graphs = ([(path, "objective ÷ Manual") for path in all_graphs] +
+              [(path, "objective") for path in all_graphs] +
+              [(path, "jacobian") for path in all_graphs] +
+              [(path, "jacobian ÷ objective") for path in all_graphs])
 all_graph_dict = {}
 
 def safe_mean(v): 
@@ -62,11 +62,10 @@ def div_lists(alist,blist):
 
 # Loop through each of graphs to be created
 figure_idx = 1
-for graph in all_graphs:
+for (graph, function_type) in all_graphs:
     # Extract graph variables
     build_type, objective = graph[:2]
-    test_size = ", ".join([utils.cap_str(s) for s in graph[2].split("_")]) if len(graph) == 4 else None
-    function_type = graph[-1]
+    test_size = ", ".join([utils.cap_str(s) for s in graph[2].split("_")]) if len(graph) == 3 else None
     has_ts = test_size is not None
     graph_name = (f"{objective.upper()}" + 
                   (f" ({test_size})" if has_ts else "") +
@@ -79,7 +78,7 @@ for graph in all_graphs:
     figure = pyplot.figure(figure_idx, figsize=figure_size, dpi=fig_dpi)
 
     # Extract file details
-    graph_files = [path for path in all_files if path[:len(graph) - 1] == graph[:-1]]
+    graph_files = [path for path in all_files if path[:len(graph)] == graph]
     file_names = list(map(utils.get_fn, graph_files))
     tool_names = list(set(map(utils.get_tool, file_names)))
 
