@@ -59,8 +59,7 @@ def div_lists(alist,blist):
     return [a/b for a,b in zip(alist,blist)]
 
 # Loop through each of graphs to be created
-figure_idx = 1
-for (graph, function_type) in all_graphs:
+for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
     # Extract graph variables
     build_type, objective = graph[:2]
     test_size = ", ".join([utils.cap_str(s) for s in graph[2].split("_")]) if len(graph) == 3 else None
@@ -174,10 +173,7 @@ for (graph, function_type) in all_graphs:
     if not do_show:
         pyplot.close(figure)
 
-    # Increment current figure
-    figure_idx += 1
-
-print(f"\nPlotted {figure_idx - 1} graphs")
+print(f"\nPlotted {figure_idx} graphs")
 
 print("\nWriting graphs index...")
 index_file = open(f"{out_dir}/graphs_index.json", "w")
