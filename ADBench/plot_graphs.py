@@ -27,7 +27,7 @@ fig_dpi = 96
 save_dpi = 144
 colors = ["b", "g", "r", "c", "m", "y"]
 markers = ["x", "+", "s", "^"]
-all_styles = sum([[(c, m) for c in colors] for m in markers], [])
+all_styles = [(c, m) for m in markers for c in colors]
 
 # Folders
 adbench_dir = os.path.dirname(os.path.realpath(__file__))
