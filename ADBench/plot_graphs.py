@@ -70,6 +70,19 @@ def graph_data(build_type, objective, maybe_test_size):
 
     return (graph_name, graph_save_location)
 
+has_manual = lambda tool: tool.lower() in ["manual", "finite", "manual_eigen"]
+
+def tool_names(graph_files):
+    file_names = list(map(utils.get_fn, graph_files))
+    tool_names_ = list(set(map(utils.get_tool, file_names)))
+
+    # Sort "Manual" to the front
+    tool_names_ = sorted(tool_names_, key=lambda x: (not has_manual(x), x))
+
+    print(tool_names_)
+
+    return tool_names_
+
 # Loop through each of graphs to be created
 for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
     build_type = graph[0]
@@ -84,24 +97,11 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
     # Extract file details
     graph_files = [path for path in all_files if path[:len(graph)] == graph]
 
-    has_manual = lambda tool: tool.lower() in ["manual", "finite", "manual_eigen"]
-
-    def tool_names():
-        file_names = list(map(utils.get_fn, graph_files))
-        tool_names_ = list(set(map(utils.get_tool, file_names)))
-
-        # Sort "Manual" to the front
-        tool_names_ = sorted(tool_names_, key=lambda x: (not has_manual(x), x))
-
-        print(tool_names_)
-
-        return tool_names_
-
     handles, labels = [], []
     manual_times = None
 
     # Loop through tools
-    for (color_marker, tool) in zip(all_styles, tool_names()):
+    for (color_marker, tool) in zip(all_styles, tool_names(graph_files)):
         tool_files = ["/".join(path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool]
         (color, marker) = color_marker
         # Extract times
