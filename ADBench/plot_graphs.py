@@ -44,7 +44,7 @@ print(f"Output directory is: {out_dir}\n")
 
 # Scan folder for all files, and determine which graphs to create
 all_files = [path for path in utils._scandir_rec(in_dir) if "times" in path[-1]]
-all_graphs = [path.split("/") for path in list(set(["/".join(path[:-2]) for path in all_files]))]
+all_graphs = [path.split("/") for path in set(["/".join(path[:-2]) for path in all_files])]
 function_types = ["objective ÷ Manual", "objective", "jacobian", "jacobian ÷ objective"]
 all_graphs = [(path, function_type) for function_type in function_types for path in all_graphs]
 all_graph_dict = {}
