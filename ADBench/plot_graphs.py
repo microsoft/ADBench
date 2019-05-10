@@ -64,7 +64,8 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
 
     def graph_data():
         build_type = graph[0]
-        test_size = ", ".join([utils.cap_str(s) for s in graph[2].split("_")]) if len(graph) == 3 else None
+        rest = graph[2:]
+        test_size = ", ".join([utils.cap_str(s) for s in rest[0].split("_")]) if len(rest) == 1 else None
         has_ts = test_size is not None
         graph_name = (f"{objective.upper()}" +
                       (f" ({test_size})" if has_ts else "") +
