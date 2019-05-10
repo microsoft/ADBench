@@ -91,9 +91,8 @@ for (graph, function_type) in all_graphs:
     print(tool_names)
 
     # Loop through tools
-    for (tool_ind, tool) in enumerate(tool_names):
-        marker = all_styles[tool_ind][1]
-        color  = all_styles[tool_ind][0]
+    for (color_marker, tool) in zip(all_styles, tool_names):
+        (color, marker) = color_marker
         # Extract times
         name_to_n = utils.key_functions[objective]
         time_pairs = [(name_to_n(utils.get_test(utils.get_fn(path.split("/")))), 
