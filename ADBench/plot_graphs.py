@@ -87,12 +87,11 @@ for (graph, function_type) in all_graphs:
     tool_files = {tool: ["/".join(path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool] for tool in tool_names}
 
     handles, labels = [], []
-    tool_ind = 0
     manual_times = None
     print(tool_names)
 
     # Loop through tools
-    for tool in tool_names:
+    for (tool_ind, tool) in enumerate(tool_names):
         # Extract times
         name_to_n = utils.key_functions[objective]
         time_pairs = [(name_to_n(utils.get_test(utils.get_fn(path.split("/")))), 
@@ -126,7 +125,6 @@ for (graph, function_type) in all_graphs:
         handles += pyplot.plot(n_vals, t_vals, 
                                marker=all_styles[tool_ind][1], color=all_styles[tool_ind][0], label=utils.format_tool(tool))
         labels.append(utils.format_tool(tool))
-        tool_ind += 1
 
     # Sort handles and labels
     handles, labels = zip(*sorted(zip(handles, labels), key=lambda t: -safe_mean(utils.get_real_y(t[0]))))
