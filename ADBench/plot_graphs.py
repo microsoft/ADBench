@@ -58,25 +58,25 @@ def safe_mean(v):
 def div_lists(alist,blist):
     return [a/b for a,b in zip(alist,blist)]
 
+def graph_data(build_type, objective, maybe_test_size):
+    test_size = ", ".join([utils.cap_str(s) for s in maybe_test_size[0].split("_")]) if len(maybe_test_size) == 1 else None
+    has_ts = test_size is not None
+    graph_name = (f"{objective.upper()}" +
+                  (f" ({test_size})" if has_ts else "") +
+                  f" [{function_type.capitalize()}] - {build_type}")
+    graph_save_location = f"{build_type}/{function_type}/{graph_name} Graph"
+    utils._set_rec(all_graph_dict, [build_type, function_type, objective.upper()], test_size if has_ts else "", True)
+    print(f"\n  {graph_name}")
+
+    return (graph_name, graph_save_location)
+
 # Loop through each of graphs to be created
 for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
+    build_type = graph[0]
     objective = graph[1]
+    maybe_test_size = graph[2:]
 
-    def graph_data():
-        build_type = graph[0]
-        rest = graph[2:]
-        test_size = ", ".join([utils.cap_str(s) for s in rest[0].split("_")]) if len(rest) == 1 else None
-        has_ts = test_size is not None
-        graph_name = (f"{objective.upper()}" +
-                      (f" ({test_size})" if has_ts else "") +
-                      f" [{function_type.capitalize()}] - {build_type}")
-        graph_save_location = f"{build_type}/{function_type}/{graph_name} Graph"
-        utils._set_rec(all_graph_dict, [build_type, function_type, objective.upper()], test_size if has_ts else "", True)
-        print(f"\n  {graph_name}")
-
-        return (graph_name, graph_save_location)
-
-    (graph_name, graph_save_location) = graph_data()
+    (graph_name, graph_save_location) = graph_data(build_type, objective, maybe_test_size)
 
     # Create figure
     figure = pyplot.figure(figure_idx, figsize=figure_size, dpi=fig_dpi)
