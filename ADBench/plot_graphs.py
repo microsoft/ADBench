@@ -60,7 +60,6 @@ def div_lists(alist,blist):
 
 # Loop through each of graphs to be created
 for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
-    # Extract graph variables
     build_type = graph[0]
     objective = graph[1]
     test_size = ", ".join([utils.cap_str(s) for s in graph[2].split("_")]) if len(graph) == 3 else None
