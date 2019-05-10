@@ -83,6 +83,22 @@ def tool_names(graph_files):
 
     return tool_names_
 
+def read_vals(objective, graph_files):
+    tool_files = ["/".join(path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool]
+    # Extract times
+    name_to_n = utils.key_functions[objective]
+    time_pairs = [(name_to_n(utils.get_test(utils.get_fn(path.split("/")))),
+                   utils.read_times(in_dir + "/" + path))
+                  for path in tool_files]
+
+    # Sort values
+    times_sorted = sorted(time_pairs, key=lambda pair: pair[0])
+    n_vals = list(map(lambda pair: pair[0], times_sorted))
+    t_objective_vals = list(map(lambda pair: pair[1][0], times_sorted))
+    t_jacobian_vals = list(map(lambda pair: pair[1][1], times_sorted))
+
+    return (n_vals, t_objective_vals, t_jacobian_vals)
+
 # Loop through each of graphs to be created
 for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
     build_type = graph[0]
@@ -104,23 +120,7 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
     for (color_marker, tool) in zip(all_styles, tool_names(graph_files)):
         (color, marker) = color_marker
 
-        def read_vals():
-            tool_files = ["/".join(path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool]
-            # Extract times
-            name_to_n = utils.key_functions[objective]
-            time_pairs = [(name_to_n(utils.get_test(utils.get_fn(path.split("/")))),
-                           utils.read_times(in_dir + "/" + path))
-                          for path in tool_files]
-
-            # Sort values
-            times_sorted = sorted(time_pairs, key=lambda pair: pair[0])
-            n_vals = list(map(lambda pair: pair[0], times_sorted))
-            t_objective_vals = list(map(lambda pair: pair[1][0], times_sorted))
-            t_jacobian_vals = list(map(lambda pair: pair[1][1], times_sorted))
-
-            return (n_vals, t_objective_vals, t_jacobian_vals)
-
-        (n_vals, t_objective_vals, t_jacobian_vals) = read_vals()
+        (n_vals, t_objective_vals, t_jacobian_vals) = read_vals(objective, graph_files)
 
         if manual_times is None and has_manual(tool):
             manual_times = t_objective_vals
