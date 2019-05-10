@@ -83,20 +83,19 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
     has_manual = lambda tool: tool.lower() in ["manual", "finite", "manual_eigen"]
     tool_names = sorted(tool_names, key=lambda x: not has_manual(x))
 
-    tool_files = {tool: ["/".join(path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool] for tool in tool_names}
-
     handles, labels = [], []
     manual_times = None
     print(tool_names)
 
     # Loop through tools
     for (color_marker, tool) in zip(all_styles, tool_names):
+        tool_files = ["/".join(path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool]
         (color, marker) = color_marker
         # Extract times
         name_to_n = utils.key_functions[objective]
         time_pairs = [(name_to_n(utils.get_test(utils.get_fn(path.split("/")))), 
                        utils.read_times(in_dir + "/" + path)) 
-                       for path in tool_files[tool]]
+                       for path in tool_files]
 
         # Sort values
         times_sorted = sorted(time_pairs, key=lambda pair: pair[0])
