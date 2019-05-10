@@ -102,19 +102,25 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
 
     # Loop through tools
     for (color_marker, tool) in zip(all_styles, tool_names(graph_files)):
-        tool_files = ["/".join(path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool]
         (color, marker) = color_marker
-        # Extract times
-        name_to_n = utils.key_functions[objective]
-        time_pairs = [(name_to_n(utils.get_test(utils.get_fn(path.split("/")))), 
-                       utils.read_times(in_dir + "/" + path)) 
-                       for path in tool_files]
 
-        # Sort values
-        times_sorted = sorted(time_pairs, key=lambda pair: pair[0])
-        n_vals = list(map(lambda pair: pair[0], times_sorted))
-        t_objective_vals = list(map(lambda pair: pair[1][0], times_sorted))
-        t_jacobian_vals = list(map(lambda pair: pair[1][1], times_sorted))
+        def read_vals():
+            tool_files = ["/".join(path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool]
+            # Extract times
+            name_to_n = utils.key_functions[objective]
+            time_pairs = [(name_to_n(utils.get_test(utils.get_fn(path.split("/")))),
+                           utils.read_times(in_dir + "/" + path))
+                          for path in tool_files]
+
+            # Sort values
+            times_sorted = sorted(time_pairs, key=lambda pair: pair[0])
+            n_vals = list(map(lambda pair: pair[0], times_sorted))
+            t_objective_vals = list(map(lambda pair: pair[1][0], times_sorted))
+            t_jacobian_vals = list(map(lambda pair: pair[1][1], times_sorted))
+
+            return (n_vals, t_objective_vals, t_jacobian_vals)
+
+        (n_vals, t_objective_vals, t_jacobian_vals) = read_vals()
 
         if manual_times is None and has_manual(tool):
             manual_times = t_objective_vals
