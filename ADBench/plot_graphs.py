@@ -76,19 +76,25 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
 
     # Extract file details
     graph_files = [path for path in all_files if path[:len(graph)] == graph]
-    file_names = list(map(utils.get_fn, graph_files))
-    tool_names = list(set(map(utils.get_tool, file_names)))
 
-    # Sort "Manual" to the front
     has_manual = lambda tool: tool.lower() in ["manual", "finite", "manual_eigen"]
-    tool_names = sorted(tool_names, key=lambda x: not has_manual(x))
+
+    def tool_names():
+        file_names = list(map(utils.get_fn, graph_files))
+        tool_names_ = list(set(map(utils.get_tool, file_names)))
+
+        # Sort "Manual" to the front
+        tool_names_ = sorted(tool_names_, key=lambda x: not has_manual(x))
+
+        print(tool_names_)
+
+        return tool_names_
 
     handles, labels = [], []
     manual_times = None
-    print(tool_names)
 
     # Loop through tools
-    for (color_marker, tool) in zip(all_styles, tool_names):
+    for (color_marker, tool) in zip(all_styles, tool_names()):
         tool_files = ["/".join(path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool]
         (color, marker) = color_marker
         # Extract times
