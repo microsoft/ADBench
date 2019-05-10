@@ -84,7 +84,7 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
         tool_names_ = list(set(map(utils.get_tool, file_names)))
 
         # Sort "Manual" to the front
-        tool_names_ = sorted(tool_names_, key=lambda x: not has_manual(x))
+        tool_names_ = sorted(tool_names_, key=lambda x: (not has_manual(x), x))
 
         print(tool_names_)
 
