@@ -82,7 +82,7 @@ for (graph, function_type) in all_graphs:
 
     # Sort "Manual" to the front
     has_manual = lambda tool: tool.lower() == "manual" or tool.lower() == "finite" or tool.lower() == "manual_eigen"
-    tool_names = sorted(tool_names, key=lambda x: -1 if has_manual(x) else 1)
+    tool_names = sorted(tool_names, key=lambda x: not has_manual(x))
 
     tool_files = {tool: ["/".join(path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool] for tool in tool_names}
 
