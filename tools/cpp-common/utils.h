@@ -9,10 +9,11 @@
 #include <functional>
 #include <limits>
 #include <chrono>
+#include <cstring>
 
 #ifdef DO_EIGEN
 #include <Eigen/Dense>
-#include <Eigen\StdVector>
+#include <Eigen/StdVector>
 #endif
 
 #include "light_matrix.h"
@@ -25,6 +26,7 @@ using std::endl;
 using std::string;
 using std::vector;
 using std::getline;
+using std::memcpy;
 using namespace std::chrono;
 
 

@@ -171,7 +171,7 @@ void gmm_objective_d(int d, int k, int n,
 
 #if defined DO_EIGEN || defined DO_EIGEN_VECTOR
 
-#include "Eigen\Dense"
+#include "Eigen/Dense"
 
 #include "../cpp-common/gmm_eigen.h"
 

@@ -2,9 +2,11 @@
 #pragma warning (disable : 4996) // fopen
 
 #include <vector>
+#include <cmath>
 
 using std::vector;
 using std::string;
+using std::exp;
 
 // UTILS
 

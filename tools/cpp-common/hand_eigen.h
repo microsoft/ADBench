@@ -4,8 +4,8 @@
 #include <unordered_map>
 #include <string>
 
-#include <Eigen\Dense>
-#include <Eigen\StdVector>
+#include <Eigen/Dense>
+#include <Eigen/StdVector>
 
 #include "../cpp-common/defs.h"
 
