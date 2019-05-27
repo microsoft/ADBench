@@ -183,7 +183,7 @@ void computeReprojError_d(
 
 #ifdef DO_EIGEN
 
-#include "Eigen\Dense"
+#include "Eigen/Dense"
 
 #include "../cpp-common/ba_eigen.h"
 

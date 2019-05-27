@@ -2,7 +2,7 @@
 #include "defs.h"
 #include "matrix.h"
 
-#include "Eigen\Dense"
+#include "Eigen/Dense"
 
 using Eigen::Map;
 template<typename T>
