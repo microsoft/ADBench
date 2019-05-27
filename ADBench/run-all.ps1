@@ -30,41 +30,41 @@ https://github.com/awf/ADBench
 
 param(# Which build to test.  
       # Builds should leave a script file 'cmake-vars-$buildtype.ps1' in the ADBench directory.
-	  # which sets $bindir to the build directory,
-	  # And if only some D,K are valid for GMM, sets $gmm_d_vals, and $gmm_k_vals
+      # which sets $bindir to the build directory,
+      # And if only some D,K are valid for GMM, sets $gmm_d_vals, and $gmm_k_vals
       [string]$buildtype="Release",
-	  
-	  # Maximum number of times to run the function for timing                
-	  [int]$nruns_f=10,        
-	  
-	  # Maximum number of times to run the jacobian for timing
-	  [int]$nruns_J=10,        
       
-	  # How many seconds to wait before we believe we have accurate timings
-	  [double]$time_limit=10,  
+      # Maximum number of times to run the function for timing                
+      [int]$nruns_f=10,        
       
-	  # Kill the test after this many seconds 
-	  [double]$timeout=300,    
-	  
-	  # Where to store the ouput, defaults to tmp/ in the project root 
-	  [string]$tmpdir="",      
+      # Maximum number of times to run the jacobian for timing
+      [int]$nruns_J=10,        
       
-	  # Repeat tests, even if output file exists
-	  [switch]$repeat,         
+      # How many seconds to wait before we believe we have accurate timings
+      [double]$time_limit=10,  
       
-	  # Repeat only failed tests
-	  [switch]$repeat_failures,
+      # Kill the test after this many seconds 
+      [double]$timeout=300,    
       
-	  # List of tools to run
-	  [string[]]$tools=@(),    
+      # Where to store the ouput, defaults to tmp/ in the project root 
+      [string]$tmpdir="",      
       
-	  # GMM D values to try.  Must be a subset of the list of
-	  # compiled values in ADBench/cmake-vars-$buildtype.ps1                         
+      # Repeat tests, even if output file exists
+      [switch]$repeat,         
+      
+      # Repeat only failed tests
+      [switch]$repeat_failures,
+      
+      # List of tools to run
+      [string[]]$tools=@(),    
+      
+      # GMM D values to try.  Must be a subset of the list of
+      # compiled values in ADBench/cmake-vars-$buildtype.ps1                         
       [int[]]$gmm_d_vals_param,
       
-	  # GMM K values to run.  As above.
-	  [int[]]$gmm_k_vals_param 
-	  )
+      # GMM K values to run.  As above.
+      [int[]]$gmm_k_vals_param 
+      )
 
 # Assert function
 function assert ($expr) {
