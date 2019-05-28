@@ -73,6 +73,20 @@ function assert ($expr) {
     }
 }
 
+# Make a directory (including its parents if necessary) after checking
+# that nothing else is in the way.  See
+#
+#     https://github.com/awf/ADBench/pull/37#discussion_r288167348
+function mkdir_p($path) {
+   if (test-path -pathtype container $path)  {
+         return
+   } elseif (test-path $path) {
+         error "There's something in the way"
+   } else {
+         new-item -itemtype directory $path
+   }
+}
+
 # Run command and (reliably) get output
 function run_command ($indent, $outfile, $timeout, $cmd) {
 	write-host "Run [$cmd $args]"
@@ -268,7 +282,7 @@ Class Tool {
 
 					$dir_in = "$([Tool]::gmm_dir_in)$sz/"
 					$dir_out = "$script:tmpdir/gmm/$sz/$($this.name)/"
-					mkdir -force $dir_out
+					mkdir_p $dir_out
 
 					foreach ($d in $script:gmm_d_vals) {
 						Write-Host "      d=$d"
@@ -321,7 +335,7 @@ Class Tool {
 
 					$dir_in = "$([Tool]::hand_dir_in)${type}_$sz/"
 					$dir_out = "$script:tmpdir/hand/${type}_$sz/$($this.name)/"
-					mkdir -force $dir_out
+					mkdir_p $dir_out
 
 					for ($n = [Tool]::hand_min_n; $n -le [Tool]::hand_max_n; $n++) {
 						Write-Host "      $n"
@@ -335,7 +349,7 @@ Class Tool {
 	[void] testlstm () {
 		Write-Host "  LSTM"
 		$dir_out = "$script:tmpdir/lstm/$($this.name)/"
-		mkdir -force $dir_out
+		mkdir_p $dir_out
 
 		foreach ($l in [Tool]::lstm_l_vals) {
 			Write-Host "    l=$l"
