@@ -23,8 +23,8 @@ endif()
 include("etc/HunterGate.cmake")
 
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.23.6.tar.gz"
-    SHA1 "951e8daf57a51708b0e6a00cab342a042db57a2f"
+    URL "https://github.com/ruslo/hunter/archive/v0.23.177.tar.gz"
+    SHA1 "c3d4bf987a1c5f8ce9bb8b2b80bc6c123185cd66"
 	LOCAL
 )
 
