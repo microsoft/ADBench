@@ -6,6 +6,8 @@
 
 etc/HunterGate-Root-awf
 
+CMakeSettings.json
+
 # User-specific files
 *.suo
 *.user
