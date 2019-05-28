@@ -209,14 +209,14 @@ Class Tool {
 		elseif ($objective.endswith("SPLIT")) { $out_name = "$($this.name)_split" }
 		else { $out_name = $this.name }
 		$output_file = "${dir_out}${fn}_times_${out_name}.txt"
-		if (Test-Path $output_file) {
-			if ($script:repeat_failures -and !$script:repeat) {
+		if (!$script:repeat -and (Test-Path $output_file)) {
+			if ($script:repeat_failures) {
 				$test_failed = Select-String -quiet '^inf inf$' $output_file
 				if (!$test_failed) {
 					Write-Host "          Skipped test (already completed, and wasn't a fail)"
 					return
 				}
-			} elseif (!$script:repeat) {
+			} else {
 				Write-Host "          Skipped test (already completed)"
 				return
 			}
