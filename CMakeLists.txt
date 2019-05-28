@@ -4,12 +4,21 @@
 cmake_minimum_required (VERSION 3.6)
 
 # Set build type variable
-#	so RelWithDebInfo is treated as Release
+# so RelWithDebInfo is treated as Release
 if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
-	set(AD_BUILD_TYPE "Debug")
+    set(AD_BUILD_TYPE "Debug")
 else ()
-	set(AD_BUILD_TYPE "Release")
+    set(AD_BUILD_TYPE "Release")
 endif ()
+
+# $<1:> always resolves to empty string, but the fact, that a generator
+# expression is used, forces Visual Studio generator to not create
+# configuration-specific folders for outputs, thus making output paths
+# consistent between different generators.
+# See https://cmake.org/cmake/help/v3.5/prop_tgt/RUNTIME_OUTPUT_DIRECTORY.html#prop_tgt:RUNTIME_OUTPUT_DIRECTORY
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY $<1:>)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY $<1:>)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:>)
 
 
 set(HUNTER_STATUS_DEBUG OFF)
@@ -17,7 +26,7 @@ set(HUNTER_BUILD_SHARED_LIBS OFF)
 
 # Get HunterGate package manager
 if(NOT DEFINED ENV{HUNTER_ROOT})
-	set(ENV{HUNTER_ROOT} "etc/HunterGate-Root-awf")
+    set(ENV{HUNTER_ROOT} "etc/HunterGate-Root-awf")
     message(STATUS "Setting HUNTER_ROOT to $ENV{HUNTER_ROOT}")
 endif()
 include("etc/HunterGate.cmake")
@@ -25,7 +34,7 @@ include("etc/HunterGate.cmake")
 HunterGate(
     URL "https://github.com/ruslo/hunter/archive/v0.23.177.tar.gz"
     SHA1 "c3d4bf987a1c5f8ce9bb8b2b80bc6c123185cd66"
-	LOCAL
+    LOCAL
 )
 
 # Declare project name
