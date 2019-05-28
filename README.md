@@ -89,11 +89,11 @@ Very brief instructions
 Invoke-WebRequest -Uri "https://www.python.org/ftp/python/3.7.1/python-3.7.1-amd64.exe" -OutFile install-python.exe
 Invoke-WebRequest -Uri "https://github.com/ninja-build/ninja/releases/download/v1.8.2/ninja-win.zip" -OutFile ninja-win.zip
 
-git clone https://github.com/awf/autodiff
+git clone https://github.com/awf/ADBench
 
 $env:path="$env:path;C:\Users\toelli\AppData\Local\Programs\Python\Python37"
 $env:path="$env:path;C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
-$env:build_sourcesdirectory="C:\Users\toelli\autodiff"
+$env:build_sourcesdirectory="C:\Users\toelli\ADBench"
 $env:path="$env:path;C:\Users\toelli\ninja-win"
 
 git submodule init
