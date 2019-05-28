@@ -4,6 +4,8 @@
 
 /packages
 
+etc/HunterGate-Root-awf
+
 # User-specific files
 *.suo
 *.user
