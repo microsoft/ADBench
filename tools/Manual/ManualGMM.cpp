@@ -11,8 +11,8 @@
 
 
 // This function must be called before any other function.
-void prepare(
-	int &d, int &k, int &n,
+void ManualGMM::prepare(
+	int d, int k, int n,
 	vector<double> alphas, vector<double>means,
 	vector<double> icf, vector<double> x,
 	Wishart wishart,
@@ -22,14 +22,14 @@ void prepare(
 	//save variables of ref in local state
 }
 
-void performAD(int times)
+void ManualGMM::performAD(int times)
 {
 	//perform AD and
 	//save result in local state
 }
 
 // 
-void output()
+void ManualGMM::output()
 {
 	//return some documented output
 }
