@@ -228,7 +228,7 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
 
 #endif
 
-char* defaults[] = {
+const char* defaults[] = {
 	"",
 	"../../../",
 	"../../../tmpp/",
@@ -242,7 +242,7 @@ char* defaults[] = {
 #endif
 };
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
 	if (argc < 2) {
 		argc = 6;
