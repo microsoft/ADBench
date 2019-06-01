@@ -381,6 +381,7 @@ $tool_descriptors = @(
 	#[Tool]::new("Theano", "pybat", "1110", 0, 0, "101010")
 	#[Tool]::new("MuPad", "matlab", 0, 0, 0)
 	#[Tool]::new("ADiMat", "matlab", 0, 0, 0)
+	#[Tool]::new("KnossosFuthark", "bin", "1100", 0, 0, "110101")
 )
 
 if ($tools) {
