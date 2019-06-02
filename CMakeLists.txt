@@ -51,6 +51,10 @@ set(GMM_D_VALS 2 10 20 32 64)
 set(GMM_K_VALS 5 10 25 50 100 200)
 # TODO figure out why Ceres build crashes
 
+# Make all platforms use .exe extensions for executables, for the
+# benefit of other tooling.
+set(CMAKE_EXECUTABLE_SUFFIX .exe)
+
 # Include sub-projects.
 add_subdirectory ("ADBench")
 add_subdirectory ("tools")
