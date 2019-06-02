@@ -70,13 +70,13 @@ void test_gmm(const string& fn_in, const string& fn_out,
   cout << "err: " << err << endl;
 
 #ifdef DO_CPP
-  string name("manual");
+  string name("Manual");
 #elif defined DO_EIGEN
-  string name("manual_eigen");
+  string name("Manual_Eigen");
 #elif defined DO_EIGEN_VECTOR
-  string name("manual_eigen_vector");
+  string name("Manual_Eigen_Vector");
 #else
-  string name("manual");
+  string name("Manual");
 #endif
   write_J(fn_out + "_J_" + name + ".txt", Jrows, Jcols, J.data());
   //write_times(tf, tJ);
@@ -145,9 +145,9 @@ void test_ba(const string& fn_in, const string& fn_out,
   });
 
 #ifdef DO_EIGEN
-  string name("manual_eigen");
+  string name("Manual_Eigen");
 #else
-  string name("manual");
+  string name("Manual");
 #endif
   write_J_sparse(fn_out + "_J_" + name + ".txt", J);
   write_times(tf, tJ);
@@ -181,9 +181,9 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   });
 
 #ifdef DO_EIGEN
-  string name = "manual_eigen";
+  string name = "Manual_Eigen";
 #else
-  string name = "manual_light";
+  string name = "Manual_Light";
 #endif
 
   write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), (int)theta.size(), &J[0]);
@@ -216,9 +216,9 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
   });
 
 #ifdef DO_EIGEN
-  string name = "manual_eigen";
+  string name = "Manual_Eigen";
 #else
-  string name = "manual_light";
+  string name = "Manual_Light";
 #endif
 
   write_J(fn_out + "_J_" + name + ".txt", (int)err.size(), 2+(int)theta.size(), &J[0]);

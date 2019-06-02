@@ -218,9 +218,9 @@ Class Tool {
 
 	# Run a single test
 	[void] run ([string]$objective, [string]$dir_in, [string]$dir_out, [string]$fn) {
-		if ($objective.contains("Eigen")) { $out_name = "$($this.name.ToLower())_eigen" }
-		elseif ($objective.contains("Light")) { $out_name = "$($this.name.ToLower())_light" }
-		elseif ($objective.endswith("SPLIT")) { $out_name = "$($this.name)_split" }
+		if ($objective.contains("Eigen")) { $out_name = "$($this.name)_Eigen" }
+		elseif ($objective.contains("Light")) { $out_name = "$($this.name)_Light" }
+		elseif ($objective.endswith("SPLIT")) { $out_name = "$($this.name)_SPLIT" }
 		else { $out_name = $this.name }
 		$output_file = "${dir_out}${fn}_times_${out_name}.txt"
 		if (!$script:repeat -and (Test-Path $output_file)) {
@@ -356,7 +356,7 @@ Class Tool {
 			foreach ($c in [Tool]::lstm_c_vals) {
 				Write-Host "      c=$c"
 
-				$this.run("lstm", [Tool]::lstm_dir_in, $dir_out, "lstm_l${l}_c$c")
+				$this.run("LSTM", [Tool]::lstm_dir_in, $dir_out, "lstm_l${l}_c$c")
 			}
 		}
 	}
