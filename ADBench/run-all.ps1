@@ -356,7 +356,7 @@ Class Tool {
 			foreach ($c in [Tool]::lstm_c_vals) {
 				Write-Host "      c=$c"
 
-				$this.run("lstm", [Tool]::lstm_dir_in, $dir_out, "lstm_l${l}_c$c")
+				$this.run("LSTM", [Tool]::lstm_dir_in, $dir_out, "lstm_l${l}_c$c")
 			}
 		}
 	}
