@@ -53,4 +53,6 @@ set(GMM_K_VALS 5 10 25 50 100 200)
 
 # Include sub-projects.
 add_subdirectory ("ADBench")
+add_subdirectory ("src/modules")
+add_subdirectory ("src/runners")
 add_subdirectory ("tools")
