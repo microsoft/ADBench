@@ -1,5 +1,4 @@
 // ManualGMM.cpp : Defines the exported functions for the DLL.
-#include "pch.h" // use pch.h in Visual Studio 2019
 #include "ManualGMM.h"
 
 // DLL internal state variables:
@@ -11,14 +10,13 @@
 // This function must be called before any other function.
 void ManualGMM::prepare(
 	int d, int k, int n,
-	vector<double> alphas, vector<double>means,
-	vector<double> icf, vector<double> x,
+	vector<double>&& alphas, vector<double>&& means,
+	vector<double>&& icf, vector<double>&& x,
 	Wishart wishart,
 	int nruns_f, int nruns_J)
 {
 	//save variables of ref in local state
 }
-
 void ManualGMM::performAD(int times)
 {
 	//perform AD and

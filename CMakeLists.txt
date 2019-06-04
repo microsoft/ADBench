@@ -57,4 +57,6 @@ set(CMAKE_EXECUTABLE_SUFFIX .exe)
 
 # Include sub-projects.
 add_subdirectory ("ADBench")
+add_subdirectory ("src/modules")
+add_subdirectory ("src/runners")
 add_subdirectory ("tools")
