@@ -3,11 +3,7 @@
 
 #include "../runners/cpp/IGMMTester.h"
 
-#define ManualGMM __declspec( dllexport )
-
-
 class ManualGMM :IGMMTester {
-
 	// This function must be called before any other function.
 	void prepare(
 		int d, int k, int n,
@@ -23,3 +19,6 @@ class ManualGMM :IGMMTester {
 	// 
 	void output(); //TODO: should be not void
 }
+
+// Factory function that creates instances of the GMMTester object.
+// extern "C" IGMMTesterAPI IGMMTester* APIENTRY GetGMMTester();
