@@ -1,9 +1,9 @@
 // ManualGMM.h - Contains declarations of GMM tester functions
 #pragma once
 
-#include "../../../runners/cpp/IGMMTester.h"
+#include "../../../runners/cpp/IGMMTest.h"
 
-class ManualGMM :IGMMTester {
+class ManualGMM : public IGMMTest {
 	// This function must be called before any other function.
 	void prepare(
 		int d, int k, int n,
@@ -17,7 +17,6 @@ class ManualGMM :IGMMTester {
 
 	// 
 	void output(); //TODO: should be not void
-};
 
-// Factory function that creates instances of the GMMTester object.
-// extern "C" IGMMTesterAPI IGMMTester* APIENTRY GetGMMTester();
+	~ManualGMM() {}
+};

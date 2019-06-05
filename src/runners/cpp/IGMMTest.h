@@ -1,10 +1,12 @@
-#include "..//..//modules/cpp/shared/defs.h"
+#pragma once 
+
+#include "../../modules/cpp/shared/defs.h"
 #include <vector>
 
 using namespace std;
 
 
-class IGMMTester {
+class IGMMTest {
 public:
 	// This function must be called before any other function.
 	virtual void prepare(
@@ -16,7 +18,7 @@ public:
 	// perform AD
 	virtual void performAD(int times) = 0;
 	virtual void output() = 0;
-	virtual ~IGMMTester() = 0;
+	virtual ~IGMMTest() {};
 };
 
 // Factory function that creates instances of the GMMTester object.
