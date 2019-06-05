@@ -35,8 +35,7 @@ void ManualGMM::output()
 	std::cout << "I am alive!" << endl;
 }
 
-__declspec(dllexport) unique_ptr<IGMMTest> __cdecl GetGMMTest()
+extern "C" __declspec(dllexport) IGMMTest* __cdecl GetGMMTest()
 {
-	auto testPtr = unique_ptr<IGMMTest>(new ManualGMM());
-	return testPtr;
+	return new ManualGMM();
 }
