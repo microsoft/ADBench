@@ -23,17 +23,27 @@ def _set_rec(obj, keys, value, append=False):
         return obj
 
 
-# Recursively scan a directory
-def _scandir_rec(folder, depth=0):
+# Recursively scan a directory for files
+#
+# For a directory structure like
+#
+#   a/b1/file1
+#   a/b1/file2
+#   a/b2 (an empty directory)
+#   a/b3/c/file3
+#
+# _scandir_rec("a") yields
+#
+#   ["b1", "file1"]
+#   ["b1", "file2"]
+#   ["b3", "c", "file3"]
+def _scandir_rec(folder):
     folder = folder.rstrip("/") + "/"
-    if len(os.listdir(folder)) > 0 and os.path.isdir(folder + os.listdir(folder)[0]):
-        results = []
-        for fn in os.listdir(folder):
-            results += [[fn] + file_name for file_name in _scandir_rec(folder + fn, depth + 1)]
-    else:
-        results = [[fn] for fn in os.listdir(folder)]
-    # results = [[folder.split("/")[-2]] + fn for fn in results]
-    return results
+    for fn in os.listdir(folder):
+        if os.path.isdir(folder + fn):
+            yield from ([fn] + file_name for file_name in _scandir_rec(folder + fn))
+        else:
+            yield [fn]
 
 
 # Recursively make directories for file/directory

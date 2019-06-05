@@ -73,6 +73,20 @@ function assert ($expr) {
     }
 }
 
+# Make a directory (including its parents if necessary) after checking
+# that nothing else is in the way.  See
+#
+#     https://github.com/awf/ADBench/pull/37#discussion_r288167348
+function mkdir_p($path) {
+   if (test-path -pathtype container $path)  {
+         return
+   } elseif (test-path $path) {
+         error "There's something in the way"
+   } else {
+         new-item -itemtype directory $path
+   }
+}
+
 # Run command and (reliably) get output
 function run_command ($indent, $outfile, $timeout, $cmd) {
 	write-host "Run [$cmd $args]"
@@ -204,9 +218,9 @@ Class Tool {
 
 	# Run a single test
 	[void] run ([string]$objective, [string]$dir_in, [string]$dir_out, [string]$fn) {
-		if ($objective.contains("Eigen")) { $out_name = "$($this.name.ToLower())_eigen" }
-		elseif ($objective.contains("Light")) { $out_name = "$($this.name.ToLower())_light" }
-		elseif ($objective.endswith("SPLIT")) { $out_name = "$($this.name)_split" }
+		if ($objective.contains("Eigen")) { $out_name = "$($this.name)_Eigen" }
+		elseif ($objective.contains("Light")) { $out_name = "$($this.name)_Light" }
+		elseif ($objective.endswith("SPLIT")) { $out_name = "$($this.name)_SPLIT" }
 		else { $out_name = $this.name }
 		$output_file = "${dir_out}${fn}_times_${out_name}.txt"
 		if (!$script:repeat -and (Test-Path $output_file)) {
@@ -225,7 +239,7 @@ Class Tool {
 		$cmd = ""
 		$cmdargs = @($dir_in, $dir_out, $fn, $script:nruns_f, $script:nruns_J, $script:time_limit)
 		if ($this.type -eq "bin") {
-			$cmd = "$script:bindir\tools\$($this.name)\Tools-$($this.name)-$objective.exe"
+			$cmd = "$script:bindir/tools/$($this.name)/Tools-$($this.name)-$objective.exe"
 
 		} elseif ($this.type -eq "py" -or $this.type -eq "pybat") {
 			$objective = $objective.ToLower().Replace("-", "_")
@@ -268,7 +282,7 @@ Class Tool {
 
 					$dir_in = "$([Tool]::gmm_dir_in)$sz/"
 					$dir_out = "$script:tmpdir/gmm/$sz/$($this.name)/"
-					mkdir -force $dir_out
+					mkdir_p $dir_out
 
 					foreach ($d in $script:gmm_d_vals) {
 						Write-Host "      d=$d"
@@ -291,7 +305,7 @@ Class Tool {
 		if ($this.eigen_config[3]) {$objs += @("BA-Eigen") }
 
 		$dir_out = "$script:tmpdir/ba/$($this.name)/"
-		if (!(Test-Path $dir_out)) { mkdir $dir_out }
+		if (!(Test-Path $dir_out)) { mkdir_p $dir_out }
 
 		foreach ($obj in $objs) {
 			Write-Host "  $obj"
@@ -321,7 +335,7 @@ Class Tool {
 
 					$dir_in = "$([Tool]::hand_dir_in)${type}_$sz/"
 					$dir_out = "$script:tmpdir/hand/${type}_$sz/$($this.name)/"
-					mkdir -force $dir_out
+					mkdir_p $dir_out
 
 					for ($n = [Tool]::hand_min_n; $n -le [Tool]::hand_max_n; $n++) {
 						Write-Host "      $n"
@@ -335,14 +349,14 @@ Class Tool {
 	[void] testlstm () {
 		Write-Host "  LSTM"
 		$dir_out = "$script:tmpdir/lstm/$($this.name)/"
-		mkdir -force $dir_out
+		mkdir_p $dir_out
 
 		foreach ($l in [Tool]::lstm_l_vals) {
 			Write-Host "    l=$l"
 			foreach ($c in [Tool]::lstm_c_vals) {
 				Write-Host "      c=$c"
 
-				$this.run("lstm", [Tool]::lstm_dir_in, $dir_out, "lstm_l${l}_c$c")
+				$this.run("LSTM", [Tool]::lstm_dir_in, $dir_out, "lstm_l${l}_c$c")
 			}
 		}
 	}
