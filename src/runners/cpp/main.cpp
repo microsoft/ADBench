@@ -1,16 +1,22 @@
-#include <string>
 #include <iostream>
+#include <string>
 
+#include "IGMMTest.h"
+#include "ModuleLoader.h"
 
-int main(int argc, char* argv[])
+using namespace std;
+
+int main(int argc, const char* argv[])
 {
 	if (argc < 2) {
 		//std::cerr << "usage: CPPRunner moduleName dir_in dir_out file_basename nruns_F nruns_J [-rep]\n";
-		std::cerr << "usage: CPPRunner moduleName\n";
+		std::cerr << "usage: CPPRunner modulePath\n";
 		return 1;
 	}
 
+	auto modulePath = argv[1];
 
-
-	
+	ModuleLoader moduleLoader(modulePath);
+	auto test = moduleLoader.GetTest();
+	test->output();
 }
