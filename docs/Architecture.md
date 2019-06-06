@@ -76,4 +76,15 @@ _Benchmark runners_ output 3 files into the folder specified by the _global runn
 
 ### Global Runner
 
+_Global runner_ is a script that consequitively runs all benchmarks using corresponding _benchmark runners_ while enforcing specified hard time limits.
+It contains code for starting all the _benchmark runners_ and is aware of all existing _testing modules_.
+
+_Global runner_ is started by the user. User may pass some or all of the variables listed in the [methodology](Methodology.md) as command line arguments.
+
+__The exact specifications are to be developed along with the _global runner_ itself__.
+
 ### Result-Processing Scripts
+
+Two scripts. One looks at the ouput files and compares the results in them to the manually computed correct ones, the other produces visualizations of the timeings.
+
+__The exact specifications are to be developed along with the _result-processing scripts_ themselves__.
