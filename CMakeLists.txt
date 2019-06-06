@@ -66,7 +66,6 @@ option(ENABLE_TESTS "Enable tests" ON)
 
 if (${ENABLE_TESTS})
     enable_testing()
-	add_subdirectory ("test/modules")
-	#add_subdirectory ("test/runners")
+	add_subdirectory ("test")
 endif()
 
