@@ -2,7 +2,7 @@
 
 #include "../../../src/runners/cpp/IGMMTest.h"
 
-class GMMMock : public IGMMTest {
+class GMMDummy : public IGMMTest {
 	// This function must be called before any other function.
 	void prepare(
 		int d, int k, int n,
@@ -17,5 +17,5 @@ class GMMMock : public IGMMTest {
 	// 
 	void output(); //TODO: should be not void
 
-	~GMMMock() {}
+	~GMMDummy() {}
 };
