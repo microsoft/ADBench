@@ -3,6 +3,9 @@
 ModuleLoader::ModuleLoader(const char* filePath)
 {
 	hModule = LoadLibraryA(filePath);
+	if (hModule == NULL) {
+		throw "Can't load library " + std::string(filePath);
+	}
 }
 
 typedef IGMMTest* (*LPFNDLLFUNC1)();
@@ -10,7 +13,7 @@ typedef IGMMTest* (*LPFNDLLFUNC1)();
 std::unique_ptr<IGMMTest> ModuleLoader::GetTest() {
 	auto GetGMMTest = (LPFNDLLFUNC1)GetProcAddress(hModule,
 		"GetGMMTest");
-	if (NULL != GetGMMTest)
+	if (GetGMMTest != NULL)
 	{
 		return std::unique_ptr<IGMMTest>(GetGMMTest());
 	}

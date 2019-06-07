@@ -2,8 +2,11 @@
 #include "../../../src/runners/cpp/ModuleLoader.h"
 
 TEST(CppRunnerTests, LibraryLoadTest) {
-	/*ModuleLoader moduleLoader("GMMMock.dll");
+#ifdef _DEBUG
+	ModuleLoader moduleLoader("GMMMockd.dll");
+#else
+	ModuleLoader moduleLoader("GMMMock.dll");
+#endif
 	auto test = moduleLoader.GetTest();
-	EXPECT_EQ(test == NULL, true);*/
-	EXPECT_EQ(true, true);
+	EXPECT_EQ(test != NULL, true);
 }
