@@ -64,7 +64,19 @@ add_subdirectory ("tools")
 # Enable tests
 option(ENABLE_TESTS "Enable tests" ON)
 
-if (${ENABLE_TESTS})
+# GTest fails to link in "RelWithDebInfo" configuration.
+# Therefore we only enable tests in "Debug" and "Release"
+if (${ENABLE_TESTS} AND (${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR ${CMAKE_BUILD_TYPE} STREQUAL "Release"))
+    # Get gtest package
+    hunter_add_package(GTest)
+    find_package(GTest CONFIG REQUIRED)
+    find_package(GMock CONFIG REQUIRED)
+
+    if(NOT EXISTS "${GTest_LICENSES}")
+        message(FATAL_ERROR "File not found: '${GTest_LICENSES}")
+    endif()
+    message("License file: '${GTest_LICENSES}'")
+
     enable_testing()
 	add_subdirectory ("test")
 endif()
