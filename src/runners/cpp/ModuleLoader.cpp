@@ -8,14 +8,14 @@ ModuleLoader::ModuleLoader(const char* filePath)
 	}
 }
 
-typedef IGMMTest* (*LPFNDLLFUNC1)();
+typedef ITest<GMMInput, GMMOutput>* (*LPFNDLLFUNC1)();
 
-std::unique_ptr<IGMMTest> ModuleLoader::GetTest() {
+std::unique_ptr<ITest<GMMInput, GMMOutput>> ModuleLoader::GetTest() {
 	auto GetGMMTest = (LPFNDLLFUNC1)GetProcAddress(hModule,
 		"GetGMMTest");
 	if (GetGMMTest != NULL)
 	{
-		return std::unique_ptr<IGMMTest>(GetGMMTest());
+		return std::unique_ptr<ITest<GMMInput, GMMOutput>>(GetGMMTest());
 	}
 	else
 	{

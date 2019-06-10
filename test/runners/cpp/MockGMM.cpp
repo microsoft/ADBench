@@ -6,30 +6,28 @@
 #include<memory>
 
 // This function must be called before any other function.
-void MockGMM::prepare(
-	int d, int k, int n,
-	vector<double>&& alphas, vector<double>&& means,
-	vector<double>&& icf, vector<double>&& x,
-	Wishart wishart,
-	int nruns_f, int nruns_J)
+void MockGMM::prepare(GMMInput&& input)
 {
 	//save variables of ref in local state
 }
 
-void MockGMM::performAD(int times)
-{
-	std::chrono::seconds(2);
-
-}
-
 // 
-void MockGMM::output()
+GMMOutput MockGMM::output()
 {
 	//return some documented output
 	std::cout << "I am alive!" << endl;
+	return GMMOutput();
 }
 
-extern "C" __declspec(dllexport) IGMMTest* __cdecl GetGMMTest()
+void MockGMM::calculateObjective(int times)
+{
+}
+
+void MockGMM::calculateJacobian(int times)
+{
+}
+
+extern "C" __declspec(dllexport) ITest<GMMInput, GMMOutput>* __cdecl GetGMMTest()
 {
 	return new MockGMM();
 }
