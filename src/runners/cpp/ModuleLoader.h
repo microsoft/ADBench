@@ -4,7 +4,8 @@
 #include <string>
 #include "Windows.h"
 
-#include "IGMMTest.h"
+#include "ITest.h"
+#include "GMMData.h"
 
 using namespace std;
 
@@ -12,6 +13,6 @@ class ModuleLoader {
 	HINSTANCE hModule = NULL;
 public:
 	ModuleLoader(const char* filePath);
-	std::unique_ptr<IGMMTest> GetTest();
+	std::unique_ptr<ITest<GMMInput, GMMOutput>> GetTest();
 	~ModuleLoader();
 };

@@ -1,22 +1,21 @@
 // ManualGMM.h - Contains declarations of GMM tester functions
 #pragma once
 
-#include "../../../runners/cpp/IGMMTest.h"
+#include "../../../runners/cpp/ITest.h"
+#include "../../../runners/cpp/GMMData.h"
 
-class ManualGMM : public IGMMTest {
+class ManualGMM : public ITest<GMMInput, GMMOutput> {
 	// This function must be called before any other function.
-	void prepare(
-		int d, int k, int n,
-		vector<double>&& alphas, vector<double>&& means,
-		vector<double>&& icf, vector<double>&& x,
-		Wishart wishart,
-		int nruns_f, int nruns_J);
+	virtual void prepare(GMMInput&& input) override;
 
-	// perform AD
-	void performAD(int times);
+	// Inherited via ITest
+	virtual void calculateObjective(int times) override;
+	virtual void calculateJacobian(int times) override;
 
 	// 
-	void output(); //TODO: should be not void
+	virtual GMMOutput output() override; //TODO: should be not void
 
 	~ManualGMM() {}
+
+
 };
