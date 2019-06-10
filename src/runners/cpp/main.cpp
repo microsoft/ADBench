@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 
-#include "IGMMTest.h"
+#include "ITest.h"
 #include "ModuleLoader.h"
 
 using namespace std;
