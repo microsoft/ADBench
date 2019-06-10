@@ -16,9 +16,21 @@ using namespace std;
 void ManualGMM::prepare(GMMInput&& input)
 {
 	//save variables of ref in local state
+	this->d = input.d;
+	this->k = input.k;
+	this->n = input.n;
+	this->alphas = input.alphas;
+	this->means = input.means;
+	this->icf = input.icf;
+	this->x = input.x;
+	this->wishart = input.wishart;
+
+	int icf_sz = d * (d + 1) / 2;
+	int Jrows = 1;
+	int Jcols = (k * (d + 1) * (d + 2)) / 2;
+	this->J.resize(Jcols);
 }
 
-// 
 GMMOutput ManualGMM::output()
 {
 	//return some documented output
