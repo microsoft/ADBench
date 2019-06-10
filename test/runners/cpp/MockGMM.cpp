@@ -1,11 +1,12 @@
-// GMMDummy.cpp : Defines the exported functions for the DLL.
-#include "GMMMock.h"
+// MockGMM.cpp : Defines the exported functions for the DLL.
+#include "MockGMM.h"
 
+#include <chrono>
 #include <iostream>
 #include<memory>
 
 // This function must be called before any other function.
-void GMMDummy::prepare(
+void MockGMM::prepare(
 	int d, int k, int n,
 	vector<double>&& alphas, vector<double>&& means,
 	vector<double>&& icf, vector<double>&& x,
@@ -15,14 +16,14 @@ void GMMDummy::prepare(
 	//save variables of ref in local state
 }
 
-void GMMDummy::performAD(int times)
+void MockGMM::performAD(int times)
 {
-	std::chrono::seconds(2)
+	std::chrono::seconds(2);
 
 }
 
 // 
-void GMMDummy::output()
+void MockGMM::output()
 {
 	//return some documented output
 	std::cout << "I am alive!" << endl;
@@ -30,5 +31,5 @@ void GMMDummy::output()
 
 extern "C" __declspec(dllexport) IGMMTest* __cdecl GetGMMTest()
 {
-	return new GMMDummy();
+	return new MockGMM();
 }
