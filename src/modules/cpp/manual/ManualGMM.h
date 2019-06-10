@@ -6,10 +6,8 @@
 
 class ManualGMM : public ITest<GMMInput, GMMOutput> {
 private:
-	int d = 0, k = 0, n = 0;
-	vector<double> alphas, means, icf, x, J;
-	Wishart wishart = { 0, 0 };
-	double err = 0;
+	GMMInput input;
+	GMMOutput output;
 
 public:
 	// This function must be called before any other function.
