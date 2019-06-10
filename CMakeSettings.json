@@ -3,7 +3,7 @@
         {
             "name": "x64-Release",
             "generator": "Ninja",
-            "configurationType": "RelWithDebInfo",
+            "configurationType": "Release",
             "buildRoot": "${projectDir}\\build\\${name}",
             "installRoot": "${projectDir}\\install\\${name}",
             "cmakeCommandArgs": "",
@@ -21,7 +21,8 @@
             "installRoot": "${projectDir}\\install\\${name}",
             "cmakeCommandArgs": "",
             "buildCommandArgs": "-v",
-            "ctestCommandArgs": ""
+            "ctestCommandArgs": "",
+            "variables": []
         }
     ]
 }
