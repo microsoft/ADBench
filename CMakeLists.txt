@@ -1,7 +1,7 @@
 ﻿# CMakeList.txt : Top-level CMake project file, do global configuration
 # and include sub-projects here.
 #
-cmake_minimum_required (VERSION 3.14)
+cmake_minimum_required (VERSION 3.6)
 
 # Set build type variable
 # so RelWithDebInfo is treated as Release
@@ -64,9 +64,7 @@ add_subdirectory ("tools")
 # Enable tests
 option(ENABLE_TESTS "Enable tests" ON)
 
-# GTest fails to link in "RelWithDebInfo" configuration.
-# Therefore we only enable tests in "Debug" and "Release"
-if (${ENABLE_TESTS} AND (${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR ${CMAKE_BUILD_TYPE} STREQUAL "Release"))
+if (${ENABLE_TESTS})
     # Get gtest package
     hunter_add_package(GTest)
     find_package(GTest CONFIG REQUIRED)
