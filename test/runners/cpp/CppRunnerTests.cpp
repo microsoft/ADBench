@@ -3,9 +3,9 @@
 
 TEST(CppRunnerTests, LibraryLoadTest) {
 #ifdef _DEBUG
-	ModuleLoader moduleLoader("GMMMockd.dll");
+	ModuleLoader moduleLoader("MockGMMd.dll");
 #else
-	ModuleLoader moduleLoader("GMMMock.dll");
+	ModuleLoader moduleLoader("MockGMM.dll");
 #endif
 	auto test = moduleLoader.GetTest();
 	EXPECT_EQ(test != NULL, true);
