@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <string>
 
@@ -9,44 +10,88 @@
 
 using namespace std;
 
-GMMInput read_input_data(const string& input_file, const bool is_replicate_point)
+GMMInput read_input_data(const string& input_file, const bool replicate_point)
 {
-	GMMInput input;
+    GMMInput input;
 
-	// Read instance
-	read_gmm_instance(input_file, &input.d, &input.k, &input.n,
-		input.alphas, input.means, input.icf, input.x, input.wishart, is_replicate_point);
-	return {};
+    // Read instance
+    read_gmm_instance(input_file, &input.d, &input.k, &input.n,
+        input.alphas, input.means, input.icf, input.x, input.wishart, replicate_point);
+
+    return input;
 }
 
 int main(const int argc, const char* argv[])
 {
-	try {
-		if (argc < 6) {
-			std::cerr << "usage: CPPRunner module_path input_file output_file nruns_F nruns_J [-rep]\n";
-			return 1;
-		}
+    try {
+        if (argc < 8) {
+            std::cerr << "usage: CPPRunner module_path input_file output_file minimum_measurable_time nruns_F nruns_J time_limit [-rep]\n";
+            return 1;
+        }
 
-		const auto module_path = argv[1];
-		const string input_file(argv[2]);
-		const string output_file(argv[3]);
+        const auto module_path = argv[1];
+        const string input_file(argv[2]);
+        const string output_file(argv[3]);
+        const auto minimum_measurable_time = std::stod(argv[4]);
+        const auto nruns_F = std::stoi(argv[5]);
+        const auto nruns_J = std::stoi(argv[6]);
+        const auto time_limit = std::stod(argv[7]);
 
-		// read only 1 point and replicate it?
-		const auto is_replicate_point = (argc > 6 && string(argv[6]) == "-rep");
+        // read only 1 point and replicate it?
+        const auto replicate_point = (argc > 8 && string(argv[8]) == "-rep");
 
-		ModuleLoader module_loader(module_path);
-		auto test = module_loader.GetTest();
+        ModuleLoader module_loader(module_path);
+        auto test = module_loader.GetTest();
 
-		auto inputs = read_input_data(input_file, is_replicate_point);
+        auto inputs = read_input_data(input_file, replicate_point);
 
-		test->output();
-	}
-	catch(string exception)
-	{
-		std::cout << "An exception caught: " << std::endl;
-	}
-	catch (...)
-	{
-		std::cout << "Unhandled exception" << std::endl;
-	}
+        test->prepare(std::move(inputs));
+
+        vector<double> samples;
+        double totalTime = 0;
+        auto repeats = 1;
+        for (;; repeats *= 2)
+        {
+            auto t1 = high_resolution_clock::now();
+            test->calculateObjective(repeats);
+            auto t2 = high_resolution_clock::now();
+            auto current_run_time = duration_cast<duration<double>>(t2 - t1).count();
+            if (current_run_time > minimum_measurable_time)
+            {
+                samples.push_back(current_run_time / repeats);
+                totalTime += current_run_time;
+                break;
+            }
+        }
+
+
+        for (auto run = 1; (run < nruns_F) && (totalTime < time_limit); run++)
+        {
+            auto t1 = high_resolution_clock::now();
+            test->calculateObjective(repeats);
+            auto t2 = high_resolution_clock::now();
+            const auto current_run_time = duration_cast<duration<double>>(t2 - t1).count();
+            samples.push_back(current_run_time / repeats);
+            totalTime += current_run_time;
+        }
+
+        auto min_sample = std::min_element(samples.begin(), samples.end());
+
+
+        //test->calculateJacobian();
+
+        test->output();
+    }
+    catch (const std::exception& ex)
+    {
+        std::cout << "An exception caught: " << ex.what() << std::endl;
+    }
+    catch (const std::string& ex)
+    {
+        std::cout << "An exception caught: " << ex << std::endl;
+    }
+    catch (...)
+    {
+        std::cout << "Unhandled exception" << std::endl;
+    }
 }
