@@ -8,5 +8,5 @@ TEST(CppRunnerTests, LibraryLoadTest) {
 	ModuleLoader moduleLoader("MockGMM.dll");
 #endif
 	auto test = moduleLoader.GetTest();
-	EXPECT_EQ(test != NULL, true);
+	ASSERT_TRUE(test != NULL);
 }
