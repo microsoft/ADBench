@@ -83,10 +83,7 @@ int main(const int argc, const char* argv[])
         test->prepare(std::move(inputs));
 
         measure_shortest_time(minimum_measurable_time, nruns_F, time_limit, *(test->calculateObjective));
-
-
-
-        //test->calculateJacobian();
+        measure_shortest_time(minimum_measurable_time, nruns_J, time_limit, *(test->calculateJacobian));
 
         test->output();
     }
