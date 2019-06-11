@@ -4,7 +4,7 @@
 #include <math.h>
 #include <float.h>
 
-#include "defs.h"
+#include "../../src/cpp/shared/defs.h"
 #include "matrix.h"
 
 ////////////////////////////////////////////////////////////

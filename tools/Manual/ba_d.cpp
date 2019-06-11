@@ -3,7 +3,7 @@
 #include <cmath>
 #include <cfloat>
 
-#include "../cpp-common/defs.h"
+#include "../../src/cpp/shared/defs.h"
 
 #include "ba_d.h"
 

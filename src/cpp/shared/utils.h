@@ -18,7 +18,7 @@
 
 #include "light_matrix.h"
 
-#include "../cpp-common/defs.h"
+#include "defs.h"
 
 using std::cin;
 using std::cout;
