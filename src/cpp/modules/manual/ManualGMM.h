@@ -10,8 +10,6 @@ class ManualGMM : public ITest<GMMInput, GMMOutput> {
 private:
     GMMInput _input;
     GMMOutput _output;
-    double _f;
-    std::vector<double> _J;
 
 public:
     // This function must be called before any other function.
