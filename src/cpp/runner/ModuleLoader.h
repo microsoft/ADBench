@@ -4,8 +4,8 @@
 #include <string>
 #include "Windows.h"
 
-#include "ITest.h"
-#include "GMMData.h"
+#include "../shared/ITest.h"
+#include "../shared/GMMData.h"
 
 using namespace std;
 

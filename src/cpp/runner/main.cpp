@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 
-#include "ITest.h"
+#include "../shared/ITest.h"
 #include "ModuleLoader.h"
 
 using namespace std;
