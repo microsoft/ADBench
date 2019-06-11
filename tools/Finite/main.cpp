@@ -9,7 +9,7 @@
 #include "../../src/cpp/shared/defs.h"
 
 #if defined DO_GMM
-#include "../cpp-common/gmm.h"
+#include "../../src/cpp/shared/gmm.h"
 #elif defined DO_BA
 #include "../cpp-common/ba.h"
 #elif (defined DO_HAND || defined DO_HAND_COMPLICATED)

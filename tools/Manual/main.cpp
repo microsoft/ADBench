@@ -14,7 +14,7 @@
 #include "../../src/cpp/shared/defs.h"
 
 #ifdef DO_GMM
-#include "../cpp-common/gmm.h"
+#include "../../src/cpp/shared/gmm.h"
 #include "gmm_d.h"
 #endif
 

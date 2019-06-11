@@ -5,11 +5,12 @@
 #include "defs.h"
 
 struct GMMInput {
-	int d, k, n;
-	std::vector<double> alphas, means, icf, x;
-	Wishart wishart;
+    int d, k, n;
+    std::vector<double> alphas, means, icf, x;
+    Wishart wishart;
 };
 
 struct GMMOutput {
-
+    double objective;
+    std::vector<double> gradient;
 };
