@@ -2,7 +2,7 @@
 #include "ManualGMM.h"
 
 #include <iostream>
-#include<memory>
+#include <memory>
 
 using namespace std;
 
@@ -15,7 +15,7 @@ using namespace std;
 // This function must be called before any other function.
 void ManualGMM::prepare(GMMInput&& input)
 {
-	this->input = input;
+	_input = input;
 }
 
 GMMOutput ManualGMM::output()

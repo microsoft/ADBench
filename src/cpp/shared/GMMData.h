@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "../../modules/cpp/shared/defs.h"
+#include "defs.h"
 
 struct GMMInput {
 	int d, k, n;

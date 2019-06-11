@@ -3,7 +3,7 @@
 
 #include <chrono>
 #include <iostream>
-#include<memory>
+#include <memory>
 
 // This function must be called before any other function.
 void MockGMM::prepare(GMMInput&& input)

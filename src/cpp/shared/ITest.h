@@ -1,6 +1,6 @@
 #pragma once 
 
-#include "../../modules/cpp/shared/defs.h"
+#include "defs.h"
 #include <vector>
 
 using namespace std;
