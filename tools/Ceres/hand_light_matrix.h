@@ -3,8 +3,8 @@
 #include <vector>
 #include <string>
 
-#include "../cpp-common/matrix.h"
-#include "../cpp-common/defs.h"
+#include "../../src/cpp/shared/matrix.h"
+#include "../../src/cpp/shared/defs.h"
 
 using std::vector;
 using std::string;

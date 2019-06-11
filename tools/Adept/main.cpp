@@ -16,12 +16,12 @@
 //#define DO_VXL // this is experimental - vxl does not compile with adouble
 
 #include "adept.h"
-#include "../cpp-common/utils.h"
-#include "../cpp-common/defs.h"
+#include "../../src/cpp/shared/utils.h"
+#include "../../src/cpp/shared/defs.h"
 
 #if defined DO_GMM_FULL || defined DO_GMM_SPLIT
 #define ADEPT_COMPILATION
-#include "../cpp-common/gmm.h"
+#include "../../src/cpp/shared/gmm.h"
 #elif defined DO_BA
 #include "../cpp-common/ba.h"
 #elif (defined DO_HAND || defined DO_HAND_COMPLICATED)

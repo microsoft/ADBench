@@ -13,7 +13,7 @@
 #define DO_LIGHT_MATRIX
 
 #include "ceres/ceres.h"
-#include "../cpp-common/utils.h"
+#include "../../src/cpp/shared/utils.h"
 
 #if defined DO_GMM
 #include "gmm.h"

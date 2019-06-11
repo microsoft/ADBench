@@ -15,8 +15,8 @@ size_t adtl::refcounter::refcnt = 0;
 #include "adolc/adolc.h"
 #include "adolc/adolc_sparse.h"
 #endif
-#include "../cpp-common/utils.h"
-#include "../cpp-common/defs.h"
+#include "../../src/cpp/shared/utils.h"
+#include "../../src/cpp/shared/defs.h"
 
 //#define DO_GMM_FULL
 //#define DO_GMM_SPLIT
@@ -31,7 +31,7 @@ size_t adtl::refcounter::refcnt = 0;
 #define DO_LIGHT_MATRIX
 
 #if (defined DO_GMM_FULL || defined DO_GMM_SPLIT) && defined DO_CPP
-#include "../cpp-common/gmm.h"
+#include "../../src/cpp/shared/gmm.h"
 
 #elif defined DO_BA_BLOCK || defined DO_BA_SPARSE
 #ifdef DO_CPP

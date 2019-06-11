@@ -1,6 +1,6 @@
 #include <cmath>
 #include "../../src/cpp/shared/defs.h"
-#include "matrix.h"
+#include "../../src/cpp/shared/matrix.h"
 
 #include "Eigen/Dense"
 

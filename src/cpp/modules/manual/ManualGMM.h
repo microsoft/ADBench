@@ -4,21 +4,22 @@
 #include "../../shared/ITest.h"
 #include "../../shared/GMMData.h"
 
+#include <vector>
+
 class ManualGMM : public ITest<GMMInput, GMMOutput> {
 private:
-	GMMInput _input;
-	GMMOutput _output;
+    GMMInput _input;
+    GMMOutput _output;
+    double _f;
+    std::vector<double> _J;
 
 public:
-	// This function must be called before any other function.
-	virtual void prepare(GMMInput&& input) override;
+    // This function must be called before any other function.
+    virtual void prepare(GMMInput&& input) override;
 
-	// Inherited via ITest
-	virtual void calculateObjective(int times) override;
-	virtual void calculateJacobian(int times) override;
+    virtual void calculateObjective(int times) override;
+    virtual void calculateJacobian(int times) override;
+    virtual GMMOutput output() override;
 
-	// 
-	virtual GMMOutput output() override; //TODO: should be not void
-
-	~ManualGMM() {}
+    ~ManualGMM() {}
 };

@@ -15,7 +15,7 @@ void MockGMM::prepare(GMMInput&& input)
 GMMOutput MockGMM::output()
 {
 	//return some documented output
-	std::cout << "I am alive!" << endl;
+	std::cout << "I am alive!" << std::endl;
 	return GMMOutput();
 }
 
