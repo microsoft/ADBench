@@ -1,6 +1,6 @@
 #pragma once
 
-#include "..//..//src/modules/cpp/shared/defs.h"
+#include "../../src/cpp/shared/defs.h"
 
 #ifndef NBDirsMax
 #define NBDirsMax 1650

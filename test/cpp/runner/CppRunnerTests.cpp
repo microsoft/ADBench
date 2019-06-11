@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../../../src/runners/cpp/ModuleLoader.h"
+#include "../../../src/cpp/runner/ModuleLoader.h"
 
 TEST(CppRunnerTests, LibraryLoadTest) {
 #ifdef _DEBUG
