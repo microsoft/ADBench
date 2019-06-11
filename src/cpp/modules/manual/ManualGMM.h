@@ -7,17 +7,17 @@
 #include <vector>
 
 class ManualGMM : public ITest<GMMInput, GMMOutput> {
-private:
     GMMInput _input;
     GMMOutput _output;
 
 public:
     // This function must be called before any other function.
-    virtual void prepare(GMMInput&& input) override;
+    void prepare(GMMInput&& input) override;
 
-    virtual void calculateObjective(int times) override;
-    virtual void calculateJacobian(int times) override;
+    void calculateObjective(int times) override;
+    void calculateJacobian(int times) override;
     virtual GMMOutput output() override;
+    GMMOutput output() override; 
 
-    ~ManualGMM() {}
+    ~ManualGMM() = default;
 };
