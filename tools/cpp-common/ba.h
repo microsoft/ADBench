@@ -5,7 +5,7 @@
 #include <float.h>
 
 #include "../../src/cpp/shared/defs.h"
-#include "matrix.h"
+#include "../../src/cpp/shared/matrix.h"
 
 ////////////////////////////////////////////////////////////
 //////////////////// Declarations //////////////////////////

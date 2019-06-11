@@ -4,11 +4,11 @@
 #include <vector>
 
 #include "../../src/cpp/shared/defs.h"
-#include "../cpp-common/matrix.h"
+#include "../../src/cpp/shared/matrix.h"
 
 using std::vector;
 
-#include "..//cpp-common/gmm.h"
+#include "../../src/cpp/shared/gmm.h"
 
 void Qtransposetimesx(int d,
   const double* const Ldiag,
