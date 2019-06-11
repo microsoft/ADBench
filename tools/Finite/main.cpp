@@ -5,8 +5,8 @@
 #include <limits>
 #include <stdexcept>
 
-#include "../cpp-common/utils.h"
-#include "../cpp-common/defs.h"
+#include "../../src/cpp/shared/utils.h"
+#include "../../src/cpp/shared/defs.h"
 
 #if defined DO_GMM
 #include "../cpp-common/gmm.h"

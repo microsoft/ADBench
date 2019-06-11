@@ -3,7 +3,7 @@
 #include <cmath>
 #include <vector>
 
-#include "../cpp-common/defs.h"
+#include "../../src/cpp/shared/defs.h"
 #include "../cpp-common/matrix.h"
 
 using std::vector;

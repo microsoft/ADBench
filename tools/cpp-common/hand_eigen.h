@@ -7,7 +7,7 @@
 #include <Eigen/Dense>
 #include <Eigen/StdVector>
 
-#include "../cpp-common/defs.h"
+#include "../../src/cpp/shared/utils.h"
 
 using Eigen::Map;
 using Eigen::Vector3d;
