@@ -21,6 +21,41 @@ GMMInput read_input_data(const string& input_file, const bool replicate_point)
     return input;
 }
 
+double measure_shortest_time (const double minimum_measurable_time, const int nruns, const double time_limit, void (&func)(int))
+{
+    vector<double> samples;
+    double total_time = 0;
+    auto repeats = 1;
+    for (;; repeats *= 2)
+    {
+        auto t1 = high_resolution_clock::now();
+        func(repeats);
+        auto t2 = high_resolution_clock::now();
+        const auto current_run_time = duration_cast<duration<double>>(t2 - t1).count();
+        if (current_run_time > minimum_measurable_time)
+        {
+            samples.push_back(current_run_time / repeats);
+            total_time += current_run_time;
+            break;
+        }
+    }
+
+
+    for (auto run = 1; (run < nruns) && (total_time < time_limit); run++)
+    {
+        auto t1 = high_resolution_clock::now();
+        func(repeats);
+        auto t2 = high_resolution_clock::now();
+        const auto current_run_time = duration_cast<duration<double>>(t2 - t1).count();
+        samples.push_back(current_run_time / repeats);
+        total_time += current_run_time;
+    }
+
+    const auto min_sample = *std::min_element(std::begin(samples), std::end(samples));
+
+    return min_sample;
+}
+
 int main(const int argc, const char* argv[])
 {
     try {
@@ -47,35 +82,8 @@ int main(const int argc, const char* argv[])
 
         test->prepare(std::move(inputs));
 
-        vector<double> samples;
-        double totalTime = 0;
-        auto repeats = 1;
-        for (;; repeats *= 2)
-        {
-            auto t1 = high_resolution_clock::now();
-            test->calculateObjective(repeats);
-            auto t2 = high_resolution_clock::now();
-            auto current_run_time = duration_cast<duration<double>>(t2 - t1).count();
-            if (current_run_time > minimum_measurable_time)
-            {
-                samples.push_back(current_run_time / repeats);
-                totalTime += current_run_time;
-                break;
-            }
-        }
+        measure_shortest_time(minimum_measurable_time, nruns_F, time_limit, *(test->calculateObjective));
 
-
-        for (auto run = 1; (run < nruns_F) && (totalTime < time_limit); run++)
-        {
-            auto t1 = high_resolution_clock::now();
-            test->calculateObjective(repeats);
-            auto t2 = high_resolution_clock::now();
-            const auto current_run_time = duration_cast<duration<double>>(t2 - t1).count();
-            samples.push_back(current_run_time / repeats);
-            totalTime += current_run_time;
-        }
-
-        auto min_sample = std::min_element(samples.begin(), samples.end());
 
 
         //test->calculateJacobian();
