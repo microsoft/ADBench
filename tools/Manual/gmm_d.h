@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../cpp-common/defs.h"
+#include "../../src/cpp/shared/defs.h"
 
 // d: dim
 // k: number of gaussians

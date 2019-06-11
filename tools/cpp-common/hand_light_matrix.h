@@ -4,7 +4,7 @@
 #include <string>
 
 #include "matrix.h"
-#include "defs.h"
+#include "../../src/cpp/shared/defs.h"
 
 using std::vector;
 using std::string;

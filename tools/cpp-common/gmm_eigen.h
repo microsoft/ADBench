@@ -1,5 +1,5 @@
 #include <cmath>
-#include "defs.h"
+#include "../../src/cpp/shared/defs.h"
 #include "matrix.h"
 
 #include "Eigen/Dense"
