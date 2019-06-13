@@ -16,7 +16,6 @@ public:
 
     void calculateObjective(int times) override;
     void calculateJacobian(int times) override;
-    virtual GMMOutput output() override;
     GMMOutput output() override; 
 
     ~ManualGMM() = default;
