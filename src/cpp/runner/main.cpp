@@ -70,6 +70,13 @@ std::string filepath_to_basename(const std::string& filepath)
     return basename;
 }
 
+void save_time_to_file(const string& filepath, const double objective_time, const double derivative_time)
+{
+    std::ofstream out(filepath);
+    out << std::scientific << objective_time << "\t" << derivative_time;
+    out.close();
+}
+
 int main(const int argc, const char* argv[])
 {
     try {
@@ -107,7 +114,7 @@ int main(const int argc, const char* argv[])
         auto input_basename = filepath_to_basename(input_filepath);
         auto module_basename = filepath_to_basename(module_path);
 
-        write_times(output_dir + input_basename + "_times_" + module_basename + ".txt", objective_time, derivative_time);
+        save_time_to_file(output_dir + input_basename + "_times_" + module_basename + ".txt", objective_time, derivative_time);
 
     }
     catch (const std::exception& ex)
