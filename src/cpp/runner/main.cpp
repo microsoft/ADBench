@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <filesystem>
 #include <iostream>
 #include <string>
 
@@ -62,39 +61,53 @@ double measure_shortest_time(const double minimum_measurable_time, const int nru
     return min_sample;
 }
 
+std::string filepath_to_basename(const std::string& filepath)
+{
+    const auto filename = filepath.substr(filepath.find_last_of("/\\") + 1);
+    const auto dot = filename.find_last_of('.');
+    auto basename = filename.substr(0, dot);
+
+    return basename;
+}
+
 int main(const int argc, const char* argv[])
 {
     try {
-        if (argc < 9) {
-            std::cerr << "usage: CPPRunner module_path input_dir input_file output_dir minimum_measurable_time nruns_F nruns_J time_limit [-rep]\n";
+        if (argc < 8) {
+            std::cerr << "usage: CPPRunner module_path input_filepath output_dir minimum_measurable_time nruns_F nruns_J time_limit [-rep]\n";
             return 1;
         }
 
         const auto module_path = argv[1];
-        const string input_dir(argv[2]);
-        const string input_file(argv[3]);
-        const string output_dir(argv[4]);
-        const auto minimum_measurable_time = std::stod(argv[5]);
-        const auto nruns_F = std::stoi(argv[6]);
-        const auto nruns_J = std::stoi(argv[7]);
-        const auto time_limit = std::stod(argv[8]);
+        const string input_filepath(argv[2]);
+        const string output_dir(argv[3]);
+        const auto minimum_measurable_time = std::stod(argv[4]);
+        const auto nruns_F = std::stoi(argv[5]);
+        const auto nruns_J = std::stoi(argv[6]);
+        const auto time_limit = std::stod(argv[7]);
 
         // read only 1 point and replicate it?
-        const auto replicate_point = (argc > 9 && string(argv[9]) == "-rep");
+        const auto replicate_point = (argc > 8 && string(argv[8]) == "-rep");
 
         ModuleLoader module_loader(module_path);
         auto test = module_loader.GetTest();
 
-        auto inputs = read_input_data(input_dir + input_file, replicate_point);
+        auto inputs = read_input_data(input_filepath, replicate_point);
 
         test->prepare(std::move(inputs));
 
-        measure_shortest_time(minimum_measurable_time, nruns_F, time_limit, test, &ITest<GMMInput, GMMOutput>::calculateObjective);
-        measure_shortest_time(minimum_measurable_time, nruns_J, time_limit, test, &ITest<GMMInput, GMMOutput>::calculateJacobian);
+        const auto objective_time =
+            measure_shortest_time(minimum_measurable_time, nruns_F, time_limit, test, &ITest<GMMInput, GMMOutput>::calculateObjective);
+
+        const auto derivative_time =
+            measure_shortest_time(minimum_measurable_time, nruns_J, time_limit, test, &ITest<GMMInput, GMMOutput>::calculateJacobian);
 
         auto output = test->output();
 
-        //write_times(output_dir +  + "_times_" + input_file + ".txt", tf, tJ);
+        auto input_basename = filepath_to_basename(input_filepath);
+        auto module_basename = filepath_to_basename(module_path);
+
+        write_times(output_dir + input_basename + "_times_" + module_basename + ".txt", objective_time, derivative_time);
 
     }
     catch (const std::exception& ex)
