@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <filesystem>
 #include <iostream>
 #include <string>
 
@@ -21,7 +22,13 @@ GMMInput read_input_data(const string& input_file, const bool replicate_point)
     return input;
 }
 
-double measure_shortest_time (const double minimum_measurable_time, const int nruns, const double time_limit, void (&func)(int))
+typedef  void (ITest<GMMInput, GMMOutput>::* test_member_function) (int);
+
+inline void call_member_function(unique_ptr<ITest<GMMInput, GMMOutput>>& ptr_to_object, const test_member_function ptr_to_member, const int arg1) {
+    (*(ptr_to_object).*(ptr_to_member))(arg1);
+}
+
+double measure_shortest_time(const double minimum_measurable_time, const int nruns, const double time_limit, unique_ptr<ITest<GMMInput, GMMOutput>>& test, const test_member_function func)
 {
     vector<double> samples;
     double total_time = 0;
@@ -29,7 +36,7 @@ double measure_shortest_time (const double minimum_measurable_time, const int nr
     for (;; repeats *= 2)
     {
         auto t1 = high_resolution_clock::now();
-        func(repeats);
+        call_member_function(test, func, repeats);
         auto t2 = high_resolution_clock::now();
         const auto current_run_time = duration_cast<duration<double>>(t2 - t1).count();
         if (current_run_time > minimum_measurable_time)
@@ -40,11 +47,10 @@ double measure_shortest_time (const double minimum_measurable_time, const int nr
         }
     }
 
-
     for (auto run = 1; (run < nruns) && (total_time < time_limit); run++)
     {
         auto t1 = high_resolution_clock::now();
-        func(repeats);
+        call_member_function(test, func, repeats);
         auto t2 = high_resolution_clock::now();
         const auto current_run_time = duration_cast<duration<double>>(t2 - t1).count();
         samples.push_back(current_run_time / repeats);
@@ -59,33 +65,37 @@ double measure_shortest_time (const double minimum_measurable_time, const int nr
 int main(const int argc, const char* argv[])
 {
     try {
-        if (argc < 8) {
-            std::cerr << "usage: CPPRunner module_path input_file output_file minimum_measurable_time nruns_F nruns_J time_limit [-rep]\n";
+        if (argc < 9) {
+            std::cerr << "usage: CPPRunner module_path input_dir input_file output_dir minimum_measurable_time nruns_F nruns_J time_limit [-rep]\n";
             return 1;
         }
 
         const auto module_path = argv[1];
-        const string input_file(argv[2]);
-        const string output_file(argv[3]);
-        const auto minimum_measurable_time = std::stod(argv[4]);
-        const auto nruns_F = std::stoi(argv[5]);
-        const auto nruns_J = std::stoi(argv[6]);
-        const auto time_limit = std::stod(argv[7]);
+        const string input_dir(argv[2]);
+        const string input_file(argv[3]);
+        const string output_dir(argv[4]);
+        const auto minimum_measurable_time = std::stod(argv[5]);
+        const auto nruns_F = std::stoi(argv[6]);
+        const auto nruns_J = std::stoi(argv[7]);
+        const auto time_limit = std::stod(argv[8]);
 
         // read only 1 point and replicate it?
-        const auto replicate_point = (argc > 8 && string(argv[8]) == "-rep");
+        const auto replicate_point = (argc > 9 && string(argv[9]) == "-rep");
 
         ModuleLoader module_loader(module_path);
         auto test = module_loader.GetTest();
 
-        auto inputs = read_input_data(input_file, replicate_point);
+        auto inputs = read_input_data(input_dir + input_file, replicate_point);
 
         test->prepare(std::move(inputs));
 
-        measure_shortest_time(minimum_measurable_time, nruns_F, time_limit, *(test->calculateObjective));
-        measure_shortest_time(minimum_measurable_time, nruns_J, time_limit, *(test->calculateJacobian));
+        measure_shortest_time(minimum_measurable_time, nruns_F, time_limit, test, &ITest<GMMInput, GMMOutput>::calculateObjective);
+        measure_shortest_time(minimum_measurable_time, nruns_J, time_limit, test, &ITest<GMMInput, GMMOutput>::calculateJacobian);
 
-        test->output();
+        auto output = test->output();
+
+        //write_times(output_dir +  + "_times_" + input_file + ".txt", tf, tJ);
+
     }
     catch (const std::exception& ex)
     {
