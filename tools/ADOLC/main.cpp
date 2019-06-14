@@ -35,7 +35,7 @@ size_t adtl::refcounter::refcnt = 0;
 
 #elif defined DO_BA_BLOCK || defined DO_BA_SPARSE
 #ifdef DO_CPP
-#include "../cpp-common/ba.h"
+#include "../../src/cpp/shared/ba.h"
 #elif defined DO_EIGEN
 #include "../cpp-common/ba_eigen.h"
 #endif

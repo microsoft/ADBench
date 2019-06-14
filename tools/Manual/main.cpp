@@ -19,7 +19,7 @@
 #endif
 
 #if defined DO_BA
-#include "../cpp-common/ba.h"
+#include "../../src/cpp/shared/ba.h"
 #include "ba_d.h"
 #endif
 

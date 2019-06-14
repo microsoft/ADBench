@@ -138,6 +138,18 @@ public:
     cols.push_back(BA_NCAMPARAMS*n + 3 * m + wIdx);
     vals.push_back(w_d);
   }
+
+  void clear()
+  {
+    rows.clear();
+    cols.clear();
+    vals.clear();
+    rows.reserve(nrows + 1);
+    int nnonzero = (BA_NCAMPARAMS + 3 + 1) * 2 * p + p;
+    cols.reserve(nnonzero);
+    vals.reserve(nnonzero);
+    rows.push_back(0);
+  }
 };
 
 void read_gmm_instance(const string& fn,
