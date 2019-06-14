@@ -32,7 +32,7 @@ double measure_shortest_time(const double minimum_measurable_time, const int nru
     vector<double> samples;
     double total_time = 0;
     auto repeats = 1;
-    for (;; repeats *= 2)
+    while (repeats < (1 << 30))
     {
         auto t1 = high_resolution_clock::now();
         call_member_function(test, func, repeats);
@@ -44,6 +44,7 @@ double measure_shortest_time(const double minimum_measurable_time, const int nru
             total_time += current_run_time;
             break;
         }
+        repeats *= 2;
     }
 
     for (auto run = 1; (run < nruns) && (total_time < time_limit); run++)
