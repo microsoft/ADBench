@@ -1,8 +1,10 @@
 #pragma once
 
-#include<memory>
+#include <memory>
 #include <string>
 #include "Windows.h"
+#undef min
+#undef max
 
 #include "../shared/ITest.h"
 #include "../shared/GMMData.h"
