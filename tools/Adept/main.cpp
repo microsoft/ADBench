@@ -23,7 +23,7 @@
 #define ADEPT_COMPILATION
 #include "../../src/cpp/shared/gmm.h"
 #elif defined DO_BA
-#include "../cpp-common/ba.h"
+#include "../../src/cpp/shared/ba.h"
 #elif (defined DO_HAND || defined DO_HAND_COMPLICATED)
 #ifdef DO_LIGHT_MATRIX
 #include "../cpp-common/hand_light_matrix.h"
