@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <iostream>
+#include <limits>
 #include <string>
 
 #include "../shared/GMMData.h"
@@ -7,6 +8,7 @@
 #include "../shared/utils.h"
 
 #include "ModuleLoader.h"
+
 
 using namespace std;
 
@@ -29,7 +31,7 @@ inline void call_member_function(unique_ptr<ITest<GMMInput, GMMOutput>>& ptr_to_
 
 double measure_shortest_time(const double minimum_measurable_time, const int nruns, const double time_limit, unique_ptr<ITest<GMMInput, GMMOutput>>& test, const test_member_function func)
 {
-    vector<double> samples;
+    auto min_sample = std::numeric_limits<double>::max();
     double total_time = 0;
     auto repeats = 1;
     while (repeats < (1 << 30))
@@ -40,7 +42,7 @@ double measure_shortest_time(const double minimum_measurable_time, const int nru
         const auto current_run_time = duration_cast<duration<double>>(t2 - t1).count();
         if (current_run_time > minimum_measurable_time)
         {
-            samples.push_back(current_run_time / repeats);
+            min_sample = std::min(min_sample, current_run_time / repeats);
             total_time += current_run_time;
             break;
         }
@@ -53,11 +55,9 @@ double measure_shortest_time(const double minimum_measurable_time, const int nru
         call_member_function(test, func, repeats);
         auto t2 = high_resolution_clock::now();
         const auto current_run_time = duration_cast<duration<double>>(t2 - t1).count();
-        samples.push_back(current_run_time / repeats);
+        min_sample = std::min(min_sample, current_run_time / repeats);
         total_time += current_run_time;
     }
-
-    const auto min_sample = *std::min_element(std::begin(samples), std::end(samples));
 
     return min_sample;
 }
