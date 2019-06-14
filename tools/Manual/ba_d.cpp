@@ -15,7 +15,7 @@ void computeZachWeightError_d(double w, double *err, double *J)
 
 #ifdef DO_CPP
 #include "../../src/cpp/shared/matrix.h"
-#include "../cpp-common/ba.h" //clean c++ objective function
+#include "../../src/cpp/shared/ba.h" //clean c++ objective function
 
 void set_cross_mat(
   const Vector3d& v,
