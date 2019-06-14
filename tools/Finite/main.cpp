@@ -11,7 +11,7 @@
 #if defined DO_GMM
 #include "../../src/cpp/shared/gmm.h"
 #elif defined DO_BA
-#include "../cpp-common/ba.h"
+#include "../../src/cpp/shared/ba.h"
 #elif (defined DO_HAND || defined DO_HAND_COMPLICATED)
 #if defined DO_EIGEN
 #include "../cpp-common/hand_eigen.h"
