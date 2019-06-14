@@ -21,7 +21,7 @@ GMMInput read_input_data(const string& input_file, const bool replicate_point)
     return input;
 }
 
-typedef  void (ITest<GMMInput, GMMOutput>::* test_member_function) (int);
+typedef void (ITest<GMMInput, GMMOutput>::* test_member_function) (int);
 
 inline void call_member_function(unique_ptr<ITest<GMMInput, GMMOutput>>& ptr_to_object, const test_member_function ptr_to_member, const int arg1) {
     (*(ptr_to_object).*(ptr_to_member))(arg1);
