@@ -85,13 +85,13 @@ void save_objective_to_file(const string& filepath, const double value)
     out.close();
 }
 
-void save_gradient_to_file(const string& filepath, int gradient_size, double* gradient)
+void save_gradient_to_file(const string& filepath, const vector<double>& gradient)
 {
     std::ofstream out(filepath);
 
-    for (auto i = 0; i < gradient_size; i++)
+    for (const auto &i : gradient)
     {
-        out << std::scientific << gradient[i] << "\t";
+        out << std::scientific << i << "\t";
     }
 
     out.close();
@@ -120,7 +120,6 @@ int main(const int argc, const char* argv[])
         auto test = module_loader.GetTest();
 
         auto inputs = read_input_data(input_filepath, replicate_point);
-        auto gradient_size = (inputs.k * (inputs.d + 1) * (inputs.d + 2)) / 2;
 
         test->prepare(std::move(inputs));
 
@@ -137,7 +136,7 @@ int main(const int argc, const char* argv[])
 
         save_time_to_file(output_dir + input_basename + "_times_" + module_basename + ".txt", objective_time, derivative_time);
         save_objective_to_file(output_dir + input_basename + "_F_" + module_basename + ".txt", objective_time);
-        save_gradient_to_file(output_dir + input_basename + "_J_" + module_basename + ".txt", gradient_size, output.gradient.data());
+        save_gradient_to_file(output_dir + input_basename + "_J_" + module_basename + ".txt", output.gradient);
     }
     catch (const std::exception& ex)
     {
