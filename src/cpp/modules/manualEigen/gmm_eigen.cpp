@@ -1,14 +1,15 @@
-#include "gmm_d.h"
+#include "gmm_eigen.h"
 
 #include <cmath>
 #include <vector>
+#include <algorithm>
 
-#include "../../src/cpp/shared/defs.h"
-#include "../../src/cpp/shared/matrix.h"
+#include "../../shared/defs.h"
+#include "../../shared/matrix.h"
 
 using std::vector;
 
-#include "../../src/cpp/shared/gmm.h"
+#include "../../shared/gmm.h"
 
 void Qtransposetimesx(int d,
   const double* const Ldiag,
@@ -81,7 +82,7 @@ double logsumexp_d(int n, const double* const x, double *logsumexp_partial_d)
   return log(semx) + mx;
 }
 
-#ifndef DO_EIGEN
+#if defined DO_EIGEN_VECTOR //#ifndef DO_EIGEN
 
 void gmm_objective_d(int d, int k, int n,
   const double *alphas,
@@ -169,11 +170,11 @@ void gmm_objective_d(int d, int k, int n,
 
 #endif
 
-#if defined DO_EIGEN || defined DO_EIGEN_VECTOR
+//#if defined DO_EIGEN || defined DO_EIGEN_VECTOR
 
 #include "Eigen/Dense"
 
-#include "../../src/cpp/modules/manualEigen/gmm_eigen.h"
+#include "../../src/cpp/shared/gmm_eigen.h"
 
 using Eigen::Map;
 using Eigen::VectorXd;
@@ -225,9 +226,9 @@ double log_wishart_prior_d(int p, int k,
   return log_wishart_prior(p, k, wishart, sum_qs, Qs, icf);
 }
 
-#endif
+//#endif
 
-#if defined DO_EIGEN
+//#if defined DO_EIGEN
 
 void gmm_objective_no_priors_d(int d, int k, int n,
   Map<const ArrayXd> const& alphas,
@@ -312,7 +313,7 @@ void gmm_objective_d(int d, int k, int n,
   *err += log_wishart_prior_d(d, k, wishart, sum_qs, Qs, icf, J);
 }
 
-#elif DO_EIGEN_VECTOR
+#ifdef DO_EIGEN_VECTOR //#elif DO_EIGEN_VECTOR
 
 // logsumexp of cols
 void logsumexp_d(const MatrixXd& X, ArrayXd& lse, MatrixXd& logsumexp_partial_d)
@@ -434,4 +435,3 @@ void gmm_objective_d(int d, int k, int n,
 }
 
 #endif
-
