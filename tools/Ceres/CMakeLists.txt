@@ -18,7 +18,7 @@ else ()
 endif ()
 
 function(build_ceres EXE_NAME)
-	add_executable("Tools-Ceres-${EXE_NAME}" "main.cpp" "${CERES-SOLVER_ROOT}/include/ceres/ceres.h")
+	add_executable("Tools-Ceres-${EXE_NAME}" "main.cpp" "${CERES-SOLVER_ROOT}/include/ceres/ceres.h" "${CMAKE_SOURCE_DIR}/src/cpp/shared/utils.cpp")
 	target_compile_definitions("Tools-Ceres-${EXE_NAME}" PUBLIC ${ARGN})
 	target_link_libraries("Tools-Ceres-${EXE_NAME}" ${CERES_LIB} ${GLOG_LIB})
 endfunction(build_ceres)

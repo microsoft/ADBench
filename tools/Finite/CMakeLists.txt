@@ -2,7 +2,7 @@
 project("Tools-Finite")
 
 function(build_finite EXE_NAME)
-	add_executable("Tools-Finite-${EXE_NAME}" "main.cpp")
+	add_executable("Tools-Finite-${EXE_NAME}" "main.cpp" "${CMAKE_SOURCE_DIR}/src/cpp/shared/utils.cpp")
 	target_compile_definitions("Tools-Finite-${EXE_NAME}" PUBLIC ${ARGN})
 endfunction(build_finite)
 

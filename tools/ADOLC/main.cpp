@@ -53,6 +53,7 @@ typedef HandDataEigen HandDataType;
 using std::cout;
 using std::endl;
 using std::string;
+using std::vector;
 using namespace std::chrono;
 
 class Pointer2
