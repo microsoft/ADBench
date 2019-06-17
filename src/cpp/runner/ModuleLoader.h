@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include "Windows.h"
+//
 #undef min
 #undef max
 
@@ -12,7 +13,7 @@
 using namespace std;
 
 class ModuleLoader {
-	HINSTANCE hModule = NULL;
+	HINSTANCE hModule = nullptr;
 public:
 	ModuleLoader(const char* filePath);
 	std::unique_ptr<ITest<GMMInput, GMMOutput>> GetTest();
