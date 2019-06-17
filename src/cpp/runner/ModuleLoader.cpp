@@ -3,7 +3,7 @@
 ModuleLoader::ModuleLoader(const char* filePath)
 {
     hModule = LoadLibraryA(filePath);
-    if (hModule == NULL) {
+	if (hModule == nullptr) {
         throw "Can't load library " + std::string(filePath);
     }
 }
@@ -13,7 +13,7 @@ typedef ITest<GMMInput, GMMOutput>* (*GmmTestFuncPtr)();
 std::unique_ptr<ITest<GMMInput, GMMOutput>> ModuleLoader::GetGmmTest() {
     auto GetGMMTest = (GmmTestFuncPtr)GetProcAddress(hModule,
         "GetGMMTest");
-    if (GetGMMTest != NULL)
+	if (GetGMMTest != nullptr)
     {
         return std::unique_ptr<ITest<GMMInput, GMMOutput>>(GetGMMTest());
     }
@@ -28,7 +28,7 @@ typedef ITest<BAInput, BAOutput>* (*BaTestFuncPtr)();
 std::unique_ptr<ITest<BAInput, BAOutput>> ModuleLoader::GetBaTest() {
     auto GetBATest = (BaTestFuncPtr)GetProcAddress(hModule,
         "GetBATest");
-    if (GetBATest != NULL)
+	if (GetBATest != nullptr)
     {
         return std::unique_ptr<ITest<BAInput, BAOutput>>(GetBATest());
     }
