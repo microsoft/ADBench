@@ -2,12 +2,18 @@
 #include <iostream>
 #include <limits>
 #include <string>
+#include <chrono>
 
 #include "../shared/GMMData.h"
 #include "../shared/ITest.h"
 #include "../shared/utils.h"
 
 #include "ModuleLoader.h"
+
+using std::chrono::high_resolution_clock;
+using std::chrono::duration;
+using std::chrono::duration_cast;
+
 
 GMMInput read_gmm_data(const string& input_file, const bool replicate_point)
 {
@@ -120,7 +126,7 @@ int main(const int argc, const char* argv[])
         const auto replicate_point = (argc > 8 && string(argv[8]) == "-rep");
 
         ModuleLoader module_loader(module_path);
-        auto test = module_loader.GetTest();
+        auto test = module_loader.GetGmmTest();
 
         auto inputs = read_gmm_data(input_filepath, replicate_point);
 
