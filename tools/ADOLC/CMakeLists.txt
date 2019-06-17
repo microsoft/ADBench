@@ -21,7 +21,7 @@ set(ADOLC_INCLUDE_DIR "${ADOLC_SRC_DIR}/ADOL-C/include")
 include_directories(${ADOLC_INCLUDE_DIR})
 
 function(build_adolc EXE_NAME)
-	add_executable("Tools-ADOLC-${EXE_NAME}" "main.cpp" "${ADOLC_INCLUDE_DIR}/adolc/adolc.h")
+	add_executable("Tools-ADOLC-${EXE_NAME}" "main.cpp" "${ADOLC_INCLUDE_DIR}/adolc/adolc.h" "${CMAKE_SOURCE_DIR}/src/cpp/shared/utils.cpp")
 	target_compile_definitions("Tools-ADOLC-${EXE_NAME}" PUBLIC ${ARGN})
 	target_link_libraries("Tools-ADOLC-${EXE_NAME}" "${CMAKE_CURRENT_BINARY_DIR}/adol-c/adolc.lib")
 endfunction(build_adolc)

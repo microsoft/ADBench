@@ -35,6 +35,7 @@
 using std::cout;
 using std::endl;
 using std::string;
+using std::vector;
 using namespace std::chrono;
 
 #ifdef DO_GMM
