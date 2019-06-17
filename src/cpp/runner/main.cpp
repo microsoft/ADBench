@@ -77,7 +77,7 @@ std::string filepath_to_basename(const std::string& filepath)
 void save_time_to_file(const string& filepath, const double objective_time, const double derivative_time)
 {
     std::ofstream out(filepath);
-    out << std::scientific << objective_time << "\t" << derivative_time;
+    out << std::scientific << objective_time << std::endl << derivative_time;
     out.close();
 }
 
@@ -94,7 +94,7 @@ void save_gradient_to_file(const string& filepath, const vector<double>& gradien
 
     for (const auto& i : gradient)
     {
-        out << std::scientific << i << "\t";
+        out << std::scientific << i << std::endl;
     }
 
     out.close();
