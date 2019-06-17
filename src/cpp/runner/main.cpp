@@ -110,7 +110,7 @@ int main(const int argc, const char* argv[])
 
         const auto module_path = argv[1];
         const string input_filepath(argv[2]);
-        const string output_dir(argv[3]);
+        const string output_prefix(argv[3]);
         const auto minimum_measurable_time = std::stod(argv[4]);
         const auto nruns_F = std::stoi(argv[5]);
         const auto nruns_J = std::stoi(argv[6]);
@@ -137,9 +137,9 @@ int main(const int argc, const char* argv[])
         auto input_basename = filepath_to_basename(input_filepath);
         auto module_basename = filepath_to_basename(module_path);
 
-        save_time_to_file(output_dir + input_basename + "_times_" + module_basename + ".txt", objective_time, derivative_time);
-        save_objective_to_file(output_dir + input_basename + "_F_" + module_basename + ".txt", objective_time);
-        save_gradient_to_file(output_dir + input_basename + "_J_" + module_basename + ".txt", output.gradient);
+        save_time_to_file(output_prefix + input_basename + "_times_" + module_basename + ".txt", objective_time, derivative_time);
+        save_objective_to_file(output_prefix + input_basename + "_F_" + module_basename + ".txt", objective_time);
+        save_gradient_to_file(output_prefix + input_basename + "_J_" + module_basename + ".txt", output.gradient);
     }
     catch (const std::exception& ex)
     {
