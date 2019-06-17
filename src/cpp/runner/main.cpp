@@ -12,7 +12,7 @@
 
 using namespace std;
 
-GMMInput read_input_data(const string& input_file, const bool replicate_point)
+GMMInput read_gmm_data(const string& input_file, const bool replicate_point)
 {
     GMMInput input;
 
@@ -119,7 +119,7 @@ int main(const int argc, const char* argv[])
         ModuleLoader module_loader(module_path);
         auto test = module_loader.GetTest();
 
-        auto inputs = read_input_data(input_filepath, replicate_point);
+        auto inputs = read_gmm_data(input_filepath, replicate_point);
 
         test->prepare(std::move(inputs));
 
