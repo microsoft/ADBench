@@ -9,9 +9,6 @@
 
 #include "ModuleLoader.h"
 
-
-using namespace std;
-
 GMMInput read_gmm_data(const string& input_file, const bool replicate_point)
 {
     GMMInput input;
