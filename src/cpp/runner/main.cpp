@@ -117,6 +117,33 @@ void check_test_support(const string& test_type) {
     }
 }
 
+void run_benchmark(const char* const module_path, const string& input_filepath, const string& output_prefix, const double minimum_measurable_time, const int nruns_F, const int nruns_J,
+    const double time_limit, const bool replicate_point) {
+
+    const ModuleLoader module_loader(module_path);
+    auto test = module_loader.get_gmm_test();
+
+    auto inputs = read_gmm_data(input_filepath, replicate_point);
+
+    test->prepare(std::move(inputs));
+
+    const auto objective_time =
+        measure_shortest_time(minimum_measurable_time, nruns_F, time_limit, test, &ITest<GMMInput, GMMOutput>::calculateObjective);
+
+    const auto derivative_time =
+        measure_shortest_time(minimum_measurable_time, nruns_J, time_limit, test, &ITest<GMMInput, GMMOutput>::calculateJacobian);
+
+    const auto output = test->output();
+
+    const auto input_basename = filepath_to_basename(input_filepath);
+    const auto module_basename = filepath_to_basename(module_path);
+
+    save_time_to_file(output_prefix + input_basename + "_times_" + module_basename + ".txt", objective_time, derivative_time);
+    save_objective_to_file(output_prefix + input_basename + "_F_" + module_basename + ".txt", objective_time);
+    save_gradient_to_file(output_prefix + input_basename + "_J_" + module_basename + ".txt", output.gradient);
+}
+
+
 
 int main(const int argc, const char* argv[])
 {
@@ -140,27 +167,7 @@ int main(const int argc, const char* argv[])
         // read only 1 point and replicate it?
         const auto replicate_point = (argc > 9 && string(argv[9]) == "-rep");
 
-        ModuleLoader module_loader(module_path);
-        auto test = module_loader.get_gmm_test();
-
-        auto inputs = read_gmm_data(input_filepath, replicate_point);
-
-        test->prepare(std::move(inputs));
-
-        const auto objective_time =
-            measure_shortest_time(minimum_measurable_time, nruns_F, time_limit, test, &ITest<GMMInput, GMMOutput>::calculateObjective);
-
-        const auto derivative_time =
-            measure_shortest_time(minimum_measurable_time, nruns_J, time_limit, test, &ITest<GMMInput, GMMOutput>::calculateJacobian);
-
-        auto output = test->output();
-
-        auto input_basename = filepath_to_basename(input_filepath);
-        auto module_basename = filepath_to_basename(module_path);
-
-        save_time_to_file(output_prefix + input_basename + "_times_" + module_basename + ".txt", objective_time, derivative_time);
-        save_objective_to_file(output_prefix + input_basename + "_F_" + module_basename + ".txt", objective_time);
-        save_gradient_to_file(output_prefix + input_basename + "_J_" + module_basename + ".txt", output.gradient);
+        run_benchmark(module_path, input_filepath, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit, replicate_point);
     }
     catch (const std::exception& ex)
     {
