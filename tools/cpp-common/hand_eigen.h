@@ -96,7 +96,7 @@ void apply_global_transform(
 template<typename T>
 void relatives_to_absolutes(
   const vector_of_Matrix4<T>& relatives,
-  const vector<int>& parents,
+  const std::vector<int>& parents,
   vector_of_Matrix4<T>* pabsolutes)
 {
   auto& absolutes = *pabsolutes;
@@ -172,7 +172,7 @@ void get_skinned_vertex_positions(
 
 template<typename T>
 void to_pose_params(const T* const theta,
-  const vector<string>& bone_names,
+  const std::vector<std::string>& bone_names,
   Matrix3X<T> *ppose_params)
 {
   auto& pose_params = *ppose_params;

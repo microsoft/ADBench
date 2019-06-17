@@ -1,7 +1,8 @@
 project("ManualDifferentiation" CXX)
 
-add_library("ManualGMM" MODULE)
-target_sources("ManualGMM" PRIVATE "gmm_d.cpp")
-target_sources("ManualGMM" PRIVATE "ba_d.cpp")
-target_sources("ManualGMM" PUBLIC "ManualGMM.cpp")
-target_sources("ManualGMM" PUBLIC "ManualBA.cpp")
+add_library("Manual" MODULE)
+target_sources("Manual" PRIVATE "gmm_d.cpp")
+target_sources("Manual" PRIVATE "ba_d.cpp")
+target_sources("Manual" PRIVATE "${CMAKE_SOURCE_DIR}/src/cpp/shared/utils.cpp")
+target_sources("Manual" PUBLIC "ManualGMM.cpp")
+target_sources("Manual" PUBLIC "ManualBA.cpp")
