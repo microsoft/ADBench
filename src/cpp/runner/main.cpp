@@ -61,9 +61,15 @@ double measure_shortest_time(const double minimum_measurable_time, const int nru
 
 std::string filepath_to_basename(const std::string& filepath)
 {
-    const auto filename = filepath.substr(filepath.find_last_of("/\\") + 1);
+    const auto last_slash_position = filepath.find_last_of("/\\");
+    const auto filename = last_slash_position == std::string::npos
+        ? filepath
+        : filepath.substr(last_slash_position + 1);
+
     const auto dot = filename.find_last_of('.');
-    auto basename = filename.substr(0, dot);
+    const auto basename = dot == std::string::npos
+        ? filename
+        : filename.substr(0, dot);
 
     return basename;
 }
@@ -86,7 +92,7 @@ void save_gradient_to_file(const string& filepath, const vector<double>& gradien
 {
     std::ofstream out(filepath);
 
-    for (const auto &i : gradient)
+    for (const auto& i : gradient)
     {
         out << std::scientific << i << "\t";
     }
