@@ -25,6 +25,7 @@
 using std::cout;
 using std::endl;
 using std::string;
+using std::vector;
 using namespace std::chrono;
 
 const double DELTA = 1e-5;

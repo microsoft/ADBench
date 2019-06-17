@@ -7,6 +7,6 @@ TEST(CppRunnerTests, LibraryLoadTest) {
 #else
 	ModuleLoader moduleLoader("MockGMM.dll");
 #endif
-	auto test = moduleLoader.GetTest();
+	auto test = moduleLoader.GetGmmTest();
 	ASSERT_TRUE(test != NULL);
 }

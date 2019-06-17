@@ -30,7 +30,7 @@ void ManualBA::calculateObjective(int times)
 void ManualBA::calculateJacobian(int times)
 {
 	int n_new_cols = BA_NCAMPARAMS + 3 + 1;
-	vector<double> reproj_err_d(2 * n_new_cols);
+	std::vector<double> reproj_err_d(2 * n_new_cols);
 	for (int i = 0; i < times; ++i) {
 		_output.J.clear();
 		for (int i = 0; i < _input.p; i++)

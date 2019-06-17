@@ -15,7 +15,7 @@ else ()
 endif ()
 
 function(build_adept EXE_NAME)
-	add_executable("Tools-Adept-${EXE_NAME}" "main.cpp" "${ADEPT_DIR}/include/adept.h")
+	add_executable("Tools-Adept-${EXE_NAME}" "main.cpp" "${ADEPT_DIR}/include/adept.h" "${CMAKE_SOURCE_DIR}/src/cpp/shared/utils.cpp")
 	target_compile_definitions("Tools-Adept-${EXE_NAME}" PUBLIC ${ARGN})
 	target_link_libraries("Tools-Adept-${EXE_NAME}" ${ADEPT_LIB})
 endfunction(build_adept)
