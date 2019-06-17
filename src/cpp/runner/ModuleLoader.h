@@ -3,7 +3,8 @@
 #include <memory>
 #include <string>
 #include "Windows.h"
-//
+//Uncommenting macros defined in Windows.h to be able 
+//to use functions whose name ends with "min" and "max".
 #undef min
 #undef max
 
