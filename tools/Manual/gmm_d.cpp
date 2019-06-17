@@ -173,7 +173,7 @@ void gmm_objective_d(int d, int k, int n,
 
 #include "Eigen/Dense"
 
-#include "../cpp-common/gmm_eigen.h"
+#include "../../src/cpp/shared/gmm_eigen.h"
 
 using Eigen::Map;
 using Eigen::VectorXd;
