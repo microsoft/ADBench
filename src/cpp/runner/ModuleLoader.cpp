@@ -1,10 +1,10 @@
 #include "ModuleLoader.h"
 
-ModuleLoader::ModuleLoader(const char* filePath)
+ModuleLoader::ModuleLoader(const char* file_path)
 {
-    hModule = LoadLibraryA(filePath);
+	hModule = LoadLibraryA(file_path);
 	if (hModule == nullptr) {
-        throw "Can't load library " + std::string(filePath);
+		throw exception(("Can't load library " + std::string(file_path)).c_str());
     }
 }
 
@@ -19,7 +19,7 @@ std::unique_ptr<ITest<GMMInput, GMMOutput>> ModuleLoader::GetGmmTest() {
     }
     else
     {
-        throw "Can't load GetGMMTest function";
+		throw exception("Can't load GetGMMTest function");
     }
 }
 
@@ -34,7 +34,7 @@ std::unique_ptr<ITest<BAInput, BAOutput>> ModuleLoader::GetBaTest() {
     }
     else
     {
-        throw "Can't load GetGMMTest function";
+		throw exception("Can't load GetGMMTest function");
     }
 }
 
