@@ -18,7 +18,7 @@ class ModuleLoader {
     HINSTANCE hModule = nullptr;
 public:
 	ModuleLoader(const char* file_path);
-    std::unique_ptr<ITest<GMMInput, GMMOutput>> GetGmmTest();
-    std::unique_ptr<ITest<BAInput, BAOutput>> GetBaTest();
+	std::unique_ptr<ITest<GMMInput, GMMOutput>> get_gmm_test() const;
+	std::unique_ptr<ITest<BAInput, BAOutput>> get_ba_test() const;
     ~ModuleLoader();
 };
