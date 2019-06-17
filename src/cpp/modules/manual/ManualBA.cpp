@@ -36,11 +36,10 @@ void ManualBA::calculateJacobian(int times)
 		for (int i = 0; i < _input.p; i++)
 		{
 			std::fill(reproj_err_d.begin(), reproj_err_d.end(), (double)0);
-			//memset(reproj_err_d.data(), 0, 2 * n_new_cols*sizeof(double));
 
 			int camIdx = _input.obs[2 * i + 0];
 			int ptIdx = _input.obs[2 * i + 1];
-			computeReprojError_d(
+			compute_reproj_error_d(
 				&_input.cams[BA_NCAMPARAMS * camIdx],
 				&_input.X[ptIdx * 3],
 				_input.w[i],
@@ -54,7 +53,7 @@ void ManualBA::calculateJacobian(int times)
 		for (int i = 0; i < _input.p; i++)
 		{
 			double w_d = 0;
-			computeZachWeightError_d(_input.w[i], &_output.w_err[i], &w_d);
+			compute_zach_weight_error_d(_input.w[i], &_output.w_err[i], &w_d);
 
 			_output.J.insert_w_err_block(i, w_d);
 		}
