@@ -1,6 +1,6 @@
 #include <cmath>
-#include "../../src/cpp/shared/defs.h"
-#include "../../src/cpp/shared/matrix.h"
+#include "../../shared/defs.h"
+#include "../../shared/matrix.h"
 
 #include "Eigen/Dense"
 
@@ -58,7 +58,7 @@ double log_wishart_prior(int p, int k,
   const vector<MatrixX<T>>& Qs,
   const T* const icf);
 
-#ifdef DO_EIGEN
+#ifndef DO_EIGEN_VECTOR
 
 template<typename T>
 void gmm_objective_no_priors(int d, int k, int n,
@@ -138,7 +138,7 @@ double log_wishart_prior(int p, int k,
   return 0.5*wishart.gamma*wishart.gamma*sum_frob - wishart.m*sum_qs.sum() - k*C;
 }
 
-#ifdef DO_EIGEN
+#ifndef DO_EIGEN_VECTOR
 
 template<typename T>
 void gmm_objective_no_priors(int d, int k, int n,
