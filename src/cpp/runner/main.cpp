@@ -3,6 +3,7 @@
 #include <limits>
 #include <string>
 #include <chrono>
+#include <set>
 
 #include "../shared/GMMData.h"
 #include "../shared/ITest.h"
@@ -106,27 +107,41 @@ void save_gradient_to_file(const string& filepath, const vector<double>& gradien
     out.close();
 }
 
+void check_test_support(const string& test_type) {
+    std::set<string> supported_test_types = {
+        "BA",
+        "GMM"
+    };
+    if (supported_test_types.find(test_type) == supported_test_types.end()) {
+        throw exception(("Cpp runner doesn't support a test of " + test_type + " type").c_str());
+    }
+}
+
+
 int main(const int argc, const char* argv[])
 {
     try {
-        if (argc < 8) {
-            std::cerr << "usage: CPPRunner module_path input_filepath output_dir minimum_measurable_time nruns_F nruns_J time_limit [-rep]\n";
+        if (argc < 9) {
+            std::cerr << "usage: CPPRunner test_type module_path input_filepath output_dir minimum_measurable_time nruns_F nruns_J time_limit [-rep]\n";
             return 1;
         }
 
-        const auto module_path = argv[1];
-        const string input_filepath(argv[2]);
-        const string output_prefix(argv[3]);
-        const auto minimum_measurable_time = std::stod(argv[4]);
-        const auto nruns_F = std::stoi(argv[5]);
-        const auto nruns_J = std::stoi(argv[6]);
-        const auto time_limit = std::stod(argv[7]);
+        const string test_type(argv[1]);
+        check_test_support(test_type);
+
+        const auto module_path = argv[2];
+        const string input_filepath(argv[3]);
+        const string output_prefix(argv[4]);
+        const auto minimum_measurable_time = std::stod(argv[5]);
+        const auto nruns_F = std::stoi(argv[6]);
+        const auto nruns_J = std::stoi(argv[7]);
+        const auto time_limit = std::stod(argv[8]);
 
         // read only 1 point and replicate it?
-        const auto replicate_point = (argc > 8 && string(argv[8]) == "-rep");
+        const auto replicate_point = (argc > 9 && string(argv[9]) == "-rep");
 
         ModuleLoader module_loader(module_path);
-        auto test = module_loader.GetGmmTest();
+        auto test = module_loader.get_gmm_test();
 
         auto inputs = read_gmm_data(input_filepath, replicate_point);
 
