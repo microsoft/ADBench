@@ -10,7 +10,8 @@ ModuleLoader::ModuleLoader(const char* file_path)
 
 typedef ITest<GMMInput, GMMOutput>* (*GmmTestFuncPtr)();
 
-std::unique_ptr<ITest<GMMInput, GMMOutput>> ModuleLoader::GetGmmTest() {
+std::unique_ptr<ITest<GMMInput, GMMOutput>> ModuleLoader::get_gmm_test() const
+{
     auto GetGMMTest = (GmmTestFuncPtr)GetProcAddress(hModule,
         "GetGMMTest");
 	if (GetGMMTest != nullptr)
@@ -25,7 +26,8 @@ std::unique_ptr<ITest<GMMInput, GMMOutput>> ModuleLoader::GetGmmTest() {
 
 typedef ITest<BAInput, BAOutput>* (*BaTestFuncPtr)();
 
-std::unique_ptr<ITest<BAInput, BAOutput>> ModuleLoader::GetBaTest() {
+std::unique_ptr<ITest<BAInput, BAOutput>> ModuleLoader::get_ba_test() const
+{
     auto GetBATest = (BaTestFuncPtr)GetProcAddress(hModule,
         "GetBATest");
 	if (GetBATest != nullptr)
@@ -40,7 +42,7 @@ std::unique_ptr<ITest<BAInput, BAOutput>> ModuleLoader::GetBaTest() {
 
 ModuleLoader::~ModuleLoader()
 {
-    if (hModule != NULL)
+	if (hModule != nullptr)
     {
         FreeLibrary(hModule);
     }
