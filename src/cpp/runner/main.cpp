@@ -1,111 +1,10 @@
-#include <algorithm>
 #include <iostream>
-#include <limits>
 #include <string>
-#include <chrono>
 #include <set>
 
-#include "../shared/GMMData.h"
-#include "../shared/ITest.h"
 #include "../shared/utils.h"
 
-#include "ModuleLoader.h"
-
-using std::chrono::high_resolution_clock;
-using std::chrono::duration;
-using std::chrono::duration_cast;
-
-
-GMMInput read_gmm_data(const string& input_file, const bool replicate_point)
-{
-    GMMInput input;
-
-    // Read instance
-    read_gmm_instance(input_file, &input.d, &input.k, &input.n,
-        input.alphas, input.means, input.icf, input.x, input.wishart, replicate_point);
-
-    return input;
-}
-
-typedef void (ITest<GMMInput, GMMOutput>::* test_member_function) (int);
-
-void call_member_function(unique_ptr<ITest<GMMInput, GMMOutput>>& ptr_to_object, const test_member_function ptr_to_member, const int arg1) {
-    (*(ptr_to_object).*(ptr_to_member))(arg1);
-}
-
-double measure_shortest_time(const double minimum_measurable_time, const int nruns, const double time_limit, unique_ptr<ITest<GMMInput, GMMOutput>>& test, const test_member_function func)
-{
-    auto min_sample = std::numeric_limits<double>::max();
-    double total_time = 0;
-    auto repeats = 1;
-    while (repeats < (1 << 30))
-    {
-        auto t1 = high_resolution_clock::now();
-        call_member_function(test, func, repeats);
-        auto t2 = high_resolution_clock::now();
-        const auto current_run_time = duration_cast<duration<double>>(t2 - t1).count();
-        if (current_run_time > minimum_measurable_time)
-        {
-            min_sample = std::min(min_sample, current_run_time / repeats);
-            total_time += current_run_time;
-            break;
-        }
-        repeats *= 2;
-    }
-
-    for (auto run = 1; (run < nruns) && (total_time < time_limit); run++)
-    {
-        auto t1 = high_resolution_clock::now();
-        call_member_function(test, func, repeats);
-        auto t2 = high_resolution_clock::now();
-        const auto current_run_time = duration_cast<duration<double>>(t2 - t1).count();
-        min_sample = std::min(min_sample, current_run_time / repeats);
-        total_time += current_run_time;
-    }
-
-    return min_sample;
-}
-
-std::string filepath_to_basename(const std::string& filepath)
-{
-    const auto last_slash_position = filepath.find_last_of("/\\");
-    const auto filename = last_slash_position == std::string::npos
-        ? filepath
-        : filepath.substr(last_slash_position + 1);
-
-    const auto dot = filename.find_last_of('.');
-    const auto basename = dot == std::string::npos
-        ? filename
-        : filename.substr(0, dot);
-
-    return basename;
-}
-
-void save_time_to_file(const string& filepath, const double objective_time, const double derivative_time)
-{
-    std::ofstream out(filepath);
-    out << std::scientific << objective_time << std::endl << derivative_time;
-    out.close();
-}
-
-void save_objective_to_file(const string& filepath, const double value)
-{
-    std::ofstream out(filepath);
-    out << std::scientific << value;
-    out.close();
-}
-
-void save_gradient_to_file(const string& filepath, const vector<double>& gradient)
-{
-    std::ofstream out(filepath);
-
-    for (const auto& i : gradient)
-    {
-        out << std::scientific << i << std::endl;
-    }
-
-    out.close();
-}
+#include "Benchmark.h"
 
 void check_test_support(const string& test_type) {
     std::set<string> supported_test_types = {
@@ -116,34 +15,6 @@ void check_test_support(const string& test_type) {
         throw exception(("Cpp runner doesn't support a test of " + test_type + " type").c_str());
     }
 }
-
-void run_benchmark(const char* const module_path, const string& input_filepath, const string& output_prefix, const double minimum_measurable_time, const int nruns_F, const int nruns_J,
-    const double time_limit, const bool replicate_point) {
-
-    const ModuleLoader module_loader(module_path);
-    auto test = module_loader.get_gmm_test();
-
-    auto inputs = read_gmm_data(input_filepath, replicate_point);
-
-    test->prepare(std::move(inputs));
-
-    const auto objective_time =
-        measure_shortest_time(minimum_measurable_time, nruns_F, time_limit, test, &ITest<GMMInput, GMMOutput>::calculateObjective);
-
-    const auto derivative_time =
-        measure_shortest_time(minimum_measurable_time, nruns_J, time_limit, test, &ITest<GMMInput, GMMOutput>::calculateJacobian);
-
-    const auto output = test->output();
-
-    const auto input_basename = filepath_to_basename(input_filepath);
-    const auto module_basename = filepath_to_basename(module_path);
-
-    save_time_to_file(output_prefix + input_basename + "_times_" + module_basename + ".txt", objective_time, derivative_time);
-    save_objective_to_file(output_prefix + input_basename + "_F_" + module_basename + ".txt", objective_time);
-    save_gradient_to_file(output_prefix + input_basename + "_J_" + module_basename + ".txt", output.gradient);
-}
-
-
 
 int main(const int argc, const char* argv[])
 {
@@ -167,7 +38,11 @@ int main(const int argc, const char* argv[])
         // read only 1 point and replicate it?
         const auto replicate_point = (argc > 9 && string(argv[9]) == "-rep");
 
-        run_benchmark(module_path, input_filepath, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit, replicate_point);
+        if (test_type == "GMM") {
+            run_benchmark<GMMInput, GMMOutput>(module_path, input_filepath, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit, replicate_point);
+        } else if (test_type == "BA") {
+            run_benchmark<BAInput, BAOutput>(module_path, input_filepath, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit, replicate_point);
+        }
     }
     catch (const std::exception& ex)
     {
