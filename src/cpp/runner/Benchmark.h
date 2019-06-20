@@ -4,6 +4,7 @@
 #include "../shared/ITest.h"
 #include "ModuleLoader.h"
 #include <algorithm>
+#include "OutputSave.h"
 
 using std::chrono::duration;
 using std::chrono::duration_cast;
@@ -99,56 +100,6 @@ std::string filepath_to_basename(const std::string& filepath)
         : filename.substr(0, dot);
 
     return basename;
-}
-
-void save_time_to_file(const string& filepath, const double objective_time, const double derivative_time)
-{
-    std::ofstream out(filepath);
-    out << std::scientific << objective_time << std::endl << derivative_time;
-    out.close();
-}
-
-void save_objective_to_file(const string& filepath, const double& value)
-{
-    std::ofstream out(filepath);
-    out << std::scientific << value;
-    out.close();
-}
-
-void save_gradient_to_file(const string& filepath, const vector<double>& gradient)
-{
-    std::ofstream out(filepath);
-
-    for (const auto& i : gradient)
-    {
-        out << std::scientific << i << std::endl;
-    }
-
-    out.close();
-}
-
-void save_errors_to_file(const string& filepath, const vector<double>& reprojection_error, const vector<double>& zach_weight_error)
-{
-    std::ofstream out(filepath);
-
-    out << "Reprojection error:" << std::endl;
-    for (const auto& i : reprojection_error)
-    {
-        out << std::scientific << i << std::endl;
-    }
-
-    out << "Zach weight error:" << std::endl;
-    for (const auto& i : zach_weight_error)
-    {
-        out << std::scientific << i << std::endl;
-    }
-
-    out.close();
-}
-
-void save_sparse_J_to_file(const string& filepath, const BASparseMat& jacobian)
-{
-    write_J_sparse(filepath, jacobian);
 }
 
 template<class Output>
