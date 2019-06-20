@@ -1,8 +1,11 @@
 #include <cmath>
+#include <vector>
 #include "../../shared/defs.h"
 #include "../../shared/matrix.h"
 
 #include "Eigen/Dense"
+
+using std::vector;
 
 using Eigen::Map;
 template<typename T>
