@@ -153,9 +153,9 @@ void mat_mul(int n, int m, int p, const T1* const x, const T2* const y, T3* out)
             double rij = 0;
             for (int k = 0; k < m; ++k)
             {
-                rij += x[k * n + i] * y[j * p + k];
+                rij += x[k * n + i] * y[j * m + k];
             }
-            out[j * p + i] = rij;
+            out[j * n + i] = rij;
         }
     }
 }
