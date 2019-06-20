@@ -2,8 +2,6 @@
 #include <string>
 #include <set>
 
-#include "../shared/utils.h"
-
 #include "Benchmark.h"
 
 void check_test_support(const string& test_type) {
@@ -54,6 +52,6 @@ int main(const int argc, const char* argv[])
     }
     catch (...)
     {
-        std::cout << "Unhandled exception" << std::endl;
+        std::cout << "Unknown exception" << std::endl;
     }
 }
