@@ -10,28 +10,8 @@ using std::chrono::duration;
 using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
 
-GMMInput read_gmm_data(const std::string& input_file, const bool replicate_point)
-{
-    GMMInput input;
-
-    // Read instance
-    read_gmm_instance(input_file, &input.d, &input.k, &input.n,
-        input.alphas, input.means, input.icf, input.x, input.wishart, replicate_point);
-
-    return input;
-}
-
 template<class Input>
-Input read_input_data(const std::string& input_file, const bool replicate_point)
-{
-    throw exception("Cpp runner doesn't support such input type yet");
-}
-
-template<>
-inline GMMInput read_input_data<GMMInput>(const std::string& input_file, const bool replicate_point)
-{
-    return read_gmm_data(input_file, replicate_point);
-}
+Input read_input_data(const std::string& input_file, bool replicate_point) = delete;
 
 template <class Input, class Output>
 using test_member_function = void (ITest<Input, Output>::*) (int);
@@ -45,12 +25,6 @@ template<class Input, class Output>
 unique_ptr<ITest<Input, Output>> get_test(const ModuleLoader& module_loader)
 {
     throw exception("Cpp runner doesn't support such test type yet");
-}
-
-template<>
-unique_ptr <ITest<GMMInput, GMMOutput>> get_test<GMMInput, GMMOutput>(const ModuleLoader& module_loader)
-{
-    return module_loader.get_gmm_test();
 }
 
 template<class Input, class Output>
@@ -87,37 +61,10 @@ double measure_shortest_time(const double minimum_measurable_time, const int nru
     return min_sample;
 }
 
-std::string filepath_to_basename(const std::string& filepath)
-{
-    const auto last_slash_position = filepath.find_last_of("/\\");
-    const auto filename = last_slash_position == std::string::npos
-        ? filepath
-        : filepath.substr(last_slash_position + 1);
-
-    const auto dot = filename.find_last_of('.');
-    const auto basename = dot == std::string::npos
-        ? filename
-        : filename.substr(0, dot);
-
-    return basename;
-}
-
 template<class Output>
 void save_output_to_file(const Output& output, const string& output_prefix, const string& input_basename, const string& module_basename) = delete;
 
-template<>
-void save_output_to_file<GMMOutput>(const GMMOutput& output, const string& output_prefix, const string& input_basename, const string& module_basename)
-{
-    save_objective_to_file(output_prefix + input_basename + "_F_" + module_basename + ".txt", output.objective);
-    save_gradient_to_file(output_prefix + input_basename + "_J_" + module_basename + ".txt", output.gradient);
-}
-
-template<>
-void save_output_to_file<BAOutput>(const BAOutput& output, const string& output_prefix, const string& input_basename, const string& module_basename)
-{       
-    save_errors_to_file(output_prefix + input_basename + "_F_" + module_basename + ".txt", output.reproj_err, output.w_err);
-    save_sparse_J_to_file(output_prefix + input_basename + "_J_" + module_basename + ".txt", output.J);
-}
+std::string filepath_to_basename(const std::string& filepath);
 
 template<class Input, class Output>
 void run_benchmark(const char* const module_path, const std::string& input_filepath, const std::string& output_prefix, const double minimum_measurable_time, const int nruns_F, const int nruns_J,

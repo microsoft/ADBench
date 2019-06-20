@@ -1,0 +1,29 @@
+#include "BABenchmark.h"
+
+
+template <>
+BAInput read_input_data<BAInput>(const std::string& input_file, const bool replicate_point)
+{
+    BAInput input;
+
+    // Read instance
+    read_ba_instance(input_file, input.n, input.m, input.p,
+                     input.cams, input.X, input.w, input.obs, input.feats);
+
+    return input;
+}
+
+template <>
+unique_ptr<ITest<BAInput, BAOutput>> get_test<BAInput, BAOutput>(const ModuleLoader& module_loader)
+{
+    return module_loader.get_ba_test();
+}
+
+template <>
+void save_output_to_file<BAOutput>(const BAOutput& output, const string& output_prefix, const string& input_basename,
+                                   const string& module_basename)
+{
+    save_errors_to_file(output_prefix + input_basename + "_F_" + module_basename + ".txt", output.reproj_err,
+                        output.w_err);
+    save_sparse_j_to_file(output_prefix + input_basename + "_J_" + module_basename + ".txt", output.J);
+}
