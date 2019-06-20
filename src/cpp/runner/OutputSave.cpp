@@ -48,7 +48,7 @@ void save_errors_to_file(const std::string& filepath, const std::vector<double>&
     out.close();
 }
 
-void save_sparse_J_to_file(const std::string& filepath, const BASparseMat& jacobian)
+void save_sparse_j_to_file(const std::string& filepath, const BASparseMat& jacobian)
 {
     write_J_sparse(filepath, jacobian);
 }

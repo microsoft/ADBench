@@ -2,7 +2,8 @@
 #include <string>
 #include <set>
 
-#include "Benchmark.h"
+#include "GMMBenchmark.h"
+#include "BABenchmark.h"
 
 void check_test_support(const string& test_type) {
     std::set<string> supported_test_types = {
