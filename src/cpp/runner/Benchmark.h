@@ -127,6 +127,30 @@ void save_gradient_to_file(const string& filepath, const vector<double>& gradien
     out.close();
 }
 
+void save_errors_to_file(const string& filepath, const vector<double>& reprojection_error, const vector<double>& zach_weight_error)
+{
+    std::ofstream out(filepath);
+
+    out << "Reprojection error:" << std::endl;
+    for (const auto& i : reprojection_error)
+    {
+        out << std::scientific << i << std::endl;
+    }
+
+    out << "Zach weight error:" << std::endl;
+    for (const auto& i : zach_weight_error)
+    {
+        out << std::scientific << i << std::endl;
+    }
+
+    out.close();
+}
+
+void save_sparse_J_to_file(const string& filepath, const BASparseMat& jacobian)
+{
+    write_J_sparse(filepath, jacobian);
+}
+
 template<class Output>
 void save_output_to_file(const Output& output, const string& output_prefix, const string& input_basename, const string& module_basename) = delete;
 
@@ -139,10 +163,9 @@ void save_output_to_file<GMMOutput>(const GMMOutput& output, const string& outpu
 
 template<>
 void save_output_to_file<BAOutput>(const BAOutput& output, const string& output_prefix, const string& input_basename, const string& module_basename)
-{
-    //save_objective_to_file(output_prefix + input_basename + "_F_" + module_basename + ".txt", output.);
-    //save_gradient_to_file(output_prefix + input_basename + "_J_" + module_basename + ".txt", output.gradient);
-    write_J_sparse(output_prefix + input_basename + "_J_" + module_basename + ".txt", output.J);
+{       
+    save_errors_to_file(output_prefix + input_basename + "_F_" + module_basename + ".txt", output.reproj_err, output.w_err);
+    save_sparse_J_to_file(output_prefix + input_basename + "_J_" + module_basename + ".txt", output.J);
 }
 
 template<class Input, class Output>
