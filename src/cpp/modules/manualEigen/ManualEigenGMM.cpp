@@ -1,5 +1,5 @@
 // ManualGMM.cpp : Defines the exported functions for the DLL.
-#include "ManualGMMEigen.h"
+#include "ManualEigenGMM.h"
 #include "../../shared/gmm.h"
 #include "gmm_eigen.h"
 
