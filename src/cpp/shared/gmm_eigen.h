@@ -1,7 +1,7 @@
 #include <cmath>
 #include <vector>
-#include "../../shared/defs.h"
-#include "../../shared/matrix.h"
+#include "defs.h"
+#include "matrix.h"
 
 #include "Eigen/Dense"
 
@@ -61,7 +61,7 @@ double log_wishart_prior(int p, int k,
   const vector<MatrixX<T>>& Qs,
   const T* const icf);
 
-#ifndef DO_EIGEN_VECTOR
+//#ifdef DO_EIGEN
 
 template<typename T>
 void gmm_objective_no_priors(int d, int k, int n,
@@ -81,7 +81,7 @@ void preprocess(int d, int k,
   ArrayX<T>& sum_qs,
   vector<MatrixX<T>>& Qs);
 
-#elif defined DO_EIGEN_VECTOR
+#if defined DO_EIGEN_VECTOR //#elif defined DO_EIGEN_VECTOR
 
 // logsumexp of cols
 template<typename T>
@@ -141,7 +141,7 @@ double log_wishart_prior(int p, int k,
   return 0.5*wishart.gamma*wishart.gamma*sum_frob - wishart.m*sum_qs.sum() - k*C;
 }
 
-#ifndef DO_EIGEN_VECTOR
+//#ifdef DO_EIGEN
 
 template<typename T>
 void gmm_objective_no_priors(int d, int k, int n,
@@ -242,7 +242,7 @@ void gmm_objective(int d, int k, int n,
   *err = *err + log_wishart_prior(d, k, wishart, sum_qs, Qs, icf);
 }
 
-#elif defined DO_EIGEN_VECTOR
+#if defined DO_EIGEN_VECTOR //#elif defined DO_EIGEN_VECTOR
 
 // logsumexp of cols
 template<typename T>
