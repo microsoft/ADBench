@@ -5,16 +5,6 @@
 #include "GMMBenchmark.h"
 #include "BABenchmark.h"
 
-void check_test_support(const string& test_type) {
-    std::set<string> supported_test_types = {
-        "BA",
-        "GMM"
-    };
-    if (supported_test_types.find(test_type) == supported_test_types.end()) {
-        throw exception(("Cpp runner doesn't support a test of " + test_type + " type").c_str());
-    }
-}
-
 int main(const int argc, const char* argv[])
 {
     try {
@@ -24,7 +14,6 @@ int main(const int argc, const char* argv[])
         }
 
         const string test_type(argv[1]);
-        check_test_support(test_type);
 
         const auto module_path = argv[2];
         const string input_filepath(argv[3]);
@@ -41,6 +30,9 @@ int main(const int argc, const char* argv[])
             run_benchmark<GMMInput, GMMOutput>(module_path, input_filepath, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit, replicate_point);
         } else if (test_type == "BA") {
             run_benchmark<BAInput, BAOutput>(module_path, input_filepath, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit, replicate_point);
+        } else
+        {
+            throw exception(("C++ runner doesn't support tests of " + test_type + " type").c_str());
         }
     }
     catch (const std::exception& ex)
