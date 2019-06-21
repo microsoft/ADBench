@@ -1,9 +1,16 @@
-#include <iostream>
+﻿#include <iostream>
 #include <string>
 #include <set>
 
 #include "GMMBenchmark.h"
 #include "BABenchmark.h"
+
+std::string str_toupper(std::string s) {
+    std::transform(s.begin(), s.end(), s.begin(),
+        [](const unsigned char c) { return std::toupper(c); } 
+    );
+    return s;
+}
 
 int main(const int argc, const char* argv[])
 {
@@ -13,8 +20,7 @@ int main(const int argc, const char* argv[])
             return 1;
         }
 
-        const string test_type(argv[1]);
-
+        const auto test_type = str_toupper(std::string(argv[1]));
         const auto module_path = argv[2];
         const string input_filepath(argv[3]);
         const string output_prefix(argv[4]);
