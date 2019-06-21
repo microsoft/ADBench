@@ -15,10 +15,10 @@
 using namespace std;
 
 class ModuleLoader {
-	HINSTANCE hModule = nullptr;
+    HINSTANCE hModule = nullptr;
 public:
-	ModuleLoader(const char* filePath);
-	std::unique_ptr<ITest<GMMInput, GMMOutput>> GetGmmTest();
-	std::unique_ptr<ITest<BAInput, BAOutput>> GetBaTest();
-	~ModuleLoader();
+    ModuleLoader(const char* filePath);
+    std::unique_ptr<ITest<GMMInput, GMMOutput>> GetGmmTest();
+    std::unique_ptr<ITest<BAInput, BAOutput>> GetBaTest();
+    ~ModuleLoader();
 };
