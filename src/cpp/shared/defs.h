@@ -2,8 +2,8 @@
 
 typedef struct
 {
-	double gamma;
-	int m;
+    double gamma;
+    int m;
 } Wishart;
 
 #ifndef NBDirsMax
