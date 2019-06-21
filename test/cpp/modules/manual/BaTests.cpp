@@ -4,9 +4,9 @@
 
 TEST(BaTests, Load) {
 #ifdef _DEBUG
-	ModuleLoader moduleLoader("Manuald.dll");
+	ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manuald.dll");
 #else
-	ModuleLoader moduleLoader("Manual.dll");
+	ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
 #endif
 	auto test = moduleLoader.GetBaTest();
 	ASSERT_NE(test, nullptr);
@@ -15,9 +15,9 @@ TEST(BaTests, Load) {
 TEST(BaTests, TestProcess)
 {
 #ifdef _DEBUG
-	ModuleLoader moduleLoader("Manuald.dll");
+	ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manuald.dll");
 #else
-	ModuleLoader moduleLoader("Manual.dll");
+	ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
 #endif
 	auto module = moduleLoader.GetBaTest();
 	ASSERT_NE(module, nullptr);
