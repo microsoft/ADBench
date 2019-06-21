@@ -3,10 +3,10 @@
 
 TEST(CppRunnerTests, LibraryLoadTest) {
 #ifdef _DEBUG
-	ModuleLoader moduleLoader("MockGMMd.dll");
+    ModuleLoader moduleLoader("MockGMMd.dll");
 #else
-	ModuleLoader moduleLoader("MockGMM.dll");
+    ModuleLoader moduleLoader("MockGMM.dll");
 #endif
-	auto test = moduleLoader.GetGmmTest();
-	ASSERT_TRUE(test != NULL);
+    auto test = moduleLoader.GetGmmTest();
+    ASSERT_TRUE(test != NULL);
 }
