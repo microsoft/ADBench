@@ -9,3 +9,7 @@ add_custom_command(TARGET manualEigenGMMTests PRE_BUILD
     COMMAND "${CMAKE_COMMAND}" -E copy 
         "$<TARGET_FILE:ManualEigenGMM>"
         "${CMAKE_CURRENT_BINARY_DIR}")
+add_custom_command(TARGET manualEigenGMMTests PRE_BUILD 
+    COMMAND "${CMAKE_COMMAND}" -E copy 
+        "${CMAKE_SOURCE_DIR}/data/gmm/test.txt"
+        "${CMAKE_CURRENT_BINARY_DIR}/gmmtest.txt")

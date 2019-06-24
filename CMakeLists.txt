@@ -47,8 +47,8 @@ include_directories("${EIGEN_ROOT}/share/eigen3/cmake")
 include_directories("${EIGEN3_INCLUDE_DIRS}")
 
 # Set constants
-set(GMM_D_VALS 2 10 20 32 64)
-set(GMM_K_VALS 5 10 25 50 100 200)
+set(GMM_D_VALS 2 10 20 )#32 64
+set(GMM_K_VALS 5 10 25 50 )#100 200
 # TODO figure out why Ceres build crashes
 
 # Make all platforms use .exe extensions for executables, for the
