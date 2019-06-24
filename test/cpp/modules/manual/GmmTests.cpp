@@ -8,7 +8,7 @@ TEST(GmmTests, Load) {
 #else
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
 #endif
-	auto test = moduleLoader.get_gmm_test();
+    auto test = moduleLoader.get_gmm_test();
     ASSERT_NE(test, nullptr);
 }
 
@@ -19,7 +19,7 @@ TEST(GmmTests, TestProcess)
 #else
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
 #endif
-	auto module = moduleLoader.get_gmm_test();
+    auto module = moduleLoader.get_gmm_test();
     ASSERT_NE(module, nullptr);
     GMMInput input;
 
