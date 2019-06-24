@@ -49,7 +49,8 @@ double measure_shortest_time(const double minimum_measurable_time, const int nru
         auto t1 = high_resolution_clock::now();
         call_member_function(test, func, repeats);
         auto t2 = high_resolution_clock::now();
-        const auto current_run_time = duration_cast<duration<double>>(t2 - t1).count();
+        //Time in seconds
+        const auto current_run_time = duration_cast<duration<double>>(t2 - t1).count(); 
         if (current_run_time > minimum_measurable_time)
         {
             min_sample = std::min(min_sample, current_run_time / repeats);
@@ -64,6 +65,7 @@ double measure_shortest_time(const double minimum_measurable_time, const int nru
         auto t1 = high_resolution_clock::now();
         call_member_function(test, func, repeats);
         auto t2 = high_resolution_clock::now();
+        //Time in seconds
         const auto current_run_time = duration_cast<duration<double>>(t2 - t1).count();
         min_sample = std::min(min_sample, current_run_time / repeats);
         total_time += current_run_time;

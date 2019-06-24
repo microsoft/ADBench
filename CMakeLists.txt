@@ -64,9 +64,10 @@ add_subdirectory ("tools")
 option(ENABLE_TESTS "Enable tests" ON)
 
 if (${ENABLE_TESTS})
-    # Get gtest package
+    # Get gtest and gmock packages
     hunter_add_package(GTest)
-    find_package(GTest CONFIG REQUIRED)
+	
+	find_package (GTest CONFIG REQUIRED)
     find_package(GMock CONFIG REQUIRED)
 
     if(NOT EXISTS "${GTest_LICENSES}")

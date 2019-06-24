@@ -19,10 +19,6 @@ GMMOutput MockGMM::output()
     return GMMOutput();
 }
 
-void MockGMM::calculateObjective(int times)
-{
-}
-
 void MockGMM::calculateJacobian(int times)
 {
 }
