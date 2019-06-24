@@ -1,3 +1,4 @@
+// ManualEigenGMM.h - Contains declarations of GMM tester functions
 #pragma once
 
 #include "../../shared/ITest.h"

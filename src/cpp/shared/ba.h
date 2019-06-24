@@ -31,7 +31,7 @@ void computeReprojError(
     const T* const X,
     const T* const w,
     const double* const feat,
-    T *err);
+    T* err);
 
 // w: 1
 // w_err: 1
@@ -81,7 +81,7 @@ template<typename T>
 void rodrigues_rotate_point(
     const T* const rot,
     const T* const pt,
-    T *rotatedPt);
+    T* rotatedPt);
 
 ////////////////////////////////////////////////////////////
 //////////////////// Definitions ///////////////////////////
@@ -100,7 +100,7 @@ template<typename T>
 void rodrigues_rotate_point(
     const T* const rot,
     const T* const pt,
-    T *rotatedPt)
+    T* rotatedPt)
 {
     T sqtheta = sqsum(3, rot);
     if (sqtheta != 0)
@@ -137,7 +137,7 @@ void rodrigues_rotate_point(
 template<typename T>
 void radial_distort(
     const T* const rad_params,
-    T *proj)
+    T* proj)
 {
     T rsq, L;
     rsq = sqsum(2, proj);
@@ -175,19 +175,19 @@ void computeReprojError(
     const T* const X,
     const T* const w,
     const double* const feat,
-    T *err)
+    T* err)
 {
     T proj[2];
     project(cam, X, proj);
 
-    err[0] = (*w)*(proj[0] - feat[0]);
-    err[1] = (*w)*(proj[1] - feat[1]);
+    err[0] = (*w) * (proj[0] - feat[0]);
+    err[1] = (*w) * (proj[1] - feat[1]);
 }
 
 template<typename T>
 void computeZachWeightError(const T* const w, T* err)
 {
-    *err = 1 - (*w)*(*w);
+    *err = 1 - (*w) * (*w);
 }
 
 template<typename T>
