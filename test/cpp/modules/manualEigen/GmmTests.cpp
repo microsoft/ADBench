@@ -4,9 +4,9 @@
 
 TEST(ManualEigenGMMTests, Load) {
 #ifdef _DEBUG
-	ModuleLoader moduleLoader("ManualEigend.dll");
+	ModuleLoader moduleLoader("../../../../src/cpp/modules/manualEigen/ManualEigend.dll");
 #else
-	ModuleLoader moduleLoader("ManualEigen.dll");
+	ModuleLoader moduleLoader("../../../../src/cpp/modules/manualEigen/ManualEigen.dll");
 #endif
 	auto test = moduleLoader.GetGmmTest();
 	ASSERT_NE(test, nullptr);
@@ -15,9 +15,9 @@ TEST(ManualEigenGMMTests, Load) {
 TEST(ManualEigenGMMTests, TestProcess)
 {
 #ifdef _DEBUG
-	ModuleLoader moduleLoader("ManualEigend.dll");
+	ModuleLoader moduleLoader("../../../../src/cpp/modules/manualEigen/ManualEigend.dll");
 #else
-	ModuleLoader moduleLoader("ManualEigen.dll");
+	ModuleLoader moduleLoader("../../../../src/cpp/modules/manualEigen/ManualEigen.dll");
 #endif
 	auto module = moduleLoader.GetGmmTest();
 	ASSERT_NE(module, nullptr);
