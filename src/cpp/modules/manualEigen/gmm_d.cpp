@@ -69,7 +69,7 @@ double logsumexp_d(int n, const double* const x, double *logsumexp_partial_d)
   }
   if (semx == 0.)
   {
-	std::fill(logsumexp_partial_d, logsumexp_partial_d + n, 0.0);
+    std::fill(logsumexp_partial_d, logsumexp_partial_d + n, 0.0);
   }
   else
   {
