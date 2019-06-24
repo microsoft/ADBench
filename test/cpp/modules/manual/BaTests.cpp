@@ -8,7 +8,7 @@ TEST(BaTests, Load) {
 #else
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
 #endif
-	auto test = moduleLoader.get_ba_test();
+    auto test = moduleLoader.get_ba_test();
     ASSERT_NE(test, nullptr);
 }
 
@@ -19,7 +19,7 @@ TEST(BaTests, TestProcess)
 #else
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
 #endif
-	auto module = moduleLoader.get_ba_test();
+    auto module = moduleLoader.get_ba_test();
     ASSERT_NE(module, nullptr);
     BAInput input;
 
