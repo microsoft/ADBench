@@ -11,7 +11,7 @@ void ManualEigenGMM::prepare(GMMInput&& input)
 {
     _input = input;
     int Jcols = (_input.k * (_input.d + 1) * (_input.d + 2)) / 2;
-	_output = { 0,  std::vector<double>(Jcols) };
+    _output = { 0,  std::vector<double>(Jcols) };
 }
 
 GMMOutput ManualEigenGMM::output()
