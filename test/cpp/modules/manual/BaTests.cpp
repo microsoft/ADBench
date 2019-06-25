@@ -29,6 +29,7 @@ TEST(BaTests, TestProcess)
     module->prepare(std::move(input));
     module->calculateObjective(1);
     module->calculateJacobian(1);
+
     auto output = module->output();
     EXPECT_EQ(30, output.J.nrows);
     EXPECT_EQ(62, output.J.ncols);
