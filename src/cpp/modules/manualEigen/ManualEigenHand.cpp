@@ -1,7 +1,7 @@
 // ManualEigenHand.cpp : Defines the exported functions for the DLL.
 #include "ManualEigenHand.h"
-#include "../../shared/gmm.h"
-#include "gmm_d.h"
+#include "../../shared/hand_eigen.h"
+#include "hand_eigen_d.h"
 
 #include <iostream>
 #include <memory>
