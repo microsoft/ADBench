@@ -1,5 +1,5 @@
-// ManualEigenGMM.cpp : Defines the exported functions for the DLL.
-#include "ManualEigenGMM.h"
+// ManualEigenHand.cpp : Defines the exported functions for the DLL.
+#include "ManualEigenHand.h"
 #include "../../shared/gmm.h"
 #include "gmm_d.h"
 
@@ -7,19 +7,19 @@
 #include <memory>
 
 // This function must be called before any other function.
-void ManualEigenGMM::prepare(GMMInput&& input)
+void ManualEigenHand::prepare(HandInput&& input)
 {
     _input = input;
     int Jcols = (_input.k * (_input.d + 1) * (_input.d + 2)) / 2;
     _output = { 0,  std::vector<double>(Jcols) };
 }
 
-GMMOutput ManualEigenGMM::output()
+HandOutput ManualEigenHand::output()
 {
     return _output;
 }
 
-void ManualEigenGMM::calculateObjective(int times)
+void ManualEigenHand::calculateObjective(int times)
 {
     for (int i = 0; i < times; ++i) {
         gmm_objective(_input.d, _input.k, _input.n, _input.alphas.data(), _input.means.data(),
@@ -27,7 +27,7 @@ void ManualEigenGMM::calculateObjective(int times)
     }
 }
 
-void ManualEigenGMM::calculateJacobian(int times)
+void ManualEigenHand::calculateJacobian(int times)
 {
     for (int i = 0; i < times; ++i) {
         gmm_objective_d(_input.d, _input.k, _input.n, _input.alphas.data(), _input.means.data(),
@@ -35,7 +35,7 @@ void ManualEigenGMM::calculateJacobian(int times)
     }
 }
 
-extern "C" __declspec(dllexport) ITest<GMMInput, GMMOutput>* __cdecl GetGMMTest()
+extern "C" __declspec(dllexport) ITest<HandInput, HandOutput>* __cdecl GetHandTest()
 {
-    return new ManualEigenGMM();
+    return new ManualEigenHand();
 }
