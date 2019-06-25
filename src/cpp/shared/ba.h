@@ -100,7 +100,7 @@ template<typename T>
 void rodrigues_rotate_point(
     const T* const rot,
     const T* const pt,
-    T* rotatedPt)
+    T *rotatedPt)
 {
     T sqtheta = sqsum(3, rot);
     if (sqtheta != 0)
