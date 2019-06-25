@@ -2,7 +2,7 @@
 #include "../../../../src/cpp/runner/ModuleLoader.h"
 #include "../../../../src/cpp/shared/utils.h"
 
-TEST(BaTests, Load) {
+TEST(ManualTests, Ba_Load) {
 #ifdef _DEBUG
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manuald.dll");
 #else
@@ -12,7 +12,7 @@ TEST(BaTests, Load) {
     ASSERT_NE(test, nullptr);
 }
 
-TEST(BaTests, TestProcess)
+TEST(ManualTests, Ba_TestProcess)
 {
 #ifdef _DEBUG
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manuald.dll");
