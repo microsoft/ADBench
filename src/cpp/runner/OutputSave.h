@@ -4,6 +4,12 @@
 #include <vector>
 #include "../shared/utils.h"
 
+std::string objective_file_name(const std::string& output_prefix, const std::string& input_basename,
+                                const std::string& module_basename);
+
+std::string jacobian_file_name(const std::string& output_prefix, const std::string& input_basename,
+                               const std::string& module_basename);
+
 void save_time_to_file(const std::string& filepath, const double objective_time, const double derivative_time);
 
 void save_objective_to_file(const std::string& filepath, const double& value);

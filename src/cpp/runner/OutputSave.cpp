@@ -2,6 +2,18 @@
 
 #include <fstream>
 
+std::string objective_file_name(const std::string& output_prefix, const std::string& input_basename,
+                                const std::string& module_basename)
+{
+    return output_prefix + input_basename + "_F_" + module_basename + ".txt";
+}
+
+std::string jacobian_file_name(const std::string& output_prefix, const std::string& input_basename,
+                               const std::string& module_basename)
+{
+    return output_prefix + input_basename + "_J_" + module_basename + ".txt";
+}
+
 void save_time_to_file(const std::string& filepath, const double objective_time, const double derivative_time)
 {
     std::ofstream out(filepath);
