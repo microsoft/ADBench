@@ -22,6 +22,6 @@ template <>
 void save_output_to_file<GMMOutput>(const GMMOutput& output, const string& output_prefix, const string& input_basename,
                                     const string& module_basename)
 {
-    save_objective_to_file(output_prefix + input_basename + "_F_" + module_basename + ".txt", output.objective);
-    save_gradient_to_file(output_prefix + input_basename + "_J_" + module_basename + ".txt", output.gradient);
+    save_objective_to_file(objective_file_name(output_prefix, input_basename, module_basename), output.objective);
+    save_gradient_to_file(jacobian_file_name(output_prefix, input_basename, module_basename), output.gradient);
 }
