@@ -8,7 +8,7 @@ TEST(ManualEigenTests, Ba_Load) {
 #else
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manualEigen/ManualEigen.dll");
 #endif
-    auto test = moduleLoader.GetBaTest();
+    auto test = moduleLoader.get_ba_test();
     ASSERT_NE(test, nullptr);
 }
 
@@ -19,7 +19,7 @@ TEST(ManualEigenTests, Ba_TestProcess)
 #else
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manualEigen/ManualEigen.dll");
 #endif
-    auto module = moduleLoader.GetBaTest();
+    auto module = moduleLoader.get_ba_test();
     ASSERT_NE(module, nullptr);
     BAInput input;
 
