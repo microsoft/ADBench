@@ -8,7 +8,7 @@ TEST(ManualEigenGMMTests, Load) {
 #else
 	ModuleLoader moduleLoader("ManualEigen.dll");
 #endif
-	auto test = moduleLoader.GetTest();
+	auto test = moduleLoader.GetGmmTest();
 	ASSERT_NE(test, nullptr);
 }
 
@@ -19,7 +19,7 @@ TEST(ManualEigenGMMTests, TestProcess)
 #else
 	ModuleLoader moduleLoader("ManualEigen.dll");
 #endif
-	auto module = moduleLoader.GetTest();
+	auto module = moduleLoader.GetGmmTest();
 	ASSERT_NE(module, nullptr);
 	GMMInput input;
 
