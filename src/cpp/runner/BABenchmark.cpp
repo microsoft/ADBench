@@ -23,7 +23,7 @@ template <>
 void save_output_to_file<BAOutput>(const BAOutput& output, const string& output_prefix, const string& input_basename,
                                    const string& module_basename)
 {
-    save_errors_to_file(output_prefix + input_basename + "_F_" + module_basename + ".txt", output.reproj_err,
+    save_errors_to_file(objective_file_name(output_prefix, input_basename, module_basename), output.reproj_err,
                         output.w_err);
-    save_sparse_j_to_file(output_prefix + input_basename + "_J_" + module_basename + ".txt", output.J);
+    save_sparse_j_to_file(jacobian_file_name(output_prefix, input_basename, module_basename), output.J);
 }
