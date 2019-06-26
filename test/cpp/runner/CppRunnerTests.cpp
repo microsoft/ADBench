@@ -20,17 +20,21 @@ TEST(CppRunnerTests, LibraryLoadTest) {
     ASSERT_TRUE(module_loader.get_gmm_test() != nullptr);
 }
 
-TEST(CppRunnerTests, Execution) {
+TEST(CppRunnerTests, TimeMeasurement) {
     ModuleLoader module_loader(module_path);
 
     auto gmm_test = module_loader.get_gmm_test();
-    const auto minimum_measurable_time = 0.1;
+    const auto minimum_measurable_time = 0.0000001;
     const auto run_count = 100;
-    const auto time_limit = 100;
+    const auto time_limit = 100000;
+    const auto execution_time = 0.01s;
 
     EXPECT_CALL(dynamic_cast<MockGMM&>(*gmm_test.get()), calculateObjective(_))
-        .Times(testing::Exactly(run_count))
-        .WillRepeatedly(testing::Invoke([](auto a) { std::this_thread::sleep_for(0.01s); }));
+        .Times(testing::Exactly(run_count + 1))
+        .WillRepeatedly(testing::Invoke([execution_time](auto a) { std::this_thread::sleep_for(execution_time); }));
 
-    auto a = measure_shortest_time(minimum_measurable_time, run_count, time_limit, gmm_test, &ITest<GMMInput, GMMOutput>::calculateObjective);
+    auto shortest_time = measure_shortest_time(minimum_measurable_time, run_count, time_limit, gmm_test, &ITest<GMMInput, GMMOutput>::calculateObjective);
+
+    ASSERT_GE(shortest_time, execution_time.count());
+
 }
