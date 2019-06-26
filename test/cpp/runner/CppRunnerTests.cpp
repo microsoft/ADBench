@@ -15,14 +15,14 @@ const auto module_path = "MockGMMd.dll";
 const auto module_path = "MockGMM.dll";
 #endif
 
-TEST(CppRunnerTests, LibraryLoadTest) {
-    ModuleLoader module_loader(module_path);
+ModuleLoader module_loader(module_path);
 
+TEST(CppRunnerTests, LibraryLoadTest) {
+   
     ASSERT_TRUE(module_loader.get_gmm_test() != nullptr);
 }
 
 TEST(CppRunnerTests, TimeLimit) {
-    ModuleLoader module_loader(module_path);
 
     auto gmm_test = module_loader.get_gmm_test();
     const auto minimum_measurable_time = 0s;
@@ -38,7 +38,6 @@ TEST(CppRunnerTests, TimeLimit) {
 }
 
 TEST(CppRunnerTests, NumberOfRunsLimit) {
-    ModuleLoader module_loader(module_path);
 
     auto gmm_test = module_loader.get_gmm_test();
     const auto minimum_measurable_time = 0s;
@@ -50,11 +49,10 @@ TEST(CppRunnerTests, NumberOfRunsLimit) {
         .Times(testing::Exactly(run_count)) //Number of runs should be equal to run_count limit.
         .WillRepeatedly(testing::Invoke([execution_time](auto a) { std::this_thread::sleep_for(execution_time); }));
 
-    auto shortest_time = measure_shortest_time(minimum_measurable_time, run_count, time_limit, gmm_test, &ITest<GMMInput, GMMOutput>::calculateObjective);
+    measure_shortest_time(minimum_measurable_time, run_count, time_limit, gmm_test, &ITest<GMMInput, GMMOutput>::calculateObjective);
 }
 
 TEST(CppRunnerTests, TimeMeasurement) {
-    ModuleLoader module_loader(module_path);
 
     auto gmm_test = module_loader.get_gmm_test();
     const auto minimum_measurable_time = 0s;
@@ -72,7 +70,6 @@ TEST(CppRunnerTests, TimeMeasurement) {
 }
 
 TEST(CppRunnerTests, SearchForRepeats) {
-    ModuleLoader module_loader(module_path);
 
     auto gmm_test = module_loader.get_gmm_test();
     const auto assumed_repeats = 16;

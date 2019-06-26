@@ -9,7 +9,6 @@
 using std::chrono::duration;
 using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
-using std::chrono::seconds;
 
 /*
  * General logic of the benchmark described in this file.
