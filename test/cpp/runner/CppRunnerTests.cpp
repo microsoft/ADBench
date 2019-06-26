@@ -36,6 +36,22 @@ TEST(CppRunnerTests, TimeLimit) {
     auto shortest_time = measure_shortest_time(minimum_measurable_time, run_count, time_limit.count(), gmm_test, &ITest<GMMInput, GMMOutput>::calculateObjective);
 }
 
+TEST(CppRunnerTests, NumberOfRunsLimit) {
+    ModuleLoader module_loader(module_path);
+
+    auto gmm_test = module_loader.get_gmm_test();
+    const auto minimum_measurable_time = 0;
+    const auto run_count = 10; 
+    const auto time_limit = 10s;
+    const auto execution_time = 0.01s;
+
+    EXPECT_CALL(dynamic_cast<MockGMM&>(*gmm_test.get()), calculateObjective(_))
+        .Times(testing::Exactly(run_count)) //Number of runs should be equal to run_count limit.
+        .WillRepeatedly(testing::Invoke([execution_time](auto a) { std::this_thread::sleep_for(execution_time); }));
+
+    auto shortest_time = measure_shortest_time(minimum_measurable_time, run_count, time_limit.count(), gmm_test, &ITest<GMMInput, GMMOutput>::calculateObjective);
+}
+
 TEST(CppRunnerTests, TimeMeasurement) {
     ModuleLoader module_loader(module_path);
 
