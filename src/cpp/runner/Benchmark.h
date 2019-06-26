@@ -10,15 +10,15 @@ using std::chrono::duration;
 using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
 
-/* 
+/*
  * General logic of the benchmark described in this file.
- * However, functions responsible for data reading and outputting, 
- * as well as for obtaining a test instance, must be implemented for each specific data type. 
- * Such functions are implemented in <test_type>Benchmark.cpp files. 
- */ 
+ * However, functions responsible for data reading and outputting,
+ * as well as for obtaining a test instance, must be implemented for each specific data type.
+ * Such functions are implemented in <test_type>Benchmark.cpp files.
+ */
 
-//Reads input_file into Input struct. replicate_point flag duplicates one vector over all input data. 
-//Templated function "read_input_data" is deleted to cause a link error if a corresponding template specialization is not implemented.
+ //Reads input_file into Input struct. replicate_point flag duplicates one vector over all input data. 
+ //Templated function "read_input_data" is deleted to cause a link error if a corresponding template specialization is not implemented.
 template<class Input>
 Input read_input_data(const std::string& input_file, bool replicate_point) = delete;
 
@@ -37,12 +37,12 @@ void call_member_function(std::unique_ptr<ITest<Input, Output>>& ptr_to_object, 
 template<class Input, class Output>
 unique_ptr<ITest<Input, Output>> get_test(const ModuleLoader& module_loader) = delete;
 
-//Measures time according to the documentation.
 template<class Input, class Output>
-double measure_shortest_time(const double minimum_measurable_time, const int nruns, const double time_limit, std::unique_ptr<ITest<Input, Output>>& test, const test_member_function<Input, Output> func)
+int find_repeats_for_minimum_measurable_time(const double minimum_measurable_time,
+                                             std::unique_ptr<ITest<Input, Output>>& test,
+                                             const test_member_function<Input, Output> func, double& min_sample,
+                                             double& total_time)
 {
-    auto min_sample = std::numeric_limits<double>::max();
-    double total_time = 0;
     auto repeats = 1;
     while (repeats < (1 << 30))
     {
@@ -50,7 +50,7 @@ double measure_shortest_time(const double minimum_measurable_time, const int nru
         call_member_function(test, func, repeats);
         auto t2 = high_resolution_clock::now();
         //Time in seconds
-        const auto current_run_time = duration_cast<duration<double>>(t2 - t1).count(); 
+        const auto current_run_time = duration_cast<duration<double>>(t2 - t1).count();
         if (current_run_time > minimum_measurable_time)
         {
             min_sample = std::min(min_sample, current_run_time / repeats);
@@ -59,6 +59,16 @@ double measure_shortest_time(const double minimum_measurable_time, const int nru
         }
         repeats *= 2;
     }
+    return repeats;
+}
+
+//Measures time according to the documentation.
+template<class Input, class Output>
+double measure_shortest_time(const double minimum_measurable_time, const int nruns, const double time_limit, std::unique_ptr<ITest<Input, Output>>& test, const test_member_function<Input, Output> func)
+{
+    auto min_sample = std::numeric_limits<double>::max();
+    double total_time = 0;
+    auto repeats = find_repeats_for_minimum_measurable_time(minimum_measurable_time, test, &ITest<GMMInput, GMMOutput>::calculateObjective, min_sample, total_time);
 
     for (auto run = 1; (run < nruns) && (total_time < time_limit); run++)
     {
@@ -103,5 +113,5 @@ void run_benchmark(const char* const module_path, const std::string& input_filep
     const auto module_basename = filepath_to_basename(module_path);
 
     save_time_to_file(output_prefix + input_basename + "_times_" + module_basename + ".txt", objective_time, derivative_time);
-    save_output_to_file(output, output_prefix, input_basename, module_basename);    
+    save_output_to_file(output, output_prefix, input_basename, module_basename);
 }
