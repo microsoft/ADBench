@@ -23,10 +23,10 @@ int main(const int argc, const char* argv[])
         const auto module_path = argv[2];
         const string input_filepath(argv[3]);
         const string output_prefix(argv[4]);
-        const auto minimum_measurable_time = std::stod(argv[5]);
+        const auto minimum_measurable_time = duration<double>(std::stod(argv[5]));
         const auto nruns_F = std::stoi(argv[6]);
         const auto nruns_J = std::stoi(argv[7]);
-        const auto time_limit = std::stod(argv[8]);
+        const auto time_limit = duration<double>(std::stod(argv[8]));
 
         // read only 1 point and replicate it?
         const auto replicate_point = (argc > 9 && string(argv[9]) == "-rep");
