@@ -9,6 +9,7 @@
 using std::chrono::duration;
 using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
+using std::chrono::seconds;
 
 /*
  * General logic of the benchmark described in this file.
@@ -38,10 +39,10 @@ template<class Input, class Output>
 unique_ptr<ITest<Input, Output>> get_test(const ModuleLoader& module_loader) = delete;
 
 template<class Input, class Output>
-int find_repeats_for_minimum_measurable_time(const double minimum_measurable_time,
-                                             std::unique_ptr<ITest<Input, Output>>& test,
-                                             const test_member_function<Input, Output> func, double& min_sample,
-                                             double& total_time)
+int find_repeats_for_minimum_measurable_time(const duration<double> minimum_measurable_time,
+    std::unique_ptr<ITest<Input, Output>>& test,
+    const test_member_function<Input, Output> func, duration<double>& min_sample,
+    duration<double>& total_time)
 {
     auto repeats = 1;
     while (repeats < (1 << 30))
@@ -50,10 +51,11 @@ int find_repeats_for_minimum_measurable_time(const double minimum_measurable_tim
         call_member_function(test, func, repeats);
         auto t2 = high_resolution_clock::now();
         //Time in seconds
-        const auto current_run_time = duration_cast<duration<double>>(t2 - t1).count();
+        const auto current_run_time = duration_cast<duration<double>>(t2 - t1);
         if (current_run_time > minimum_measurable_time)
         {
-            min_sample = std::min(min_sample, current_run_time / repeats);
+            const auto current_sample = current_run_time / repeats;
+            min_sample = std::min(min_sample, duration_cast<duration<double>>(current_sample));
             total_time += current_run_time;
             break;
         }
@@ -64,11 +66,11 @@ int find_repeats_for_minimum_measurable_time(const double minimum_measurable_tim
 
 //Measures time according to the documentation.
 template<class Input, class Output>
-double measure_shortest_time(const double minimum_measurable_time, const int nruns, const double time_limit, std::unique_ptr<ITest<Input, Output>>& test, const test_member_function<Input, Output> func)
+duration<double> measure_shortest_time(const duration<double> minimum_measurable_time, const int nruns, const duration<double> time_limit, std::unique_ptr<ITest<Input, Output>>& test, const test_member_function<Input, Output> func)
 {
-    auto min_sample = std::numeric_limits<double>::max();
-    double total_time = 0;
-    auto repeats = find_repeats_for_minimum_measurable_time(minimum_measurable_time, test, &ITest<GMMInput, GMMOutput>::calculateObjective, min_sample, total_time);
+    auto min_sample = duration<double>(std::numeric_limits<double>::max());
+    auto total_time = duration<double>(0s);
+    auto repeats = find_repeats_for_minimum_measurable_time(minimum_measurable_time, test, func, min_sample, total_time);
 
     for (auto run = 1; (run < nruns) && (total_time < time_limit); run++)
     {
@@ -76,8 +78,8 @@ double measure_shortest_time(const double minimum_measurable_time, const int nru
         call_member_function(test, func, repeats);
         auto t2 = high_resolution_clock::now();
         //Time in seconds
-        const auto current_run_time = duration_cast<duration<double>>(t2 - t1).count();
-        min_sample = std::min(min_sample, current_run_time / repeats);
+        const auto current_run_time = t2 - t1;
+        min_sample = std::min(min_sample, duration_cast<duration<double>>(current_run_time / repeats));
         total_time += current_run_time;
     }
 
@@ -92,8 +94,8 @@ std::string filepath_to_basename(const std::string& filepath);
 
 //Performs the entire benchmark process according to the documentation
 template<class Input, class Output>
-void run_benchmark(const char* const module_path, const std::string& input_filepath, const std::string& output_prefix, const double minimum_measurable_time, const int nruns_F, const int nruns_J,
-    const double time_limit, const bool replicate_point) {
+void run_benchmark(const char* const module_path, const std::string& input_filepath, const std::string& output_prefix, const duration<double> minimum_measurable_time, const int nruns_F, const int nruns_J,
+    const duration<double> time_limit, const bool replicate_point) {
 
     const ModuleLoader module_loader(module_path);
     auto test = get_test<Input, Output>(module_loader);
@@ -112,6 +114,6 @@ void run_benchmark(const char* const module_path, const std::string& input_filep
     const auto input_basename = filepath_to_basename(input_filepath);
     const auto module_basename = filepath_to_basename(module_path);
 
-    save_time_to_file(output_prefix + input_basename + "_times_" + module_basename + ".txt", objective_time, derivative_time);
+    save_time_to_file(output_prefix + input_basename + "_times_" + module_basename + ".txt", objective_time.count(), derivative_time.count());
     save_output_to_file(output, output_prefix, input_basename, module_basename);
 }
