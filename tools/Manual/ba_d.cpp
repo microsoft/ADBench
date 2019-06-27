@@ -185,7 +185,7 @@ void computeReprojError_d(
 
 #include "Eigen/Dense"
 
-#include "../cpp-common/ba_eigen.h"
+#include "../../src/cpp/shared/ba_eigen.h"
 
 using Eigen::Map;
 using Eigen::Vector3d;
