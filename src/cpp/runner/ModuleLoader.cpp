@@ -40,6 +40,22 @@ std::unique_ptr<ITest<BAInput, BAOutput>> ModuleLoader::get_ba_test() const
     }
 }
 
+typedef ITest<HandInput, HandOutput>* (*HandTestFuncPtr)();
+
+std::unique_ptr<ITest<HandInput, HandOutput>> ModuleLoader::get_hand_test() const
+{
+    auto GetHandTest = (HandTestFuncPtr)GetProcAddress(hModule,
+        "GetHandTest");
+    if (GetHandTest != nullptr)
+    {
+        return std::unique_ptr<ITest<HandInput, HandOutput>>(GetHandTest());
+    }
+    else
+    {
+        throw exception("Can't load GetHandTest function");
+    }
+}
+
 ModuleLoader::~ModuleLoader()
 {
     if (hModule != nullptr)

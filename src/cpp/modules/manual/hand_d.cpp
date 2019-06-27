@@ -117,7 +117,7 @@ void apply_global_transform_d(
         //Map<Matrix3Xd> J_glob_rot(&pJ[i_param * 3 * npts], 3, npts);
         for (size_t i_pt = 0; i_pt < npts; i_pt++)
         {
-            mat_mult(dR[i_param], LightMatrix<double>(3, 1, positions.get_col_ptr(i_pt), false), &tmp);
+            mat_mult(dR[i_param], LightMatrix<double>(3, 1, positions.get_col_ptr(corresp[i_pt]), false), &tmp);
             J_glob_rot.set_col(i_pt, tmp.get_col(0));
             J_glob_rot.scale_col(i_pt, -1.);
             //J_glob_rot.col(i_pt).noalias() = -dR[i_param] * positions.col(corresp[i_pt]);
@@ -474,10 +474,10 @@ void get_skinned_vertex_positions_d_common(
     for (int i = 0; i < (int)transforms.size(); ++i)
     {
         mat_mult(transforms[i], base_positions_homogenized, &tmp);
-        for (int l = 0; l < 2; ++l)
+        for (int l = 0; l < 3; ++l)
         {
             for (int k = 0; k < tmp.cols(); ++k)
-                positions(l, k) += tmp(l, k) * model.weights(l, k);
+                positions(l, k) += tmp(l, k) * model.weights(i, k);
         }
         //*positions +=
         //    ((transforms[i] * model.base_positions.colwise().homogeneous()).array()
@@ -490,10 +490,10 @@ void get_skinned_vertex_positions_d_common(
             int i_param = j + 4 * i_finger;
             mat_mult(transforms_d[i][j], base_positions_homogenized, &tmp);
 
-            for (int l = 0; l < 2; ++l)
+            for (int l = 0; l < 3; ++l)
             {
                 for (int k = 0; k < tmp.cols(); ++k)
-                    positions_d[i_param](l, k) += tmp(l, k) * model.weights(l, k);
+                    positions_d[i_param](l, k) += tmp(l, k) * model.weights(i, k);
             }
             //(*positions_d)[i_param] +=
             //    ((transforms_d[i][j] * model.base_positions.colwise().homogeneous()).array()
