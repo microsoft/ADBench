@@ -61,21 +61,23 @@ double log_wishart_prior(int p, int k,
   const vector<MatrixX<T>>& Qs,
   const T* const icf);
 
+// logsumexp of cols
+template<typename T>
+void logsumexp(const MatrixX<T>& X, ArrayX<T>& out);
+
 template<typename T>
 void gmm_objective_no_priors(int d, int k, int n,
-  const Map<const ArrayX<T>>& alphas,
-  const vector<Map<const VectorX<T>>>& mus,
-  const ArrayX<T>& sum_qs,
-  const vector<MatrixX<T>>& Qs,
-  const double* const x,
+  Map<const ArrayX<T>> const& alphas,
+  Map<const MatrixX<T>> const& means,
+  ArrayX<T> const& sum_qs,
+  vector<MatrixX<T>> const& Qs,
+  Map<const MatrixX<T>> const& x,
   Wishart wishart,
   T* err);
 
 template<typename T>
 void preprocess(int d, int k,
-  const T* const means,
   const T* const icf,
-  vector<Map<const VectorX<T>>>& mus,
   ArrayX<T>& sum_qs,
   vector<MatrixX<T>>& Qs);
 
@@ -114,56 +116,44 @@ double log_wishart_prior(int p, int k,
   return 0.5*wishart.gamma*wishart.gamma*sum_frob - wishart.m*sum_qs.sum() - k*C;
 }
 
+// logsumexp of cols
+template<typename T>
+void logsumexp(const MatrixX<T>& X, ArrayX<T>& out)
+{
+  RowVectorX<T> mX = X.colwise().maxCoeff();
+  RowVectorX<T> semX = (X.rowwise() - mX).array().exp().matrix().colwise().sum();
+  out = semX.array().log() + mX.array();
+}
+
 template<typename T>
 void gmm_objective_no_priors(int d, int k, int n,
-  const Map<const ArrayX<T>>& alphas,
-  const vector<Map<const VectorX<T>>>& mus,
-  const ArrayX<T>& sum_qs,
-  const vector<MatrixX<T>>& Qs,
-  const double* const x,
+  Map<const ArrayX<T>> const& alphas,
+  Map<const MatrixX<T>> const& means,
+  ArrayX<T> const& sum_qs,
+  vector<MatrixX<T>> const& Qs,
+  Map<const MatrixX<T>> const& x,
   Wishart wishart,
   T* err)
 {
-  VectorX<T> xcentered(d), Qxcentered(d);
-  ArrayX<T> lse(k);
-  T slse = 0.;
-  for (int ix = 0; ix < n; ix++)
+  MatrixX<T> Qxcentered(d, n), main_term(k, n);
+  for (int ik = 0; ik < k; ik++)
   {
-    Map<const VectorX<T>> curr_x(&x[ix*d], d);
-    for (int ik = 0; ik < k; ik++)
-    {
-      switch (3) // 3 is the fastest, (and 2 is slightly faster than 4)
-      {
-      case 2:
-        xcentered = curr_x - mus[ik];
-        Qxcentered.noalias() = Qs[ik].triangularView<Eigen::Lower>()*xcentered;
-        lse(ik) = -0.5*Qxcentered.squaredNorm();
-        break;
-      case 3:
-        xcentered = curr_x - mus[ik];
-        Qxcentered.noalias() = Qs[ik] * xcentered;
-        lse(ik) = -0.5*Qxcentered.squaredNorm();
-        break;
-      case 4:
-        lse(ik) = -0.5*(Qs[ik].triangularView<Eigen::Lower>() * (curr_x - mus[ik])).squaredNorm();
-        break;
-      }
-    }
-    lse = lse + alphas + sum_qs;
-    slse = slse + logsumexp(lse);
+    Qxcentered.noalias() = Qs[ik] * (x.colwise() - means.col(ik));
+    main_term.row(ik) = -0.5*Qxcentered.colwise().squaredNorm();
   }
+  main_term.colwise() += (alphas + sum_qs).matrix();
+  ArrayX<T> slse;
+  logsumexp(main_term, slse);
 
   T lse_alphas = logsumexp(alphas);
   double CONSTANT = -n*d*0.5*log(2 * PI);
-
-  *err = CONSTANT + slse - n*lse_alphas;
+  T tmp = slse.sum();
+  *err = CONSTANT + slse.sum() - n*lse_alphas;
 }
 
 template<typename T>
 void preprocess(int d, int k,
-  const T* const means,
   const T* const icf,
-  vector<Map<const VectorX<T>>>& mus,
   ArrayX<T>& sum_qs,
   vector<MatrixX<T>>& Qs)
 {
@@ -175,7 +165,6 @@ void preprocess(int d, int k,
   for (int ik = 0; ik < k; ik++)
   {
     int icf_off = ik*icf_sz;
-    mus.emplace_back(&means[ik*d], d);
     Map<const ArrayX<T>> q(&icf[icf_off], d);
     sum_qs[ik] = q.sum();
     int Lparamsidx = d;
@@ -184,7 +173,7 @@ void preprocess(int d, int k,
       int n_curr_elems = d - i - 1;
       Qs[ik].col(i).bottomRows(n_curr_elems) =
         Map<const VectorX<T>>(&icf[icf_off + Lparamsidx], n_curr_elems);
-      Lparamsidx = Lparamsidx + n_curr_elems;
+      Lparamsidx += n_curr_elems;
     }
     Qs[ik].diagonal() = q.exp();
   }
@@ -202,13 +191,15 @@ void gmm_objective(int d, int k, int n,
   int icf_sz = d*(d + 1) / 2;
 
   // init eigen wrappers first
-  vector<Map<const VectorX<T>>> mus;
+  Map<const ArrayX<T>> map_alphas(alphas, k);
+  Map<const MatrixX<T>> map_means(means, d, k);
+  Map<const MatrixX<T>> map_x(x, d, n);
+
   ArrayX<T> sum_qs;
   vector<MatrixX<T>> Qs;
-  preprocess(d, k, means, icf, mus, sum_qs, Qs);
+  preprocess(d, k, icf, sum_qs, Qs);
 
-  Map<const ArrayX<T>> map_alphas(alphas, k);
-  gmm_objective_no_priors(d, k, n, map_alphas, mus, sum_qs,
-    Qs, x, wishart, err);
-  *err = *err + log_wishart_prior(d, k, wishart, sum_qs, Qs, icf);
+  gmm_objective_no_priors(d, k, n, map_alphas, map_means, sum_qs,
+    Qs, map_x, wishart, err);
+  *err += log_wishart_prior(d, k, wishart, sum_qs, Qs, icf);
 }
