@@ -6,10 +6,8 @@
 #include <fstream>
 #include <functional>
 
-#ifdef DO_EIGEN
 #include <Eigen/Dense>
 #include <Eigen/StdVector>
-#endif
 
 #include "light_matrix.h"
 
@@ -18,12 +16,12 @@
 
 typedef struct { int verts[3]; } Triangle;
 
-#ifdef DO_EIGEN
 template<typename T>
 using avector = std::vector<T, Eigen::aligned_allocator<T>>;
 
-typedef struct
+class HandModelEigen
 {
+public:
     std::vector<std::string> bone_names;
     std::vector<int> parents; // assumimng that parent is earlier in the order of bones
     avector<Eigen::Matrix4d> base_relatives;
@@ -32,15 +30,15 @@ typedef struct
     Eigen::ArrayXXd weights;
     std::vector<Triangle> triangles;
     bool is_mirrored;
-} HandModelEigen;
+};
 
-typedef struct
+class HandDataEigen
 {
+public:
     HandModelEigen model;
     std::vector<int> correspondences;
     Eigen::Matrix3Xd points;
-} HandDataEigen;
-#endif
+};
 
 
 class HandModelLightMatrix
