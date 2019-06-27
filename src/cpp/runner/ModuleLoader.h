@@ -11,6 +11,7 @@
 #include "../shared/ITest.h"
 #include "../shared/GMMData.h"
 #include "../shared/BAData.h"
+#include "../shared/HandData.h"
 
 using namespace std;
 
@@ -20,5 +21,6 @@ public:
     ModuleLoader(const char* file_path);
     std::unique_ptr<ITest<GMMInput, GMMOutput>> get_gmm_test() const;
     std::unique_ptr<ITest<BAInput, BAOutput>> get_ba_test() const;
+    std::unique_ptr<ITest<HandInput, HandOutput>> get_hand_test() const;
     ~ModuleLoader();
 };
