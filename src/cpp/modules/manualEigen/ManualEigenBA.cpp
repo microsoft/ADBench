@@ -1,6 +1,6 @@
 // ManualEigenBA.cpp : Defines the exported functions for the DLL.
 #include "ManualEigenBA.h"
-#include "../../shared/ba.h"
+#include "../../shared/ba_eigen.h"
 #include "ba_d.h"
 
 #include <iostream>
