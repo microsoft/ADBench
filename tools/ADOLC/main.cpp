@@ -37,7 +37,7 @@ size_t adtl::refcounter::refcnt = 0;
 #ifdef DO_CPP
 #include "../../src/cpp/shared/ba.h"
 #elif defined DO_EIGEN
-#include "../cpp-common/ba_eigen.h"
+#include "../../src/cpp/shared/ba_eigen.h"
 #endif
 
 #elif defined DO_HAND || defined DO_HAND_SPARSE || defined DO_HAND_COMPLICATED
