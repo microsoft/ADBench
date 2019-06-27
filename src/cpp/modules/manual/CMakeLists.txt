@@ -1,4 +1,4 @@
-project("ManualDifferentiation" CXX)
+project("ADBench_Manual" CXX)
 
 add_library("Manual" MODULE)
 target_sources("Manual" PRIVATE "gmm_d.cpp")
