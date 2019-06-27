@@ -16,7 +16,7 @@
 #if defined DO_EIGEN
 #include "../cpp-common/hand_eigen.h"
 #else
-#include "../cpp-common/hand_light_matrix.h"
+#include "../../src/cpp/shared/hand_light_matrix.h"
 #endif
 #elif (defined DO_LSTM)
 #include "../cpp-common/lstm.h"

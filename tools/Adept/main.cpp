@@ -26,7 +26,7 @@
 #include "../../src/cpp/shared/ba.h"
 #elif (defined DO_HAND || defined DO_HAND_COMPLICATED)
 #ifdef DO_LIGHT_MATRIX
-#include "../cpp-common/hand_light_matrix.h"
+#include "../../src/cpp/shared/hand_light_matrix.h"
 typedef HandDataLightMatrix HandDataType;
 #elif defined DO_VXL
 #include "hand_vxl.h"
