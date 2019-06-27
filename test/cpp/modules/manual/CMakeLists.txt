@@ -1,4 +1,4 @@
-project("ManualDifferentiationTests" CXX)
+project("ManualTests" CXX)
 add_executable(manualTests GmmTests.cpp BaTests.cpp "${CMAKE_SOURCE_DIR}/src/cpp/runner/ModuleLoader.cpp" "${CMAKE_SOURCE_DIR}/src/cpp/shared/utils.cpp")
 
 add_test("manualtests" manualTests)
