@@ -3,11 +3,12 @@
 
 #include "../../shared/ITest.h"
 #include "../../shared/HandData.h"
+#include "../../shared/HandEigenData.h"
 
 #include <vector>
 
 class ManualEigenHand : public ITest<HandInput, HandOutput> {
-    HandInput _input;
+    HandEigenInput _input;
     HandOutput _output;
 
 public:
