@@ -12,7 +12,8 @@ public:
   LightMatrix(int nrows, int ncols) : nrows_(nrows), ncols_(ncols), is_data_owner_(true) { data_ = new T[nrows*ncols]; }
   LightMatrix(int nrows, int ncols, T* data, bool is_data_owner = false);
   LightMatrix(const LightMatrix<T>& other);
-  ~LightMatrix() { if (is_data_owner_) delete[] data_; }
+  LightMatrix(LightMatrix<T>&& other);
+  ~LightMatrix() { if (is_data_owner_ && data_ != nullptr) delete[] data_; }
 
   int size() const { return ncols_*nrows_; }
   int cols() const { return ncols_; }
@@ -26,11 +27,16 @@ public:
   void set_block(int row_off, int col_off, const LightMatrix<T>& block);
   void scale_col(int i, const T& val);
   void scale_row(int i, const T& val);
+
+  // Adds other to this, stores the result in this.
+  void add(const LightMatrix<T>& other);
   const T* get_col(int i) const { return &((*this)(0, i)); };
+  T* get_col_ptr(int i) { return &((*this)(0, i)); };
   void transpose_in_place();
   T& operator()(int i_row, int i_col) { return data_[i_col*nrows_ + i_row]; }
   const T& operator()(int i_row, int i_col) const { return data_[i_col*nrows_ + i_row]; }
   LightMatrix<T>& operator=(const LightMatrix<T>& other);
+  LightMatrix<T>& operator=(LightMatrix<T>&& other);
 
   bool is_data_owner_;
   int nrows_;
@@ -63,6 +69,34 @@ LightMatrix<T>::LightMatrix(const LightMatrix<T>& other)
   for (int i = 0; i < size(); i++)
     data_[i] = other.data_[i];
   is_data_owner_ = true;
+}
+
+template<typename T>
+LightMatrix<T>::LightMatrix(LightMatrix<T>&& other)
+    : nrows_(other.nrows_), ncols_(other.ncols_), data_(other.data_), is_data_owner_(other.is_data_owner_)
+{
+    other.ncols_ = 0;
+    other.nrows_ = 0;
+    other.data_ = nullptr;
+    other.is_data_owner_ = false;
+}
+
+template<typename T>
+LightMatrix<T>& LightMatrix<T>::operator=(LightMatrix<T>&& other)
+{
+    if (this != &other)
+    {
+        if (is_data_owner_ && data_ != nullptr) delete[] data_;
+        nrows_ = other.nrows_;
+        ncols_ = other.ncols_;
+        data_ = other.data_;
+        is_data_owner_ = other.is_data_owner_;
+        other.ncols_ = 0;
+        other.nrows_ = 0;
+        other.data_ = nullptr;
+        other.is_data_owner_ = false;
+    }
+    return *this;
 }
 
 template<typename T>
@@ -114,6 +148,13 @@ void LightMatrix<T>::scale_row(int i, const T& val)
 {
   for (int j = 0; j < ncols_; j++)
     (*this)(i, j) *= val;
+}
+
+template<typename T>
+void LightMatrix<T>::add(const LightMatrix<T>& other)
+{
+    for (int i = 0; i < size(); ++i)
+        data_[i] += other.data_[i];
 }
 
 template<typename T>

@@ -43,7 +43,7 @@ size_t adtl::refcounter::refcnt = 0;
 #elif defined DO_HAND || defined DO_HAND_SPARSE || defined DO_HAND_COMPLICATED
 #ifdef DO_LIGHT_MATRIX
 typedef HandDataLightMatrix HandDataType;
-#include "../cpp-common/hand_light_matrix.h"
+#include "../../src/cpp/shared/hand_light_matrix.h"
 #elif defined DO_EIGEN
 typedef HandDataEigen HandDataType;
 #include "../cpp-common/hand_eigen.h"

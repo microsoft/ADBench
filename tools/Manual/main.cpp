@@ -28,7 +28,7 @@
 #include "../cpp-common/hand_eigen.h"
 #include "hand_eigen_d.h"
 #else
-#include "../cpp-common/hand_light_matrix.h"
+#include "../../src/cpp/shared/hand_light_matrix.h"
 #endif
 #endif
 
