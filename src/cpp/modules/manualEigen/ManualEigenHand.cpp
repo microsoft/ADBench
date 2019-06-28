@@ -6,64 +6,46 @@
 #include <iostream>
 #include <memory>
 
-//
-#include <Windows.h>
-//
-
 // This function must be called before any other function.
 void ManualEigenHand::prepare(HandInput&& input)
 {
-    //_input = input;//
-    _input.theta = input.theta;
-    _input.us = input.us; //Should be = 0 in hand and != 0 in hand_complicated
-    _input.data.correspondences = input.data.correspondences;
-    Matrix3Xd _points(input.data.points.nrows_, input.data.points.ncols_);
-    for (int i = 0; i < input.data.points.nrows_; i++)
+    auto convert_matrix = [](LightMatrix<double> lightmatrix)
     {
-        for (int j = 0; j < input.data.points.ncols_; j++)
+        MatrixXd matrix(lightmatrix.nrows_, lightmatrix.ncols_);
+        for (int i = 0; i < lightmatrix.nrows_; i++)
         {
-            _points.row(i).col(j) << input.data.points.data_[i*j + j];
+            for (int j = 0; j < lightmatrix.ncols_; j++)
+            {
+                matrix(i, j) = lightmatrix.data_[lightmatrix.ncols_ * i + j];
+            }
         }
-    }
-    _input.data.points = std::move(_points);
-    ////*for (int i = 0; i < (sizeof(input.data.points.data_) / sizeof(*input.data.points.data_)); i++)
-    //{
-    //    _points << input.data.points.data_[i];
-    //}*/
-    ////*_points.col(0) << 1, 2, 3;
-    //_points.col(0) << *input.data.points.get_col(0);*/
-    ////_input.data.points.col(0) << 1;//input.data.points.get_col(0); //= input.data.points;//
-    ////std::cerr << _input.data.points << std::endl;
-    //std::cerr << _input.data.points << std::endl;
-    //std::cout << _input.data.points << std::endl;
-    ////OutputDebugStringW(L"sad",_input.data.points);
-    //OutputDebugStringW(L"My output string.");
-    //OutputDebugStringW(L"My output string.");
-    //OutputDebugStringW(L"My output string.");
-    //OutputDebugStringW(L"My output string.");
-    ////input.data.points.nrows_ == 3; //  // input.data.points.size / input.data.points.cols == 3
-    ////input.data.points.cols;
-    ////
-    //std::vector<std::string> bone_names;
-    //std::vector<int> parents; // assumimng that parent is earlier in the order of bones
-    //std::vector<LightMatrix<double>> base_relatives;
-    //std::vector<LightMatrix<double>> inverse_base_absolutes;
-    //LightMatrix<double> base_positions;
-    //LightMatrix<double> weights;
-    //std::vector<Triangle> triangles;
-    //bool is_mirrored;
+        Map<MatrixXd> map(matrix.data(), lightmatrix.nrows_, lightmatrix.ncols_);
+        return map;
+    };
+    _input.theta = input.theta;
+    _input.us = input.us;
+    _input.data.correspondences = input.data.correspondences;
+    _input.data.model.bone_names = input.data.model.bone_names;
+    _input.data.model.parents = input.data.model.parents;
+    _input.data.model.triangles = input.data.model.triangles;
+    _input.data.model.is_mirrored = input.data.model.is_mirrored;
 
-    //std::vector<std::string> bone_names;
-    //std::vector<int> parents; // assumimng that parent is earlier in the order of bones
-    //avector<Eigen::Matrix4d> base_relatives;
-    //avector<Eigen::Matrix4d> inverse_base_absolutes;
-    //Eigen::Matrix3Xd base_positions;
-    //Eigen::ArrayXXd weights;
-    //std::vector<Triangle> triangles;
-    //bool is_mirrored;
-    //////
-    //int Jcols = (_input.k * (_input.d + 1) * (_input.d + 2)) / 2;
-    //_output = { 0,  std::vector<double>(Jcols) };
+    _input.data.points = convert_matrix(input.data.points);
+    input.data.model.base_positions.resize(_input.data.model.base_positions.rows(),
+        input.data.model.base_positions.size() / _input.data.model.base_positions.rows());
+    //TODO: check why input data for hand & eigen_hand have different format
+    _input.data.model.base_positions = convert_matrix(input.data.model.base_positions);
+    _input.data.model.weights = convert_matrix(input.data.model.weights);
+
+    for (int i = 0; i < input.data.model.base_relatives.size(); i++)
+    {
+        _input.data.model.base_relatives.push_back(convert_matrix(input.data.model.base_relatives[i]));
+    }
+    for (int i = 0; i < input.data.model.inverse_base_absolutes.size(); i++)
+    {
+        _input.data.model.inverse_base_absolutes.push_back(convert_matrix(input.data.model.inverse_base_absolutes[i]));
+    }
+
 }
 
 HandOutput ManualEigenHand::output()
@@ -71,20 +53,37 @@ HandOutput ManualEigenHand::output()
     return _output;
 }
 
+// TODO: check whether the loop gets optimized away
 void ManualEigenHand::calculateObjective(int times)
 {
-    //for (int i = 0; i < times; ++i) {
-    //    gmm_objective(_input.d, _input.k, _input.n, _input.alphas.data(), _input.means.data(),
-    //        _input.icf.data(), _input.x.data(), _input.wishart, &_output.objective);
-    //}
+    if (_complicated)
+    {
+        for (int i = 0; i < times; ++i) {
+            hand_objective(_input.theta.data(), _input.us.data(), _input.data, _output.objective.data());
+        }
+    }
+    else
+    {
+        for (int i = 0; i < times; ++i) {
+            hand_objective(_input.theta.data(), _input.data, _output.objective.data());
+        }
+    }
 }
 
 void ManualEigenHand::calculateJacobian(int times)
 {
-    //for (int i = 0; i < times; ++i) {
-    //    gmm_objective_d(_input.d, _input.k, _input.n, _input.alphas.data(), _input.means.data(),
-    //        _input.icf.data(), _input.x.data(), _input.wishart, &_output.objective, _output.gradient.data());
-    //}
+    if (_complicated)
+    {
+        for (int i = 0; i < times; ++i) {
+            hand_objective_d(_input.theta.data(), _input.us.data(), _input.data, _output.objective.data(), _output.jacobian.data());
+        }
+    }
+    else
+    {
+        for (int i = 0; i < times; ++i) {
+            hand_objective_d(_input.theta.data(), _input.data, _output.objective.data(), _output.jacobian.data());
+        }
+    }
 }
 
 extern "C" __declspec(dllexport) ITest<HandInput, HandOutput>* __cdecl GetHandTest()
