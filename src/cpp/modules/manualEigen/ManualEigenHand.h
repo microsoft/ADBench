@@ -1,15 +1,16 @@
-// ManualEigenHand.h - Contains declarations of GMM tester functions
+// ManualEigenHand.h - Contains declarations of tester functions
 #pragma once
 
 #include "../../shared/ITest.h"
 #include "../../shared/HandData.h"
-#include "../../shared/HandEigenData.h"
+#include "HandEigenData.h"
 
 #include <vector>
 
 class ManualEigenHand : public ITest<HandInput, HandOutput> {
     HandEigenInput _input;
     HandOutput _output;
+    bool _complicated;
 
 public:
     // This function must be called before any other function.
