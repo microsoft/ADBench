@@ -15,8 +15,12 @@ add_custom_command(TARGET manualEigenTests PRE_BUILD
 add_custom_command(TARGET manualEigenTests PRE_BUILD 
     COMMAND "${CMAKE_COMMAND}" -E copy 
         "${CMAKE_SOURCE_DIR}/data/hand/test.txt"
-        "${CMAKE_CURRENT_BINARY_DIR}/handtest.txt")
+        "${CMAKE_CURRENT_BINARY_DIR}/handtestsmall.txt")
 add_custom_command(TARGET manualEigenTests PRE_BUILD 
-    COMMAND "${CMAKE_COMMAND}" -E copy_directory  
+    COMMAND "${CMAKE_COMMAND}" -E copy 
+        "${CMAKE_SOURCE_DIR}/data/hand/hand_complicated.txt"
+        "${CMAKE_CURRENT_BINARY_DIR}/handtestcomplicated.txt")
+add_custom_command(TARGET manualEigenTests PRE_BUILD 
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory 
         "${CMAKE_SOURCE_DIR}/data/hand/model"
         "${CMAKE_CURRENT_BINARY_DIR}/model")
