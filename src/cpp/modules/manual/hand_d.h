@@ -26,6 +26,10 @@ void angle_axis_to_rotation_matrix_d(
     LightMatrix<double>& R,
     std::array<LightMatrix<double>, 3>& dR);
 
+void apply_global_transform_d_common(const LightMatrix<double>& pose_params, LightMatrix<double>& R, std::array<LightMatrix<double>, 3Ui64> & dR);
+
+void apply_global_translation(const size_t& npts, const LightMatrix<double>& R, const LightMatrix<double>& pose_params, LightMatrix<double>& positions, double* pJ);
+
 // Inputs:
 // corresp - vector<int>
 // pose_params - 3xN matrix
