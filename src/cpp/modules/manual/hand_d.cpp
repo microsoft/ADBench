@@ -80,24 +80,13 @@ void angle_axis_to_rotation_matrix_d(
     }
 }
 
-// Inputs:
-// corresp - vector<int>
-// pose_params - 3xN matrix
-// References
-// positions - 3xN matrix,
-// Outputs:
-// pJ - pointer to memory allocated for the jacobian
-// R - preallocated 3x3 matrix
-void apply_global_transform_d(
-    const std::vector<int>& corresp,
-    const LightMatrix<double>& pose_params,
-    LightMatrix<double>& positions,
-    double* pJ,
-    LightMatrix<double>& R)
+void apply_global_transform_d_common(const LightMatrix<double>& pose_params, LightMatrix<double>& R, std::array<LightMatrix<double>, 3>& dR)
 {
-    std::array<LightMatrix<double>, 3> dR = { LightMatrix<double>(3, 3), LightMatrix<double>(3, 3) , LightMatrix<double>(3, 3) };
     const double const* global_rotation = pose_params.get_col(0);
     angle_axis_to_rotation_matrix_d(global_rotation, R, dR);
+
+    // const Vector3d& global_rotation = pose_params.col(0);
+    // angle_axis_to_rotation_matrix_d(global_rotation, &R, &dR);
     // coef-wise multiplying each row of R by pose_params.get_col(1)
     const double const* pose_params_col1 = pose_params.get_col(1);
     R.scale_col(0, pose_params_col1[0]);
@@ -111,22 +100,12 @@ void apply_global_transform_d(
         dR[i].scale_col(1, pose_params_col1[1]);
         dR[i].scale_col(2, pose_params_col1[2]);
     }
+}
 
-    // global rotation
-    size_t npts = corresp.size();
-    LightMatrix<double> tmp;
-    for (int i_param = 0; i_param < 3; ++i_param)
-    {
-        LightMatrix<double> J_glob_rot(3, npts, &pJ[i_param * 3 * npts], false);
-        for (size_t i_pt = 0; i_pt < npts; i_pt++)
-        {
-            mat_mult(dR[i_param], LightMatrix<double>(3, 1, positions.get_col_ptr(corresp[i_pt]), false), &tmp);
-            J_glob_rot.set_col(i_pt, tmp.get_col(0));
-            J_glob_rot.scale_col(i_pt, -1.);
-        }
-    }
-
+void apply_global_translation(const size_t& npts, const LightMatrix<double>& R, const LightMatrix<double>& pose_params, LightMatrix<double>& positions, double* pJ)
+{
     // global translation
+    LightMatrix<double> tmp;
     LightMatrix<double> J_glob_translation(3 * npts, 3, &pJ[3 * 3 * npts], false);
     double minusIbuf[9] = { -1., 0., 0., 0., -1., 0., 0., 0., -1. };
     LightMatrix<double> minusI(3, 3, minusIbuf, false);
@@ -143,6 +122,41 @@ void apply_global_transform_d(
         add_to(3, col, pose_params_col2);
         positions.set_col(i, col);
     }
+}
+
+// Inputs:
+// corresp - vector<int>
+// pose_params - 3xN matrix
+// References
+// positions - 3xN matrix,
+// Outputs:
+// pJ - pointer to memory allocated for the jacobian
+// R - preallocated 3x3 matrix
+void apply_global_transform_d(
+    const std::vector<int>& corresp,
+    const LightMatrix<double>& pose_params,
+    LightMatrix<double>& positions,
+    double* pJ,
+    LightMatrix<double>& R)
+{
+    std::array<LightMatrix<double>, 3> dR = { LightMatrix<double>(3, 3), LightMatrix<double>(3, 3) , LightMatrix<double>(3, 3) };
+    apply_global_transform_d_common(pose_params, R, dR);
+
+    // global rotation
+    size_t npts = corresp.size();
+    LightMatrix<double> tmp;
+    for (int i_param = 0; i_param < 3; ++i_param)
+    {
+        LightMatrix<double> J_glob_rot(3, npts, &pJ[i_param * 3 * npts], false);
+        for (size_t i_pt = 0; i_pt < npts; i_pt++)
+        {
+            mat_mult(dR[i_param], LightMatrix<double>(3, 1, positions.get_col_ptr(corresp[i_pt]), false), &tmp);
+            J_glob_rot.set_col(i_pt, tmp.get_col(0));
+            J_glob_rot.scale_col(i_pt, -1.);
+        }
+    }
+
+    apply_global_translation(npts, R, pose_params, positions, pJ);
 }
 
 // Inputs:
@@ -165,24 +179,7 @@ void apply_global_transform_d(
     LightMatrix<double>& R)
 {
     std::array<LightMatrix<double>, 3> dR = { LightMatrix<double>(3, 3), LightMatrix<double>(3, 3) , LightMatrix<double>(3, 3) };
-    const double const* global_rotation = pose_params.get_col(0);
-    angle_axis_to_rotation_matrix_d(global_rotation, R, dR);
-
-    // const Vector3d& global_rotation = pose_params.col(0);
-    // angle_axis_to_rotation_matrix_d(global_rotation, &R, &dR);
-    // coef-wise multiplying each row of R by pose_params.get_col(1)
-    const double const* pose_params_col1 = pose_params.get_col(1);
-    R.scale_col(0, pose_params_col1[0]);
-    R.scale_col(1, pose_params_col1[1]);
-    R.scale_col(2, pose_params_col1[2]);
-
-    // same for all dR    
-    for (int i = 0; i < 3; ++i)
-    {
-        dR[i].scale_col(0, pose_params_col1[0]);
-        dR[i].scale_col(1, pose_params_col1[1]);
-        dR[i].scale_col(2, pose_params_col1[2]);
-    }
+    apply_global_transform_d_common(pose_params, R, dR);
 
     // global rotation
     size_t npts = corresp.size();
@@ -209,23 +206,7 @@ void apply_global_transform_d(
         }
     }
 
-    // global translation
-    LightMatrix<double> J_glob_translation(3 * npts, 3, &pJ[3 * 3 * npts], false);
-    double minusIbuf[9] = { -1., 0., 0., 0., -1., 0., 0., 0., -1. };
-    LightMatrix<double> minusI(3, 3, minusIbuf, false);
-    for (size_t i = 0; i < npts; ++i)
-    {
-        J_glob_translation.set_block(i * 3, 0, minusI);
-    }
-
-    mat_mult(R, positions, &tmp_matrix);
-    const double const* pose_params_col2 = pose_params.get_col(2);
-    for (int i = 0; i < positions.ncols_; ++i)
-    {
-        double* col = tmp_matrix.get_col_ptr(i);
-        add_to(3, col, pose_params_col2);
-        positions.set_col(i, col);
-    }
+    apply_global_translation(npts, R, pose_params, positions, pJ);
 }
 
 // Inputs:
