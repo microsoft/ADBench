@@ -6,7 +6,7 @@
 
 std::string str_toupper(std::string s) {
     std::transform(s.begin(), s.end(), s.begin(),
-        [](const unsigned char c) { return std::toupper(c); } 
+        [](const unsigned char c) { return std::toupper(c); }
     );
     return s;
 }
@@ -33,9 +33,14 @@ int main(const int argc, const char* argv[])
 
         if (test_type == "GMM") {
             run_benchmark<GMMInput, GMMOutput>(module_path, input_filepath, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit, replicate_point);
-        } else if (test_type == "BA") {
+        }
+        else if (test_type == "BA") {
             run_benchmark<BAInput, BAOutput>(module_path, input_filepath, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit, replicate_point);
-        } else
+        }
+        else if (test_type == "HAND") {
+            run_benchmark<HandInput, HandOutput>(module_path, input_filepath, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit, replicate_point);
+        }
+        else
         {
             throw exception(("C++ runner doesn't support tests of " + test_type + " type").c_str());
         }
