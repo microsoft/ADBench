@@ -5,6 +5,7 @@
 #include "ModuleLoader.h"
 #include <algorithm>
 #include "OutputSave.h"
+#include "Filepaths.h"
 
 using std::chrono::duration;
 using std::chrono::duration_cast;
@@ -111,8 +112,6 @@ duration<double> measure_shortest_time(const duration<double> minimum_measurable
 //Templated function "save_output_to_file" is deleted to cause a link error if a corresponding template specialization is not implemented.
 template<class Output>
 void save_output_to_file(const Output& output, const string& output_prefix, const string& input_basename, const string& module_basename) = delete;
-
-std::string filepath_to_basename(const std::string& filepath);
 
 //Performs the entire benchmark process according to the documentation
 template<class Input, class Output>

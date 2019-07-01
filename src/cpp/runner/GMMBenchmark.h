@@ -2,8 +2,6 @@
 
 #include "Benchmark.h"
 
-GMMInput read_gmm_data(const std::string& input_file, const bool replicate_point);
-
 template<>
 GMMInput read_input_data<GMMInput>(const std::string& input_file, const bool replicate_point);
 
