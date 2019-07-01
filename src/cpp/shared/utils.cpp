@@ -13,10 +13,10 @@
 #include <chrono>
 #include <cstring>
 
-//#ifdef DO_EIGEN
+#ifdef DO_EIGEN
 #include <Eigen/Dense>
 #include <Eigen/StdVector>
-//#endif
+#endif
 
 #include "light_matrix.h"
 
@@ -308,7 +308,7 @@ void write_times(const string& fn, double tf, double tJ, double* t_sparsity)
     out.close();
 }
 
-//#ifdef DO_EIGEN
+#ifdef DO_EIGEN
 void read_hand_model(const string& path, HandModelEigen* pmodel)
 {
     const char DELIMITER = ':';
@@ -450,7 +450,7 @@ void read_hand_instance(const string& model_dir, const string& fn_in,
     }
     in.close();
 }
-//#endif
+#endif
 
 void read_hand_model(const string& path, HandModelLightMatrix* pmodel)
 {
