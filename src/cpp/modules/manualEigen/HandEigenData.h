@@ -5,9 +5,9 @@
 #include <Eigen/Dense>
 #include <Eigen/StdVector>
 
-struct HandEigenInput
-{
-    std::vector<double> theta;
-    HandDataEigen data;
-    std::vector<double> us;
-};
+//struct HandEigenInput
+//{
+//    std::vector<double> theta;
+//    HandDataEigen data;
+//    std::vector<double> us;
+//};
