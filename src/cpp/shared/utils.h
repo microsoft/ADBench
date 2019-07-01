@@ -119,12 +119,12 @@ void write_times(double tf, double tJ);
 
 void write_times(const std::string& fn, double tf, double tJ, double* t_sparsity = nullptr);
 
-#ifdef DO_EIGEN
+//#ifdef DO_EIGEN
 void read_hand_model(const std::string& path, HandModelEigen* pmodel);
 
 void read_hand_instance(const std::string& model_dir, const std::string& fn_in,
     std::vector<double>* theta, HandDataEigen* data, std::vector<double>* us = nullptr);
-#endif
+//#endif
 
 void read_hand_model(const std::string& path, HandModelLightMatrix* pmodel);
 

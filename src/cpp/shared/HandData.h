@@ -16,3 +16,13 @@ struct HandOutput {
     int jacobian_ncols, jacobian_nrows;
     std::vector<double> jacobian;
 };
+
+#include <Eigen/Dense>
+#include <Eigen/StdVector>
+
+struct HandEigenInput
+{
+    std::vector<double> theta;
+    HandDataEigen data;
+    std::vector<double> us;
+};
