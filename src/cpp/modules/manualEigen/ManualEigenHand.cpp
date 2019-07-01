@@ -45,7 +45,7 @@ void ManualEigenHand::prepare(HandInput&& input)
     {
         _input.data.model.inverse_base_absolutes.push_back(convert_matrix(input.data.model.inverse_base_absolutes[i]));
     }
-
+    _complicated = _input.us.size() != 0;
 }
 
 HandOutput ManualEigenHand::output()
