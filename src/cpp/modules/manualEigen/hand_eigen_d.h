@@ -7,7 +7,7 @@
 #include <Eigen/Dense>
 #include <Eigen/StdVector>
 
-#include "../..//shared/defs.h"
+#include "../../shared/defs.h"
 
 using std::vector;
 using std::unordered_map;
