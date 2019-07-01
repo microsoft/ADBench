@@ -12,9 +12,9 @@ std::string jacobian_file_name(const std::string& output_prefix, const std::stri
 
 void save_time_to_file(const std::string& filepath, const double objective_time, const double derivative_time);
 
-void save_objective_to_file(const std::string& filepath, const double& value);
+void save_value_to_file(const std::string& filepath, const double& value);
 
-void save_gradient_to_file(const std::string& filepath, const std::vector<double>& gradient);
+void save_vector_to_file(const std::string& filepath, const std::vector<double>& gradient);
 
 void save_errors_to_file(const std::string& filepath, const std::vector<double>& reprojection_error,
                          const std::vector<double>& zach_weight_error);

@@ -21,14 +21,14 @@ void save_time_to_file(const std::string& filepath, const double objective_time,
     out.close();
 }
 
-void save_objective_to_file(const std::string& filepath, const double& value)
+void save_value_to_file(const std::string& filepath, const double& value)
 {
     std::ofstream out(filepath);
     out << std::scientific << value;
     out.close();
 }
 
-void save_gradient_to_file(const std::string& filepath, const std::vector<double>& gradient)
+void save_vector_to_file(const std::string& filepath, const std::vector<double>& gradient)
 {
     std::ofstream out(filepath);
 
