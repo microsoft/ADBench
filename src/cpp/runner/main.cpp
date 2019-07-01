@@ -3,6 +3,7 @@
 
 #include "GMMBenchmark.h"
 #include "BABenchmark.h"
+#include "HandBenchmark.h"
 
 std::string str_toupper(std::string s) {
     std::transform(s.begin(), s.end(), s.begin(),

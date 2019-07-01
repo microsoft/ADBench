@@ -1,6 +1,5 @@
 #pragma once
 #include <chrono>
-#include "../shared/GMMData.h"
 #include "../shared/ITest.h"
 #include "ModuleLoader.h"
 #include <algorithm>
