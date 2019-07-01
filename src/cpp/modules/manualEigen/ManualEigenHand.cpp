@@ -9,19 +9,12 @@
 // This function must be called before any other function.
 void ManualEigenHand::prepare(HandInput&& input)
 {
-    auto convert_matrix = [](LightMatrix<double> lightmatrix)
+    auto convert_matrix = [](LightMatrix<double> &lightmatrix)
     {
-        MatrixXd matrix(lightmatrix.nrows_, lightmatrix.ncols_);
-        for (int i = 0; i < lightmatrix.nrows_; i++)
-        {
-            for (int j = 0; j < lightmatrix.ncols_; j++)
-            {
-                matrix(i, j) = lightmatrix.data_[lightmatrix.ncols_ * i + j];
-            }
-        }
-        Map<MatrixXd> map(matrix.data(), lightmatrix.nrows_, lightmatrix.ncols_);
-        return map;
+        Map<MatrixXd> map(lightmatrix.data_, lightmatrix.nrows_, lightmatrix.ncols_);
+        return std::move(map);
     };
+
     _input.theta = input.theta;
     _input.us = input.us;
     _input.data.correspondences = input.data.correspondences;
@@ -31,10 +24,19 @@ void ManualEigenHand::prepare(HandInput&& input)
     _input.data.model.is_mirrored = input.data.model.is_mirrored;
 
     _input.data.points = convert_matrix(input.data.points);
-    input.data.model.base_positions.resize(_input.data.model.base_positions.rows(),
-        input.data.model.base_positions.size() / _input.data.model.base_positions.rows());
-    //TODO: check why input data for hand & eigen_hand have different format
-    _input.data.model.base_positions = convert_matrix(input.data.model.base_positions);
+    int n_bones = input.data.model.bone_names.size();
+    int n_vertices = input.data.model.base_positions.cols();
+    _input.data.model.base_positions.resize(3, n_vertices);
+    LightMatrix<double> tmp_matrix = input.data.model.base_positions;
+    tmp_matrix.resize(3, n_vertices);
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = 0; j < n_vertices; j++)
+        {
+            tmp_matrix(i, j) = input.data.model.base_positions(i, j);
+        }
+    }
+    _input.data.model.base_positions = convert_matrix(tmp_matrix);
     _input.data.model.weights = convert_matrix(input.data.model.weights);
 
     for (int i = 0; i < input.data.model.base_relatives.size(); i++)
@@ -45,7 +47,10 @@ void ManualEigenHand::prepare(HandInput&& input)
     {
         _input.data.model.inverse_base_absolutes.push_back(convert_matrix(input.data.model.inverse_base_absolutes[i]));
     }
+
     _complicated = _input.us.size() != 0;
+    auto err_size = 3 * _input.data.correspondences.size();
+    _output = { std::vector<double>(err_size), std::vector<double>(err_size * ((_complicated ? 2 : 0) + _input.theta.size())) };
 }
 
 HandOutput ManualEigenHand::output()
