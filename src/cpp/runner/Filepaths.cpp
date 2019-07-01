@@ -1,13 +1,13 @@
 #include "Filepaths.h"
 
-std::string::size_type last_slash_position(const std::string& filepath)
+std::string::size_type find_last_slash(const std::string& filepath)
 {
     return filepath.find_last_of("/\\");
 }
 
 std::string filepath_to_basename(const std::string& filepath)
 {
-    const auto last_slash_position = last_slash_position(filepath);
+    const auto last_slash_position = find_last_slash(filepath);
     const auto filename = last_slash_position == std::string::npos
         ? filepath
         : filepath.substr(last_slash_position + 1);
@@ -22,10 +22,10 @@ std::string filepath_to_basename(const std::string& filepath)
 
 std::string filepath_to_dirname(const std::string& filepath)
 {
-    const auto last_slash_position = last_slash_position(filepath);
+    const auto last_slash_position = find_last_slash(filepath);
     const auto dirname = last_slash_position == std::string::npos
         ? "./"
-        : filepath.substr(0,last_slash_position);
+        : filepath.substr(0,last_slash_position + 1);
 
     return dirname;
 }
