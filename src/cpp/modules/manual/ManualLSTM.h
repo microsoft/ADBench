@@ -9,7 +9,8 @@
 class ManualLSTM : public ITest<LSTMInput, LSTMOutput> {
 private:
     LSTMInput input;
-    LSTMOutput output;
+    LSTMOutput result;
+    std::vector<double> state;
 
 public:
     // This function must be called before any other function.

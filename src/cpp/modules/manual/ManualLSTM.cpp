@@ -3,21 +3,25 @@
 #include "../../shared/lstm.h"
 
 // This function must be called before any other function.
-void ManualLSTM::prepare(LSTMInput&& input) : input(input)
+void ManualLSTM::prepare(LSTMInput&& input)
 {
+    this->input = input;
     int Jcols = 0;
-    output = { 0, std::vector<double>(Jcols) };
+    state = std::vector<double>(input.state.size());
+    result = { 0, std::vector<double>(Jcols) };
 }
 
 LSTMOutput ManualLSTM::output()
 {
-    return output;
+    return result;
 }
 
 // TODO: check whether the loop gets optimized away
 void ManualLSTM::calculateObjective(int times)
 {
     for (int i = 0; i < times; ++i) {
+        state = input.state;
+        lstm_objective(input.l, input.c, input.b, input.main_params.data(), input.extra_params.data(), state, input.sequence.data(), &result.objective);
     }
 }
 
