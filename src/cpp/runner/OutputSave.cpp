@@ -60,6 +60,26 @@ void save_errors_to_file(const std::string& filepath, const std::vector<double>&
     out.close();
 }
 
+void save_jacobian_to_file(const std::string& filepath, int jacobian_ncols, int jacobian_nrows, const std::vector<double>& jacobian)
+{
+    std::ofstream out(filepath);
+
+    out << std::scientific;
+
+    for (auto i = 0; i < jacobian_nrows; i++)
+    {
+        out << jacobian[i];
+
+        for (auto j = 1; j < jacobian_ncols; j++)
+        {
+            out << "\t"  << jacobian[jacobian_nrows * j + i];
+        }
+        out << std::endl;
+    }
+
+    out.close();
+}
+
 void save_sparse_j_to_file(const std::string& filepath, const BASparseMat& jacobian)
 {
     write_J_sparse(filepath, jacobian);

@@ -23,5 +23,5 @@ void save_output_to_file<HandOutput>(const HandOutput& output, const string& out
                                      const string& input_basename, const string& module_basename)
 {
     save_vector_to_file(objective_file_name(output_prefix, input_basename, module_basename), output.objective);
-    save_vector_to_file(jacobian_file_name(output_prefix, input_basename, module_basename), output.jacobian);
+    save_jacobian_to_file(jacobian_file_name(output_prefix, input_basename, module_basename), output.jacobian_ncols, output.jacobian_nrows, output.jacobian);
 }
