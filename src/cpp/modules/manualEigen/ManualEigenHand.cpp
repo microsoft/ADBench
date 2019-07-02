@@ -24,7 +24,6 @@ void ManualEigenHand::prepare(HandInput&& input)
     _input.data.model.is_mirrored = input.data.model.is_mirrored;
 
     _input.data.points = convert_matrix(input.data.points);
-    int n_bones = input.data.model.bone_names.size();
     int n_vertices = input.data.model.base_positions.cols();
     _input.data.model.base_positions.resize(3, n_vertices);
     LightMatrix<double> tmp_matrix = input.data.model.base_positions;
