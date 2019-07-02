@@ -13,5 +13,6 @@ struct HandInput
 
 struct HandOutput {
     std::vector<double> objective;
+    int jacobian_ncols, jacobian_nrows;
     std::vector<double> jacobian;
 };
