@@ -5,6 +5,7 @@
 #include "../../../src/cpp/runner/Benchmark.h"
 #include "MockGMM.h"
 #include <thread>
+#include <cmath>
 
 using ::chrono::seconds;
 using ::testing::_;
@@ -31,7 +32,8 @@ TEST(CppRunnerTests, TimeLimit) {
     const auto execution_time = 0.01s;
 
     EXPECT_CALL(dynamic_cast<MockGMM&>(*gmm_test.get()), calculateObjective(_))
-        .Times(testing::AtMost(static_cast<int>(time_limit / execution_time))) //Number of runs should be less then run_count variable because total_time will be reached. 
+        //Number of runs should be less then run_count variable because total_time will be reached. 
+        .Times(testing::AtMost(static_cast<int>(std::ceil(time_limit / execution_time)))) 
         .WillRepeatedly(testing::Invoke([execution_time](auto a) { std::this_thread::sleep_for(execution_time); }));
 
     measure_shortest_time(minimum_measurable_time, run_count, time_limit, gmm_test, &ITest<GMMInput, GMMOutput>::calculateObjective);
@@ -76,6 +78,6 @@ TEST(CppRunnerTests, SearchForRepeats) {
     const auto minimum_measurable_time = 0.01s;
     
     auto result = find_repeats_for_minimum_measurable_time(minimum_measurable_time, gmm_test,
-                                                            &ITest<GMMInput, GMMOutput>::calculateObjective);
+                                                           &ITest<GMMInput, GMMOutput>::calculateObjective);
     ASSERT_GE(result.repeats, assumed_repeats);
 }
