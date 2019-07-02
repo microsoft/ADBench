@@ -75,10 +75,7 @@ TEST(CppRunnerTests, SearchForRepeats) {
     const auto assumed_repeats = 16;
     const auto minimum_measurable_time = 0.01s;
     
-    auto min_sample = duration<double>(seconds(std::numeric_limits<seconds::rep>::max()));
-    auto total_time = duration<double>(0s);
-    auto repeats = find_repeats_for_minimum_measurable_time(minimum_measurable_time, gmm_test,
-                                                            &ITest<GMMInput, GMMOutput>::calculateObjective, min_sample,
-                                                            total_time);
-    ASSERT_GE(repeats, assumed_repeats);
+    auto result = find_repeats_for_minimum_measurable_time(minimum_measurable_time, gmm_test,
+                                                            &ITest<GMMInput, GMMOutput>::calculateObjective);
+    ASSERT_GE(result.repeats, assumed_repeats);
 }
