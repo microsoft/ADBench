@@ -38,11 +38,13 @@ template<class Input, class Output>
 unique_ptr<ITest<Input, Output>> get_test(const ModuleLoader& module_loader) = delete;
 
 template<class Input, class Output>
-int find_repeats_for_minimum_measurable_time(const duration<double> minimum_measurable_time,
+auto find_repeats_for_minimum_measurable_time(const duration<double> minimum_measurable_time,
     std::unique_ptr<ITest<Input, Output>>& test,
-    const test_member_function<Input, Output> func, duration<double>& min_sample,
-    duration<double>& total_time)
+    const test_member_function<Input, Output> func)
 {
+    auto total_time = duration<double>(0s);
+    auto min_sample = duration<double>(std::numeric_limits<double>::max());
+
     auto repeats = 1;
     while (repeats < (1 << 30))
     {
@@ -60,16 +62,20 @@ int find_repeats_for_minimum_measurable_time(const duration<double> minimum_meas
         }
         repeats *= 2;
     }
-    return repeats;
+
+    struct result { int repeats; duration<double> sample; duration<double> total_time; };
+    return result { repeats, min_sample, total_time };
 }
 
 //Measures time according to the documentation.
 template<class Input, class Output>
 duration<double> measure_shortest_time(const duration<double> minimum_measurable_time, const int nruns, const duration<double> time_limit, std::unique_ptr<ITest<Input, Output>>& test, const test_member_function<Input, Output> func)
 {
-    auto min_sample = duration<double>(std::numeric_limits<double>::max());
-    auto total_time = duration<double>(0s);
-    auto repeats = find_repeats_for_minimum_measurable_time(minimum_measurable_time, test, func, min_sample, total_time);
+    auto find_repeats_result = find_repeats_for_minimum_measurable_time(minimum_measurable_time, test, func);
+
+    auto repeats = find_repeats_result.repeats;
+    auto min_sample = find_repeats_result.sample;
+    auto total_time = find_repeats_result.total_time;
 
     for (auto run = 1; (run < nruns) && (total_time < time_limit); run++)
     {
