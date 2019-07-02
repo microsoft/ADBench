@@ -19,7 +19,7 @@
 #include "../../src/cpp/shared/hand_light_matrix.h"
 #endif
 #elif (defined DO_LSTM)
-#include "../cpp-common/lstm.h"
+#include "../../src/cpp/shared/lstm.h"
 #endif
 
 using std::cout;
