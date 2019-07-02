@@ -62,6 +62,9 @@ TEST(HandTests, TestProcessSimple)
     }; // Col-major
 
     ASSERT_EQ(expectedJ.size(), output.jacobian.size());
+    EXPECT_EQ(expectedJ.size(), output.jacobian_ncols * output.jacobian_nrows);
+    EXPECT_EQ(6, output.jacobian_nrows);
+    EXPECT_EQ(26, output.jacobian_ncols);
     for (int i = 0; i < expectedJ.size(); ++i)
         EXPECT_NEAR(expectedJ[i], output.jacobian[i], 0.000001);
 }
@@ -118,6 +121,9 @@ TEST(HandTests, TestProcessComplicated)
     }; // Col-major
 
     ASSERT_EQ(expectedJ.size(), output.jacobian.size());
+    EXPECT_EQ(expectedJ.size(), output.jacobian_ncols * output.jacobian_nrows);
+    EXPECT_EQ(6, output.jacobian_nrows);
+    EXPECT_EQ(28, output.jacobian_ncols);
     for (int i = 0; i < expectedJ.size(); ++i)
         EXPECT_NEAR(expectedJ[i], output.jacobian[i], 0.000001);
 }
