@@ -26,9 +26,12 @@ TEST(CppRunnerTests, LibraryLoadTest) {
 TEST(CppRunnerTests, TimeLimit) {
 
     auto gmm_test = module_loader.get_gmm_test();
-    const auto minimum_measurable_time = 0s;
-    const auto run_count = 100; //Run count guarantees total time greater than the time_limit
+    //Run_count guarantees total time greater than the time_limit
+    const auto run_count = 100; 
     const auto time_limit = 0.1s;
+    //Execution_time should be more than minimum_measurable_time 
+    //because we can expect find_repeats_for_minimum_measurable_time to call calculateObjective function only once in that case.
+    const auto minimum_measurable_time = 0s;
     const auto execution_time = 0.01s;
 
     EXPECT_CALL(dynamic_cast<MockGMM&>(*gmm_test.get()), calculateObjective(_))
