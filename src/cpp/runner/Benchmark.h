@@ -42,7 +42,7 @@ static constexpr auto measurable_time_not_achieved{ -1 };
 
 template<class Input, class Output>
 auto find_repeats_for_minimum_measurable_time(const duration<double> minimum_measurable_time,
-                                              std::unique_ptr<ITest<Input, Output>>& test,
+                                              const std::unique_ptr<ITest<Input, Output>>& test,
                                               const test_member_function<Input, Output> func)
 {
     auto total_time = duration<double>(0s);
