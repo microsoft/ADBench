@@ -19,4 +19,6 @@ void save_vector_to_file(const std::string& filepath, const std::vector<double>&
 void save_errors_to_file(const std::string& filepath, const std::vector<double>& reprojection_error,
                          const std::vector<double>& zach_weight_error);
 
+void save_jacobian_to_file(const std::string& filepath, int jacobian_ncols, int jacobian_nrows, const std::vector<double>& jacobian);
+
 void save_sparse_j_to_file(const std::string& filepath, const BASparseMat& jacobian);
