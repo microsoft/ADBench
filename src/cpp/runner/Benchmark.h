@@ -85,7 +85,7 @@ duration<double> measure_shortest_time(const duration<double> minimum_measurable
 {
     auto find_repeats_result = find_repeats_for_minimum_measurable_time(minimum_measurable_time, test, func);
 
-    if (find_repeats_result == measurable_time_not_achieved)
+    if (find_repeats_result.repeats == measurable_time_not_achieved)
     {
         throw exception("It was not possible to reach the number of repeats sufficient to achieve the minimum measurable time.");
     }
