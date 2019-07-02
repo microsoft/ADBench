@@ -78,9 +78,24 @@ TEST(CppRunnerTests, SearchForRepeats) {
 
     auto gmm_test = module_loader.get_gmm_test();
     const auto assumed_repeats = 16;
-    const auto minimum_measurable_time = 0.01s;
-    
+    const auto execution_time = 0.01s;
+    const auto minimum_measurable_time = execution_time*assumed_repeats;
+
+    EXPECT_CALL(dynamic_cast<MockGMM&>(*gmm_test.get()), calculateObjective(_))
+        .WillRepeatedly(testing::Invoke([execution_time](auto repeats) { std::this_thread::sleep_for(repeats*execution_time); }));
+
     auto result = find_repeats_for_minimum_measurable_time(minimum_measurable_time, gmm_test,
                                                            &ITest<GMMInput, GMMOutput>::calculateObjective);
-    ASSERT_GE(result.repeats, assumed_repeats);
+    ASSERT_NE(result.repeats, measurable_time_not_achieved);
+    ASSERT_LE(result.repeats, assumed_repeats);
+}
+
+TEST(CppRunnerTests, RepeatsNotFound) {
+
+    auto gmm_test = module_loader.get_gmm_test();
+    const auto minimum_measurable_time = 0.01s;
+
+    auto result = find_repeats_for_minimum_measurable_time(minimum_measurable_time, gmm_test,
+                                                           &ITest<GMMInput, GMMOutput>::calculateObjective);
+    ASSERT_EQ(result.repeats, measurable_time_not_achieved);
 }
