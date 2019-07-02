@@ -28,7 +28,7 @@ using test_member_function = void (ITest<Input, Output>::*) (int);
 
 //This function calls a member of ITest class passing 1 int argument.
 template <class Input, class Output>
-void call_member_function(std::unique_ptr<ITest<Input, Output>>& ptr_to_object,
+void call_member_function(const std::unique_ptr<ITest<Input, Output>>& ptr_to_object,
                           const test_member_function<Input, Output> ptr_to_member, const int arg1) {
     (*(ptr_to_object).*(ptr_to_member))(arg1);
 }
