@@ -48,8 +48,9 @@ void ManualEigenHand::prepare(HandInput&& input)
     }
 
     _complicated = _input.us.size() != 0;
-    auto err_size = 3 * _input.data.correspondences.size();
-    _output = { std::vector<double>(err_size), std::vector<double>(err_size * ((_complicated ? 2 : 0) + _input.theta.size())) };
+    int err_size = 3 * _input.data.correspondences.size();
+    int ncols = (_complicated ? 2 : 0) + _input.theta.size();
+    _output = { std::vector<double>(err_size), ncols, err_size, std::vector<double>(err_size * ncols) };
 }
 
 HandOutput ManualEigenHand::output()
