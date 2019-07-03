@@ -56,6 +56,22 @@ std::unique_ptr<ITest<HandInput, HandOutput>> ModuleLoader::get_hand_test() cons
     }
 }
 
+typedef ITest<LSTMInput, LSTMOutput>* (*LSTMTestFuncPtr)();
+
+std::unique_ptr<ITest<LSTMInput, LSTMOutput>> ModuleLoader::get_lstm_test() const
+{
+    auto GetLSTMTest = (LSTMTestFuncPtr)GetProcAddress(hModule,
+                                                       "GetLSTMTest");
+    if (GetLSTMTest != nullptr)
+    {
+        return std::unique_ptr<ITest<LSTMInput, LSTMOutput>>(GetLSTMTest());
+    }
+    else
+    {
+        throw exception("Can't load GetHandTest function");
+    }
+}
+
 ModuleLoader::~ModuleLoader()
 {
     if (hModule != nullptr)

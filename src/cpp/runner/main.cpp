@@ -4,6 +4,7 @@
 #include "GMMBenchmark.h"
 #include "BABenchmark.h"
 #include "HandBenchmark.h"
+#include "LSTMBenchmark.h"
 
 std::string str_toupper(std::string s) {
     std::transform(s.begin(), s.end(), s.begin(),
@@ -40,6 +41,9 @@ int main(const int argc, const char* argv[])
         }
         else if (test_type == "HAND") {
             run_benchmark<HandInput, HandOutput>(module_path, input_filepath, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit, replicate_point);
+        }
+        else if (test_type == "LSTM") {
+            run_benchmark<LSTMInput, LSTMOutput>(module_path, input_filepath, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit, replicate_point);
         }
         else
         {
