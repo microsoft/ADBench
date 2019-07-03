@@ -12,6 +12,7 @@
 #include "../shared/GMMData.h"
 #include "../shared/BAData.h"
 #include "../shared/HandData.h"
+#include "../shared/LSTMData.h"
 
 using namespace std;
 
@@ -22,5 +23,6 @@ public:
     std::unique_ptr<ITest<GMMInput, GMMOutput>> get_gmm_test() const;
     std::unique_ptr<ITest<BAInput, BAOutput>> get_ba_test() const;
     std::unique_ptr<ITest<HandInput, HandOutput>> get_hand_test() const;
+    std::unique_ptr<ITest<LSTMInput, LSTMOutput>> get_lstm_test() const;
     ~ModuleLoader();
 };
