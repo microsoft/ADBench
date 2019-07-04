@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append(sys.path[0] + ("/" if sys.path[0] else None) + "..")
+sys.path.append(sys.path[0] + ("\\" if sys.path[0] else None) + "..")
 from python_common import utils
 from python_common import gmm_io
 
