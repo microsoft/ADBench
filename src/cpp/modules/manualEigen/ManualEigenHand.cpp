@@ -27,16 +27,13 @@ void ManualEigenHand::prepare(HandInput&& input)
     _input.data.points = convert_matrix(input.data.points);
     int n_vertices = input.data.model.base_positions.cols();
     _input.data.model.base_positions.resize(3, n_vertices);
-    LightMatrix<double> tmp_matrix = input.data.model.base_positions;
-    tmp_matrix.resize(3, n_vertices);
     for (int i = 0; i < 3; i++)
     {
         for (int j = 0; j < n_vertices; j++)
         {
-            tmp_matrix(i, j) = input.data.model.base_positions(i, j);
+            _input.data.model.base_positions(i, j) = input.data.model.base_positions(i, j);
         }
     }
-    _input.data.model.base_positions = convert_matrix(tmp_matrix);
     _input.data.model.weights = convert_matrix(input.data.model.weights);
 
     for (int i = 0; i < input.data.model.base_relatives.size(); i++)
