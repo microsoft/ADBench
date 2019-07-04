@@ -22,6 +22,8 @@ void ManualEigenHand::prepare(HandInput&& input)
     _input.data.model.triangles = input.data.model.triangles;
     _input.data.model.is_mirrored = input.data.model.is_mirrored;
 
+    // Matrix& operator=(const DenseBase<OtherDerived>& other)
+    // Copies the value of the expression other into *this with automatic resizing.
     _input.data.points = convert_matrix(input.data.points);
     int n_vertices = input.data.model.base_positions.cols();
     _input.data.model.base_positions.resize(3, n_vertices);
