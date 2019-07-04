@@ -14,7 +14,8 @@
 #include "../../src/cpp/shared/ba.h"
 #elif (defined DO_HAND || defined DO_HAND_COMPLICATED)
 #if defined DO_EIGEN
-#include "../cpp-common/hand_eigen.h"
+#include "../../src/cpp/shared/hand_eigen_model.h"
+#include "../../src/cpp/shared/hand_eigen.h"
 #else
 #include "../../src/cpp/shared/hand_light_matrix.h"
 #endif
