@@ -9,6 +9,7 @@
 
 #include "../../shared/defs.h"
 #include "../../shared/utils.h"
+#include "../../shared/hand_eigen_model.h"
 
 using std::vector;
 using std::unordered_map;

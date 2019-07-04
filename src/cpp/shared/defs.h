@@ -6,6 +6,11 @@ typedef struct
     int m;
 } Wishart;
 
+typedef struct
+{
+    int verts[3];
+} Triangle;
+
 #ifndef NBDirsMax
 #define NBDirsMax 1650
 #endif

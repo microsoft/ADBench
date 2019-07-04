@@ -8,6 +8,7 @@
 #include <Eigen/StdVector>
 
 #include "utils.h"
+#include "hand_eigen_model.h"
 
 using Eigen::Map;
 using Eigen::Vector3d;
