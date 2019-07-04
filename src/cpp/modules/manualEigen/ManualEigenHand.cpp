@@ -6,15 +6,14 @@
 #include <iostream>
 #include <memory>
 
+auto convert_matrix(LightMatrix<double>& lightmatrix)
+{
+    return Map<MatrixXd>(lightmatrix.data_, lightmatrix.nrows_, lightmatrix.ncols_);
+};
+
 // This function must be called before any other function.
 void ManualEigenHand::prepare(HandInput&& input)
 {
-    auto convert_matrix = [](LightMatrix<double> &lightmatrix)
-    {
-        Map<MatrixXd> map(lightmatrix.data_, lightmatrix.nrows_, lightmatrix.ncols_);
-        return std::move(map);
-    };
-
     _input.theta = input.theta;
     _input.us = input.us;
     _input.data.correspondences = input.data.correspondences;
