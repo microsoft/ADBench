@@ -55,6 +55,19 @@ set(GMM_K_VALS 5 10 25 50 100 200)
 # benefit of other tooling.
 set(CMAKE_EXECUTABLE_SUFFIX .exe)
 
+# Make all platforms don't use any prefixes for libraries.
+set(CMAKE_SHARED_LIBRARY_PREFIX "")
+set(CMAKE_SHARED_MODULE_PREFIX "")
+
+# Make all platforms use .dll extensions for executables 
+# to simplify the use of modules.
+set(CMAKE_SHARED_LIBRARY_SUFFIX .dll)
+set(CMAKE_SHARED_MODULE_SUFFIX .dll)
+
+# Make all platforms use similar names for release and debug binaries.
+set(CMAKE_DEBUG_POSTFIX "")
+
+
 # Include sub-projects.
 add_subdirectory ("ADBench")
 add_subdirectory ("src")
