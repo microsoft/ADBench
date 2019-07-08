@@ -10,11 +10,7 @@
 using ::chrono::seconds;
 using ::testing::_;
 
-#ifdef _DEBUG
-const auto module_path = "MockGMMd.dll";
-#else
 const auto module_path = "MockGMM.dll";
-#endif
 
 ModuleLoader module_loader(module_path);
 

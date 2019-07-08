@@ -4,7 +4,7 @@
 
 TEST(HandTests, Load) {
 #ifdef _DEBUG
-    ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manuald.dll");
+    ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
 #else
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
 #endif
@@ -14,11 +14,7 @@ TEST(HandTests, Load) {
 
 TEST(HandTests, TestProcessSimple)
 {
-#ifdef _DEBUG
-    ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manuald.dll");
-#else
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
-#endif
     auto module = moduleLoader.get_hand_test();
     ASSERT_NE(module, nullptr);
     HandInput input;
@@ -71,11 +67,7 @@ TEST(HandTests, TestProcessSimple)
 
 TEST(HandTests, TestProcessComplicated)
 {
-#ifdef _DEBUG
-    ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manuald.dll");
-#else
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
-#endif
     auto module = moduleLoader.get_hand_test();
     ASSERT_NE(module, nullptr);
     HandInput input;
