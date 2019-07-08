@@ -47,7 +47,7 @@ int main(const int argc, const char* argv[])
         }
         else
         {
-            throw exception(("C++ runner doesn't support tests of " + test_type + " type").c_str());
+            throw runtime_error(("C++ runner doesn't support tests of " + test_type + " type").c_str());
         }
     }
     catch (const std::exception& ex)

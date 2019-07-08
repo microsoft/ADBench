@@ -3,9 +3,6 @@
 #include "../../shared/ba.h"
 #include "ba_d.h"
 
-#include <iostream>
-#include <memory>
-
 // This function must be called before any other function.
 void ManualBA::prepare(BAInput&& input)
 {
@@ -60,7 +57,7 @@ void ManualBA::calculateJacobian(int times)
     }
 }
 
-extern "C" __declspec(dllexport) ITest<BAInput, BAOutput>* __cdecl GetBATest()
+extern "C" DLL_PUBLIC ITest<BAInput, BAOutput>* GetBATest()
 {
     return new ManualBA();
 }

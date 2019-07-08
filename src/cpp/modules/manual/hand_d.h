@@ -22,7 +22,7 @@
 // R - preallocated 3x3 matrix
 // dR - array of 3 preallocated 3x3 matrices
 void angle_axis_to_rotation_matrix_d(
-    const double const* angle_axis,
+    const double* angle_axis,
     LightMatrix<double>& R,
     std::array<LightMatrix<double>, 3>& dR);
 
@@ -31,7 +31,7 @@ void angle_axis_to_rotation_matrix_d(
 // Outputs:
 // R - preallocated 3x3 matrix
 // dR - array of 3 preallocated 3x3 matrices
-void apply_global_transform_d_common(const LightMatrix<double>& pose_params, LightMatrix<double>& R, std::array<LightMatrix<double>, 3Ui64> & dR);
+void apply_global_transform_d_common(const LightMatrix<double>& pose_params, LightMatrix<double>& R, std::array<LightMatrix<double>, 3> & dR);
 
 // Inputs:
 // npts - int
@@ -98,7 +98,7 @@ void relatives_to_absolutes_d(
 // pdR0 - nullable pointer to 3x3 matrix (computed only if not null)
 // pdR1 - nullable pointer to 3x3 matrix (computed only if not null)
 void euler_angles_to_rotation_matrix(
-    const double const* xzy,
+    const double* xzy,
     LightMatrix<double>& R,
     LightMatrix<double>* pdR0 = nullptr,
     LightMatrix<double>* pdR1 = nullptr);
