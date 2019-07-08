@@ -3,22 +3,14 @@
 #include "../../../../src/cpp/shared/utils.h"
 
 TEST(ManualTests, Gmm_Load) {
-#ifdef _DEBUG
-    ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manuald.dll");
-#else
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
-#endif
     auto test = moduleLoader.get_gmm_test();
     ASSERT_NE(test, nullptr);
 }
 
 TEST(ManualTests, Gmm_TestProcess)
 {
-#ifdef _DEBUG
-    ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manuald.dll");
-#else
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
-#endif
     auto module = moduleLoader.get_gmm_test();
     ASSERT_NE(module, nullptr);
     GMMInput input;

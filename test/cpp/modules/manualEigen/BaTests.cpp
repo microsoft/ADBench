@@ -3,22 +3,14 @@
 #include "../../../../src/cpp/shared/utils.h"
 
 TEST(ManualEigenTests, Ba_Load) {
-#ifdef _DEBUG
-    ModuleLoader moduleLoader("../../../../src/cpp/modules/manualEigen/ManualEigend.dll");
-#else
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manualEigen/ManualEigen.dll");
-#endif
     auto test = moduleLoader.get_ba_test();
     ASSERT_NE(test, nullptr);
 }
 
 TEST(ManualEigenTests, Ba_TestProcess)
 {
-#ifdef _DEBUG
-    ModuleLoader moduleLoader("../../../../src/cpp/modules/manualEigen/ManualEigend.dll");
-#else
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manualEigen/ManualEigen.dll");
-#endif
     auto module = moduleLoader.get_ba_test();
     ASSERT_NE(module, nullptr);
     BAInput input;
