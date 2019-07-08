@@ -53,8 +53,8 @@ struct LayerParams
     const WeightOrBias<T> bias;
 
     LayerParams(const T* layer_params, int hsize) :
-        weight(main_params, hsize),
-        bias(&main_params[hsize * 4], hsize)
+        weight(layer_params, hsize),
+        bias(&layer_params[hsize * 4], hsize)
     {}
 };
 
@@ -92,12 +92,12 @@ struct InputSequence
 {
     std::vector<const T*> sequence;
 
-    InputSequence(const T* sequence, int char_bits, int char_count)
+    InputSequence(const T* input_sequence, int char_bits, int char_count)
     {
-        layer_params.reserve(char_count);
-        for (int i = 0; i < n_layers; ++i)
+        sequence.reserve(char_count);
+        for (int i = 0; i < char_count; ++i)
         {
-            layer_params.push_back(&sequence[char_bits * i]);
+            sequence.push_back(&input_sequence[char_bits * i]);
         }
     }
 };
@@ -134,8 +134,8 @@ struct State
 // The LSTM model
 template<typename T>
 void lstm_model(int hsize,
-	const T* weight, const T* bias,
-	T* hidden, T* cell,
+	const LayerParams<T>& params,
+	LayerState<T>& state,
 	const T* input)
 {
 	vector<T> gates(4 * hsize);
@@ -143,34 +143,36 @@ void lstm_model(int hsize,
 	T* ingate = &gates[hsize];
 	T* outgate = &gates[2 * hsize];
 	T* change = &gates[3 * hsize];
-	for (int i = 0; i < hsize; i++) {
-		forget[i] = sigmoid(input[i] * weight[i] + bias[i]);
-		ingate[i] = sigmoid(hidden[i] * weight[hsize + i] + bias[hsize + i]);
-		outgate[i] = sigmoid(input[i] * weight[2 * hsize + i] + bias[2 * hsize + i]);
-		change[i] = tanh(hidden[i] * weight[3 * hsize + i] + bias[3 * hsize + i]);
+	for (int i = 0; i < hsize; ++i) {
+		forget[i] = sigmoid(input[i] * params.weight.forget[i] + params.bias.forget[i]);
+		ingate[i] = sigmoid(state.hidden[i] * params.weight.ingate[i] + params.bias.ingate[i]);
+		outgate[i] = sigmoid(input[i] * params.weight.outgate[i] + params.bias.outgate[i]);
+		change[i] = tanh(state.hidden[i] * params.weight.change[i] + params.bias.change[i]);
 	}
 
-	for (int i = 0; i < hsize; i++) cell[i] = cell[i] * forget[i] + ingate[i] * change[i];
-	for (int i = 0; i < hsize; i++) hidden[i] = outgate[i] * tanh(cell[i]);
+	for (int i = 0; i < hsize; i++) state.cell[i] = state.cell[i] * forget[i] + ingate[i] * change[i];
+	for (int i = 0; i < hsize; i++) state.hidden[i] = outgate[i] * tanh(state.cell[i]);
 }
 	
 // Predict LSTM output given an input
 template<typename T>
 void lstm_predict(int l, int b,
-	const T* w, const T* w2,
-	T* s,
-	const T* x, T* x2)
+	const MainParams<T>& main_params, const ExtraParams<T>& extra_params,
+	State<T>& state,
+	const T* input, T* output)
 {
-	for (int i = 0; i < b; i++) x2[i] = x[i] * w2[i];
+	for (int i = 0; i < b; ++i)
+        output[i] = input[i] * extra_params.in_weight[i];
 
-	T* xp = x2;
+	T* layer_output = output;
 
-	for (int i = 0; i < 2 * l * b; i += 2 * b) {
-		lstm_model(b, &w[i * 4], &w[(i + b) * 4], &s[i], &s[i + b], xp);
-		xp = &s[i];
-	}
+    for (int i = 0; i < l; ++i)
+    {
+        lstm_model(b, main_params.layer_params[i], state.layer_state[i], layer_output);
+        layer_output = state.layer_state[i].hidden;
+    }
 
-	for (int i = 0; i < b; i++) x2[i] = xp[i] * w2[b + i] + w2[2 * b + i];
+	for (int i = 0; i < b; i++) output[i] = layer_output[i] * extra_params.out_weight[i] + extra_params.out_bias[i];
 }
 	
 
@@ -183,20 +185,23 @@ void lstm_objective(int l, int c, int b,
 {
 	T total = 0.0;
 	int count = 0;
-	const T* input = &sequence[0];
-	for (int t = 0; t < (c - 1) * b; t += b) {
-		vector<T> ypred(b), ynorm(b);
-		lstm_predict(l, b, main_params, extra_params, state.data(), input, ypred.data());
+    MainParams<T> main_params_wrap(main_params, b, l);
+    ExtraParams<T> extra_params_wrap(extra_params, b);
+    State<T> state_wrap(state.data(), b, l);
+    InputSequence<T> sequence_wrap(sequence, b, c);
+    vector<T> ypred(b), ynorm(b);
+    for (int t = 0; t < c - 1; ++t)
+    {
+        lstm_predict(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t], ypred.data());
 
-		T lse = logsumexp(ypred.data(), b);
-		for (int i = 0; i < b; i++) ynorm[i] = ypred[i] - lse;
+        T lse = logsumexp(ypred.data(), b);
+        for (int i = 0; i < b; i++) ynorm[i] = ypred[i] - lse;
 
-		const T* ygold = &sequence[t + b];
-		for (int i = 0; i < b; i++) total += ygold[i] * ynorm[i];
+        const T* ygold = sequence_wrap.sequence[t + 1];
+        for (int i = 0; i < b; i++) total += ygold[i] * ynorm[i];
 
-		count += b;
-		input = ygold;
-	}
+        count += b;
+    }
 
 	*loss = -total / count;
 }
