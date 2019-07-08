@@ -6,4 +6,8 @@ hunter_config(glog
 
 # Making sure there will be GTest (when tests are enabled)
 # in RelWithDebInfo configuration to link against
-hunter_config(GTest VERSION ${HUNTER_GTest_VERSION} CONFIGURATION_TYPES Release RelWithDebInfo Debug)
+hunter_config(GTest 
+	VERSION ${HUNTER_GTest_VERSION} 
+	CONFIGURATION_TYPES Release RelWithDebInfo Debug 
+	CMAKE_ARGS CMAKE_POSITION_INDEPENDENT_CODE=ON
+)

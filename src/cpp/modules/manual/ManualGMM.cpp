@@ -4,7 +4,6 @@
 #include "gmm_d.h"
 
 #include <iostream>
-#include <memory>
 
 // This function must be called before any other function.
 void ManualGMM::prepare(GMMInput&& input)
@@ -36,7 +35,7 @@ void ManualGMM::calculateJacobian(int times)
     }
 }
 
-extern "C" __declspec(dllexport) ITest<GMMInput, GMMOutput>* __cdecl GetGMMTest()
+extern "C" DLL_PUBLIC ITest<GMMInput, GMMOutput>* GetGMMTest()
 {
     return new ManualGMM();
 }

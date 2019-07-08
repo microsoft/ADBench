@@ -7,17 +7,15 @@
 
 class MockGMM : public ITest<GMMInput, GMMOutput> {
 public:
-    //This function must be called before any other function.
-    void prepare(GMMInput&& input) override;
+    //This function must be called before any other function.    
+    void prepare(GMMInput&& input) { prepare(input); };
+    MOCK_METHOD1(prepare, void(const GMMInput& input));
 
     MOCK_METHOD1(calculateObjective, void(int times));
-    void calculateJacobian(int times) override;
+    MOCK_METHOD1(calculateJacobian, void(int times));
 
     //Returns results of calculation
-    GMMOutput output() override; 
+    MOCK_METHOD0(output, GMMOutput());
 
     ~MockGMM() = default;
-
-    // Inherited via ITest
-
 };

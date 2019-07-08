@@ -1,6 +1,10 @@
 #pragma once 
 
-#include "defs.h"
+#if __GNUC__ >= 4
+#define DLL_PUBLIC __attribute__ ((visibility("default")))
+#else
+#define DLL_PUBLIC __declspec(dllexport)
+#endif
 
 template <typename Input, typename Output>
 class ITest {
@@ -16,4 +20,4 @@ public:
 
 // Factory function that creates instances of the GMMTester object.
 // Should be declared in each module.
-// extern "C" IGMMTesterAPI IGMMTester* APIENTRY GetGMMTester();
+// extern "C" DLL_PUBLIC ITest<Input,Output>* GetGMMTester();

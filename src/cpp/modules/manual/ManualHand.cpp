@@ -1,8 +1,8 @@
 // ManualHand.cpp : Defines the exported functions for the DLL.
 #include "ManualHand.h"
 
-#include "../../shared/hand_light_matrix.h";
-#include "hand_d.h";
+#include "../../shared/hand_light_matrix.h"
+#include "hand_d.h"
 
 // This function must be called before any other function.
 void ManualHand::prepare(HandInput&& input)
@@ -52,7 +52,7 @@ void ManualHand::calculateJacobian(int times)
     }
 }
 
-extern "C" __declspec(dllexport) ITest<HandInput, HandOutput>* __cdecl GetHandTest()
+extern "C" DLL_PUBLIC ITest<HandInput, HandOutput>* GetHandTest()
 {
     return new ManualHand();
 }
