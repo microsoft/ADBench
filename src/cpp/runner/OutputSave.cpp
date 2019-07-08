@@ -65,7 +65,7 @@ void save_jacobian_to_file(const std::string& filepath, int jacobian_ncols, int 
     const auto passed_size = static_cast<decltype(jacobian.size())>(jacobian_ncols) * jacobian_nrows;
     if (jacobian.size() != passed_size)
     {
-        throw std::exception("The actual passed jacobian size is inconsistent with the passed number of rows and columns.");
+        throw std::logic_error("The actual passed jacobian size is inconsistent with the passed number of rows and columns.");
     }
 
     std::ofstream out(filepath);

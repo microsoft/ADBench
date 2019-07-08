@@ -3,9 +3,6 @@
 #include "../../shared/ba_eigen.h"
 #include "ba_d.h"
 
-#include <iostream>
-#include <memory>
-
 // This function must be called before any other function.
 void ManualEigenBA::prepare(BAInput&& input)
 {
@@ -31,7 +28,7 @@ void ManualEigenBA::calculateObjective(int times)
 
 void ManualEigenBA::calculateJacobian(int times)
 {
-    for (int i = 0; i < times; ++i) {
+    for (int t = 0; t < times; ++t) {
         _output.J.clear();
         for (int i = 0; i < _input.p; i++)
         {
@@ -60,7 +57,7 @@ void ManualEigenBA::calculateJacobian(int times)
     }
 }
 
-extern "C" __declspec(dllexport) ITest<BAInput, BAOutput>* __cdecl GetBATest()
+extern "C" DLL_PUBLIC ITest<BAInput, BAOutput>* GetBATest()
 {
     return new ManualEigenBA();
 }
