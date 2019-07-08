@@ -1,6 +1,10 @@
 project("ManualTests" CXX)
 add_executable(manualTests GmmTests.cpp BaTests.cpp HandTests.cpp "${CMAKE_SOURCE_DIR}/src/cpp/runner/ModuleLoader.cpp" "${CMAKE_SOURCE_DIR}/src/cpp/shared/utils.cpp")
 
+if (UNIX)
+	target_link_libraries(manualTests PUBLIC dl)
+endif (UNIX)
+
 add_test("manualtests" manualTests)
 add_dependencies(manualTests Manual)
 target_link_libraries(manualTests PUBLIC GTest::main)

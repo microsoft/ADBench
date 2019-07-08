@@ -1,12 +1,19 @@
 #pragma once
 
 #include <memory>
-#include <string>
+#ifdef _WIN32
 #include "Windows.h"
 //Uncommenting macros defined in Windows.h to be able 
 //to use functions whose name ends with "min" and "max".
 #undef min
 #undef max
+#define MODULE_PTR HINSTANCE
+#define FUNCTION_PTR FARPROC
+#elif __linux__ 
+#include <dlfcn.h>
+#define MODULE_PTR void*
+#define FUNCTION_PTR void*
+#endif
 
 #include "../shared/ITest.h"
 #include "../shared/GMMData.h"
@@ -17,9 +24,10 @@
 using namespace std;
 
 class ModuleLoader {
-    HINSTANCE hModule = nullptr;
+    MODULE_PTR module_ptr_ = nullptr;
+    FUNCTION_PTR load_function(const std::string& symbol_name) const;
 public:
-    ModuleLoader(const char* file_path);
+    explicit ModuleLoader(const char* file_path);
     std::unique_ptr<ITest<GMMInput, GMMOutput>> get_gmm_test() const;
     std::unique_ptr<ITest<BAInput, BAOutput>> get_ba_test() const;
     std::unique_ptr<ITest<HandInput, HandOutput>> get_hand_test() const;

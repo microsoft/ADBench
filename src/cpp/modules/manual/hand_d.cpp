@@ -6,9 +6,9 @@
  * for the sake of better performance.
 */
 
-#include "hand_d.h";
+#include "hand_d.h"
 
-#include "../../shared/matrix.h";
+#include "../../shared/matrix.h"
 
 // Inputs:
 // angle_axis - double[3]
@@ -16,7 +16,7 @@
 // R - preallocated 3x3 matrix
 // dR - array of 3 preallocated 3x3 matrices
 void angle_axis_to_rotation_matrix_d(
-    const double const* angle_axis,
+    const double* angle_axis,
     LightMatrix<double>& R,
     std::array<LightMatrix<double>, 3>& dR)
 {
@@ -88,13 +88,13 @@ void angle_axis_to_rotation_matrix_d(
 void apply_global_transform_d_common(
     const LightMatrix<double>& pose_params, LightMatrix<double>& R, std::array<LightMatrix<double>, 3>& dR)
 {
-    const double const* global_rotation = pose_params.get_col(0);
+    const double* global_rotation = pose_params.get_col(0);
     angle_axis_to_rotation_matrix_d(global_rotation, R, dR);
 
     // const Vector3d& global_rotation = pose_params.col(0);
     // angle_axis_to_rotation_matrix_d(global_rotation, &R, &dR);
     // coef-wise multiplying each row of R by pose_params.get_col(1)
-    const double const* pose_params_col1 = pose_params.get_col(1);
+    const double* pose_params_col1 = pose_params.get_col(1);
     R.scale_col(0, pose_params_col1[0]);
     R.scale_col(1, pose_params_col1[1]);
     R.scale_col(2, pose_params_col1[2]);
@@ -129,7 +129,7 @@ void apply_global_translation_d(const size_t& npts, const LightMatrix<double>& R
     }
 
     mat_mult(R, positions, &tmp);
-    const double const* pose_params_col2 = pose_params.get_col(2);
+    const double* pose_params_col2 = pose_params.get_col(2);
     for (int i = 0; i < positions.cols(); ++i)
     {
         double* col = tmp.get_col_ptr(i);
@@ -294,7 +294,7 @@ void relatives_to_absolutes_d(
 // pdR0 - nullable pointer to 3x3 matrix (computed only if not null)
 // pdR1 - nullable pointer to 3x3 matrix (computed only if not null)
 void euler_angles_to_rotation_matrix(
-    const double const* xzy,
+    const double* xzy,
     LightMatrix<double>& R,
     LightMatrix<double>* pdR0,
     LightMatrix<double>* pdR1)
