@@ -28,14 +28,115 @@ T logsumexp(const T* const vect, int sz) {
 	return log(sum);
 }
 
+// Helper structures
+
+template<typename T>
+struct WeightOrBias
+{
+    const T* forget;
+    const T* ingate;
+    const T* outgate;
+    const T* change;
+
+    WeightOrBias(const T* params, int hsize) :
+        forget(params),
+        ingate(&params[hsize]),
+        outgate(&params[2 * hsize]),
+        change(&params[3 * hsize])
+    {}
+};
+
+template<typename T>
+struct LayerParams
+{
+    const WeightOrBias<T> weight;
+    const WeightOrBias<T> bias;
+
+    LayerParams(const T* layer_params, int hsize) :
+        weight(main_params, hsize),
+        bias(&main_params[hsize * 4], hsize)
+    {}
+};
+
+template<typename T>
+struct MainParams
+{
+    std::vector<LayerParams<T>> layer_params;
+
+    MainParams(const T* main_params, int hsize, int n_layers)
+    {
+        layer_params.reserve(n_layers);
+        for (int i = 0; i < n_layers; ++i)
+        {
+            layer_params.emplace_back(&main_params[8 * hsize * i], hsize);
+        }
+    }
+};
+
+template<typename T>
+struct ExtraParams
+{
+    const T* in_weight;
+    const T* out_weight;
+    const T* out_bias;
+
+    ExtraParams(const T* params, int hsize) :
+        in_weight(params),
+        out_weight(&params[hsize]),
+        out_bias(&params[2 * hsize])
+    {}
+};
+
+template<typename T>
+struct InputSequence
+{
+    std::vector<const T*> sequence;
+
+    InputSequence(const T* sequence, int char_bits, int char_count)
+    {
+        layer_params.reserve(char_count);
+        for (int i = 0; i < n_layers; ++i)
+        {
+            layer_params.push_back(&sequence[char_bits * i]);
+        }
+    }
+};
+
+template<typename T>
+struct LayerState
+{
+    T* hidden;
+    T* cell;
+
+    LayerState(T* layer_state, int hsize) :
+        hidden(layer_state),
+        cell(&layer_state[hsize])
+    {}
+};
+
+template<typename T>
+struct State
+{
+    std::vector<LayerState<T>> layer_state;
+
+    State(T* state, int hsize, int n_layers)
+    {
+        layer_state.reserve(n_layers);
+        for (int i = 0; i < n_layers; ++i)
+        {
+            layer_state.emplace_back(&state[2 * hsize * i], hsize);
+        }
+    }
+};
+
 // LSTM OBJECTIVE
 
 // The LSTM model
 template<typename T>
 void lstm_model(int hsize,
-	const T* const weight, const T* const bias,
+	const T* weight, const T* bias,
 	T* hidden, T* cell,
-	const T* const input)
+	const T* input)
 {
 	vector<T> gates(4 * hsize);
 	T* forget = &gates[0];
@@ -56,9 +157,9 @@ void lstm_model(int hsize,
 // Predict LSTM output given an input
 template<typename T>
 void lstm_predict(int l, int b,
-	const T* const w, const T* const w2,
+	const T* w, const T* w2,
 	T* s,
-	const T* const x, T* x2)
+	const T* x, T* x2)
 {
 	for (int i = 0; i < b; i++) x2[i] = x[i] * w2[i];
 
@@ -76,8 +177,8 @@ void lstm_predict(int l, int b,
 // LSTM objective (loss function)
 template<typename T>
 void lstm_objective(int l, int c, int b, 
-	const T* const main_params, const T* const extra_params,
-	vector<T> state, const T* const sequence,
+	const T* main_params, const T* extra_params,
+	vector<T> state, const T* sequence,
 	T* loss)
 {
 	T total = 0.0;
