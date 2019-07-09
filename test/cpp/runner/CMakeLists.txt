@@ -1,3 +1,5 @@
+include(GoogleTest)
+
 project("CppRunnerTests" CXX)
 
 set(CMAKE_SHARED_LIBRARY_SUFFIX .dll)
@@ -12,4 +14,4 @@ endif (UNIX)
 add_library(MockGMM MODULE "MockGMM.cpp")
 target_link_libraries(MockGMM PUBLIC GMock::main) 
 
-add_test(cppRunnerTests cppRunnerTests)
+gtest_add_tests(cppRunnerTests "" AUTO)
