@@ -80,7 +80,7 @@ void gmm_objective_no_priors_d(int d, int k, int n,
   *err = CONSTANT + slse - n*lse_alphas;
 }
 
-void gmm_objective_simple_d(int d, int k, int n,
+void gmm_objective_d(int d, int k, int n,
   const double *alphas,
   const double *means,
   const double *icf,

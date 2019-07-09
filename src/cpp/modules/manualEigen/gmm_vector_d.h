@@ -19,7 +19,7 @@
 // wishart: wishart distribution parameters
 // x: d*n points
 // err: 1 output
-void gmm_objective_vector_d(int d, int k, int n,
+void gmm_objective_d(int d, int k, int n,
   const double *alphas,
   const double *means,
   const double *icf,
