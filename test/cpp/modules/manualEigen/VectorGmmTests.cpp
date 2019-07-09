@@ -2,7 +2,7 @@
 #include "../../../../src/cpp/runner/ModuleLoader.h"
 #include "../../../../src/cpp/shared/utils.h"
 
-TEST(ManualEigenTests, vector_gmm_load) {
+TEST(GmmTests, ManualEigenVector_Load) {
 #ifdef _DEBUG
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manualEigen/ManualEigenVectord.dll");
 #else
@@ -12,7 +12,7 @@ TEST(ManualEigenTests, vector_gmm_load) {
     ASSERT_NE(test, nullptr);
 }
 
-TEST(ManualEigenTests, vector_gmm_test_process)
+TEST(GmmTests, ManualEigenVector_TestProcess)
 {
 #ifdef _DEBUG
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manualEigen/ManualEigenVectord.dll");
