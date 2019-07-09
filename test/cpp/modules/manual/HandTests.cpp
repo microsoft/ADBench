@@ -62,7 +62,7 @@ TEST(HandTests, TestProcessSimple)
         EXPECT_NEAR(expectedJ[i], output.jacobian[i], 0.000001);
 }
 
-TEST(HandTests, TestProcessComplicated)
+TEST(HandTests, Manual_TestProcessComplicated)
 {
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
     auto module = moduleLoader.get_hand_test();
