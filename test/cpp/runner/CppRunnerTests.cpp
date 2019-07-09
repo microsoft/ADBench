@@ -10,7 +10,7 @@
 using ::chrono::seconds;
 using ::testing::_;
 
-const auto module_path = "MockGMM.dll";
+const auto module_path = "./MockGMM.dll";
 
 ModuleLoader module_loader(module_path);
 
