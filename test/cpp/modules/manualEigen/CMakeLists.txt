@@ -1,7 +1,7 @@
 include(GoogleTest)
 
 project("ManualEigenTests" CXX)
-add_executable(manualEigenTests GmmTests.cpp BaTests.cpp HandTests.cpp "${CMAKE_SOURCE_DIR}/src/cpp/runner/ModuleLoader.cpp" "${CMAKE_SOURCE_DIR}/src/cpp/shared/utils.cpp")
+add_executable(manualEigenTests GmmTests.cpp BaTests.cpp HandTests.cpp VectorGmmTests.cpp "${CMAKE_SOURCE_DIR}/src/cpp/runner/ModuleLoader.cpp" "${CMAKE_SOURCE_DIR}/src/cpp/shared/utils.cpp")
 
 if (UNIX)
 	target_link_libraries(manualEigenTests PUBLIC dl)
