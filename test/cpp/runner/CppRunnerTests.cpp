@@ -8,6 +8,7 @@
 #include <cmath>
 
 using ::chrono::seconds;
+using ::testing::AnyNumber;
 using ::testing::_;
 
 const auto module_path = "./MockGMM.dll";
@@ -89,7 +90,10 @@ TEST(CppRunnerTests, SearchForRepeats) {
 TEST(CppRunnerTests, RepeatsNotFound) {
 
     auto gmm_test = module_loader.get_gmm_test();
-    const auto minimum_measurable_time = 0.01s;
+    const auto minimum_measurable_time = 1000s;
+
+    EXPECT_CALL(dynamic_cast<MockGMM&>(*gmm_test.get()), calculateObjective(_))
+    .Times(AnyNumber());
 
     auto result = find_repeats_for_minimum_measurable_time(minimum_measurable_time, gmm_test,
                                                            &ITest<GMMInput, GMMOutput>::calculateObjective);
