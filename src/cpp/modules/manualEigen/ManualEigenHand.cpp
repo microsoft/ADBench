@@ -89,7 +89,7 @@ void ManualEigenHand::calculateJacobian(int times)
     }
 }
 
-extern "C" __declspec(dllexport) ITest<HandInput, HandOutput>* __cdecl GetHandTest()
+extern "C" DLL_PUBLIC ITest<HandInput, HandOutput>* GetHandTest()
 {
     return new ManualEigenHand();
 }
