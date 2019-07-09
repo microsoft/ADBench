@@ -2,8 +2,6 @@
 
 #include "../../shared/defs.h"
 
-#include "gmm_d.h"
-
 // d: dim
 // k: number of gaussians
 // n: number of points

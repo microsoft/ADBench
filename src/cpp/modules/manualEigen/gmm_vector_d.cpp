@@ -12,6 +12,8 @@ using std::vector;
 #include "gmm_d.h"
 #include "../../shared/gmm_eigen_vector.h"
 
+#include "Eigen/Dense"
+
 using Eigen::Map;
 using Eigen::VectorXd;
 using Eigen::RowVectorXd;

@@ -9,11 +9,10 @@
 using std::vector;
 
 #include "../../shared/gmm.h"
-
-#include "Eigen/Dense"
-
 #include "gmm_d.h"
 #include "../../shared/gmm_eigen_simple.h"
+
+#include "Eigen/Dense"
 
 using Eigen::Map;
 using Eigen::VectorXd;
