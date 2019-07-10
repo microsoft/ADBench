@@ -2,7 +2,8 @@
 #include "../../../../src/cpp/runner/ModuleLoader.h"
 #include "../../../../src/cpp/shared/utils.h"
 
-TEST(ManualTests, Gmm_Load) {
+TEST(ManualTests, Gmm_Load) 
+{
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
     auto test = moduleLoader.get_gmm_test();
     ASSERT_NE(test, nullptr);

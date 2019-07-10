@@ -3,22 +3,14 @@
 #include "../../../../src/cpp/shared/utils.h"
 
 TEST(ManualEigenTests, Hand_Load) {
-#ifdef _DEBUG
-    ModuleLoader moduleLoader("../../../../src/cpp/modules/manualEigen/ManualEigend.dll");
-#else
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manualEigen/ManualEigen.dll");
-#endif
     auto test = moduleLoader.get_gmm_test();
     ASSERT_NE(test, nullptr);
 }
 
 TEST(ManualEigenTests, Hand_TestProcessSimple)
 {
-#ifdef _DEBUG
-    ModuleLoader moduleLoader("../../../../src/cpp/modules/manualEigen/ManualEigend.dll");
-#else
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manualEigen/ManualEigen.dll");
-#endif
     auto module = moduleLoader.get_hand_test();
     ASSERT_NE(module, nullptr);
     HandInput input;
@@ -67,11 +59,7 @@ TEST(ManualEigenTests, Hand_TestProcessSimple)
 
 TEST(ManualEigenTests, Hand_TestProcessComplicated)
 {
-#ifdef _DEBUG
-    ModuleLoader moduleLoader("../../../../src/cpp/modules/manualEigen/ManualEigend.dll");
-#else
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manualEigen/ManualEigen.dll");
-#endif
     auto module = moduleLoader.get_hand_test();
     ASSERT_NE(module, nullptr);
     HandInput input;

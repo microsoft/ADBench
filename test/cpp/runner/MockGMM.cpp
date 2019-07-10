@@ -2,9 +2,10 @@
 #include "MockGMM.h"
 
 #include <chrono>
-#include <iostream>
 
 extern "C" DLL_PUBLIC ITest<GMMInput, GMMOutput>* GetGMMTest()
 {
     return new MockGMM();
 }
+
+
