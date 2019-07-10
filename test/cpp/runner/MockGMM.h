@@ -8,7 +8,7 @@
 class MockGMM : public ITest<GMMInput, GMMOutput> {
 public:
     //This function must be called before any other function.    
-    void prepare(GMMInput&& input) { prepare(input); };
+    void prepare(GMMInput&& input) { prepare(input); }
     MOCK_METHOD1(prepare, void(const GMMInput& input));
 
     MOCK_METHOD1(calculateObjective, void(int times));

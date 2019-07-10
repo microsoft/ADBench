@@ -5,6 +5,7 @@
 #else
 #define DLL_PUBLIC __declspec(dllexport)
 #endif
+#include <ostream>
 
 template <typename Input, typename Output>
 class ITest {
@@ -15,8 +16,11 @@ public:
     virtual void calculateObjective(int times) = 0;
     virtual void calculateJacobian(int times) = 0;
     virtual Output output() = 0;
-    virtual ~ITest() = default;
+    virtual ~ITest() = 0;
 };
+
+template <typename Input, typename Output>
+ITest<Input, Output>::~ITest() = default;
 
 // Factory function that creates instances of the GMMTester object.
 // Should be declared in each module.
