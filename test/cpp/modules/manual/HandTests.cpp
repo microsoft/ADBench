@@ -2,12 +2,9 @@
 #include "../../../../src/cpp/runner/ModuleLoader.h"
 #include "../../../../src/cpp/shared/utils.h"
 
-TEST(HandTests, Load) {
-#ifdef _DEBUG
+TEST(HandTests, Load) 
+{
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
-#else
-    ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
-#endif
     auto test = moduleLoader.get_hand_test();
     ASSERT_NE(test, nullptr);
 }

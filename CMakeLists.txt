@@ -67,7 +67,6 @@ set(CMAKE_SHARED_MODULE_SUFFIX .dll)
 # Make all platforms use similar names for release and debug binaries.
 set(CMAKE_DEBUG_POSTFIX "")
 
-
 # Include sub-projects.
 add_subdirectory ("ADBench")
 add_subdirectory ("src")
