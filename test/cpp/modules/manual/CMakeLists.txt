@@ -4,6 +4,7 @@ project("ManualTests" CXX)
 add_executable(manualTests GmmTests.cpp BaTests.cpp HandTests.cpp "${CMAKE_SOURCE_DIR}/src/cpp/runner/ModuleLoader.cpp" "${CMAKE_SOURCE_DIR}/src/cpp/shared/utils.cpp")
 
 if (UNIX)
+	#link library to work with shared libraries
 	target_link_libraries(manualTests PUBLIC dl)
 endif (UNIX)
 
