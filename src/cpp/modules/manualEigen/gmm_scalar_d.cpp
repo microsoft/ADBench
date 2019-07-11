@@ -1,4 +1,4 @@
-#include "gmm_simple_d.h"
+#include "gmm_scalar_d.h"
 
 #include <cmath>
 #include <vector>
@@ -10,7 +10,7 @@ using std::vector;
 
 #include "../../shared/gmm.h"
 #include "gmm_d.h"
-#include "../../shared/gmm_eigen_simple.h"
+#include "../../shared/gmm_eigen_scalar.h"
 
 #include "Eigen/Dense"
 

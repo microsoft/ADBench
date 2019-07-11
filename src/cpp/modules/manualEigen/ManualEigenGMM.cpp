@@ -1,7 +1,7 @@
 // ManualEigenGMM.cpp : Defines the exported functions for the DLL.
 #include "ManualEigenGMM.h"
 #include "../../shared/gmm.h"
-#include "gmm_simple_d.h"
+#include "gmm_scalar_d.h"
 
 #include <iostream>
 #include <memory>
