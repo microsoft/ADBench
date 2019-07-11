@@ -3,22 +3,14 @@
 #include "../../../../src/cpp/shared/utils.h"
 
 TEST(GmmTests, ManualEigenVector_Load) {
-#ifdef _DEBUG
-    ModuleLoader moduleLoader("../../../../src/cpp/modules/manualEigen/ManualEigenVectord.dll");
-#else
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manualEigen/ManualEigenVector.dll");
-#endif
     auto test = moduleLoader.get_gmm_test();
     ASSERT_NE(test, nullptr);
 }
 
 TEST(GmmTests, ManualEigenVector_TestProcess)
 {
-#ifdef _DEBUG
-    ModuleLoader moduleLoader("../../../../src/cpp/modules/manualEigen/ManualEigenVectord.dll");
-#else
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manualEigen/ManualEigenVector.dll");
-#endif
     auto module = moduleLoader.get_gmm_test();
     ASSERT_NE(module, nullptr);
     GMMInput input;
