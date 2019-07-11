@@ -52,14 +52,14 @@ int main(const int argc, const char* argv[])
     }
     catch (const std::exception& ex)
     {
-        std::cout << "An exception caught: " << ex.what() << std::endl;
+        std::cerr << "An exception caught: " << ex.what() << std::endl;
     }
     catch (const std::string& ex)
     {
-        std::cout << "An exception caught: " << ex << std::endl;
+        std::cerr << "An exception caught: " << ex << std::endl;
     }
     catch (...)
     {
-        std::cout << "Unknown exception" << std::endl;
+        std::cerr << "Unknown exception" << std::endl;
     }
 }
