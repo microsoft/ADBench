@@ -2,14 +2,14 @@
 #include "../../../../src/cpp/runner/ModuleLoader.h"
 #include "../../../../src/cpp/shared/utils.h"
 
-TEST(HandTests, Load) 
+TEST(ManualTests, Hand_Load) 
 {
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
     auto test = moduleLoader.get_hand_test();
     ASSERT_NE(test, nullptr);
 }
 
-TEST(HandTests, TestProcessSimple)
+TEST(ManualTests, Hand_TestProcessSimple)
 {
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
     auto module = moduleLoader.get_hand_test();
@@ -62,7 +62,7 @@ TEST(HandTests, TestProcessSimple)
         EXPECT_NEAR(expectedJ[i], output.jacobian[i], 0.000001);
 }
 
-TEST(HandTests, TestProcessComplicated)
+TEST(ManualTests, Hand_TestProcessComplicated)
 {
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
     auto module = moduleLoader.get_hand_test();
