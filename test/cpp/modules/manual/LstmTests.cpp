@@ -3,22 +3,14 @@
 #include "../../../../src/cpp/shared/utils.h"
 
 TEST(ManualTests, Lstm_Load) {
-#ifdef _DEBUG
-    ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manuald.dll");
-#else
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
-#endif
     auto test = moduleLoader.get_lstm_test();
     ASSERT_NE(test, nullptr);
 }
 
 TEST(ManualTests, Lstm_TestProcess)
 {
-#ifdef _DEBUG
-    ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manuald.dll");
-#else
     ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
-#endif
     auto module = moduleLoader.get_lstm_test();
     ASSERT_NE(module, nullptr);
     LSTMInput input;
