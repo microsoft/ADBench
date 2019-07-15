@@ -34,7 +34,7 @@ void ManualLSTM::calculateJacobian(int times)
     }
 }
 
-extern "C" __declspec(dllexport) ITest<LSTMInput, LSTMOutput>* __cdecl GetLSTMTest()
+extern "C" DLL_PUBLIC ITest<LSTMInput, LSTMOutput>*  GetLSTMTest()
 {
     return new ManualLSTM();
 }
