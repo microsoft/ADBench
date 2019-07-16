@@ -16,12 +16,9 @@ T sigmoid(T x) {
 // log(sum(exp(x), 2))
 template<typename T>
 T logsumexp(const T* const vect, int sz) {
-    std::vector<T> vect2(sz);
-    for (int i = 0; i < sz; ++i)
-        vect2[i] = std::exp(vect[i]);
     T sum = 0.0;
     for (int i = 0; i < sz; ++i)
-        sum += vect2[i];
+        sum += std::exp(vect[i]);
     sum += 2;
     return log(sum);
 }
@@ -136,22 +133,15 @@ void lstm_model(int hsize,
     LayerState<T>& state,
     const T* input)
 {
-    std::vector<T> gates(4 * hsize);
-    T* forget = &gates[0];
-    T* ingate = &gates[hsize];
-    T* outgate = &gates[2 * hsize];
-    T* change = &gates[3 * hsize];
     for (int i = 0; i < hsize; ++i) {
-        forget[i] = sigmoid(input[i] * params.weight.forget[i] + params.bias.forget[i]);
-        ingate[i] = sigmoid(state.hidden[i] * params.weight.ingate[i] + params.bias.ingate[i]);
-        outgate[i] = sigmoid(input[i] * params.weight.outgate[i] + params.bias.outgate[i]);
-        change[i] = tanh(state.hidden[i] * params.weight.change[i] + params.bias.change[i]);
-    }
+        // gates for i-th cell/hidden
+        T forget = sigmoid(input[i] * params.weight.forget[i] + params.bias.forget[i]);
+        T ingate = sigmoid(state.hidden[i] * params.weight.ingate[i] + params.bias.ingate[i]);
+        T outgate = sigmoid(input[i] * params.weight.outgate[i] + params.bias.outgate[i]);
+        T change = tanh(state.hidden[i] * params.weight.change[i] + params.bias.change[i]);
 
-    for (int i = 0; i < hsize; ++i)
-    {
-        state.cell[i] = state.cell[i] * forget[i] + ingate[i] * change[i];
-        state.hidden[i] = outgate[i] * tanh(state.cell[i]);
+        state.cell[i] = state.cell[i] * forget + ingate * change;
+        state.hidden[i] = outgate * tanh(state.cell[i]);
     }
 }
     
