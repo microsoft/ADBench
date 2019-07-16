@@ -267,7 +267,7 @@ void lstm_predict_d(int l, int b,
     }
 }
 
-// Gradient of the logsumexp(prediction(params)) with realation to params
+// Gradient of the logsumexp(prediction(params)) with relation to params
 void logsumexp_grad(int n_layers, int hsize, const std::vector<double>& lse_d, const PredictionJacobian<double>& ypred_jacobian, GradByParams<double>& grad_lse_ypred)
 {
     for (int i = 0; i < hsize; ++i)
@@ -293,7 +293,7 @@ void logsumexp_grad(int n_layers, int hsize, const std::vector<double>& lse_d, c
 // Updates the gradient of the loss function (loss_grad) after doing a prediction
 // using the gold value for the prediction (ygold),
 // jacobian of the prediction with relation to params (ypred_jacobian),
-// and the gradient of the logsumexp(prediction(params)) with realation to params (grad_lse_ypred)
+// and the gradient of the logsumexp(prediction(params)) with relation to params (grad_lse_ypred)
 void update_loss_gradient(int n_layers, int hsize, const double* ygold, const GradByParams<double>& grad_lse_ypred, const PredictionJacobian<double>& ypred_jacobian, GradByParams<double>& loss_grad)
 {
     for (int i = 0; i < hsize; ++i)
@@ -340,7 +340,7 @@ void update_loss_gradient(int n_layers, int hsize, const double* ygold, const Gr
     }
 }
 
-// Add (D pred / D state_(t-1)) * (D state_(t-1) / D params) to ypred_jacobian with relation to params params
+// Add (D pred / D state_(t-1)) * (D state_(t-1) / D params) to ypred_jacobian with relation to params
 void update_pred_jacobian_with_prev_state_jacobian(int n_layers, int hsize, const StateJacobianPredict<double>& prev_state_jacobian, PredictionJacobian<double>& ypred_jacobian)
 {
     for (int pos = 0; pos < hsize; ++pos)
@@ -382,7 +382,7 @@ void update_pred_jacobian_with_prev_state_jacobian(int n_layers, int hsize, cons
     }
 }
 
-// Add (D state_t / D state_(t-1)) * (D state_(t-1) / D params) to state_jacobian with relation to params params
+// Add (D state_t / D state_(t-1)) * (D state_(t-1) / D params) to state_jacobian with relation to params
 void update_state_jacobian_with_prev_state_jacobian(int n_layers, int hsize, const StateJacobianPredict<double>& prev_state_jacobian, StateJacobianPredict<double>& state_jacobian)
 {
     for (int pos = 0; pos < hsize; ++pos)
