@@ -127,16 +127,22 @@ void lstm_model_d(int hsize,
 // Outputs state_jacobian containing the derivatives of the new state
 // and output_jacobian containing the derivatives of the output
 // with relation to main_params, extra_params, and state
+//
+// zero_layer_jacobian and layer_state_d are references to
+// pre-allocated structures that will be used in computations.
+// This function is being called from a long loop, so allocating them only once
+// can save some time.
 template<typename T>
 void lstm_predict_d(int l, int b,
     const MainParams<T>& main_params, const ExtraParams<T>& extra_params,
     State<T>& state,
-    const T* input, T* output,
+    const T* input,
+    LayerStateJacobianPredict<T>& zero_layer_jacobian,
+    ModelJacobian<T>& layer_state_d,
+    T* output,
     StateJacobianPredict<T>& state_jacobian,
     PredictionJacobian<T>& output_jacobian)
 {
-    std::vector<T> zero_layer_jacobian_raw((10 * l + 1) * b);
-    LayerStateJacobianPredict<T> zero_layer_jacobian(zero_layer_jacobian_raw.data(), l, b);
     // Intial setup (from predict())
     for (int i = 0; i < b; ++i) {
         output[i] = input[i] * extra_params.in_weight[i];
@@ -149,15 +155,13 @@ void lstm_predict_d(int l, int b,
     // Pointer to the jacobian of the previous layer
     LayerStateJacobianPredict<T>* prev_layer_jacobian = &zero_layer_jacobian;
 
-    ModelJacobian<T> layer_state_d(b);
-
     // Main LSTM loop (from predict())
     for (int i = 0; i < l; ++i)
     {
         lstm_model_d(b, main_params.layer_params[i], state.layer_state[i], layer_output, layer_state_d);
         layer_output = state.layer_state[i].hidden;
 
-        // set state_jacobian.layer[i],
+        // set state_jacobian.layer[i]
         for (int j = 0; j < b; ++j)
         {
             T hidden_j_d_input = layer_state_d.hidden[j].d_input;
@@ -471,11 +475,16 @@ void lstm_objective_d(int l, int c, int b,
     vector<double> prev_state_jacobian_raw(((10 * l + 1) * b) * 2 * l), state_jacobian_raw(((10 * l + 1) * b) * 2 * l), ypred_jacobian_raw((10 * l + 3) * b);
     StateJacobianPredict<double> prev_state_jacobian(prev_state_jacobian_raw.data(), l, b), state_jacobian(state_jacobian_raw.data(), l, b);
     PredictionJacobian<double> ypred_jacobian(ypred_jacobian_raw.data(), l, b);
-
-    std::fill_n(J, total_params_count, 0.);
     GradByParams<double> j_wrap(J, b, l), grad_lse_ypred(grad_lse_ypred_raw.data(), b, l);
 
-    lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[0], ypred.data(), prev_state_jacobian, ypred_jacobian);
+    // temps for lstm_predict_d
+    std::vector<double> zero_layer_jacobian_raw((10 * l + 1) * b);
+    LayerStateJacobianPredict<double> zero_layer_jacobian(zero_layer_jacobian_raw.data(), l, b);
+    ModelJacobian<double> layer_state_d(b);
+
+    std::fill_n(J, total_params_count, 0.);
+
+    lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[0], zero_layer_jacobian, layer_state_d, ypred.data(), prev_state_jacobian, ypred_jacobian);
 
     double lse = logsumexp_d(ypred.data(), b, lse_d.data());
     logsumexp_grad(l, b, lse_d, ypred_jacobian, grad_lse_ypred);
@@ -489,7 +498,7 @@ void lstm_objective_d(int l, int c, int b,
 
     for (int t = 1; t < c - 2; ++t)
     {
-        lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t], ypred.data(), state_jacobian, ypred_jacobian);
+        lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t], zero_layer_jacobian, layer_state_d, ypred.data(), state_jacobian, ypred_jacobian);
 
         // Adding (D state_t / D state_(t-1)) * (D state_(t-1) / D params) to state_jacobian w.r.t. params
         update_state_jacobian_with_prev_state_jacobian(l, b, prev_state_jacobian, state_jacobian);
@@ -511,7 +520,7 @@ void lstm_objective_d(int l, int c, int b,
         swap(state_jacobian, prev_state_jacobian);
     }
 
-    lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[c - 2], ypred.data(), state_jacobian, ypred_jacobian);
+    lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[c - 2], zero_layer_jacobian, layer_state_d, ypred.data(), state_jacobian, ypred_jacobian);
     // No need to compute the jacobian for the last state
     // Adding (D pred / D state_(t-1)) * (D state_(t-1) / D params) to ypred_jacobian w.r.t. params
     update_pred_jacobian_with_prev_state_jacobian(l, b, prev_state_jacobian, ypred_jacobian);
