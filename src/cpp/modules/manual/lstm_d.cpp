@@ -263,38 +263,13 @@ void lstm_predict_d(int l, int b,
     }
 }
 
-// Manual gradient of lstm_objective loss (output)
-// with relation to main_params and extra_params (inputs)
-void lstm_objective_d(int l, int c, int b,
-    const double* main_params, const double* extra_params,
-    std::vector<double> state, const double* sequence,
-    double* loss, double* J)
+// Gradient of the logsumexp(prediction(params)) with realation to params
+void logsumexp_grad(int n_layers, int hsize, const std::vector<double>& lse_d, const PredictionJacobian<double>& ypred_jacobian, GradByParams<double>& grad_lse_ypred)
 {
-    double total = 0.0;
-    int count = 0;
-    int main_params_count = 8 * l * b;
-    int extra_params_count = 3 * b;
-    int total_params_count = main_params_count + extra_params_count;
-    MainParams<double> main_params_wrap(main_params, b, l);
-    ExtraParams<double> extra_params_wrap(extra_params, b);
-    State<double> state_wrap(state.data(), b, l);
-    InputSequence<double> sequence_wrap(sequence, b, c);
-    vector<double> ypred(b), ynorm(b), lse_d(b);
-    vector<double> grad_lse_ypred_raw(total_params_count);
-    vector<double> prev_state_jacobian_raw(((10 * l + 1) * b) * 2 * l), state_jacobian_raw(((10 * l + 1) * b) * 2 * l), ypred_jacobian_raw((10 * l + 3) * b);
-    StateJacobianPredict<double> prev_state_jacobian(prev_state_jacobian_raw.data(), l, b), state_jacobian(state_jacobian_raw.data(), l, b);
-    PredictionJacobian<double> ypred_jacobian(ypred_jacobian_raw.data(), l, b);
-
-    std::fill_n(J, total_params_count, 0.);
-    GradByParams<double> j_wrap(J, b, l), grad_lse_ypred(grad_lse_ypred_raw.data(), b, l);
-
-    lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[0], ypred.data(), prev_state_jacobian, ypred_jacobian);
-
-    double lse = logsumexp_d(ypred.data(), b, lse_d.data());
-    for (int i = 0; i < b; ++i)
+    for (int i = 0; i < hsize; ++i)
     {
         double lse_d_i = lse_d[i];
-        for (int j = 0; j < l; ++j)
+        for (int j = 0; j < n_layers; ++j)
         {
             grad_lse_ypred.layer[j].d_weight.forget[i] = lse_d_i * ypred_jacobian.d_prediction[i].d_weight_forget[j];
             grad_lse_ypred.layer[j].d_weight.ingate[i] = lse_d_i * ypred_jacobian.d_prediction[i].d_weight_ingate[j];
@@ -309,241 +284,248 @@ void lstm_objective_d(int l, int c, int b,
         grad_lse_ypred.d_out_weight[i] = lse_d_i * (*ypred_jacobian.d_prediction[i].d_extra_out_weight);
         grad_lse_ypred.d_out_bias[i] = lse_d_i * (*ypred_jacobian.d_prediction[i].d_extra_out_bias);
     }
+}
 
-    for (int i = 0; i < b; ++i)
-        ynorm[i] = ypred[i] - lse;
-
-    const double* ygold = sequence_wrap.sequence[1];
-    for (int i = 0; i < b; ++i)
+// Updates the gradient of the loss function (loss_grad) after doing a prediction
+// using the gold value for the prediction (ygold),
+// jacobian of the prediction with relation to params (ypred_jacobian),
+// and the gradient of the logsumexp(prediction(params)) with realation to params (grad_lse_ypred)
+void update_loss_gradient(int n_layers, int hsize, const double* ygold, const GradByParams<double>& grad_lse_ypred, const PredictionJacobian<double>& ypred_jacobian, GradByParams<double>& loss_grad)
+{
+    for (int i = 0; i < hsize; ++i)
     {
         double ygold_i = ygold[i];
-        total += ygold_i * ynorm[i];
 
-        for (int j = 0; j < b; ++j)
+        for (int j = 0; j < hsize; ++j)
         {
             if (i != j)
             {
-                for (int k = 0; k < l; ++k)
+                for (int k = 0; k < n_layers; ++k)
                 {
-                    j_wrap.layer[k].d_weight.forget[j] -= ygold_i * grad_lse_ypred.layer[k].d_weight.forget[j];
-                    j_wrap.layer[k].d_weight.ingate[j] -= ygold_i * grad_lse_ypred.layer[k].d_weight.ingate[j];
-                    j_wrap.layer[k].d_weight.outgate[j] -= ygold_i * grad_lse_ypred.layer[k].d_weight.outgate[j];
-                    j_wrap.layer[k].d_weight.change[j] -= ygold_i * grad_lse_ypred.layer[k].d_weight.change[j];
-                    j_wrap.layer[k].d_bias.ingate[j] -= ygold_i * grad_lse_ypred.layer[k].d_bias.ingate[j];
-                    j_wrap.layer[k].d_bias.forget[j] -= ygold_i * grad_lse_ypred.layer[k].d_bias.forget[j];
-                    j_wrap.layer[k].d_bias.outgate[j] -= ygold_i * grad_lse_ypred.layer[k].d_bias.outgate[j];
-                    j_wrap.layer[k].d_bias.change[j] -= ygold_i * grad_lse_ypred.layer[k].d_bias.change[j];
+                    loss_grad.layer[k].d_weight.forget[j] -= ygold_i * grad_lse_ypred.layer[k].d_weight.forget[j];
+                    loss_grad.layer[k].d_weight.ingate[j] -= ygold_i * grad_lse_ypred.layer[k].d_weight.ingate[j];
+                    loss_grad.layer[k].d_weight.outgate[j] -= ygold_i * grad_lse_ypred.layer[k].d_weight.outgate[j];
+                    loss_grad.layer[k].d_weight.change[j] -= ygold_i * grad_lse_ypred.layer[k].d_weight.change[j];
+                    loss_grad.layer[k].d_bias.ingate[j] -= ygold_i * grad_lse_ypred.layer[k].d_bias.ingate[j];
+                    loss_grad.layer[k].d_bias.forget[j] -= ygold_i * grad_lse_ypred.layer[k].d_bias.forget[j];
+                    loss_grad.layer[k].d_bias.outgate[j] -= ygold_i * grad_lse_ypred.layer[k].d_bias.outgate[j];
+                    loss_grad.layer[k].d_bias.change[j] -= ygold_i * grad_lse_ypred.layer[k].d_bias.change[j];
                 }
-                j_wrap.d_in_weight[j] -= ygold_i * grad_lse_ypred.d_in_weight[j];
-                j_wrap.d_out_weight[j] -= ygold_i * grad_lse_ypred.d_out_weight[j];
-                j_wrap.d_out_bias[j] -= ygold_i * grad_lse_ypred.d_out_bias[j];
+                loss_grad.d_in_weight[j] -= ygold_i * grad_lse_ypred.d_in_weight[j];
+                loss_grad.d_out_weight[j] -= ygold_i * grad_lse_ypred.d_out_weight[j];
+                loss_grad.d_out_bias[j] -= ygold_i * grad_lse_ypred.d_out_bias[j];
             }
             else
             {
-                for (int k = 0; k < l; ++k)
+                for (int k = 0; k < n_layers; ++k)
                 {
-                    j_wrap.layer[k].d_weight.forget[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_weight_forget[k] - grad_lse_ypred.layer[k].d_weight.forget[j]);
-                    j_wrap.layer[k].d_weight.ingate[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_weight_ingate[k] - grad_lse_ypred.layer[k].d_weight.ingate[j]);
-                    j_wrap.layer[k].d_weight.outgate[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_weight_outgate[k] - grad_lse_ypred.layer[k].d_weight.outgate[j]);
-                    j_wrap.layer[k].d_weight.change[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_weight_change[k] - grad_lse_ypred.layer[k].d_weight.change[j]);
-                    j_wrap.layer[k].d_bias.forget[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_bias_forget[k] - grad_lse_ypred.layer[k].d_bias.forget[j]);
-                    j_wrap.layer[k].d_bias.ingate[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_bias_ingate[k] - grad_lse_ypred.layer[k].d_bias.ingate[j]);
-                    j_wrap.layer[k].d_bias.outgate[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_bias_outgate[k] - grad_lse_ypred.layer[k].d_bias.outgate[j]);
-                    j_wrap.layer[k].d_bias.change[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_bias_change[k] - grad_lse_ypred.layer[k].d_bias.change[j]);
+                    loss_grad.layer[k].d_weight.forget[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_weight_forget[k] - grad_lse_ypred.layer[k].d_weight.forget[j]);
+                    loss_grad.layer[k].d_weight.ingate[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_weight_ingate[k] - grad_lse_ypred.layer[k].d_weight.ingate[j]);
+                    loss_grad.layer[k].d_weight.outgate[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_weight_outgate[k] - grad_lse_ypred.layer[k].d_weight.outgate[j]);
+                    loss_grad.layer[k].d_weight.change[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_weight_change[k] - grad_lse_ypred.layer[k].d_weight.change[j]);
+                    loss_grad.layer[k].d_bias.forget[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_bias_forget[k] - grad_lse_ypred.layer[k].d_bias.forget[j]);
+                    loss_grad.layer[k].d_bias.ingate[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_bias_ingate[k] - grad_lse_ypred.layer[k].d_bias.ingate[j]);
+                    loss_grad.layer[k].d_bias.outgate[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_bias_outgate[k] - grad_lse_ypred.layer[k].d_bias.outgate[j]);
+                    loss_grad.layer[k].d_bias.change[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_bias_change[k] - grad_lse_ypred.layer[k].d_bias.change[j]);
                 }
-                j_wrap.d_in_weight[j] += ygold_i * ((*ypred_jacobian.d_prediction[i].d_extra_in_weight) - grad_lse_ypred.d_in_weight[j]);
-                j_wrap.d_out_weight[j] += ygold_i * ((*ypred_jacobian.d_prediction[i].d_extra_out_weight) - grad_lse_ypred.d_out_weight[j]);
-                j_wrap.d_out_bias[j] += ygold_i * ((*ypred_jacobian.d_prediction[i].d_extra_out_bias) - grad_lse_ypred.d_out_bias[j]);
+                loss_grad.d_in_weight[j] += ygold_i * ((*ypred_jacobian.d_prediction[i].d_extra_in_weight) - grad_lse_ypred.d_in_weight[j]);
+                loss_grad.d_out_weight[j] += ygold_i * ((*ypred_jacobian.d_prediction[i].d_extra_out_weight) - grad_lse_ypred.d_out_weight[j]);
+                loss_grad.d_out_bias[j] += ygold_i * ((*ypred_jacobian.d_prediction[i].d_extra_out_bias) - grad_lse_ypred.d_out_bias[j]);
             }
         }
     }
+}
 
-    count += b;
-    for (int t = 1; t < c - 1; ++t)
+// Add (D pred / D state_(t-1)) * (D state_(t-1) / D params) to ypred_jacobian with relation to params params
+void update_pred_jacobian_with_prev_state_jacobian(int n_layers, int hsize, const StateJacobianPredict<double>& prev_state_jacobian, PredictionJacobian<double>& ypred_jacobian)
+{
+    for (int pos = 0; pos < hsize; ++pos)
+    {
+        for (int i = 0; i < n_layers; ++i)
+        {
+            for (int j = 0; j < n_layers; ++j)
+            {
+                ypred_jacobian.d_prediction[pos].d_weight_forget[j] +=
+                    ypred_jacobian.d_prediction[pos].d_hidden[i] * prev_state_jacobian.layer[i].d_hidden[pos].d_weight_forget[j]
+                    + ypred_jacobian.d_prediction[pos].d_cell[i] * prev_state_jacobian.layer[i].d_cell[pos].d_weight_forget[j];
+                ypred_jacobian.d_prediction[pos].d_weight_ingate[j] +=
+                    ypred_jacobian.d_prediction[pos].d_hidden[i] * prev_state_jacobian.layer[i].d_hidden[pos].d_weight_ingate[j]
+                    + ypred_jacobian.d_prediction[pos].d_cell[i] * prev_state_jacobian.layer[i].d_cell[pos].d_weight_ingate[j];
+                ypred_jacobian.d_prediction[pos].d_weight_outgate[j] +=
+                    ypred_jacobian.d_prediction[pos].d_hidden[i] * prev_state_jacobian.layer[i].d_hidden[pos].d_weight_outgate[j]
+                    + ypred_jacobian.d_prediction[pos].d_cell[i] * prev_state_jacobian.layer[i].d_cell[pos].d_weight_outgate[j];
+                ypred_jacobian.d_prediction[pos].d_weight_change[j] +=
+                    ypred_jacobian.d_prediction[pos].d_hidden[i] * prev_state_jacobian.layer[i].d_hidden[pos].d_weight_change[j]
+                    + ypred_jacobian.d_prediction[pos].d_cell[i] * prev_state_jacobian.layer[i].d_cell[pos].d_weight_change[j];
+
+                ypred_jacobian.d_prediction[pos].d_bias_forget[j] +=
+                    ypred_jacobian.d_prediction[pos].d_hidden[i] * prev_state_jacobian.layer[i].d_hidden[pos].d_bias_forget[j]
+                    + ypred_jacobian.d_prediction[pos].d_cell[i] * prev_state_jacobian.layer[i].d_cell[pos].d_bias_forget[j];
+                ypred_jacobian.d_prediction[pos].d_bias_ingate[j] +=
+                    ypred_jacobian.d_prediction[pos].d_hidden[i] * prev_state_jacobian.layer[i].d_hidden[pos].d_bias_ingate[j]
+                    + ypred_jacobian.d_prediction[pos].d_cell[i] * prev_state_jacobian.layer[i].d_cell[pos].d_bias_ingate[j];
+                ypred_jacobian.d_prediction[pos].d_bias_outgate[j] +=
+                    ypred_jacobian.d_prediction[pos].d_hidden[i] * prev_state_jacobian.layer[i].d_hidden[pos].d_bias_outgate[j]
+                    + ypred_jacobian.d_prediction[pos].d_cell[i] * prev_state_jacobian.layer[i].d_cell[pos].d_bias_outgate[j];
+                ypred_jacobian.d_prediction[pos].d_bias_change[j] +=
+                    ypred_jacobian.d_prediction[pos].d_hidden[i] * prev_state_jacobian.layer[i].d_hidden[pos].d_bias_change[j]
+                    + ypred_jacobian.d_prediction[pos].d_cell[i] * prev_state_jacobian.layer[i].d_cell[pos].d_bias_change[j];
+            }
+            *ypred_jacobian.d_prediction[pos].d_extra_in_weight +=
+                ypred_jacobian.d_prediction[pos].d_hidden[i] * (*prev_state_jacobian.layer[i].d_hidden[pos].d_extra_in_weight)
+                + ypred_jacobian.d_prediction[pos].d_cell[i] * (*prev_state_jacobian.layer[i].d_cell[pos].d_extra_in_weight);
+        }
+    }
+}
+
+// Add (D state_t / D state_(t-1)) * (D state_(t-1) / D params) to state_jacobian with relation to params params
+void update_state_jacobian_with_prev_state_jacobian(int n_layers, int hsize, const StateJacobianPredict<double>& prev_state_jacobian, StateJacobianPredict<double>& state_jacobian)
+{
+    for (int pos = 0; pos < hsize; ++pos)
+    {
+        for (int i = 0; i < n_layers; ++i)
+        {
+            for (int j = 0; j < n_layers; ++j)
+            {
+                for (int k = 0; k < n_layers; ++k)
+                {
+                    state_jacobian.layer[i].d_hidden[pos].d_weight_forget[k] +=
+                        state_jacobian.layer[i].d_hidden[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_weight_forget[k]
+                        + state_jacobian.layer[i].d_hidden[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_weight_forget[k];
+                    state_jacobian.layer[i].d_cell[pos].d_weight_forget[k] +=
+                        state_jacobian.layer[i].d_cell[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_weight_forget[k]
+                        + state_jacobian.layer[i].d_cell[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_weight_forget[k];
+                    state_jacobian.layer[i].d_hidden[pos].d_weight_ingate[k] +=
+                        state_jacobian.layer[i].d_hidden[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_weight_ingate[k]
+                        + state_jacobian.layer[i].d_hidden[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_weight_ingate[k];
+                    state_jacobian.layer[i].d_cell[pos].d_weight_ingate[k] +=
+                        state_jacobian.layer[i].d_cell[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_weight_ingate[k]
+                        + state_jacobian.layer[i].d_cell[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_weight_ingate[k];
+                    state_jacobian.layer[i].d_hidden[pos].d_weight_outgate[k] +=
+                        state_jacobian.layer[i].d_hidden[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_weight_outgate[k]
+                        + state_jacobian.layer[i].d_hidden[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_weight_outgate[k];
+                    state_jacobian.layer[i].d_cell[pos].d_weight_outgate[k] +=
+                        state_jacobian.layer[i].d_cell[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_weight_outgate[k]
+                        + state_jacobian.layer[i].d_cell[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_weight_outgate[k];
+                    state_jacobian.layer[i].d_hidden[pos].d_weight_change[k] +=
+                        state_jacobian.layer[i].d_hidden[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_weight_change[k]
+                        + state_jacobian.layer[i].d_hidden[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_weight_change[k];
+                    state_jacobian.layer[i].d_cell[pos].d_weight_change[k] +=
+                        state_jacobian.layer[i].d_cell[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_weight_change[k]
+                        + state_jacobian.layer[i].d_cell[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_weight_change[k];
+
+                    state_jacobian.layer[i].d_hidden[pos].d_bias_forget[k] +=
+                        state_jacobian.layer[i].d_hidden[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_bias_forget[k]
+                        + state_jacobian.layer[i].d_hidden[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_bias_forget[k];
+                    state_jacobian.layer[i].d_cell[pos].d_bias_forget[k] +=
+                        state_jacobian.layer[i].d_cell[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_bias_forget[k]
+                        + state_jacobian.layer[i].d_cell[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_bias_forget[k];
+                    state_jacobian.layer[i].d_hidden[pos].d_bias_ingate[k] +=
+                        state_jacobian.layer[i].d_hidden[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_bias_ingate[k]
+                        + state_jacobian.layer[i].d_hidden[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_bias_ingate[k];
+                    state_jacobian.layer[i].d_cell[pos].d_bias_ingate[k] +=
+                        state_jacobian.layer[i].d_cell[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_bias_ingate[k]
+                        + state_jacobian.layer[i].d_cell[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_bias_ingate[k];
+                    state_jacobian.layer[i].d_hidden[pos].d_bias_outgate[k] +=
+                        state_jacobian.layer[i].d_hidden[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_bias_outgate[k]
+                        + state_jacobian.layer[i].d_hidden[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_bias_outgate[k];
+                    state_jacobian.layer[i].d_cell[pos].d_bias_outgate[k] +=
+                        state_jacobian.layer[i].d_cell[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_bias_outgate[k]
+                        + state_jacobian.layer[i].d_cell[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_bias_outgate[k];
+                    state_jacobian.layer[i].d_hidden[pos].d_bias_change[k] +=
+                        state_jacobian.layer[i].d_hidden[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_bias_change[k]
+                        + state_jacobian.layer[i].d_hidden[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_bias_change[k];
+                    state_jacobian.layer[i].d_cell[pos].d_bias_change[k] +=
+                        state_jacobian.layer[i].d_cell[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_bias_change[k]
+                        + state_jacobian.layer[i].d_cell[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_bias_change[k];
+                }
+                *state_jacobian.layer[i].d_hidden[pos].d_extra_in_weight +=
+                    state_jacobian.layer[i].d_hidden[pos].d_hidden[j] * (*prev_state_jacobian.layer[j].d_hidden[pos].d_extra_in_weight)
+                    + state_jacobian.layer[i].d_hidden[pos].d_cell[j] * (*prev_state_jacobian.layer[j].d_cell[pos].d_extra_in_weight);
+                *state_jacobian.layer[i].d_cell[pos].d_extra_in_weight +=
+                    state_jacobian.layer[i].d_cell[pos].d_hidden[j] * (*prev_state_jacobian.layer[j].d_hidden[pos].d_extra_in_weight)
+                    + state_jacobian.layer[i].d_cell[pos].d_cell[j] * (*prev_state_jacobian.layer[j].d_cell[pos].d_extra_in_weight);
+            }
+        }
+    }
+}
+
+// Manual gradient of lstm_objective loss (output)
+// with relation to main_params and extra_params (inputs)
+void lstm_objective_d(int l, int c, int b,
+    const double* main_params, const double* extra_params,
+    std::vector<double> state, const double* sequence,
+    double* loss, double* J)
+{
+    double total = 0.0;
+    int count = b * (c - 1);
+    int main_params_count = 8 * l * b;
+    int extra_params_count = 3 * b;
+    int total_params_count = main_params_count + extra_params_count;
+    MainParams<double> main_params_wrap(main_params, b, l);
+    ExtraParams<double> extra_params_wrap(extra_params, b);
+    State<double> state_wrap(state.data(), b, l);
+    InputSequence<double> sequence_wrap(sequence, b, c);
+    vector<double> ypred(b), lse_d(b);
+    vector<double> grad_lse_ypred_raw(total_params_count);
+    vector<double> prev_state_jacobian_raw(((10 * l + 1) * b) * 2 * l), state_jacobian_raw(((10 * l + 1) * b) * 2 * l), ypred_jacobian_raw((10 * l + 3) * b);
+    StateJacobianPredict<double> prev_state_jacobian(prev_state_jacobian_raw.data(), l, b), state_jacobian(state_jacobian_raw.data(), l, b);
+    PredictionJacobian<double> ypred_jacobian(ypred_jacobian_raw.data(), l, b);
+
+    std::fill_n(J, total_params_count, 0.);
+    GradByParams<double> j_wrap(J, b, l), grad_lse_ypred(grad_lse_ypred_raw.data(), b, l);
+
+    lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[0], ypred.data(), prev_state_jacobian, ypred_jacobian);
+
+    double lse = logsumexp_d(ypred.data(), b, lse_d.data());
+    logsumexp_grad(l, b, lse_d, ypred_jacobian, grad_lse_ypred);
+
+    const double* ygold = sequence_wrap.sequence[1];
+
+    for (int i = 0; i < b; ++i)
+        total += ygold[i] * (ypred[i] - lse);
+
+    update_loss_gradient(l, b, ygold, grad_lse_ypred, ypred_jacobian, j_wrap);
+
+    for (int t = 1; t < c - 2; ++t)
     {
         lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t], ypred.data(), state_jacobian, ypred_jacobian);
 
         // Adding (D state_t / D state_(t-1)) * (D state_(t-1) / D params) to state_jacobian w.r.t. params
-        for (int pos = 0; pos < b; ++pos)
-        {
-            for (int i = 0; i < l; ++i)
-            {
-                for (int j = 0; j < l; ++j)
-                {
-                    for (int k = 0; k < l; ++k)
-                    {
-                        state_jacobian.layer[i].d_hidden[pos].d_weight_forget[k] +=
-                            state_jacobian.layer[i].d_hidden[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_weight_forget[k]
-                            + state_jacobian.layer[i].d_hidden[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_weight_forget[k];
-                        state_jacobian.layer[i].d_cell[pos].d_weight_forget[k] +=
-                            state_jacobian.layer[i].d_cell[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_weight_forget[k]
-                            + state_jacobian.layer[i].d_cell[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_weight_forget[k];
-                        state_jacobian.layer[i].d_hidden[pos].d_weight_ingate[k] +=
-                            state_jacobian.layer[i].d_hidden[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_weight_ingate[k]
-                            + state_jacobian.layer[i].d_hidden[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_weight_ingate[k];
-                        state_jacobian.layer[i].d_cell[pos].d_weight_ingate[k] +=
-                            state_jacobian.layer[i].d_cell[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_weight_ingate[k]
-                            + state_jacobian.layer[i].d_cell[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_weight_ingate[k];
-                        state_jacobian.layer[i].d_hidden[pos].d_weight_outgate[k] +=
-                            state_jacobian.layer[i].d_hidden[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_weight_outgate[k]
-                            + state_jacobian.layer[i].d_hidden[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_weight_outgate[k];
-                        state_jacobian.layer[i].d_cell[pos].d_weight_outgate[k] +=
-                            state_jacobian.layer[i].d_cell[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_weight_outgate[k]
-                            + state_jacobian.layer[i].d_cell[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_weight_outgate[k];
-                        state_jacobian.layer[i].d_hidden[pos].d_weight_change[k] +=
-                            state_jacobian.layer[i].d_hidden[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_weight_change[k]
-                            + state_jacobian.layer[i].d_hidden[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_weight_change[k];
-                        state_jacobian.layer[i].d_cell[pos].d_weight_change[k] +=
-                            state_jacobian.layer[i].d_cell[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_weight_change[k]
-                            + state_jacobian.layer[i].d_cell[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_weight_change[k];
-
-                        state_jacobian.layer[i].d_hidden[pos].d_bias_forget[k] +=
-                            state_jacobian.layer[i].d_hidden[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_bias_forget[k]
-                            + state_jacobian.layer[i].d_hidden[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_bias_forget[k];
-                        state_jacobian.layer[i].d_cell[pos].d_bias_forget[k] +=
-                            state_jacobian.layer[i].d_cell[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_bias_forget[k]
-                            + state_jacobian.layer[i].d_cell[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_bias_forget[k];
-                        state_jacobian.layer[i].d_hidden[pos].d_bias_ingate[k] +=
-                            state_jacobian.layer[i].d_hidden[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_bias_ingate[k]
-                            + state_jacobian.layer[i].d_hidden[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_bias_ingate[k];
-                        state_jacobian.layer[i].d_cell[pos].d_bias_ingate[k] +=
-                            state_jacobian.layer[i].d_cell[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_bias_ingate[k]
-                            + state_jacobian.layer[i].d_cell[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_bias_ingate[k];
-                        state_jacobian.layer[i].d_hidden[pos].d_bias_outgate[k] +=
-                            state_jacobian.layer[i].d_hidden[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_bias_outgate[k]
-                            + state_jacobian.layer[i].d_hidden[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_bias_outgate[k];
-                        state_jacobian.layer[i].d_cell[pos].d_bias_outgate[k] +=
-                            state_jacobian.layer[i].d_cell[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_bias_outgate[k]
-                            + state_jacobian.layer[i].d_cell[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_bias_outgate[k];
-                        state_jacobian.layer[i].d_hidden[pos].d_bias_change[k] +=
-                            state_jacobian.layer[i].d_hidden[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_bias_change[k]
-                            + state_jacobian.layer[i].d_hidden[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_bias_change[k];
-                        state_jacobian.layer[i].d_cell[pos].d_bias_change[k] +=
-                            state_jacobian.layer[i].d_cell[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_bias_change[k]
-                            + state_jacobian.layer[i].d_cell[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_bias_change[k];
-                    }
-                    *state_jacobian.layer[i].d_hidden[pos].d_extra_in_weight +=
-                        state_jacobian.layer[i].d_hidden[pos].d_hidden[j] * (*prev_state_jacobian.layer[j].d_hidden[pos].d_extra_in_weight)
-                        + state_jacobian.layer[i].d_hidden[pos].d_cell[j] * (*prev_state_jacobian.layer[j].d_cell[pos].d_extra_in_weight);
-                    *state_jacobian.layer[i].d_cell[pos].d_extra_in_weight +=
-                        state_jacobian.layer[i].d_cell[pos].d_hidden[j] * (*prev_state_jacobian.layer[j].d_hidden[pos].d_extra_in_weight)
-                        + state_jacobian.layer[i].d_cell[pos].d_cell[j] * (*prev_state_jacobian.layer[j].d_cell[pos].d_extra_in_weight);
-                }
-            }
-        }
+        update_state_jacobian_with_prev_state_jacobian(l, b, prev_state_jacobian, state_jacobian);
 
         // Adding (D pred / D state_(t-1)) * (D state_(t-1) / D params) to ypred_jacobian w.r.t. params
-        for (int pos = 0; pos < b; ++pos)
-        {
-            for (int i = 0; i < l; ++i)
-            {
-                for (int j = 0; j < l; ++j)
-                {
-                    ypred_jacobian.d_prediction[pos].d_weight_forget[j] +=
-                        ypred_jacobian.d_prediction[pos].d_hidden[i] * prev_state_jacobian.layer[i].d_hidden[pos].d_weight_forget[j]
-                        + ypred_jacobian.d_prediction[pos].d_cell[i] * prev_state_jacobian.layer[i].d_cell[pos].d_weight_forget[j];
-                    ypred_jacobian.d_prediction[pos].d_weight_ingate[j] +=
-                        ypred_jacobian.d_prediction[pos].d_hidden[i] * prev_state_jacobian.layer[i].d_hidden[pos].d_weight_ingate[j]
-                        + ypred_jacobian.d_prediction[pos].d_cell[i] * prev_state_jacobian.layer[i].d_cell[pos].d_weight_ingate[j];
-                    ypred_jacobian.d_prediction[pos].d_weight_outgate[j] +=
-                        ypred_jacobian.d_prediction[pos].d_hidden[i] * prev_state_jacobian.layer[i].d_hidden[pos].d_weight_outgate[j]
-                        + ypred_jacobian.d_prediction[pos].d_cell[i] * prev_state_jacobian.layer[i].d_cell[pos].d_weight_outgate[j];
-                    ypred_jacobian.d_prediction[pos].d_weight_change[j] +=
-                        ypred_jacobian.d_prediction[pos].d_hidden[i] * prev_state_jacobian.layer[i].d_hidden[pos].d_weight_change[j]
-                        + ypred_jacobian.d_prediction[pos].d_cell[i] * prev_state_jacobian.layer[i].d_cell[pos].d_weight_change[j];
+        update_pred_jacobian_with_prev_state_jacobian(l, b, prev_state_jacobian, ypred_jacobian);
 
-                    ypred_jacobian.d_prediction[pos].d_bias_forget[j] +=
-                        ypred_jacobian.d_prediction[pos].d_hidden[i] * prev_state_jacobian.layer[i].d_hidden[pos].d_bias_forget[j]
-                        + ypred_jacobian.d_prediction[pos].d_cell[i] * prev_state_jacobian.layer[i].d_cell[pos].d_bias_forget[j];
-                    ypred_jacobian.d_prediction[pos].d_bias_ingate[j] +=
-                        ypred_jacobian.d_prediction[pos].d_hidden[i] * prev_state_jacobian.layer[i].d_hidden[pos].d_bias_ingate[j]
-                        + ypred_jacobian.d_prediction[pos].d_cell[i] * prev_state_jacobian.layer[i].d_cell[pos].d_bias_ingate[j];
-                    ypred_jacobian.d_prediction[pos].d_bias_outgate[j] +=
-                        ypred_jacobian.d_prediction[pos].d_hidden[i] * prev_state_jacobian.layer[i].d_hidden[pos].d_bias_outgate[j]
-                        + ypred_jacobian.d_prediction[pos].d_cell[i] * prev_state_jacobian.layer[i].d_cell[pos].d_bias_outgate[j];
-                    ypred_jacobian.d_prediction[pos].d_bias_change[j] +=
-                        ypred_jacobian.d_prediction[pos].d_hidden[i] * prev_state_jacobian.layer[i].d_hidden[pos].d_bias_change[j]
-                        + ypred_jacobian.d_prediction[pos].d_cell[i] * prev_state_jacobian.layer[i].d_cell[pos].d_bias_change[j];
-                }
-                *ypred_jacobian.d_prediction[pos].d_extra_in_weight +=
-                    ypred_jacobian.d_prediction[pos].d_hidden[i] * (*prev_state_jacobian.layer[i].d_hidden[pos].d_extra_in_weight)
-                    + ypred_jacobian.d_prediction[pos].d_cell[i] * (*prev_state_jacobian.layer[i].d_cell[pos].d_extra_in_weight);
-            }
-        }
-
-        double lse = logsumexp_d(ypred.data(), b, lse_d.data());
+        lse = logsumexp_d(ypred.data(), b, lse_d.data());
         // D logsumexp(pred) / D params
-        for (int i = 0; i < b; ++i)
-        {
-            double lse_d_i = lse_d[i];
-            for (int j = 0; j < l; ++j)
-            {
-                grad_lse_ypred.layer[j].d_weight.forget[i] = lse_d_i * ypred_jacobian.d_prediction[i].d_weight_forget[j];
-                grad_lse_ypred.layer[j].d_weight.ingate[i] = lse_d_i * ypred_jacobian.d_prediction[i].d_weight_ingate[j];
-                grad_lse_ypred.layer[j].d_weight.outgate[i] = lse_d_i * ypred_jacobian.d_prediction[i].d_weight_outgate[j];
-                grad_lse_ypred.layer[j].d_weight.change[i] = lse_d_i * ypred_jacobian.d_prediction[i].d_weight_change[j];
-                grad_lse_ypred.layer[j].d_bias.forget[i] = lse_d_i * ypred_jacobian.d_prediction[i].d_bias_forget[j];
-                grad_lse_ypred.layer[j].d_bias.ingate[i] = lse_d_i * ypred_jacobian.d_prediction[i].d_bias_ingate[j];
-                grad_lse_ypred.layer[j].d_bias.outgate[i] = lse_d_i * ypred_jacobian.d_prediction[i].d_bias_outgate[j];
-                grad_lse_ypred.layer[j].d_bias.change[i] = lse_d_i * ypred_jacobian.d_prediction[i].d_bias_change[j];
-            }
-            grad_lse_ypred.d_in_weight[i] = lse_d_i * (*ypred_jacobian.d_prediction[i].d_extra_in_weight);
-            grad_lse_ypred.d_out_weight[i] = lse_d_i * (*ypred_jacobian.d_prediction[i].d_extra_out_weight);
-            grad_lse_ypred.d_out_bias[i] = lse_d_i * (*ypred_jacobian.d_prediction[i].d_extra_out_bias);
-        }
+        logsumexp_grad(l, b, lse_d, ypred_jacobian, grad_lse_ypred);
+
+        ygold = sequence_wrap.sequence[t + 1];
 
         for (int i = 0; i < b; ++i)
-            ynorm[i] = ypred[i] - lse;
+            total += ygold[i] * (ypred[i] - lse);
 
-        const double* ygold = sequence_wrap.sequence[t + 1];
+        update_loss_gradient(l, b, ygold, grad_lse_ypred, ypred_jacobian, j_wrap);
 
-        for (int i = 0; i < b; ++i)
-        {
-            double ygold_i = ygold[i];
-            total += ygold_i * ynorm[i];
-
-            for (int j = 0; j < b; ++j)
-            {
-                if (i != j)
-                {
-                    for (int k = 0; k < l; ++k)
-                    {
-                        j_wrap.layer[k].d_weight.forget[j] -= ygold_i * grad_lse_ypred.layer[k].d_weight.forget[j];
-                        j_wrap.layer[k].d_weight.ingate[j] -= ygold_i * grad_lse_ypred.layer[k].d_weight.ingate[j];
-                        j_wrap.layer[k].d_weight.outgate[j] -= ygold_i * grad_lse_ypred.layer[k].d_weight.outgate[j];
-                        j_wrap.layer[k].d_weight.change[j] -= ygold_i * grad_lse_ypred.layer[k].d_weight.change[j];
-                        j_wrap.layer[k].d_bias.forget[j] -= ygold_i * grad_lse_ypred.layer[k].d_bias.forget[j];
-                        j_wrap.layer[k].d_bias.ingate[j] -= ygold_i * grad_lse_ypred.layer[k].d_bias.ingate[j];
-                        j_wrap.layer[k].d_bias.outgate[j] -= ygold_i * grad_lse_ypred.layer[k].d_bias.outgate[j];
-                        j_wrap.layer[k].d_bias.change[j] -= ygold_i * grad_lse_ypred.layer[k].d_bias.change[j];
-                    }
-                    j_wrap.d_in_weight[j] -= ygold_i * grad_lse_ypred.d_in_weight[j];
-                    j_wrap.d_out_weight[j] -= ygold_i * grad_lse_ypred.d_out_weight[j];
-                    j_wrap.d_out_bias[j] -= ygold_i * grad_lse_ypred.d_out_bias[j];
-                }
-                else
-                {
-                    for (int k = 0; k < l; ++k)
-                    {
-                        j_wrap.layer[k].d_weight.forget[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_weight_forget[k] - grad_lse_ypred.layer[k].d_weight.forget[j]);
-                        j_wrap.layer[k].d_weight.ingate[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_weight_ingate[k] - grad_lse_ypred.layer[k].d_weight.ingate[j]);
-                        j_wrap.layer[k].d_weight.outgate[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_weight_outgate[k] - grad_lse_ypred.layer[k].d_weight.outgate[j]);
-                        j_wrap.layer[k].d_weight.change[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_weight_change[k] - grad_lse_ypred.layer[k].d_weight.change[j]);
-                        j_wrap.layer[k].d_bias.forget[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_bias_forget[k] - grad_lse_ypred.layer[k].d_bias.forget[j]);
-                        j_wrap.layer[k].d_bias.ingate[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_bias_ingate[k] - grad_lse_ypred.layer[k].d_bias.ingate[j]);
-                        j_wrap.layer[k].d_bias.outgate[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_bias_outgate[k] - grad_lse_ypred.layer[k].d_bias.outgate[j]);
-                        j_wrap.layer[k].d_bias.change[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_bias_change[k] - grad_lse_ypred.layer[k].d_bias.change[j]);
-                    }
-                    j_wrap.d_in_weight[j] += ygold_i * ((*ypred_jacobian.d_prediction[i].d_extra_in_weight) - grad_lse_ypred.d_in_weight[j]);
-                    j_wrap.d_out_weight[j] += ygold_i * ((*ypred_jacobian.d_prediction[i].d_extra_out_weight) - grad_lse_ypred.d_out_weight[j]);
-                    j_wrap.d_out_bias[j] += ygold_i * ((*ypred_jacobian.d_prediction[i].d_extra_out_bias) - grad_lse_ypred.d_out_bias[j]);
-                }
-            }
-        }
-
-        count += b;
         swap(state_jacobian, prev_state_jacobian);
     }
+
+    lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[c - 2], ypred.data(), state_jacobian, ypred_jacobian);
+    // No need to compute the jacobian for the last state
+    // Adding (D pred / D state_(t-1)) * (D state_(t-1) / D params) to ypred_jacobian w.r.t. params
+    update_pred_jacobian_with_prev_state_jacobian(l, b, prev_state_jacobian, ypred_jacobian);
+
+    lse = logsumexp_d(ypred.data(), b, lse_d.data());
+    // D logsumexp(pred) / D params
+    logsumexp_grad(l, b, lse_d, ypred_jacobian, grad_lse_ypred);
+
+    ygold = sequence_wrap.sequence[c - 1];
+
+    for (int i = 0; i < b; ++i)
+        total += ygold[i] * (ypred[i] - lse);
+
+    update_loss_gradient(l, b, ygold, grad_lse_ypred, ypred_jacobian, j_wrap);
 
     *loss = -total / count;
 
