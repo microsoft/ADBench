@@ -478,7 +478,7 @@ void lstm_objective_d(int l, int c, int b,
     GradByParams<double> j_wrap(J, b, l), grad_lse_ypred(grad_lse_ypred_raw.data(), b, l);
 
     // temps for lstm_predict_d
-    std::vector<double> zero_layer_jacobian_raw((10 * l + 1) * b);
+    std::vector<double> zero_layer_jacobian_raw((10 * l + 1) * 2 * b);
     LayerStateJacobianPredict<double> zero_layer_jacobian(zero_layer_jacobian_raw.data(), l, b);
     ModelJacobian<double> layer_state_d(b);
 
