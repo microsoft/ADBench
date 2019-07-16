@@ -470,9 +470,9 @@ void lstm_objective_d(int l, int c, int b,
     ExtraParams<double> extra_params_wrap(extra_params, b);
     State<double> state_wrap(state.data(), b, l);
     InputSequence<double> sequence_wrap(sequence, b, c);
-    vector<double> ypred(b), lse_d(b);
-    vector<double> grad_lse_ypred_raw(total_params_count);
-    vector<double> prev_state_jacobian_raw(((10 * l + 1) * b) * 2 * l), state_jacobian_raw(((10 * l + 1) * b) * 2 * l), ypred_jacobian_raw((10 * l + 3) * b);
+    std::vector<double> ypred(b), lse_d(b);
+    std::vector<double> grad_lse_ypred_raw(total_params_count);
+    std::vector<double> prev_state_jacobian_raw(((10 * l + 1) * b) * 2 * l), state_jacobian_raw(((10 * l + 1) * b) * 2 * l), ypred_jacobian_raw((10 * l + 3) * b);
     StateJacobianPredict<double> prev_state_jacobian(prev_state_jacobian_raw.data(), l, b), state_jacobian(state_jacobian_raw.data(), l, b);
     PredictionJacobian<double> ypred_jacobian(ypred_jacobian_raw.data(), l, b);
     GradByParams<double> j_wrap(J, b, l), grad_lse_ypred(grad_lse_ypred_raw.data(), b, l);
