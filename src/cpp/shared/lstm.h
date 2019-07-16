@@ -5,25 +5,23 @@
 #include <cmath>
 #include <string>
 
-using std::vector;
-using std::string;
-using std::exp;
-
 // UTILS
 
 // Sigmoid on scalar
 template<typename T>
 T sigmoid(T x) {
-	return 1 / (1 + exp(-x));
+	return 1 / (1 + std::exp(-x));
 }
 
 // log(sum(exp(x), 2))
 template<typename T>
 T logsumexp(const T* const vect, int sz) {
-	vector<T> vect2(sz);
-	for (int i = 0; i < sz; i++) vect2[i] = exp(vect[i]);
+    std::vector<T> vect2(sz);
+	for (int i = 0; i < sz; ++i)
+        vect2[i] = std::exp(vect[i]);
 	T sum = 0.0;
-	for (int i = 0; i < sz; i++) sum += vect2[i];
+	for (int i = 0; i < sz; ++i)
+        sum += vect2[i];
 	sum += 2;
 	return log(sum);
 }
@@ -138,7 +136,7 @@ void lstm_model(int hsize,
 	LayerState<T>& state,
 	const T* input)
 {
-	vector<T> gates(4 * hsize);
+	std::vector<T> gates(4 * hsize);
 	T* forget = &gates[0];
 	T* ingate = &gates[hsize];
 	T* outgate = &gates[2 * hsize];
@@ -150,8 +148,11 @@ void lstm_model(int hsize,
 		change[i] = tanh(state.hidden[i] * params.weight.change[i] + params.bias.change[i]);
 	}
 
-	for (int i = 0; i < hsize; i++) state.cell[i] = state.cell[i] * forget[i] + ingate[i] * change[i];
-	for (int i = 0; i < hsize; i++) state.hidden[i] = outgate[i] * tanh(state.cell[i]);
+    for (int i = 0; i < hsize; ++i)
+    {
+        state.cell[i] = state.cell[i] * forget[i] + ingate[i] * change[i];
+        state.hidden[i] = outgate[i] * tanh(state.cell[i]);
+    }
 }
 	
 // Predict LSTM output given an input
@@ -172,7 +173,8 @@ void lstm_predict(int l, int b,
         layer_output = state.layer_state[i].hidden;
     }
 
-	for (int i = 0; i < b; i++) output[i] = layer_output[i] * extra_params.out_weight[i] + extra_params.out_bias[i];
+	for (int i = 0; i < b; ++i)
+        output[i] = layer_output[i] * extra_params.out_weight[i] + extra_params.out_bias[i];
 }
 	
 
@@ -180,7 +182,7 @@ void lstm_predict(int l, int b,
 template<typename T>
 void lstm_objective(int l, int c, int b, 
 	const T* main_params, const T* extra_params,
-	vector<T> state, const T* sequence,
+    std::vector<T> state, const T* sequence,
 	T* loss)
 {
 	T total = 0.0;
@@ -189,7 +191,7 @@ void lstm_objective(int l, int c, int b,
     ExtraParams<T> extra_params_wrap(extra_params, b);
     State<T> state_wrap(state.data(), b, l);
     InputSequence<T> sequence_wrap(sequence, b, c);
-    vector<T> ypred(b), ynorm(b);
+    std::vector<T> ypred(b), ynorm(b);
     for (int t = 0; t < c - 1; ++t)
     {
         lstm_predict(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t], ypred.data());
