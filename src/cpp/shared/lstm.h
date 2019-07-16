@@ -15,10 +15,23 @@ T sigmoid(T x) {
 
 // log(sum(exp(x), 2))
 template<typename T>
-T logsumexp(const T* const vect, int sz) {
+T logsumexp(const T* vect, int sz) {
     T sum = 0.0;
     for (int i = 0; i < sz; ++i)
         sum += std::exp(vect[i]);
+    sum += 2;
+    return log(sum);
+}
+
+// log(sum(exp(x), 2))
+template<typename T>
+T logsumexp_store_temps(const T* vect, int sz) {
+    std::vector<T> vect2(sz);
+    for (int i = 0; i < sz; ++i)
+        vect2[i] = exp(vect[i]);
+    T sum = 0.0;
+    for (int i = 0; i < sz; ++i)
+        sum += vect2[i];
     sum += 2;
     return log(sum);
 }
