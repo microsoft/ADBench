@@ -187,10 +187,12 @@ void lstm_objective(int l, int c, int b,
         lstm_predict(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t], ypred.data());
 
         T lse = logsumexp(ypred.data(), b);
-        for (int i = 0; i < b; i++) ynorm[i] = ypred[i] - lse;
+        for (int i = 0; i < b; ++i)
+            ynorm[i] = ypred[i] - lse;
 
         const T* ygold = sequence_wrap.sequence[t + 1];
-        for (int i = 0; i < b; i++) total += ygold[i] * ynorm[i];
+        for (int i = 0; i < b; ++i)
+            total += ygold[i] * ynorm[i];
 
         count += b;
     }
