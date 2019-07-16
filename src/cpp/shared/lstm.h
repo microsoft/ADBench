@@ -10,20 +10,20 @@
 // Sigmoid on scalar
 template<typename T>
 T sigmoid(T x) {
-	return 1 / (1 + std::exp(-x));
+    return 1 / (1 + std::exp(-x));
 }
 
 // log(sum(exp(x), 2))
 template<typename T>
 T logsumexp(const T* const vect, int sz) {
     std::vector<T> vect2(sz);
-	for (int i = 0; i < sz; ++i)
+    for (int i = 0; i < sz; ++i)
         vect2[i] = std::exp(vect[i]);
-	T sum = 0.0;
-	for (int i = 0; i < sz; ++i)
+    T sum = 0.0;
+    for (int i = 0; i < sz; ++i)
         sum += vect2[i];
-	sum += 2;
-	return log(sum);
+    sum += 2;
+    return log(sum);
 }
 
 // Helper structures
@@ -132,21 +132,21 @@ struct State
 // The LSTM model
 template<typename T>
 void lstm_model(int hsize,
-	const LayerParams<T>& params,
-	LayerState<T>& state,
-	const T* input)
+    const LayerParams<T>& params,
+    LayerState<T>& state,
+    const T* input)
 {
-	std::vector<T> gates(4 * hsize);
-	T* forget = &gates[0];
-	T* ingate = &gates[hsize];
-	T* outgate = &gates[2 * hsize];
-	T* change = &gates[3 * hsize];
-	for (int i = 0; i < hsize; ++i) {
-		forget[i] = sigmoid(input[i] * params.weight.forget[i] + params.bias.forget[i]);
-		ingate[i] = sigmoid(state.hidden[i] * params.weight.ingate[i] + params.bias.ingate[i]);
-		outgate[i] = sigmoid(input[i] * params.weight.outgate[i] + params.bias.outgate[i]);
-		change[i] = tanh(state.hidden[i] * params.weight.change[i] + params.bias.change[i]);
-	}
+    std::vector<T> gates(4 * hsize);
+    T* forget = &gates[0];
+    T* ingate = &gates[hsize];
+    T* outgate = &gates[2 * hsize];
+    T* change = &gates[3 * hsize];
+    for (int i = 0; i < hsize; ++i) {
+        forget[i] = sigmoid(input[i] * params.weight.forget[i] + params.bias.forget[i]);
+        ingate[i] = sigmoid(state.hidden[i] * params.weight.ingate[i] + params.bias.ingate[i]);
+        outgate[i] = sigmoid(input[i] * params.weight.outgate[i] + params.bias.outgate[i]);
+        change[i] = tanh(state.hidden[i] * params.weight.change[i] + params.bias.change[i]);
+    }
 
     for (int i = 0; i < hsize; ++i)
     {
@@ -154,18 +154,18 @@ void lstm_model(int hsize,
         state.hidden[i] = outgate[i] * tanh(state.cell[i]);
     }
 }
-	
+    
 // Predict LSTM output given an input
 template<typename T>
 void lstm_predict(int l, int b,
-	const MainParams<T>& main_params, const ExtraParams<T>& extra_params,
-	State<T>& state,
-	const T* input, T* output)
+    const MainParams<T>& main_params, const ExtraParams<T>& extra_params,
+    State<T>& state,
+    const T* input, T* output)
 {
-	for (int i = 0; i < b; ++i)
+    for (int i = 0; i < b; ++i)
         output[i] = input[i] * extra_params.in_weight[i];
 
-	T* layer_output = output;
+    T* layer_output = output;
 
     for (int i = 0; i < l; ++i)
     {
@@ -173,20 +173,20 @@ void lstm_predict(int l, int b,
         layer_output = state.layer_state[i].hidden;
     }
 
-	for (int i = 0; i < b; ++i)
+    for (int i = 0; i < b; ++i)
         output[i] = layer_output[i] * extra_params.out_weight[i] + extra_params.out_bias[i];
 }
-	
+    
 
 // LSTM objective (loss function)
 template<typename T>
 void lstm_objective(int l, int c, int b, 
-	const T* main_params, const T* extra_params,
+    const T* main_params, const T* extra_params,
     std::vector<T> state, const T* sequence,
-	T* loss)
+    T* loss)
 {
-	T total = 0.0;
-	int count = 0;
+    T total = 0.0;
+    int count = 0;
     MainParams<T> main_params_wrap(main_params, b, l);
     ExtraParams<T> extra_params_wrap(extra_params, b);
     State<T> state_wrap(state.data(), b, l);
@@ -205,5 +205,5 @@ void lstm_objective(int l, int c, int b,
         count += b;
     }
 
-	*loss = -total / count;
+    *loss = -total / count;
 }
