@@ -471,6 +471,8 @@ void lstm_objective_d(int l, int c, int b,
     State<double> state_wrap(state.data(), b, l);
     InputSequence<double> sequence_wrap(sequence, b, c);
     std::vector<double> ypred(b), lse_d(b);
+    // To understand the sizes of vectors below, see the comments to the constructors of the data structures,
+    // where the corresponding vectors are used.
     std::vector<double> grad_lse_ypred_raw(total_params_count);
     std::vector<double> prev_state_jacobian_raw(((10 * l + 1) * b) * 2 * l), state_jacobian_raw(((10 * l + 1) * b) * 2 * l), ypred_jacobian_raw((10 * l + 3) * b);
     StateJacobianPredict<double> prev_state_jacobian(prev_state_jacobian_raw.data(), l, b), state_jacobian(state_jacobian_raw.data(), l, b);
