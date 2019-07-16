@@ -119,7 +119,7 @@ function run_command ($indent, $outfile, $timeout, $cmd) {
 }
 
 # Get source dir
-$dir = split-path ($MyInvocation.MyCommand.Path)
+$dir = Split-Path ($MyInvocation.MyCommand.Path)
 assert { $dir -match 'ADbench$' }
 $dir = Split-Path $dir
 
@@ -149,11 +149,19 @@ $datadir = "$dir/data"
 
 Write-Host "Build Type: $buildtype, output to $tmpdir`n"
 
+[flags()] enum ToolType
+{
+	GMM = 1
+	BA = 2
+	Hand = 4
+	LSTM = 8
+}
+
 # Custom Tool class
 Class Tool {
 	[string]$name
 	[string]$type
-	[array]$objectives
+	[ToolType]$objectives
 	[bool]$gmm_both
 	[bool]$gmm_use_defs
 	[array]$eigen_config
@@ -174,13 +182,13 @@ Class Tool {
 	# TODO probably want to set these in CMake somewhere
 
 	# Constructor
-	Tool ([string]$name, [string]$type, [string]$objectives, [bool]$gmm_both, [bool]$gmm_use_defs, [string]$eigen_config) {
+	Tool ([string]$name, [string]$type, [ToolType]$objectives, [bool]$gmm_both, [bool]$gmm_use_defs, [string]$eigen_config) {
 		<#
 		.SYNOPSIS
 		Create a new Tool object to be run
 
 		.EXAMPLE
-		[Tool]::new("Finite", "bin", "1111", 0, 0, "101011")
+		[Tool]::new("Finite", "bin", [ToolType] "GMM, BA, Hand, LSTM", 0, 0, "101011")
 		This will create a Tool:
 		- called "Finite"
 		- run from binary executables
@@ -201,7 +209,7 @@ Class Tool {
 
 		$this.name = $name
 		$this.type = $type
-		$this.objectives = $objectives.ToCharArray() | % { $_ -band "1" }
+		$this.objectives = $objectives
 		$this.gmm_both = $gmm_both
 		$this.gmm_use_defs = $gmm_use_defs
 		$this.eigen_config = $eigen_config.ToCharArray() | % { $_ -band "1" }
@@ -210,10 +218,10 @@ Class Tool {
 	# Run all tests for this tool
 	[void] runall () {
 		Write-Host $this.name
-		if ($this.objectives[0]) { $this.testgmm() }
-		if ($this.objectives[1]) { $this.testba() }
-		if ($this.objectives[2]) { $this.testhand() }
-		if ($this.objectives[3]) { $this.testlstm() }
+		if ($this.objectives.HasFlag([ToolType]::GMM)) { $this.testgmm() }
+		if ($this.objectives.HasFlag([ToolType]::BA)) { $this.testba() }
+		if ($this.objectives.HasFlag([ToolType]::Hand)) { $this.testhand() }
+		if ($this.objectives.HasFlag([ToolType]::LSTM)) { $this.testlstm() }
 	}
 
 	# Run a single test
@@ -369,16 +377,16 @@ Class Tool {
 # Separate Full|Split?
 # Separate GMM sizes?
 $tool_descriptors = @(
-	#[Tool]::new("Adept", "bin", "1110", 1, 0, "101010")
-	#[Tool]::new("ADOLC", "bin", "1110", 1, 0, "101011")
-	#[Tool]::new("Ceres", "bin", "1100", 0, 1, "101011")
-	 [Tool]::new("Finite", "bin", "1111", 0, 0, "101011")
-	 [Tool]::new("Manual", "bin", "1110", 0, 0, "110101")
-	 [Tool]::new("DiffSharp", "bin", "0100", 1, 0, "101010")
-	 [Tool]::new("Autograd", "py", "1100", 1, 0, "101010")
-	 [Tool]::new("PyTorch", "py", "1011", 0, 0, "101010")
-	 [Tool]::new("Julia", "julia", "1100", 0, 0, "101010")
-	#[Tool]::new("Theano", "pybat", "1110", 0, 0, "101010")
+	#[Tool]::new("Adept", "bin", "GMM, BA, Hand", 1, 0, "101010")
+	#[Tool]::new("ADOLC", "bin", "GMM, BA, Hand", 1, 0, "101011")
+	#[Tool]::new("Ceres", "bin", "GMM, BA", 0, 1, "101011")
+	 [Tool]::new("Finite", "bin", [ToolType] "GMM, BA, Hand, LSTM", 0, 0, "101011")
+	 [Tool]::new("Manual", "bin", [ToolType] "GMM, BA, Hand", 0, 0, "110101")
+	 [Tool]::new("DiffSharp", "bin", [ToolType] "BA", 1, 0, "101010")
+	 [Tool]::new("Autograd", "py", [ToolType] "GMM, BA", 1, 0, "101010")
+	 [Tool]::new("PyTorch", "py", [ToolType] "GMM, Hand, LSTM", 0, 0, "101010")
+	 [Tool]::new("Julia", "julia", [ToolType] "GMM, BA", 0, 0, "101010")
+	#[Tool]::new("Theano", "pybat", "GMM, BA, Hand", 0, 0, "101010")
 	#[Tool]::new("MuPad", "matlab", 0, 0, 0)
 	#[Tool]::new("ADiMat", "matlab", 0, 0, 0)
 )
