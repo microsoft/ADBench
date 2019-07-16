@@ -40,12 +40,9 @@ void swap(StateJacobianPredict<T>& j1, StateJacobianPredict<T>& j2)
 
 // OBJECTIVE
 
-// Manual derivative of lstm_model
-//	seems to work
-//	takes in pointers to where to output J
-//	essentially outputs derivatives with
-//	10 different pairs of variables
-//	(the 2 outputs wrt 5 inputs each)
+// Manual Jacobian of lstm_model
+// Outputs jacobian containing the derivatives of the new state
+// with relation to params, state, and input
 template<typename T>
 void lstm_model_d(int hsize,
     const LayerParams<T>& params,
@@ -53,23 +50,6 @@ void lstm_model_d(int hsize,
     const T* input,
     ModelJacobian<T>& jacobian)
 {
-    // hidden and cell (outputs)
-    // wrt weight, bias, hidden, cell, input
-    //T* hidden_dw = &hidden_d_all[0];
-    //T* hidden_db = &hidden_d_all[4 * hsize * hsize];
-    //T* hidden_dh = &hidden_d_all[8 * hsize * hsize];
-    //T* hidden_dc = &hidden_d_all[8 * hsize * hsize + hsize];
-    //T* hidden_di = &hidden_d_all[8 * hsize * hsize + 2 * hsize];
-    //T* cell_dw = &cell_d_all[0];
-    //T* cell_db = &cell_d_all[4 * hsize * hsize];
-    //T* cell_dh = &cell_d_all[8 * hsize * hsize];
-    //T* cell_dc = &cell_d_all[8 * hsize * hsize + hsize];
-    //T* cell_di = &cell_d_all[8 * hsize * hsize + 2 * hsize];
-    // dw and db are full J matrices
-    // but dh, dc, di are just vectors as cell[i]
-    //	is only dependent on the ith term of
-    //	each of these vectors
-
     for (int i = 0; i < hsize; i++) {
         // Only get relevant derivatives
 
@@ -110,24 +90,15 @@ void lstm_model_d(int hsize,
         jacobian.cell[i].d_weight.ingate = change * ingate_dw;
         jacobian.cell[i].d_weight.outgate = 0.;
         jacobian.cell[i].d_weight.change = ingate * change_dw;
-        //cell_dw[i * 4 * hsize + i] = orig_cell * forget_dw;
-        //cell_dw[i * 4 * hsize + hsize + i] = change * ingate_dw;
-        //cell_dw[i * 4 * hsize + 3 * hsize + i] = ingate * change_dw;
         // wrt bias
         jacobian.cell[i].d_bias.forget = orig_cell * forget_db;
         jacobian.cell[i].d_bias.ingate = change * ingate_db;
         jacobian.cell[i].d_bias.outgate = 0.;
         jacobian.cell[i].d_bias.change = ingate * change_db;
-        //cell_db[i * 4 * hsize + i] = orig_cell * forget_db;
-        //cell_db[i * 4 * hsize + hsize + i] = change * ingate_db;
-        //cell_db[i * 4 * hsize + 3 * hsize + i] = ingate * change_db;
         // wrt hidden, cell(original), input
         jacobian.cell[i].d_hidden = ingate * change_dh + change * ingate_dh;
         jacobian.cell[i].d_cell = forget;
         jacobian.cell[i].d_input = orig_cell * forget_di;
-        //cell_dh[i] = ingate * change_dh + change * ingate_dh;
-        //cell_dc[i] = forget;
-        //cell_di[i] = orig_cell * forget_di;
 
         // Hidden derivatives
         T hidden_td;
@@ -139,35 +110,23 @@ void lstm_model_d(int hsize,
         jacobian.hidden[i].d_weight.ingate = hidden_td * jacobian.cell[i].d_weight.ingate;
         jacobian.hidden[i].d_weight.outgate = hidden_t * outgate_dw;
         jacobian.hidden[i].d_weight.change = hidden_td * jacobian.cell[i].d_weight.change;
-        //hidden_dw[i * 4 * hsize + i] = hidden_td * cell_dw[i * 4 * hsize + i];
-        //hidden_dw[i * 4 * hsize + hsize + i] = hidden_td * cell_dw[i * 4 * hsize + hsize + i];
-        //hidden_dw[i * 4 * hsize + 2 * hsize + i] = hidden_t * outgate_dw;
-        //hidden_dw[i * 4 * hsize + 3 * hsize + i] = hidden_td * cell_dw[i * 4 * hsize + 3 * hsize + i];
         // wrt bias
         jacobian.hidden[i].d_bias.forget = hidden_td * jacobian.cell[i].d_bias.forget;
         jacobian.hidden[i].d_bias.ingate = hidden_td * jacobian.cell[i].d_bias.ingate;
         jacobian.hidden[i].d_bias.outgate = hidden_t * outgate_db;
         jacobian.hidden[i].d_bias.change = hidden_td * jacobian.cell[i].d_bias.change;
-        //hidden_db[i * 4 * hsize + i] = hidden_td * cell_db[i * 4 * hsize + i];
-        //hidden_db[i * 4 * hsize + hsize + i] = hidden_td * cell_db[i * 4 * hsize + hsize + i];
-        //hidden_db[i * 4 * hsize + 2 * hsize + i] = hidden_t * outgate_db;
-        //hidden_db[i * 4 * hsize + 3 * hsize + i] = hidden_td * cell_db[i * 4 * hsize + 3 * hsize + i];
         // wrt hidden, cell (original), input
         jacobian.hidden[i].d_hidden = hidden_td * jacobian.cell[i].d_hidden;
         jacobian.hidden[i].d_cell = hidden_td * jacobian.cell[i].d_cell;
         jacobian.hidden[i].d_input = outgate_di * hidden_t + hidden_td * jacobian.cell[i].d_input;
-        //hidden_dh[i] = hidden_td * cell_dh[i];
-        //hidden_dc[i] = hidden_td * cell_dc[i];
-        //hidden_di[i] = outgate_di * hidden_t + hidden_td * cell_di[i];
     }
 }
 
 
-// Manual derivative of lstm_predict
-//	NOTE this is not finished
-//	but eventually it should give derivatives of:
-//	x2 and s (outputs)
-//	w.r.t. w, w2 and s (inputs)
+// Manual jacobian of lstm_predict
+// Outputs state_jacobian containing the derivatives of the new state
+// and output_jacobian containing the derivatives of the output
+// with relation to main_params, extra_params, and state
 template<typename T>
 void lstm_predict_d(int l, int b,
     const MainParams<T>& main_params, const ExtraParams<T>& extra_params,
@@ -181,21 +140,8 @@ void lstm_predict_d(int l, int b,
     // Intial setup (from predict())
     for (int i = 0; i < b; ++i) {
         output[i] = input[i] * extra_params.in_weight[i];
-        // note that zero_layer_jacobian.d_cell is unused
+        // note that the rest of zero_layer_jacobian.d_hidden and zero_layer_jacobian.d_cell are unused
         *zero_layer_jacobian.d_hidden[i].d_extra_in_weight = input[i];
-        for (int j = 0; j < l; ++j)
-        {
-            zero_layer_jacobian.d_hidden[i].d_weight_forget[j] = 0.;
-            zero_layer_jacobian.d_hidden[i].d_weight_ingate[j] = 0.;
-            zero_layer_jacobian.d_hidden[i].d_weight_outgate[j] = 0.;
-            zero_layer_jacobian.d_hidden[i].d_weight_change[j] = 0.;
-            zero_layer_jacobian.d_hidden[i].d_bias_forget[j] = 0.;
-            zero_layer_jacobian.d_hidden[i].d_bias_ingate[j] = 0.;
-            zero_layer_jacobian.d_hidden[i].d_bias_outgate[j] = 0.;
-            zero_layer_jacobian.d_hidden[i].d_bias_change[j] = 0.;
-            zero_layer_jacobian.d_hidden[i].d_hidden[j] = 0.;
-            zero_layer_jacobian.d_hidden[i].d_cell[j] = 0.;
-        }
     }
 
     // Pointer to current output/next layer's input
@@ -216,6 +162,7 @@ void lstm_predict_d(int l, int b,
         {
             T hidden_j_d_input = layer_state_d.hidden[j].d_input;
             T cell_j_d_input = layer_state_d.cell[j].d_input;
+            // derivatives by variables on which layer_output depends
             *state_jacobian.layer[i].d_hidden[j].d_extra_in_weight = hidden_j_d_input * (*prev_layer_jacobian->d_hidden[j].d_extra_in_weight);
             *state_jacobian.layer[i].d_cell[j].d_extra_in_weight = cell_j_d_input * (*prev_layer_jacobian->d_hidden[j].d_extra_in_weight);
             for (int k = 0; k < i ; ++k)
@@ -241,6 +188,7 @@ void lstm_predict_d(int l, int b,
                 state_jacobian.layer[i].d_cell[j].d_hidden[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_hidden[k];
                 state_jacobian.layer[i].d_cell[j].d_cell[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_cell[k];
             }
+            // derivatives by variables on which lstm_model_d depends directly
             state_jacobian.layer[i].d_hidden[j].d_weight_forget[i] = layer_state_d.hidden[j].d_weight.forget;
             state_jacobian.layer[i].d_hidden[j].d_weight_ingate[i] = layer_state_d.hidden[j].d_weight.ingate;
             state_jacobian.layer[i].d_hidden[j].d_weight_outgate[i] = layer_state_d.hidden[j].d_weight.outgate;
@@ -261,6 +209,7 @@ void lstm_predict_d(int l, int b,
             state_jacobian.layer[i].d_cell[j].d_bias_change[i] = layer_state_d.cell[j].d_bias.change;
             state_jacobian.layer[i].d_cell[j].d_hidden[i] = layer_state_d.cell[j].d_hidden;
             state_jacobian.layer[i].d_cell[j].d_cell[i] = layer_state_d.cell[j].d_cell;
+            // derivatives by variable on which lstm_model_d does not depend (zero)
             for (int k = i + 1; k < l; ++k)
             {
                 state_jacobian.layer[i].d_hidden[j].d_weight_forget[k] = 0.;
@@ -292,7 +241,9 @@ void lstm_predict_d(int l, int b,
     for (int i = 0; i < b; ++i)
     {
         T cur_out_weight = extra_params.out_weight[i];
+        // compute output
         output[i] = layer_output[i] * cur_out_weight + extra_params.out_bias[i];
+        // compute the derivatives of output
         *output_jacobian.d_prediction[i].d_extra_in_weight = cur_out_weight * (*prev_layer_jacobian->d_hidden[i].d_extra_in_weight);
         *output_jacobian.d_prediction[i].d_extra_out_weight = layer_output[i];
         *output_jacobian.d_prediction[i].d_extra_out_bias = 1.;
@@ -312,11 +263,8 @@ void lstm_predict_d(int l, int b,
     }
 }
 
-// Derivative of main lstm_objective
-//	loss (output)
-//	w.r.t. main_params and extra_params (inputs)
-//	NOTE this is not done
-//	will need to be done after lstm_predict_d
+// Manual gradient of lstm_objective loss (output)
+// with relation to main_params and extra_params (inputs)
 void lstm_objective_d(int l, int c, int b,
     const double* main_params, const double* extra_params,
     std::vector<double> state, const double* sequence,
