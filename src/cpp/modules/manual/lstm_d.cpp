@@ -6,14 +6,18 @@
 
 // Sigmoid diff on scalar
 template<typename T>
-T sigmoid_d(T x) {
-    return sigmoid(x) * (1 - sigmoid(x));
+T sigmoid_d(T x, T* d) {
+    T s = sigmoid(x);
+    *d = s * (1 - s);
+    return s;
 }
 
 // tanh diff on scalar
 template<typename T>
-T tanh_d(T x) {
-    return 1 - pow(tanh(x), 2);
+T tanh_d(T x, T* d) {
+    T t = tanh(x);
+    *d = 1 - t * t;
+    return t;
 }
 
 // value (returned) and gradient (written to J) of log(sum(exp(x), 2))
@@ -70,29 +74,29 @@ void lstm_model_d(int hsize,
         // Only get relevant derivatives
 
         T forget_in = input[i] * params.weight.forget[i] + params.bias.forget[i];
-        T forget = sigmoid(forget_in);
-        T forget_sd = sigmoid_d(forget_in);
+        T forget_sd;
+        T forget = sigmoid_d(forget_in, &forget_sd);
         T forget_dw = forget_sd * input[i];
         T forget_db = forget_sd;
         T forget_di = forget_sd * params.weight.forget[i];
 
         T ingate_in = state.hidden[i] * params.weight.ingate[i] + params.bias.ingate[i];
-        T ingate = sigmoid(ingate_in);
-        T ingate_sd = sigmoid_d(ingate_in);
+        T ingate_sd;
+        T ingate = sigmoid_d(ingate_in, &ingate_sd);
         T ingate_dw = ingate_sd * state.hidden[i];
         T ingate_db = ingate_sd;
         T ingate_dh = ingate_sd * params.weight.ingate[i];
 
         T outgate_in = input[i] * params.weight.outgate[i] + params.bias.outgate[i];
-        T outgate = sigmoid(outgate_in);
-        T outgate_sd = sigmoid_d(outgate_in);
+        T outgate_sd;
+        T outgate = sigmoid_d(outgate_in, &outgate_sd);
         T outgate_dw = outgate_sd * input[i];
         T outgate_db = outgate_sd;
         T outgate_di = outgate_sd * params.weight.outgate[i];
 
         T change_in = state.hidden[i] * params.weight.change[i] + params.bias.change[i];
-        T change = tanh(change_in);
-        T change_td = tanh_d(change_in);
+        T change_td;
+        T change = tanh_d(change_in, &change_td);
         T change_dw = change_td * state.hidden[i];
         T change_db = change_td;
         T change_dh = change_td * params.weight.change[i];
@@ -126,10 +130,10 @@ void lstm_model_d(int hsize,
         //cell_di[i] = orig_cell * forget_di;
 
         // Hidden derivatives
-
-        T hidden_t = tanh(state.cell[i]);
+        T hidden_td;
+        T hidden_t = tanh_d(state.cell[i], &hidden_td);
         state.hidden[i] = outgate * hidden_t;
-        T hidden_td = outgate * tanh_d(state.cell[i]);
+        hidden_td *= outgate;
         // wrt weight
         jacobian.hidden[i].d_weight.forget = hidden_td * jacobian.cell[i].d_weight.forget;
         jacobian.hidden[i].d_weight.ingate = hidden_td * jacobian.cell[i].d_weight.ingate;
