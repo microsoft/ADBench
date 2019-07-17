@@ -1,17 +1,25 @@
 #include <gtest/gtest.h>
 #include "../../../../src/cpp/runner/ModuleLoader.h"
 #include "../../../../src/cpp/shared/utils.h"
+#include "test_utils.h"
+#include "ModuleTest.h"
 
-TEST(ManualTests, Lstm_Load) {
-    ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
-    auto test = moduleLoader.get_lstm_test();
+class LstmModuleTest : public ModuleTest {};
+
+INSTANTIATE_TEST_CASE_P(Lstm, LstmModuleTest,
+    ::testing::Values(
+        "../../../../src/cpp/modules/manual/Manual.dll"
+    ),
+    get_module_name<ModuleTest::ParamType>);
+
+TEST_P(LstmModuleTest, Load) {
+    auto test = moduleLoader->get_lstm_test();
     ASSERT_NE(test, nullptr);
 }
 
-TEST(ManualTests, Lstm_TestProcess)
+TEST_P(LstmModuleTest, TestProcess)
 {
-    ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
-    auto module = moduleLoader.get_lstm_test();
+    auto module = moduleLoader->get_lstm_test();
     ASSERT_NE(module, nullptr);
     LSTMInput input;
 
@@ -33,4 +41,32 @@ TEST(ManualTests, Lstm_TestProcess)
     ASSERT_EQ(expectedGradient.size(), output.gradient.size());
     for (int i = 0; i < expectedGradient.size(); ++i)
         EXPECT_NEAR(expectedGradient[i], output.gradient[i], 0.000001);
+}
+
+TEST_P(LstmModuleTest, ObjectiveRunsMultipleTimes)
+{
+    auto module = moduleLoader->get_lstm_test();
+    ASSERT_NE(module, nullptr);
+    LSTMInput input;
+
+    // Read instance
+    read_lstm_instance("lstmtest.txt", &input.l, &input.c, &input.b,
+        input.main_params, input.extra_params, input.state, input.sequence);
+    module->prepare(std::move(input));
+
+    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<LSTMInput, LSTMOutput>::calculateObjective));
+}
+
+TEST_P(LstmModuleTest, JacobianRunsMultipleTimes)
+{
+    auto module = moduleLoader->get_lstm_test();
+    ASSERT_NE(module, nullptr);
+    LSTMInput input;
+
+    // Read instance
+    read_lstm_instance("lstmtest.txt", &input.l, &input.c, &input.b,
+        input.main_params, input.extra_params, input.state, input.sequence);
+    module->prepare(std::move(input));
+
+    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<LSTMInput, LSTMOutput>::calculateJacobian));
 }

@@ -4,13 +4,22 @@
 #include "test_utils.h"
 #include "ModuleTest.h"
 
-TEST_P(ModuleTest, Load)
+class GmmModuleTest : public ModuleTest {};
+
+INSTANTIATE_TEST_CASE_P(Gmm, GmmModuleTest,
+    ::testing::Values(
+        "../../../../src/cpp/modules/manual/Manual.dll",
+        "../../../../src/cpp/modules/manualEigen/ManualEigen.dll"
+    ),
+    get_module_name<ModuleTest::ParamType>);
+
+TEST_P(GmmModuleTest, Load)
 {
     auto module = moduleLoader->get_gmm_test();
     ASSERT_NE(module, nullptr);
 }
 
-TEST_P(ModuleTest, TestProcess)
+TEST_P(GmmModuleTest, TestProcess)
 {
     auto module = moduleLoader->get_gmm_test();
     ASSERT_NE(module, nullptr);
@@ -45,7 +54,7 @@ TEST_P(ModuleTest, TestProcess)
     EXPECT_NEAR(-0.99464, output.gradient[17], 0.00001);
 }
 
-TEST_P(ModuleTest, ObjectiveRunsMultipleTimes)
+TEST_P(GmmModuleTest, ObjectiveRunsMultipleTimes)
 {
     auto module = moduleLoader->get_gmm_test();
     ASSERT_NE(module, nullptr);
@@ -59,7 +68,7 @@ TEST_P(ModuleTest, ObjectiveRunsMultipleTimes)
     EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<GMMInput, GMMOutput>::calculateObjective));
 }
 
-TEST_P(ModuleTest, JacobianRunsMultipleTimes)
+TEST_P(GmmModuleTest, JacobianRunsMultipleTimes)
 {
     auto module = moduleLoader->get_gmm_test();
     ASSERT_NE(module, nullptr);
@@ -72,10 +81,3 @@ TEST_P(ModuleTest, JacobianRunsMultipleTimes)
 
     EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<GMMInput, GMMOutput>::calculateJacobian));
 }
-
-INSTANTIATE_TEST_CASE_P(Gmm, ModuleTest,
-    ::testing::Values(
-        "../../../../src/cpp/modules/manual/Manual.dll",
-        "../../../../src/cpp/modules/manualEigen/ManualEigen.dll"
-    ),
-    get_module_name<ModuleTest::ParamType>);
