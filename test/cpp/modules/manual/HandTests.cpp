@@ -19,6 +19,8 @@ TEST_P(HandModuleTest, Load)
     ASSERT_NE(test, nullptr);
 }
 
+//TODO: Objective & Jacobian CalculationCorrectness test
+
 TEST_P(HandModuleTest, TestProcessSimple)
 {
     auto module = moduleLoader->get_hand_test();

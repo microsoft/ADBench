@@ -17,6 +17,8 @@ TEST_P(LstmModuleTest, Load) {
     ASSERT_NE(test, nullptr);
 }
 
+//TODO: Objective & Jacobian CalculationCorrectness test
+
 TEST_P(LstmModuleTest, TestProcess)
 {
     auto module = moduleLoader->get_lstm_test();
