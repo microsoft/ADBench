@@ -248,8 +248,14 @@ Class Tool {
 		$cmdargs = @($dir_in, $dir_out, $fn, $script:nruns_f, $script:nruns_J, $script:time_limit)
 		if ($this.type -eq "bin") {
 			$cmd = "$script:bindir\tools\$($this.name)\Tools-$($this.name)-$objective.exe"
-
-		} elseif ($this.type -eq "py" -or $this.type -eq "pybat") {
+		} elseif ($this.type -eq "cpp") {
+            #temporary solution until this script refactoring
+			$cmd = "$script:bindir/src/cpp/runner/CppRunner.exe"
+            $dir_name = $this.name.ToLowerInvariant()[0] + $this.name.Substring(1)
+            $module_path = "$script:bindir/src/cpp/modules/$($dir_name)/$($this.name).dll"
+            $objective = $objective.Split("-")[0]
+			$cmdargs = @("$objective $module_path $dir_in$fn.txt $dir_out 0 $script:nruns_f $script:nruns_J $script:time_limit")
+        } elseif ($this.type -eq "py" -or $this.type -eq "pybat") {
 			$objective = $objective.ToLower().Replace("-", "_")
 			if ($this.type -eq "py") { $cmd = "python" }
 			elseif ($this.type -eq "pybat") { $cmd = "$script:dir/tools/$($this.name)/run.bat" }
@@ -381,7 +387,8 @@ $tool_descriptors = @(
 	#[Tool]::new("ADOLC", "bin", "GMM, BA, Hand", 1, 0, "101011")
 	#[Tool]::new("Ceres", "bin", "GMM, BA", 0, 1, "101011")
 	 [Tool]::new("Finite", "bin", [ToolType] "GMM, BA, Hand, LSTM", 0, 0, "101011")
-	 [Tool]::new("Manual", "bin", [ToolType] "GMM, BA, Hand", 0, 0, "110101")
+	 [Tool]::new("Manual", "cpp", [ToolType] "GMM, BA, Hand, LSTM", 0, 0, "000000")
+	 [Tool]::new("ManualEigen", "cpp", [ToolType] "GMM, BA, Hand, LSTM", 0, 0, "000000")
 	 [Tool]::new("DiffSharp", "bin", [ToolType] "BA", 1, 0, "101010")
 	 [Tool]::new("Autograd", "py", [ToolType] "GMM, BA", 1, 0, "101010")
 	 [Tool]::new("PyTorch", "py", [ToolType] "GMM, Hand, LSTM", 0, 0, "101010")
