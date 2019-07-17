@@ -26,6 +26,12 @@ namespace {
     {
         auto module = moduleLoader->get_gmm_test();
         ASSERT_NE(module, nullptr);
+    }
+
+    TEST_P(ModuleTest, TestProcess)
+    {
+        auto module = moduleLoader->get_gmm_test();
+        ASSERT_NE(module, nullptr);
         GMMInput input;
 
         // Read instance
@@ -57,7 +63,7 @@ namespace {
         EXPECT_NEAR(-0.99464, output.gradient[17], 0.00001);
     }
 
-    INSTANTIATE_TEST_CASE_P(GmmModuleTest, ModuleTest,
+    INSTANTIATE_TEST_CASE_P(Gmm, ModuleTest,
         ::testing::Values(
             "../../../../src/cpp/modules/manual/Manual.dll",
             "../../../../src/cpp/modules/manualEigen/ManualEigen.dll"
