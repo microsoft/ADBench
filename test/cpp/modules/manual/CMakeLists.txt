@@ -13,7 +13,7 @@ if (UNIX)
 	target_link_libraries(manualTests PUBLIC dl)
 endif (UNIX)
 
-gtest_add_tests(manualTests "" AUTO)
+gtest_discover_tests(manualTests "" AUTO)
 add_dependencies(manualTests Manual)
 target_link_libraries(manualTests PUBLIC GTest::main)
 add_custom_command(TARGET manualTests PRE_BUILD 
