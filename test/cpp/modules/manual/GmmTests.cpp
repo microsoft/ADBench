@@ -20,7 +20,21 @@ TEST_P(GmmModuleTest, Load)
     ASSERT_NE(module, nullptr);
 }
 
-//TODO: ObjectiveCalculationCorrectness test SPLIT!
+TEST_P(GmmModuleTest, ObjectiveCalculationCorrectness)
+{
+    auto module = moduleLoader->get_gmm_test();
+    ASSERT_NE(module, nullptr);
+    GMMInput input;
+
+    // Read instance
+    read_gmm_instance("gmmtest.txt", &input.d, &input.k, &input.n,
+        input.alphas, input.means, input.icf, input.x, input.wishart, false);
+    module->prepare(std::move(input));
+    module->calculateObjective(1);
+
+    auto output = module->output();
+    EXPECT_NEAR(8.0738, output.objective, 0.00001);
+}
 
 TEST_P(GmmModuleTest, JacobianCalculationCorrectness)
 {
@@ -32,10 +46,9 @@ TEST_P(GmmModuleTest, JacobianCalculationCorrectness)
     read_gmm_instance("gmmtest.txt", &input.d, &input.k, &input.n,
         input.alphas, input.means, input.icf, input.x, input.wishart, false);
     module->prepare(std::move(input));
-    module->calculateObjective(1);
     module->calculateJacobian(1);
+
     auto output = module->output();
-    EXPECT_NEAR(8.0738, output.objective, 0.00001);
     EXPECT_EQ(18, output.gradient.size());
     EXPECT_NEAR(0.108663, output.gradient[0], 0.00001);
     EXPECT_NEAR(-0.74127, output.gradient[1], 0.00001);
