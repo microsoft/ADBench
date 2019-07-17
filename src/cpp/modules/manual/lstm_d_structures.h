@@ -85,9 +85,13 @@ struct LayerStateJacobianPredict
 {
     std::vector<StateElementGradientPredict<T>> d_hidden;
     std::vector<StateElementGradientPredict<T>> d_cell;
+    T* raw_data;
+    bool owns_memory;
 
     // raw_jacobian must point to ((10 * n_layers + 1) * 2 * hsize) pre-allocated T
-    LayerStateJacobianPredict(T* raw_jacobian, int n_layers, int hsize)
+    LayerStateJacobianPredict(T* raw_jacobian, int n_layers, int hsize, bool should_own_memory = false) :
+        raw_data(raw_jacobian),
+        owns_memory(should_own_memory)
     {
         d_hidden.reserve(hsize);
         d_cell.reserve(hsize);
@@ -98,15 +102,29 @@ struct LayerStateJacobianPredict
             d_cell.emplace_back(&raw_jacobian[(i + hsize) * gradient_size], n_layers);
         }
     }
+
+    LayerStateJacobianPredict(int n_layers, int hsize) :
+        LayerStateJacobianPredict(new T[(10 * n_layers + 1) * 2 * hsize], n_layers, hsize, true)
+    {}
+
+    ~LayerStateJacobianPredict()
+    {
+        if (owns_memory)
+            delete[] raw_data;
+    }
 };
 
 template<typename T>
 struct StateJacobianPredict
 {
     std::vector<LayerStateJacobianPredict<T>> layer;
+    T* raw_data;
+    bool owns_memory;
 
     // raw_jacobian must point to (((10 * n_layers + 1) * 2 * hsize) * n_layers) pre-allocated T
-    StateJacobianPredict(T* raw_jacobian, int n_layers, int hsize)
+    StateJacobianPredict(T* raw_jacobian, int n_layers, int hsize, bool should_own_memory = false) :
+        raw_data(raw_jacobian),
+        owns_memory(should_own_memory)
     {
         layer.reserve(n_layers);
         int layer_size = (10 * n_layers + 1) * 2 * hsize;
@@ -114,6 +132,16 @@ struct StateJacobianPredict
         {
             layer.emplace_back(&raw_jacobian[i * layer_size], n_layers, hsize);
         }
+    }
+
+    StateJacobianPredict(int n_layers, int hsize) :
+        StateJacobianPredict(new T[((10 * n_layers + 1) * 2 * hsize) * n_layers], n_layers, hsize, true)
+    {}
+
+    ~StateJacobianPredict()
+    {
+        if (owns_memory)
+            delete[] raw_data;
     }
 };
 
@@ -169,9 +197,13 @@ template<typename T>
 struct PredictionJacobian
 {
     std::vector<PredictionElementGradient<T>> d_prediction;
+    T* raw_data;
+    bool owns_memory;
 
     // raw_jacobian must point to ((10 * n_layers + 3) * hsize) pre-allocated T
-    PredictionJacobian(T* raw_jacobian, int n_layers, int hsize)
+    PredictionJacobian(T* raw_jacobian, int n_layers, int hsize, bool should_own_memory = false) :
+        raw_data(raw_jacobian),
+        owns_memory(should_own_memory)
     {
         d_prediction.reserve(hsize);
         int gradient_size = 10 * n_layers + 3;
@@ -179,6 +211,16 @@ struct PredictionJacobian
         {
             d_prediction.emplace_back(&raw_jacobian[i * gradient_size], n_layers);
         }
+    }
+
+    PredictionJacobian(int n_layers, int hsize) :
+        PredictionJacobian(new T[(10 * n_layers + 3) * hsize], n_layers, hsize, true)
+    {}
+
+    ~PredictionJacobian()
+    {
+        if (owns_memory)
+            delete[] raw_data;
     }
 };
 
@@ -217,8 +259,13 @@ struct GradByParams
     T* d_in_weight;
     T* d_out_weight;
     T* d_out_bias;
+    T* raw_data;
+    bool owns_memory;
 
-    GradByParams(T* grad_raw, int hsize, int n_layers) :
+    // raw_jacobian must point to (8 * n_layers * hsize + 3 * hsize) pre-allocated T
+    GradByParams(T* grad_raw, int n_layers, int hsize, bool should_own_memory = false) :
+        raw_data(grad_raw),
+        owns_memory(should_own_memory),
         d_in_weight(&grad_raw[8 * hsize * n_layers]),
         d_out_weight(&grad_raw[8 * hsize * n_layers + hsize]),
         d_out_bias(&grad_raw[8 * hsize * n_layers + 2 * hsize])
@@ -228,5 +275,15 @@ struct GradByParams
         {
             layer.emplace_back(&grad_raw[8 * hsize * i], hsize);
         }
+    }
+
+    GradByParams(int n_layers, int hsize) :
+        GradByParams(new T[8 * n_layers * hsize + 3 * hsize], n_layers, hsize, true)
+    {}
+
+    ~GradByParams()
+    {
+        if (owns_memory)
+            delete[] raw_data;
     }
 };
