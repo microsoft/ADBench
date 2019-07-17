@@ -247,7 +247,7 @@ Class Tool {
 		$cmd = ""
 		$cmdargs = @($dir_in, $dir_out, $fn, $script:nruns_f, $script:nruns_J, $script:time_limit)
 		if ($this.type -eq "bin") {
-			$cmd = "$script:bindir\tools\$($this.name)\Tools-$($this.name)-$objective.exe"
+			$cmd = "$script:bindir/tools/$($this.name)/Tools-$($this.name)-$objective.exe"
 		} elseif ($this.type -eq "cpp") {
             #temporary solution until this script refactoring
 			$cmd = "$script:bindir/src/cpp/runner/CppRunner.exe"
