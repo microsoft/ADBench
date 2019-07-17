@@ -383,9 +383,9 @@ Class Tool {
 # Separate Full|Split?
 # Separate GMM sizes?
 $tool_descriptors = @(
-	#[Tool]::new("Adept", "bin", "GMM, BA, Hand", 1, 0, "101010")
-	#[Tool]::new("ADOLC", "bin", "GMM, BA, Hand", 1, 0, "101011")
-	#[Tool]::new("Ceres", "bin", "GMM, BA", 0, 1, "101011")
+	#[Tool]::new("Adept", "bin", [ToolType] "GMM, BA, Hand", 1, 0, "101010")
+	#[Tool]::new("ADOLC", "bin", [ToolType] "GMM, BA, Hand", 1, 0, "101011")
+	#[Tool]::new("Ceres", "bin", [ToolType] "GMM, BA", 0, 1, "101011")
 	 [Tool]::new("Finite", "bin", [ToolType] "GMM, BA, Hand, LSTM", 0, 0, "101011")
 	 [Tool]::new("Manual", "cpp", [ToolType] "GMM, BA, Hand, LSTM", 0, 0, "000000")
 	 [Tool]::new("ManualEigen", "cpp", [ToolType] "GMM, BA, Hand, LSTM", 0, 0, "000000")
@@ -393,7 +393,7 @@ $tool_descriptors = @(
 	 [Tool]::new("Autograd", "py", [ToolType] "GMM, BA", 1, 0, "101010")
 	 [Tool]::new("PyTorch", "py", [ToolType] "GMM, Hand, LSTM", 0, 0, "101010")
 	 [Tool]::new("Julia", "julia", [ToolType] "GMM, BA", 0, 0, "101010")
-	#[Tool]::new("Theano", "pybat", "GMM, BA, Hand", 0, 0, "101010")
+	#[Tool]::new("Theano", "pybat", [ToolType] "GMM, BA, Hand", 0, 0, "101010")
 	#[Tool]::new("MuPad", "matlab", 0, 0, 0)
 	#[Tool]::new("ADiMat", "matlab", 0, 0, 0)
 )
