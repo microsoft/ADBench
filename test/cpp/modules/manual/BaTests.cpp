@@ -19,7 +19,9 @@ TEST_P(BaModuleTest, Load)
     ASSERT_NE(test, nullptr);
 }
 
-TEST_P(BaModuleTest, TestProcess)
+//TODO: ObjectiveCalculationCorrectness test (module->calculateObjective(1);)
+
+TEST_P(BaModuleTest, JacobianCalculationCorrectness)
 {
     auto module = moduleLoader->get_ba_test();
     ASSERT_NE(module, nullptr);
@@ -29,7 +31,6 @@ TEST_P(BaModuleTest, TestProcess)
     read_ba_instance("batest.txt", input.n, input.m, input.p,
         input.cams, input.X, input.w, input.obs, input.feats);
     module->prepare(std::move(input));
-    module->calculateObjective(1);
     module->calculateJacobian(1);
 
     auto output = module->output();
