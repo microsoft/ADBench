@@ -19,7 +19,6 @@ TEST_P(BaModuleTest, Load)
     ASSERT_NE(test, nullptr);
 }
 
-//TODO: ObjectiveCalculationCorrectness test (module->calculateObjective(1);)
 TEST_P(BaModuleTest, ObjectiveCalculationCorrectness)
 {
     auto module = moduleLoader->get_ba_test();
@@ -33,6 +32,15 @@ TEST_P(BaModuleTest, ObjectiveCalculationCorrectness)
     module->calculateObjective(1);
 
     auto output = module->output();
+    for (int i = 0; i < 20; i += 2)
+    {
+        EXPECT_NEAR(-0.26904884923518940, output.reproj_err[i], 0.0000000001);
+        EXPECT_NEAR(0.25994479267790188, output.reproj_err[i+1], 0.0000000001);
+    }
+    for (int i = 0; i < 10; i++)
+    {
+        EXPECT_NEAR(0.82609265151599998, output.w_err[i], 0.0000000001);
+    }
 }
 
 TEST_P(BaModuleTest, JacobianCalculationCorrectness)
