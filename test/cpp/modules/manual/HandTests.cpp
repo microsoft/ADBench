@@ -1,18 +1,27 @@
 #include <gtest/gtest.h>
 #include "../../../../src/cpp/runner/ModuleLoader.h"
 #include "../../../../src/cpp/shared/utils.h"
+#include "test_utils.h"
+#include "ModuleTest.h"
 
-TEST(ManualTests, Hand_Load) 
+class HandModuleTest : public ModuleTest {};
+
+INSTANTIATE_TEST_CASE_P(Hand, HandModuleTest,
+    ::testing::Values(
+        "../../../../src/cpp/modules/manual/Manual.dll",
+        "../../../../src/cpp/modules/manualEigen/ManualEigen.dll"
+    ),
+    get_module_name<ModuleTest::ParamType>);
+
+TEST_P(HandModuleTest, Load)
 {
-    ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
-    auto test = moduleLoader.get_hand_test();
+    auto test = moduleLoader->get_hand_test();
     ASSERT_NE(test, nullptr);
 }
 
-TEST(ManualTests, Hand_TestProcessSimple)
+TEST_P(HandModuleTest, TestProcessSimple)
 {
-    ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
-    auto module = moduleLoader.get_hand_test();
+    auto module = moduleLoader->get_hand_test();
     ASSERT_NE(module, nullptr);
     HandInput input;
 
@@ -62,10 +71,9 @@ TEST(ManualTests, Hand_TestProcessSimple)
         EXPECT_NEAR(expectedJ[i], output.jacobian[i], 0.000001);
 }
 
-TEST(ManualTests, Hand_TestProcessComplicated)
+TEST_P(HandModuleTest, TestProcessComplicated)
 {
-    ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
-    auto module = moduleLoader.get_hand_test();
+    auto module = moduleLoader->get_hand_test();
     ASSERT_NE(module, nullptr);
     HandInput input;
 
@@ -115,4 +123,56 @@ TEST(ManualTests, Hand_TestProcessComplicated)
     EXPECT_EQ(28, output.jacobian_ncols);
     for (int i = 0; i < expectedJ.size(); ++i)
         EXPECT_NEAR(expectedJ[i], output.jacobian[i], 0.000001);
+}
+
+TEST_P(HandModuleTest, SimpleObjectiveRunsMultipleTimes)
+{
+    auto module = moduleLoader->get_hand_test();
+    ASSERT_NE(module, nullptr);
+    HandInput input;
+
+    // Read instance
+    read_hand_instance("model/", "handtestsmall.txt", &input.theta, &input.data);
+    module->prepare(std::move(input));
+
+    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<HandInput, HandOutput>::calculateObjective));
+}
+
+TEST_P(HandModuleTest, SimpleJacobianRunsMultipleTimes)
+{
+    auto module = moduleLoader->get_hand_test();
+    ASSERT_NE(module, nullptr);
+    HandInput input;
+
+    // Read instance
+    read_hand_instance("model/", "handtestsmall.txt", &input.theta, &input.data);
+    module->prepare(std::move(input));
+
+    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<HandInput, HandOutput>::calculateJacobian));
+}
+
+TEST_P(HandModuleTest, ComplicatedObjectiveRunsMultipleTimes)
+{
+    auto module = moduleLoader->get_hand_test();
+    ASSERT_NE(module, nullptr);
+    HandInput input;
+
+    // Read instance
+    read_hand_instance("model/", "handtestcomplicated.txt", &input.theta, &input.data, &input.us);
+    module->prepare(std::move(input));
+
+    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<HandInput, HandOutput>::calculateObjective));
+}
+
+TEST_P(HandModuleTest, ComplicatedJacobianRunsMultipleTimes)
+{
+    auto module = moduleLoader->get_hand_test();
+    ASSERT_NE(module, nullptr);
+    HandInput input;
+
+    // Read instance
+    read_hand_instance("model/", "handtestcomplicated.txt", &input.theta, &input.data, &input.us);
+    module->prepare(std::move(input));
+
+    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<HandInput, HandOutput>::calculateJacobian));
 }

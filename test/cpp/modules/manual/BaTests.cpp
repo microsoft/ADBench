@@ -1,18 +1,27 @@
 #include <gtest/gtest.h>
 #include "../../../../src/cpp/runner/ModuleLoader.h"
 #include "../../../../src/cpp/shared/utils.h"
+#include "test_utils.h"
+#include "ModuleTest.h"
 
-TEST(ManualTests, Ba_Load) 
+class BaModuleTest : public ModuleTest {};
+
+INSTANTIATE_TEST_CASE_P(Ba, BaModuleTest,
+    ::testing::Values(
+        "../../../../src/cpp/modules/manual/Manual.dll",
+        "../../../../src/cpp/modules/manualEigen/ManualEigen.dll"
+    ),
+    get_module_name<ModuleTest::ParamType>);
+
+TEST_P(BaModuleTest, Load)
 {
-    ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
-    auto test = moduleLoader.get_ba_test();
+    auto test = moduleLoader->get_ba_test();
     ASSERT_NE(test, nullptr);
 }
 
-TEST(ManualTests, Ba_TestProcess)
+TEST_P(BaModuleTest, TestProcess)
 {
-    ModuleLoader moduleLoader("../../../../src/cpp/modules/manual/Manual.dll");
-    auto module = moduleLoader.get_ba_test();
+    auto module = moduleLoader->get_ba_test();
     ASSERT_NE(module, nullptr);
     BAInput input;
 
@@ -45,4 +54,32 @@ TEST(ManualTests, Ba_TestProcess)
     EXPECT_NEAR(-0.834044, output.J.vals[307], 0.000001);
     EXPECT_NEAR(-0.834044, output.J.vals[308], 0.000001);
     EXPECT_NEAR(-0.834044, output.J.vals[309], 0.000001);
+}
+
+TEST_P(BaModuleTest, ObjectiveRunsMultipleTimes)
+{
+    auto module = moduleLoader->get_ba_test();
+    ASSERT_NE(module, nullptr);
+    BAInput input;
+
+    // Read instance
+    read_ba_instance("batest.txt", input.n, input.m, input.p,
+        input.cams, input.X, input.w, input.obs, input.feats);
+    module->prepare(std::move(input));
+
+    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<BAInput, BAOutput>::calculateObjective));
+}
+
+TEST_P(BaModuleTest, JacobianRunsMultipleTimes)
+{
+    auto module = moduleLoader->get_ba_test();
+    ASSERT_NE(module, nullptr);
+    BAInput input;
+
+    // Read instance
+    read_ba_instance("batest.txt", input.n, input.m, input.p,
+        input.cams, input.X, input.w, input.obs, input.feats);
+    module->prepare(std::move(input));
+
+    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<BAInput, BAOutput>::calculateJacobian));
 }
