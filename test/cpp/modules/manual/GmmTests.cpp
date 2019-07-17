@@ -10,6 +10,7 @@ INSTANTIATE_TEST_CASE_P(Gmm, GmmModuleTest,
     ::testing::Values(
         "../../../../src/cpp/modules/manual/Manual.dll",
         "../../../../src/cpp/modules/manualEigen/ManualEigen.dll"
+        //,"../../../../src/cpp/modules/manualEigen/ManualEigenVector.dll"
     ),
     get_module_name<ModuleTest::ParamType>);
 
@@ -19,7 +20,9 @@ TEST_P(GmmModuleTest, Load)
     ASSERT_NE(module, nullptr);
 }
 
-TEST_P(GmmModuleTest, TestProcess)
+//TODO: ObjectiveCalculationCorrectness test SPLIT!
+
+TEST_P(GmmModuleTest, JacobianCalculationCorrectness)
 {
     auto module = moduleLoader->get_gmm_test();
     ASSERT_NE(module, nullptr);
