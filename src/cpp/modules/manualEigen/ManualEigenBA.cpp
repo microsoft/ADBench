@@ -17,7 +17,6 @@ BAOutput ManualEigenBA::output()
     return _output;
 }
 
-// TODO: check whether the loop gets optimized away
 void ManualEigenBA::calculateObjective(int times)
 {
     for (int i = 0; i < times; ++i) {

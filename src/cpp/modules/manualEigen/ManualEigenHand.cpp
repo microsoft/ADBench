@@ -56,7 +56,6 @@ HandOutput ManualEigenHand::output()
     return _output;
 }
 
-// TODO: check whether the loop gets optimized away
 void ManualEigenHand::calculateObjective(int times)
 {
     if (_complicated)
