@@ -17,7 +17,6 @@ LSTMOutput ManualLSTM::output()
     return result;
 }
 
-// TODO: check whether the loop gets optimized away
 void ManualLSTM::calculateObjective(int times)
 {
     for (int i = 0; i < times; ++i) {
