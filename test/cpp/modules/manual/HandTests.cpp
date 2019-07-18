@@ -19,9 +19,7 @@ TEST_P(HandModuleTest, Load)
     ASSERT_NE(test, nullptr);
 }
 
-//TODO: Objective & Jacobian CalculationCorrectness test
-
-TEST_P(HandModuleTest, TestProcessSimple)
+TEST_P(HandModuleTest, SimpleObjectiveCalculationCorrectness)
 {
     auto module = moduleLoader->get_hand_test();
     ASSERT_NE(module, nullptr);
@@ -31,6 +29,27 @@ TEST_P(HandModuleTest, TestProcessSimple)
     read_hand_instance("model/", "handtestsmall.txt", &input.theta, &input.data);
     module->prepare(std::move(input));
     module->calculateObjective(1);
+
+    auto output = module->output();
+
+    EXPECT_NEAR(0.16519314794161155, output.objective[0], 0.0000000001);
+    EXPECT_NEAR(-0.17454276927274259, output.objective[1], 0.0000000001);
+    EXPECT_NEAR(0.15475116162225344, output.objective[2], 0.0000000001);
+    EXPECT_NEAR(-0.12565174973179360, output.objective[3], 0.0000000001);
+    EXPECT_NEAR(-0.042510293535507504, output.objective[4], 0.0000000001);
+    EXPECT_NEAR(-0.13066578113234018, output.objective[5], 0.0000000001);
+
+}
+
+TEST_P(HandModuleTest, SimpleJacobianCalculationCorrectness)
+{
+    auto module = moduleLoader->get_hand_test();
+    ASSERT_NE(module, nullptr);
+    HandInput input;
+
+    // Read instance
+    read_hand_instance("model/", "handtestsmall.txt", &input.theta, &input.data);
+    module->prepare(std::move(input));
     module->calculateJacobian(1);
 
     auto output = module->output();
@@ -73,7 +92,7 @@ TEST_P(HandModuleTest, TestProcessSimple)
         EXPECT_NEAR(expectedJ[i], output.jacobian[i], 0.000001);
 }
 
-TEST_P(HandModuleTest, TestProcessComplicated)
+TEST_P(HandModuleTest, ComplicatedObjectiveCalculationCorrectness)
 {
     auto module = moduleLoader->get_hand_test();
     ASSERT_NE(module, nullptr);
@@ -83,6 +102,26 @@ TEST_P(HandModuleTest, TestProcessComplicated)
     read_hand_instance("model/", "handtestcomplicated.txt", &input.theta, &input.data, &input.us);
     module->prepare(std::move(input));
     module->calculateObjective(1);
+
+    auto output = module->output();
+
+    EXPECT_NEAR(0.15618766169646370, output.objective[0], 0.0000000001);
+    EXPECT_NEAR(-0.14930052600332222, output.objective[1], 0.0000000001);
+    EXPECT_NEAR(0.17223808982645483, output.objective[2], 0.0000000001);
+    EXPECT_NEAR(-0.098877045184959655, output.objective[3], 0.0000000001);
+    EXPECT_NEAR(-0.016123803546210125, output.objective[4], 0.0000000001);
+    EXPECT_NEAR(-0.19758676846557965, output.objective[5], 0.0000000001);
+}
+
+TEST_P(HandModuleTest, ComplicatedJacobianCalculationCorrectness)
+{
+    auto module = moduleLoader->get_hand_test();
+    ASSERT_NE(module, nullptr);
+    HandInput input;
+
+    // Read instance
+    read_hand_instance("model/", "handtestcomplicated.txt", &input.theta, &input.data, &input.us);
+    module->prepare(std::move(input));
     module->calculateJacobian(1);
 
     auto output = module->output();
