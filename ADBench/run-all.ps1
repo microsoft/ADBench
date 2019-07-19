@@ -7,10 +7,11 @@ This is a PowerShell script to run all autodiff benchmarking tests.
 This script loops through each of a set of tools (defined using the Tool class) and runs a set of test functions on each of them.
 
 .EXAMPLE
-./run-all.ps1 -buildtype "Release" -nruns_f 10 -nruns_J 10 -time_limit 180 -timeout 600 -tmpdir "C:/path/to/tmp/" -repeat $FALSE  -tools (echo Finite Manual Julia) -gmm_d_vals_param @(2,10)
+./run-all.ps1 -buildtype "Release" -minimum_measurable_time 0.5 -nruns_f 10 -nruns_J 10 -time_limit 180 -timeout 600 -tmpdir "C:/path/to/tmp/" -repeat $FALSE  -tools (echo Finite Manual Julia) -gmm_d_vals_param @(2,10)
 
 This will:
 - run only release builds
+- loop measured function while total calculation time less than 0.5 seconds
 - aim to run 10 tests of each function, and 10 tests of the derivative of each function
 - stop (having completed a whole number of tests) at any point after 180 seconds
 - allow each program a maximum of 600 seconds to run all tests
@@ -34,6 +35,11 @@ param(# Which build to test.
       # And if only some D,K are valid for GMM, sets $gmm_d_vals, and $gmm_k_vals
       [string]$buildtype="Release",
       
+      # Estimated time of accurate result achievement. 
+      # A runner cyclically reruns measured function until total time becomes more than that value. 
+      # Currently not supported by all runners. 
+      [double]$minimum_measurable_time = 0.5,
+
       # Maximum number of times to run the function for timing                
       [int]$nruns_f=10,        
       
@@ -255,7 +261,7 @@ Class Tool {
             $module_path = "$script:bindir/src/cpp/modules/$($dir_name)/$($this.name).dll"
             $task = $objective.Split("-")[0]
             if ($objective.contains("complicated")) { $task = "$task-Complicated" }
-			$cmdargs = @("$task $module_path $dir_in$fn.txt $dir_out 0 $script:nruns_f $script:nruns_J $script:time_limit")
+			$cmdargs = @("$task $module_path $dir_in$fn.txt $dir_out $script:minimum_measurable_time $script:nruns_f $script:nruns_J $script:time_limit")
         } elseif ($this.type -eq "py" -or $this.type -eq "pybat") {
 			$objective = $objective.ToLower().Replace("-", "_")
 			if ($this.type -eq "py") { $cmd = "python" }
