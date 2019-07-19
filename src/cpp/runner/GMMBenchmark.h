@@ -3,7 +3,7 @@
 #include "Benchmark.h"
 
 template<>
-GMMInput read_input_data<GMMInput>(const std::string& input_file, const bool replicate_point);
+GMMInput read_input_data<GMMInput, GMMParameters>(const std::string& input_file, const GMMParameters& params);
 
 template<>
 unique_ptr<ITest<GMMInput, GMMOutput>> get_test<GMMInput, GMMOutput>(const ModuleLoader& module_loader);

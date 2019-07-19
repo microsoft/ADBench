@@ -3,7 +3,7 @@
 #include  "Benchmark.h"
 
 template <>
-BAInput read_input_data<BAInput>(const std::string& input_file, const bool replicate_point);
+BAInput read_input_data<BAInput, DefaultParameters>(const std::string& input_file, const DefaultParameters& params);
 
 template <>
 unique_ptr<ITest<BAInput, BAOutput>> get_test<BAInput, BAOutput>(const ModuleLoader& module_loader);

@@ -34,16 +34,19 @@ int main(const int argc, const char* argv[])
         const auto replicate_point = (argc > 9 && string(argv[9]) == "-rep");
 
         if (test_type == "GMM") {
-            run_benchmark<GMMInput, GMMOutput>(module_path, input_filepath, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit, replicate_point);
+            run_benchmark<GMMInput, GMMOutput, GMMParameters>(module_path, input_filepath, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit, { replicate_point });
         }
         else if (test_type == "BA") {
-            run_benchmark<BAInput, BAOutput>(module_path, input_filepath, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit, replicate_point);
+            run_benchmark<BAInput, BAOutput>(module_path, input_filepath, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit);
         }
         else if (test_type == "HAND") {
-            run_benchmark<HandInput, HandOutput>(module_path, input_filepath, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit, replicate_point);
+            run_benchmark<HandInput, HandOutput, HandParameters>(module_path, input_filepath, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit, { false });
+        }
+        else if (test_type == "HAND-COMPLICATED") {
+            run_benchmark<HandInput, HandOutput, HandParameters>(module_path, input_filepath, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit, { true });
         }
         else if (test_type == "LSTM") {
-            run_benchmark<LSTMInput, LSTMOutput>(module_path, input_filepath, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit, replicate_point);
+            run_benchmark<LSTMInput, LSTMOutput>(module_path, input_filepath, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit);
         }
         else
         {

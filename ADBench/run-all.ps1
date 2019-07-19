@@ -192,7 +192,7 @@ Class Tool {
 		This will create a Tool:
 		- called "Finite"
 		- run from binary executables
-		- runs all four tests 
+		- runs all five tests 
 		- does not do GMM in separate FULL and SPLIT modes
 		- doesn't require separate executables for different GMM sizes
 		- Runs all tests without eigen, and Hand tests with Eigen
@@ -253,8 +253,9 @@ Class Tool {
 			$cmd = "$script:bindir/src/cpp/runner/CppRunner.exe"
             $dir_name = $this.name.ToLowerInvariant()[0] + $this.name.Substring(1)
             $module_path = "$script:bindir/src/cpp/modules/$($dir_name)/$($this.name).dll"
-            $objective = $objective.Split("-")[0]
-			$cmdargs = @("$objective $module_path $dir_in$fn.txt $dir_out 0 $script:nruns_f $script:nruns_J $script:time_limit")
+            $task = $objective.Split("-")[0]
+            if ($objective.contains("complicated")) { $task = "$task-Complicated" }
+			$cmdargs = @("$task $module_path $dir_in$fn.txt $dir_out 0 $script:nruns_f $script:nruns_J $script:time_limit")
         } elseif ($this.type -eq "py" -or $this.type -eq "pybat") {
 			$objective = $objective.ToLower().Replace("-", "_")
 			if ($this.type -eq "py") { $cmd = "python" }
