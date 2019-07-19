@@ -16,3 +16,7 @@ struct HandOutput {
     int jacobian_ncols, jacobian_nrows;
     std::vector<double> jacobian;
 };
+
+struct HandParameters {
+    bool is_complicated;
+};

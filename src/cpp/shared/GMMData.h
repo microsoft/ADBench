@@ -14,3 +14,7 @@ struct GMMOutput {
     double objective;
     std::vector<double> gradient;
 };
+
+struct GMMParameters {
+    bool replicate_point;
+};

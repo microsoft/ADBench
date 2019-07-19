@@ -6,7 +6,7 @@
 #include "Filepaths.h"
 
 template <>
-LSTMInput read_input_data<LSTMInput>(const std::string& input_file, const bool replicate_point);
+LSTMInput read_input_data<LSTMInput, DefaultParameters>(const std::string& input_file, const DefaultParameters& params);
 
 template <>
 unique_ptr<ITest<LSTMInput, LSTMOutput>> get_test<LSTMInput, LSTMOutput>(const ModuleLoader& module_loader);

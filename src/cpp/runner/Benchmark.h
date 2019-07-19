@@ -17,10 +17,12 @@ using std::chrono::high_resolution_clock;
  * Such functions are implemented in <test_type>Benchmark.cpp files.
  */
 
+struct DefaultParameters {};
+
  //Reads input_file into Input struct. replicate_point flag duplicates one vector over all input data. 
  //Templated function "read_input_data" is deleted to cause a link error if a corresponding template specialization is not implemented.
-template<class Input>
-Input read_input_data(const std::string& input_file, bool replicate_point) = delete;
+template<class Input, class Parameters>
+Input read_input_data(const std::string& input_file, const Parameters& params) = delete;
 
 //Template of a pointer to a function which is a member of the ITest class and takes a single argument of int type. 
 template <class Input, class Output>
@@ -114,13 +116,13 @@ template<class Output>
 void save_output_to_file(const Output& output, const string& output_prefix, const string& input_basename, const string& module_basename) = delete;
 
 //Performs the entire benchmark process according to the documentation
-template<class Input, class Output>
+template<class Input, class Output, class Parameters>
 void run_benchmark(const char* const module_path, const std::string& input_filepath, const std::string& output_prefix, const duration<double> minimum_measurable_time, const int nruns_F, const int nruns_J,
-                   const duration<double> time_limit, const bool replicate_point) {
+                   const duration<double> time_limit, const Parameters parameters) {
 
     const ModuleLoader module_loader(module_path);
     auto test = get_test<Input, Output>(module_loader);
-    auto inputs = read_input_data<Input>(input_filepath, replicate_point);
+    auto inputs = read_input_data<Input, Parameters>(input_filepath, parameters);
 
     test->prepare(std::move(inputs));
 
@@ -137,4 +139,10 @@ void run_benchmark(const char* const module_path, const std::string& input_filep
 
     save_time_to_file(output_prefix + input_basename + "_times_" + module_basename + ".txt", objective_time.count(), derivative_time.count());
     save_output_to_file(output, output_prefix, input_basename, module_basename);
+}
+
+template<class Input, class Output>
+void run_benchmark(const char* const module_path, const std::string& input_filepath, const std::string& output_prefix, const duration<double> minimum_measurable_time, const int nruns_F, const int nruns_J,
+                   const duration<double> time_limit) {
+    run_benchmark<Input, Output, DefaultParameters>(module_path, input_filepath, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit, {});
 }

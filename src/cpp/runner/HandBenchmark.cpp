@@ -1,13 +1,18 @@
 #include "HandBenchmark.h"
 
 template <>
-HandInput read_input_data<HandInput>(const std::string& input_file, const bool replicate_point)
+HandInput read_input_data<HandInput, HandParameters>(const std::string& input_file, const HandParameters& params)
 {
     HandInput input;
 
     const auto model_dir = filepath_to_dirname(input_file) + "model\\";
     // Read instance
-    read_hand_instance(model_dir, input_file, &input.theta, &input.data);
+    if (params.is_complicated) {
+        read_hand_instance(model_dir, input_file, &input.theta, &input.data, &input.us);
+    }
+    else {
+        read_hand_instance(model_dir, input_file, &input.theta, &input.data);
+    }
 
     return input;
 }
