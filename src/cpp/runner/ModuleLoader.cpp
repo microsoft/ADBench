@@ -6,7 +6,7 @@ FUNCTION_PTR ModuleLoader::load_function(const std::string& symbol_name) const
     return GetProcAddress(module_ptr_,
                           symbol_name.c_str());
 #elif __linux__ 
-    dlsym(module_ptr_, symbol_name.c_str());
+    return dlsym(module_ptr_, symbol_name.c_str());
 #endif
 }
 
