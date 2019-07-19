@@ -70,7 +70,7 @@ def graph_data(build_type, objective, maybe_test_size):
 
     return (graph_name, graph_save_location)
 
-has_manual = lambda tool: tool.lower() in ["manual", "finite", "manual_eigen"]
+has_manual = lambda tool: tool.lower() in ["manual", "manual_eigen"]
 
 def tool_names(graph_files):
     file_names = list(map(utils.get_fn, graph_files))
