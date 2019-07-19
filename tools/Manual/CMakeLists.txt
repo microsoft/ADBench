@@ -1,12 +1,11 @@
-
 project("Tools-Manual")
 
 function(build_manual EXE_NAME MODE EIGEN)
 	if(${EIGEN})
-		add_executable("Tools-Manual-${EXE_NAME}" "main.cpp" ${ARGN})
+		add_executable("Tools-Manual-${EXE_NAME}" "main.cpp" "${CMAKE_SOURCE_DIR}/src/cpp/shared/utils.cpp" ${ARGN})
 		target_compile_definitions("Tools-Manual-${EXE_NAME}" PUBLIC ${MODE} "DO_EIGEN")
 	else()
-		add_executable("Tools-Manual-${EXE_NAME}" "main.cpp" ${ARGN})
+		add_executable("Tools-Manual-${EXE_NAME}" "main.cpp" "${CMAKE_SOURCE_DIR}/src/cpp/shared/utils.cpp" ${ARGN})
 		target_compile_definitions("Tools-Manual-${EXE_NAME}" PUBLIC ${MODE} "DO_CPP")
 	endif()
 endfunction(build_manual)
