@@ -1,7 +1,7 @@
 #include "BABenchmark.h"
 
 template <>
-BAInput read_input_data<BAInput>(const std::string& input_file, const bool replicate_point)
+BAInput read_input_data<BAInput, DefaultParameters>(const std::string& input_file, const DefaultParameters& params)
 {
     BAInput input;
 

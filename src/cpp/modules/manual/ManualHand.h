@@ -7,7 +7,7 @@
 class ManualHand : public ITest<HandInput, HandOutput> {
     HandInput _input;
     HandOutput _output;
-    bool _complicated;
+    bool _complicated = false;
 
 public:
     // This function must be called before any other function.

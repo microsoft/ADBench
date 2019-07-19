@@ -3,7 +3,7 @@
 #include "Benchmark.h"
 
 template <>
-HandInput read_input_data<HandInput>(const std::string& input_file, const bool replicate_point);
+HandInput read_input_data<HandInput, HandParameters>(const std::string& input_file, const HandParameters& params);
 
 template <>
 unique_ptr<ITest<HandInput, HandOutput>> get_test<HandInput, HandOutput>(const ModuleLoader& module_loader);

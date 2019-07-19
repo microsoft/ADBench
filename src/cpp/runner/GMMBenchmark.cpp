@@ -1,13 +1,13 @@
 #include "GMMBenchmark.h"
 
 template <>
-GMMInput read_input_data<GMMInput>(const std::string& input_file, const bool replicate_point)
+GMMInput read_input_data<GMMInput, GMMParameters>(const std::string& input_file, const GMMParameters& params)
 {
     GMMInput input;
 
     // Read instance
     read_gmm_instance(input_file, &input.d, &input.k, &input.n,
-        input.alphas, input.means, input.icf, input.x, input.wishart, replicate_point);
+        input.alphas, input.means, input.icf, input.x, input.wishart, params.replicate_point);
 
     return input;
 }
