@@ -7,12 +7,12 @@ Benchmarking process depends on the following variables:
 - `nruns_J` - maximum number of times to run the computation of the considered derivative (gradient or Jacobian) for timing
 - `time_limit` - _soft_ (see below) time limit for benchmarking the computation of either the objective function or its gradient/Jacobian
 - `timeout` - _hard_ time limit for the complete (including time that is not measured) benchmark
-- `minimum_measurable_time` - minimum time, computation needs to run to produce a reliable measurement
+- `minimum_measurable_time` - minimum time that computation needs to run to produce a reliable measurement
 
 The following is done for all combinations of considered AD frameworks and sets of parameters for all objective functions. If this process takes more time than `timeout`, it is forcibly stopped, and the result is considered to be 'time out'.
 
 1. Read the input data and convert into a format fit for consumption by the AD framework being tested. _Time is not measured_.
-1. Run any preparation code necessary to the AD framework, that is not AD itself. _Time is not measured_.
+1. Run any preparation code necessary for the AD framework, that is not AD itself. _Time is not measured_.
 1. For both computation of the objective function and computation it gradient/Jacobian:
     1. Find the number of times computation needs to run consecutively, so that the total run time will be greater than `minimum_measurable_time`. To do that start with 1 and then test the consecutive powers of 2 until the `minimum_measurable_time` is reached. Denote the found number as `repeats`. Consider the last measured time divided by `repeats` to be the first sample.
     1. Continue time measuring the computation running for `repeats` times and producing new samples until either `nruns_F` (or `nruns_J` as appropriate) samples were produced, or total time taken to produce all current samples is greater than `time_limit`.
