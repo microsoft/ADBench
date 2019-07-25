@@ -5,6 +5,12 @@
 #include <cmath>
 #include <string>
 
+#include "Eigen/Dense"
+
+using Eigen::Map;
+template<typename T>
+using ArrayX = Eigen::Array<T, -1, 1>;
+
 // UTILS
 
 // Sigmoid on scalar
@@ -41,17 +47,19 @@ T logsumexp_store_temps(const T* vect, int sz) {
 template<typename T>
 struct WeightOrBias
 {
-    const T* forget;
-    const T* ingate;
-    const T* outgate;
-    const T* change;
+    //const T*
+    ArrayX<T> forget;
+    ArrayX<T> ingate;
+    ArrayX<T> outgate;
+    ArrayX<T> change;
 
-    WeightOrBias(const T* params, int hsize) :
-        forget(params),
-        ingate(&params[hsize]),
-        outgate(&params[2 * hsize]),
-        change(&params[3 * hsize])
-    {}
+    WeightOrBias(const T* params, int hsize)
+    {
+        forget = Map<const ArrayX<T>>(params, hsize);
+        ingate = Map<const ArrayX<T>>(&params[hsize], hsize);
+        outgate = Map<const ArrayX<T>>(&params[2 * hsize], hsize);
+        change = Map<const ArrayX<T>>(&params[3 * hsize], hsize);
+    }
 };
 
 template<typename T>
@@ -84,28 +92,30 @@ struct MainParams
 template<typename T>
 struct ExtraParams
 {
-    const T* in_weight;
-    const T* out_weight;
-    const T* out_bias;
+    //const T*
+    ArrayX<T> in_weight;
+    ArrayX<T> out_weight;
+    ArrayX<T> out_bias;
 
-    ExtraParams(const T* params, int hsize) :
-        in_weight(params),
-        out_weight(&params[hsize]),
-        out_bias(&params[2 * hsize])
-    {}
+    ExtraParams(const T* params, int hsize)
+    {
+        in_weight = Map<const ArrayX<T>>(params, hsize);
+        out_weight = Map<const ArrayX<T>>(&params[hsize], hsize);
+        out_bias = Map<const ArrayX<T>>(&params[2 * hsize], hsize);
+    }
 };
 
 template<typename T>
 struct InputSequence
 {
-    std::vector<const T*> sequence;
+    std::vector<ArrayX<T>> sequence;
 
     InputSequence(const T* input_sequence, int char_bits, int char_count)
     {
         sequence.reserve(char_count);
         for (int i = 0; i < char_count; ++i)
         {
-            sequence.push_back(&input_sequence[char_bits * i]);
+            sequence.push_back(Map<const ArrayX<T>>(&input_sequence[char_bits * i], char_bits));
         }
     }
 };
@@ -113,13 +123,15 @@ struct InputSequence
 template<typename T>
 struct LayerState
 {
-    T* hidden;
-    T* cell;
+    //T*
+    ArrayX<T> hidden;
+    ArrayX<T> cell;
 
-    LayerState(T* layer_state, int hsize) :
-        hidden(layer_state),
-        cell(&layer_state[hsize])
-    {}
+    LayerState(T* layer_state, int hsize)
+    {
+        hidden = Map<ArrayX<T>>(layer_state, hsize);
+        cell = Map<ArrayX<T>>(&layer_state[hsize], hsize);
+    }
 };
 
 template<typename T>
@@ -144,7 +156,7 @@ template<typename T>
 void lstm_model(int hsize,
     const LayerParams<T>& params,
     LayerState<T>& state,
-    const T* input)
+    const ArrayX<T>& input)
 {
     for (int i = 0; i < hsize; ++i) {
         // gates for i-th cell/hidden
@@ -157,28 +169,50 @@ void lstm_model(int hsize,
         state.hidden[i] = outgate * tanh(state.cell[i]);
     }
 }
+//# The LSTM model
+//def lstm(weight, bias, hidden, cell, _input) :
+//    # NOTE this line came from : gates = hcat(input, hidden) * weight . + bias
+//    gates = torch.cat((_input, hidden, _input, hidden)) * weight + bias
+//    hsize = hidden.shape[0]
+//    forget = torch.sigmoid(gates[0:hsize])
+//    ingate = torch.sigmoid(gates[hsize:2 * hsize])
+//    outgate = torch.sigmoid(gates[2 * hsize:3 * hsize])
+//    change = torch.tanh(gates[3 * hsize:])
+//    cell = cell * forget + ingate * change
+//    hidden = outgate * torch.tanh(cell)
+//    return (hidden, cell)
     
 // Predict LSTM output given an input
 template<typename T>
 void lstm_predict(int l, int b,
     const MainParams<T>& main_params, const ExtraParams<T>& extra_params,
     State<T>& state,
-    const T* input, T* output)
+    const ArrayX<T>& input, ArrayX<T> output)
 {
     for (int i = 0; i < b; ++i)
         output[i] = input[i] * extra_params.in_weight[i];
 
-    T* layer_output = output;
+    ArrayX<T> layer_output = output;
 
     for (int i = 0; i < l; ++i)
     {
         lstm_model(b, main_params.layer_params[i], state.layer_state[i], layer_output);
-        layer_output = state.layer_state[i].hidden;
+        //layer_output.resize(state.layer_state[i].hidden.size());
+        layer_output = state.layer_state[i].hidden; //ERROR some strange memory allocation error in "state.layer_state[i].hidden"
     }
 
     for (int i = 0; i < b; ++i)
         output[i] = layer_output[i] * extra_params.out_weight[i] + extra_params.out_bias[i];
 }
+//# Predict output given an input
+//def predict(w, w2, s, x) :
+//    s2 = torch.tensor(s)
+//    # NOTE not sure if this should be element - wise or matrix multiplication
+//    x = x * w2[0]
+//    for i in range(0, len(s), 2) :
+//        (s2[i], s2[i + 1]) = lstm(w[i], w[i + 1], s[i], s[i + 1], x)
+//        x = s2[i]
+//        return (x * w2[1] + w2[2], s2)
     
 
 // LSTM objective (loss function)
@@ -194,16 +228,16 @@ void lstm_objective(int l, int c, int b,
     ExtraParams<T> extra_params_wrap(extra_params, b);
     State<T> state_wrap(state.data(), b, l);
     InputSequence<T> sequence_wrap(sequence, b, c);
-    std::vector<T> ypred(b), ynorm(b);
+    ArrayX<T> ypred(b), ynorm(b);
     for (int t = 0; t < c - 1; ++t)
     {
-        lstm_predict(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t], ypred.data());
+        lstm_predict(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t], ypred);
 
         T lse = logsumexp(ypred.data(), b);
         for (int i = 0; i < b; ++i)
             ynorm[i] = ypred[i] - lse;
 
-        const T* ygold = sequence_wrap.sequence[t + 1];
+        const ArrayX<T> ygold = sequence_wrap.sequence[t + 1];
         for (int i = 0; i < b; ++i)
             total += ygold[i] * ynorm[i];
 
@@ -212,3 +246,21 @@ void lstm_objective(int l, int c, int b,
 
     *loss = -total / count;
 }
+//# Get the average loss for the LSTM across a sequence of inputs
+//def loss(main_params, extra_params, state, sequence, _range = None) :
+//    if _range is None :
+//_range = range(0, len(sequence) - 1)
+//
+//total = 0.0
+//count = 0
+//_input = sequence[_range[0]]
+//all_states = [state]
+//for t in _range :
+//ypred, new_state = predict(main_params, extra_params, all_states[t], _input)
+//all_states.append(new_state)
+//ynorm = ypred - torch.log(sum(torch.exp(ypred), 2))
+//ygold = sequence[t + 1]
+//total += sum(ygold * ynorm)
+//count += ygold.shape[0]
+//_input = ygold
+//return -total / count
