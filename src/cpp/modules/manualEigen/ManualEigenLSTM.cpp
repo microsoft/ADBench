@@ -1,6 +1,5 @@
 // ManualEigenLSTM.cpp : Defines the exported functions for the DLL.
 #include "ManualEigenLSTM.h"
-//#include "../../shared/lstm.h"
 #include "../../shared/lstm_eigen.h"
 #include "lstm_d.h"
 
