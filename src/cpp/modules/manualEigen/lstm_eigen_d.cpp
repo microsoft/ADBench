@@ -1,14 +1,20 @@
 #include "lstm_eigen_d.h"
-#include "lstm_d_structures.h"
+#include "lstm_eigen_d_structures.h"
 #include "../../shared/lstm_eigen.h"
 
 // UTILS
 
+
+// Sigmoid on scalar
+template<typename T>
+T sigmoid_scalar(T x) {
+    return 1 / (1 + std::exp(-x));
+}
 // Sigmoid diff on scalar
 template<typename T>
 T sigmoid_d(T x, T* d) {
-    T s = sigmoid(x);
-    *d = s * (1 - s);
+    T s = sigmoid_scalar(x);
+    d[0] = s * (1 - s);
     return s;
 }
 
@@ -47,7 +53,7 @@ template<typename T>
 void lstm_model_d(int hsize,
     const LayerParams<T>& params,
     LayerState<T>& state,
-    const T* input,
+    const ArrayX<T>& input,
     ModelJacobian<T>& jacobian)
 {
     for (int i = 0; i < hsize; i++) {
@@ -136,10 +142,10 @@ template<typename T>
 void lstm_predict_d(int l, int b,
     const MainParams<T>& main_params, const ExtraParams<T>& extra_params,
     State<T>& state,
-    const T* input,
+    const ArrayX<T>& input,
     LayerStateJacobianPredict<T>& zero_layer_jacobian,
     ModelJacobian<T>& layer_state_d,
-    T* output,
+    ArrayX<T>& output,
     StateJacobianPredict<T>& state_jacobian,
     PredictionJacobian<T>& output_jacobian)
 {
@@ -147,11 +153,11 @@ void lstm_predict_d(int l, int b,
     for (int i = 0; i < b; ++i) {
         output[i] = input[i] * extra_params.in_weight[i];
         // note that the rest of zero_layer_jacobian.d_hidden and zero_layer_jacobian.d_cell are unused
-        *zero_layer_jacobian.d_hidden[i].d_extra_in_weight = input[i];
+        zero_layer_jacobian.d_hidden[i].d_extra_in_weight[0] = input[i];
     }
 
     // Pointer to current output/next layer's input
-    T* layer_output = output;
+    ArrayX<T> layer_output = output;
     // Pointer to the jacobian of the previous layer
     LayerStateJacobianPredict<T>* prev_layer_jacobian = &zero_layer_jacobian;
 
@@ -167,8 +173,8 @@ void lstm_predict_d(int l, int b,
             T hidden_j_d_input = layer_state_d.hidden[j].d_input;
             T cell_j_d_input = layer_state_d.cell[j].d_input;
             // derivatives by variables on which layer_output depends
-            *state_jacobian.layer[i].d_hidden[j].d_extra_in_weight = hidden_j_d_input * (*prev_layer_jacobian->d_hidden[j].d_extra_in_weight);
-            *state_jacobian.layer[i].d_cell[j].d_extra_in_weight = cell_j_d_input * (*prev_layer_jacobian->d_hidden[j].d_extra_in_weight);
+            state_jacobian.layer[i].d_hidden[j].d_extra_in_weight[0] = hidden_j_d_input * (prev_layer_jacobian->d_hidden[j].d_extra_in_weight[0]);
+            state_jacobian.layer[i].d_cell[j].d_extra_in_weight[0] = cell_j_d_input * (prev_layer_jacobian->d_hidden[j].d_extra_in_weight[0]);
             for (int k = 0; k < i ; ++k)
             {
                 state_jacobian.layer[i].d_hidden[j].d_weight_forget[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_forget[k];
@@ -248,7 +254,7 @@ void lstm_predict_d(int l, int b,
         // compute output
         output[i] = layer_output[i] * cur_out_weight + extra_params.out_bias[i];
         // compute the derivatives of output
-        *output_jacobian.d_prediction[i].d_extra_in_weight = cur_out_weight * (*prev_layer_jacobian->d_hidden[i].d_extra_in_weight);
+        *output_jacobian.d_prediction[i].d_extra_in_weight = cur_out_weight * (prev_layer_jacobian->d_hidden[i].d_extra_in_weight[0]);
         *output_jacobian.d_prediction[i].d_extra_out_weight = layer_output[i];
         *output_jacobian.d_prediction[i].d_extra_out_bias = 1.;
         for (int j = 0; j < l; ++j)
@@ -268,7 +274,10 @@ void lstm_predict_d(int l, int b,
 }
 
 // Gradient of the logsumexp(prediction(params)) with relation to params
-void logsumexp_grad(int n_layers, int hsize, const std::vector<double>& lse_d, const PredictionJacobian<double>& ypred_jacobian, GradByParams<double>& grad_lse_ypred)
+void logsumexp_grad(int n_layers, int hsize,
+    const ArrayX<double>& lse_d,
+    const PredictionJacobian<double>& ypred_jacobian,
+    GradByParams<double>& grad_lse_ypred)
 {
     for (int i = 0; i < hsize; ++i)
     {
@@ -294,7 +303,11 @@ void logsumexp_grad(int n_layers, int hsize, const std::vector<double>& lse_d, c
 // using the gold value for the prediction (ygold),
 // jacobian of the prediction with relation to params (ypred_jacobian),
 // and the gradient of the logsumexp(prediction(params)) with relation to params (grad_lse_ypred)
-void update_loss_gradient(int n_layers, int hsize, const double* ygold, const GradByParams<double>& grad_lse_ypred, const PredictionJacobian<double>& ypred_jacobian, GradByParams<double>& loss_grad)
+void update_loss_gradient(int n_layers, int hsize,
+    const ArrayX<double>& ygold,
+    const GradByParams<double>& grad_lse_ypred,
+    const PredictionJacobian<double>& ypred_jacobian,
+    GradByParams<double>& loss_grad)
 {
     for (int i = 0; i < hsize; ++i)
     {
@@ -341,7 +354,9 @@ void update_loss_gradient(int n_layers, int hsize, const double* ygold, const Gr
 }
 
 // Add (D pred / D state_(t-1)) * (D state_(t-1) / D params) to ypred_jacobian with relation to params
-void update_pred_jacobian_with_prev_state_jacobian(int n_layers, int hsize, const StateJacobianPredict<double>& prev_state_jacobian, PredictionJacobian<double>& ypred_jacobian)
+void update_pred_jacobian_with_prev_state_jacobian(int n_layers, int hsize,
+    const StateJacobianPredict<double>& prev_state_jacobian,
+    PredictionJacobian<double>& ypred_jacobian)
 {
     for (int pos = 0; pos < hsize; ++pos)
     {
@@ -376,14 +391,16 @@ void update_pred_jacobian_with_prev_state_jacobian(int n_layers, int hsize, cons
                     + ypred_jacobian.d_prediction[pos].d_cell[i] * prev_state_jacobian.layer[i].d_cell[pos].d_bias_change[j];
             }
             *ypred_jacobian.d_prediction[pos].d_extra_in_weight +=
-                ypred_jacobian.d_prediction[pos].d_hidden[i] * (*prev_state_jacobian.layer[i].d_hidden[pos].d_extra_in_weight)
-                + ypred_jacobian.d_prediction[pos].d_cell[i] * (*prev_state_jacobian.layer[i].d_cell[pos].d_extra_in_weight);
+                ypred_jacobian.d_prediction[pos].d_hidden[i] * (prev_state_jacobian.layer[i].d_hidden[pos].d_extra_in_weight[0])
+                + ypred_jacobian.d_prediction[pos].d_cell[i] * (prev_state_jacobian.layer[i].d_cell[pos].d_extra_in_weight[0]);
         }
     }
 }
 
 // Add (D state_t / D state_(t-1)) * (D state_(t-1) / D params) to state_jacobian with relation to params
-void update_state_jacobian_with_prev_state_jacobian(int n_layers, int hsize, const StateJacobianPredict<double>& prev_state_jacobian, StateJacobianPredict<double>& state_jacobian)
+void update_state_jacobian_with_prev_state_jacobian(int n_layers, int hsize,
+    const StateJacobianPredict<double>& prev_state_jacobian,
+    StateJacobianPredict<double>& state_jacobian)
 {
     for (int pos = 0; pos < hsize; ++pos)
     {
@@ -443,12 +460,12 @@ void update_state_jacobian_with_prev_state_jacobian(int n_layers, int hsize, con
                         state_jacobian.layer[i].d_cell[pos].d_hidden[j] * prev_state_jacobian.layer[j].d_hidden[pos].d_bias_change[k]
                         + state_jacobian.layer[i].d_cell[pos].d_cell[j] * prev_state_jacobian.layer[j].d_cell[pos].d_bias_change[k];
                 }
-                *state_jacobian.layer[i].d_hidden[pos].d_extra_in_weight +=
-                    state_jacobian.layer[i].d_hidden[pos].d_hidden[j] * (*prev_state_jacobian.layer[j].d_hidden[pos].d_extra_in_weight)
-                    + state_jacobian.layer[i].d_hidden[pos].d_cell[j] * (*prev_state_jacobian.layer[j].d_cell[pos].d_extra_in_weight);
-                *state_jacobian.layer[i].d_cell[pos].d_extra_in_weight +=
-                    state_jacobian.layer[i].d_cell[pos].d_hidden[j] * (*prev_state_jacobian.layer[j].d_hidden[pos].d_extra_in_weight)
-                    + state_jacobian.layer[i].d_cell[pos].d_cell[j] * (*prev_state_jacobian.layer[j].d_cell[pos].d_extra_in_weight);
+                state_jacobian.layer[i].d_hidden[pos].d_extra_in_weight[0] +=
+                    state_jacobian.layer[i].d_hidden[pos].d_hidden[j] * (prev_state_jacobian.layer[j].d_hidden[pos].d_extra_in_weight[0])
+                    + state_jacobian.layer[i].d_hidden[pos].d_cell[j] * (prev_state_jacobian.layer[j].d_cell[pos].d_extra_in_weight[0]);
+                state_jacobian.layer[i].d_cell[pos].d_extra_in_weight[0] +=
+                    state_jacobian.layer[i].d_cell[pos].d_hidden[j] * (prev_state_jacobian.layer[j].d_hidden[pos].d_extra_in_weight[0])
+                    + state_jacobian.layer[i].d_cell[pos].d_cell[j] * (prev_state_jacobian.layer[j].d_cell[pos].d_extra_in_weight[0]);
             }
         }
     }
@@ -470,7 +487,7 @@ void lstm_objective_d(int l, int c, int b,
     ExtraParams<double> extra_params_wrap(extra_params, b);
     State<double> state_wrap(state.data(), b, l);
     InputSequence<double> sequence_wrap(sequence, b, c);
-    std::vector<double> ypred(b), lse_d(b);
+    ArrayX<double> ypred(b), lse_d(b);
     StateJacobianPredict<double> prev_state_jacobian(l, b), state_jacobian(l, b);
     PredictionJacobian<double> ypred_jacobian(l, b);
     GradByParams<double> j_wrap(J, l, b), grad_lse_ypred(l, b);
@@ -481,12 +498,12 @@ void lstm_objective_d(int l, int c, int b,
 
     std::fill_n(J, total_params_count, 0.);
 
-    lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[0], zero_layer_jacobian, layer_state_d, ypred.data(), prev_state_jacobian, ypred_jacobian);
+    lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[0], zero_layer_jacobian, layer_state_d, ypred, prev_state_jacobian, ypred_jacobian);
 
     double lse = logsumexp_d(ypred.data(), b, lse_d.data());
     logsumexp_grad(l, b, lse_d, ypred_jacobian, grad_lse_ypred);
 
-    const double* ygold = sequence_wrap.sequence[1];
+    ArrayX<double> ygold = sequence_wrap.sequence[1];
 
     for (int i = 0; i < b; ++i)
         total += ygold[i] * (ypred[i] - lse);
@@ -495,7 +512,7 @@ void lstm_objective_d(int l, int c, int b,
 
     for (int t = 1; t < c - 2; ++t)
     {
-        lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t], zero_layer_jacobian, layer_state_d, ypred.data(), state_jacobian, ypred_jacobian);
+        lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t], zero_layer_jacobian, layer_state_d, ypred, state_jacobian, ypred_jacobian);
 
         // Adding (D state_t / D state_(t-1)) * (D state_(t-1) / D params) to state_jacobian w.r.t. params
         update_state_jacobian_with_prev_state_jacobian(l, b, prev_state_jacobian, state_jacobian);
@@ -517,7 +534,7 @@ void lstm_objective_d(int l, int c, int b,
         swap(state_jacobian, prev_state_jacobian);
     }
 
-    lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[c - 2], zero_layer_jacobian, layer_state_d, ypred.data(), state_jacobian, ypred_jacobian);
+    lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[c - 2], zero_layer_jacobian, layer_state_d, ypred, state_jacobian, ypred_jacobian);
     // No need to compute the jacobian for the last state
     // Adding (D pred / D state_(t-1)) * (D state_(t-1) / D params) to ypred_jacobian w.r.t. params
     update_pred_jacobian_with_prev_state_jacobian(l, b, prev_state_jacobian, ypred_jacobian);
