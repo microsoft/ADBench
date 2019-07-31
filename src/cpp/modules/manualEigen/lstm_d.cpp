@@ -1,6 +1,6 @@
 #include "lstm_d.h"
 #include "lstm_d_structures.h"
-#include "../../shared/lstm.h"
+#include "../../shared/lstm.h"//_eigen.h"
 
 // UTILS
 
