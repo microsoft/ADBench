@@ -1,7 +1,7 @@
 // ManualEigenLSTM.cpp : Defines the exported functions for the DLL.
 #include "ManualEigenLSTM.h"
 #include "../../shared/lstm_eigen.h"
-#include "lstm_d.h"
+//#include "lstm_d.h"
 
 // This function must be called before any other function.
 void ManualEigenLSTM::prepare(LSTMInput&& input)
@@ -29,7 +29,7 @@ void ManualEigenLSTM::calculateJacobian(int times)
 {
     for (int i = 0; i < times; ++i) {
         state = input.state;
-        lstm_objective_d(input.l, input.c, input.b, input.main_params.data(), input.extra_params.data(), state, input.sequence.data(), &result.objective, result.gradient.data());
+        //lstm_objective_d(input.l, input.c, input.b, input.main_params.data(), input.extra_params.data(), state, input.sequence.data(), &result.objective, result.gradient.data());
     }
 }
 
