@@ -17,14 +17,14 @@ using ArrayX = Eigen::Array<T, -1, 1>;
 template<typename T>
 ArrayX<T> sigmoid(ArrayX<T>& x) {
     return (ArrayX<T>)inverse(exp(-x) + 1);
-}
+};
 
 // log(sum(exp(x), 2))
 template<typename T>
 T logsumexp(const ArrayX<T>& vect) {
 
     return log(exp(vect).sum() + 2);
-}
+};
 
 
 // Helper structures
@@ -149,7 +149,7 @@ void lstm_model(int hsize,
     state.cell = state.cell * forget + ingate * change;
     state.hidden = outgate * tanh(state.cell);
 }
-    
+
 // Predict LSTM output given an input
 template<typename T>
 void lstm_predict(int l, int b,
@@ -184,12 +184,10 @@ void lstm_objective(int l, int c, int b,
     for (int t = 0; t < c - 1; ++t)
     {
         lstm_predict(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t], ypred);
-
         ynorm = ypred - logsumexp(ypred);
-
         const ArrayX<T> ygold = sequence_wrap.sequence[t + 1];
-        total += (ygold * ynorm).sum();
 
+        total += (ygold * ynorm).sum();
         count += b;
     }
 
