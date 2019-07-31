@@ -187,7 +187,7 @@ template<typename T>
 void lstm_predict(int l, int b,
     const MainParams<T>& main_params, const ExtraParams<T>& extra_params,
     State<T>& state,
-    const ArrayX<T>& input, ArrayX<T> output)
+    const ArrayX<T>& input, ArrayX<T>& output)
 {
     for (int i = 0; i < b; ++i)
         output[i] = input[i] * extra_params.in_weight[i];
@@ -197,12 +197,11 @@ void lstm_predict(int l, int b,
     for (int i = 0; i < l; ++i)
     {
         lstm_model(b, main_params.layer_params[i], state.layer_state[i], layer_output);
-        //layer_output.resize(state.layer_state[i].hidden.size());
-        layer_output = state.layer_state[i].hidden; //ERROR some strange memory allocation error in "state.layer_state[i].hidden"
+        layer_output = state.layer_state[i].hidden;
     }
 
     for (int i = 0; i < b; ++i)
-        output[i] = layer_output[i] * extra_params.out_weight[i] + extra_params.out_bias[i];
+        output(i) = layer_output[i] * extra_params.out_weight[i] + extra_params.out_bias[i];
 }
 //# Predict output given an input
 //def predict(w, w2, s, x) :
