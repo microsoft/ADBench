@@ -5,11 +5,8 @@
 #include <cmath>
 #include <string>
 
-#include "Eigen/Dense"
+#include "lstm_eigen_helpers.h"
 
-using Eigen::Map;
-template<typename T>
-using ArrayX = Eigen::Array<T, -1, 1>;
 
 // UTILS
 
