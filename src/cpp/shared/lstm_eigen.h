@@ -29,18 +29,17 @@ T logsumexp(const ArrayX<T>& vect) {
 template<typename T>
 struct WeightOrBias
 {
-    ArrayX<T> forget;
-    ArrayX<T> ingate;
-    ArrayX<T> outgate;
-    ArrayX<T> change;
+    MapConstX<T> forget;
+    MapConstX<T> ingate;
+    MapConstX<T> outgate;
+    MapConstX<T> change;
 
-    WeightOrBias(const T* params, int hsize)
-    {
-        forget = Map<const ArrayX<T>>(params, hsize);
-        ingate = Map<const ArrayX<T>>(&params[hsize], hsize);
-        outgate = Map<const ArrayX<T>>(&params[2 * hsize], hsize);
-        change = Map<const ArrayX<T>>(&params[3 * hsize], hsize);
-    }
+    WeightOrBias(const T* params, int hsize) :
+        forget(params, hsize),
+        ingate(&params[hsize], hsize),
+        outgate(&params[2 * hsize], hsize),
+        change(&params[3 * hsize], hsize)
+    {}
 };
 
 template<typename T>
@@ -73,16 +72,15 @@ struct MainParams
 template<typename T>
 struct ExtraParams
 {
-    ArrayX<T> in_weight;
-    ArrayX<T> out_weight;
-    ArrayX<T> out_bias;
+    MapConstX<T> in_weight;
+    MapConstX<T> out_weight;
+    MapConstX<T> out_bias;
 
-    ExtraParams(const T* params, int hsize)
-    {
-        in_weight = Map<const ArrayX<T>>(params, hsize);
-        out_weight = Map<const ArrayX<T>>(&params[hsize], hsize);
-        out_bias = Map<const ArrayX<T>>(&params[2 * hsize], hsize);
-    }
+    ExtraParams(const T* params, int hsize) :
+        in_weight(params, hsize),
+        out_weight(&params[hsize], hsize),
+        out_bias(&params[2 * hsize], hsize)
+    {}
 };
 
 template<typename T>
@@ -103,14 +101,13 @@ struct InputSequence
 template<typename T>
 struct LayerState
 {
-    ArrayX<T> hidden;
-    ArrayX<T> cell;
+    MapX<T> hidden;
+    MapX<T> cell;
 
-    LayerState(T* layer_state, int hsize)
-    {
-        hidden = Map<ArrayX<T>>(layer_state, hsize);
-        cell = Map<ArrayX<T>>(&layer_state[hsize], hsize);
-    }
+    LayerState(T* layer_state, int hsize) :
+        hidden(layer_state, hsize),
+        cell(&layer_state[hsize], hsize)
+    {}
 };
 
 template<typename T>
