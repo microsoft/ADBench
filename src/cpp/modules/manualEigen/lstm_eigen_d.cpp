@@ -614,8 +614,7 @@ void lstm_objective_d(int l, int c, int b,
 
     ArrayX<double> ygold = sequence_wrap.sequence[1];
 
-    for (int i = 0; i < b; ++i)
-        total += ygold[i] * (ypred[i] - lse);
+    total += (ygold * (ypred - lse)).sum();
 
     update_loss_gradient(l, b, ygold, grad_lse_ypred, ypred_jacobian, j_wrap);
 
@@ -635,8 +634,7 @@ void lstm_objective_d(int l, int c, int b,
 
         ygold = sequence_wrap.sequence[t + 1];
 
-        for (int i = 0; i < b; ++i)
-            total += ygold[i] * (ypred[i] - lse);
+        total += (ygold * (ypred - lse)).sum();
 
         update_loss_gradient(l, b, ygold, grad_lse_ypred, ypred_jacobian, j_wrap);
 
@@ -654,8 +652,7 @@ void lstm_objective_d(int l, int c, int b,
 
     ygold = sequence_wrap.sequence[c - 1];
 
-    for (int i = 0; i < b; ++i)
-        total += ygold[i] * (ypred[i] - lse);
+    total += (ygold * (ypred - lse)).sum();
 
     update_loss_gradient(l, b, ygold, grad_lse_ypred, ypred_jacobian, j_wrap);
 
