@@ -44,43 +44,42 @@ template<typename T>
 struct StateElementGradientPredict
 {
     // n_layers derivatives by corresponding weights from all layers
-    ArrayX<T> d_weight_forget;
+    MapX<T> d_weight_forget;
     // n_layers derivatives by corresponding weights from all layers
-    ArrayX<T> d_weight_ingate;
+    MapX<T> d_weight_ingate;
     // n_layers derivatives by corresponding weights from all layers
-    ArrayX<T> d_weight_outgate;
+    MapX<T> d_weight_outgate;
     // n_layers derivatives by corresponding weights from all layers
-    ArrayX<T> d_weight_change;
+    MapX<T> d_weight_change;
     // n_layers derivatives by corresponding biases from all layers
-    ArrayX<T> d_bias_forget;
+    MapX<T> d_bias_forget;
     // n_layers derivatives by corresponding biases from all layers
-    ArrayX<T> d_bias_ingate;
+    MapX<T> d_bias_ingate;
     // n_layers derivatives by corresponding biases from all layers
-    ArrayX<T> d_bias_outgate;
+    MapX<T> d_bias_outgate;
     // n_layers derivatives by corresponding biases from all layers
-    ArrayX<T> d_bias_change;
+    MapX<T> d_bias_change;
     // n_layers derivatives by corresponding hidden values from previous state from all layers
-    ArrayX<T> d_hidden;
+    MapX<T> d_hidden;
     // n_layers derivatives by corresponding cell values from previous state from all layers
-    ArrayX<T> d_cell;
+    MapX<T> d_cell;
     // 1 derivative by the corresponding weight from extra params
-    ArrayX<T> d_extra_in_weight;
+    T* d_extra_in_weight;
 
     // raw_gradient must point to (10 * n_layers + 1) pre-allocated T
-    StateElementGradientPredict(T* raw_gradient, int n_layers)
-    {
-        d_weight_forget = Map<ArrayX<T>>(raw_gradient, n_layers);
-        d_weight_ingate = Map<ArrayX<T>>(&raw_gradient[n_layers], n_layers);
-        d_weight_outgate = Map<ArrayX<T>>(&raw_gradient[2 * n_layers], n_layers);
-        d_weight_change = Map<ArrayX<T>>(&raw_gradient[3 * n_layers], n_layers);
-        d_bias_forget = Map<ArrayX<T>>(&raw_gradient[4 * n_layers], n_layers);
-        d_bias_ingate = Map<ArrayX<T>>(&raw_gradient[5 * n_layers], n_layers);
-        d_bias_outgate = Map<ArrayX<T>>(&raw_gradient[6 * n_layers], n_layers);
-        d_bias_change = Map<ArrayX<T>>(&raw_gradient[7 * n_layers], n_layers);
-        d_hidden = Map<ArrayX<T>>(&raw_gradient[8 * n_layers], n_layers);
-        d_cell = Map<ArrayX<T>>(&raw_gradient[9 * n_layers], n_layers);
-        d_extra_in_weight = Map<ArrayX<T>>(&raw_gradient[10 * n_layers], n_layers);
-    }
+    StateElementGradientPredict(T* raw_gradient, int n_layers) :
+        d_weight_forget(raw_gradient, n_layers),
+        d_weight_ingate(&raw_gradient[n_layers], n_layers),
+        d_weight_outgate(&raw_gradient[2 * n_layers], n_layers),
+        d_weight_change(&raw_gradient[3 * n_layers], n_layers),
+        d_bias_forget(&raw_gradient[4 * n_layers], n_layers),
+        d_bias_ingate(&raw_gradient[5 * n_layers], n_layers),
+        d_bias_outgate(&raw_gradient[6 * n_layers], n_layers),
+        d_bias_change(&raw_gradient[7 * n_layers], n_layers),
+        d_hidden(&raw_gradient[8 * n_layers], n_layers),
+        d_cell(&raw_gradient[9 * n_layers], n_layers),
+        d_extra_in_weight(&raw_gradient[10 * n_layers])
+    {}
 };
 
 template<typename T>
@@ -88,14 +87,14 @@ struct LayerStateJacobianPredict
 {
     std::vector<StateElementGradientPredict<T>> d_hidden;
     std::vector<StateElementGradientPredict<T>> d_cell;
-    ArrayX<T> raw_data;
+    T* raw_data;
     bool owns_memory;
 
     // raw_jacobian must point to ((10 * n_layers + 1) * 2 * hsize) pre-allocated T
     LayerStateJacobianPredict(T* raw_jacobian, int n_layers, int hsize, bool should_own_memory = false) :
-        owns_memory(should_own_memory)
+        owns_memory(should_own_memory),
+        raw_data(raw_jacobian)
     {
-        raw_data = Map<ArrayX<T>>(raw_jacobian, hsize); // DANGER may be incorrect size
         d_hidden.reserve(hsize);
         d_cell.reserve(hsize);
         int gradient_size = 10 * n_layers + 1;
@@ -110,11 +109,11 @@ struct LayerStateJacobianPredict
         LayerStateJacobianPredict(new T[(10 * n_layers + 1) * 2 * hsize], n_layers, hsize, true)
     {}
 
-    //~LayerStateJacobianPredict()
-    //{
-    //    if (owns_memory)
-    //        delete[] raw_data;
-    //}
+    ~LayerStateJacobianPredict()
+    {
+        if (owns_memory)
+            delete[] raw_data;
+    }
 };
 
 template<typename T>
@@ -152,25 +151,25 @@ template<typename T>
 struct PredictionElementGradient
 {
     // n_layers derivatives by corresponding weights from all layers
-    T* d_weight_forget;
+    MapX<T> d_weight_forget;
     // n_layers derivatives by corresponding weights from all layers
-    T* d_weight_ingate;
+    MapX<T> d_weight_ingate;
     // n_layers derivatives by corresponding weights from all layers
-    T* d_weight_outgate;
+    MapX<T> d_weight_outgate;
     // n_layers derivatives by corresponding weights from all layers
-    T* d_weight_change;
+    MapX<T> d_weight_change;
     // n_layers derivatives by corresponding biases from all layers
-    T* d_bias_forget;
+    MapX<T> d_bias_forget;
     // n_layers derivatives by corresponding biases from all layers
-    T* d_bias_ingate;
+    MapX<T> d_bias_ingate;
     // n_layers derivatives by corresponding biases from all layers
-    T* d_bias_outgate;
+    MapX<T> d_bias_outgate;
     // n_layers derivatives by corresponding biases from all layers
-    T* d_bias_change;
+    MapX<T> d_bias_change;
     // n_layers derivatives by corresponding hidden values from previous state from all layers
-    T* d_hidden;
+    MapX<T> d_hidden;
     // n_layers derivatives by corresponding cell values from previous state from all layers
-    T* d_cell;
+    MapX<T> d_cell;
     // 1 derivative by the corresponding weight from extra params
     T* d_extra_in_weight;
     // 1 derivative by the corresponding weight from extra params
@@ -180,16 +179,16 @@ struct PredictionElementGradient
 
     // raw_gradient must point to (10 * n_layers + 3) pre-allocated T
     PredictionElementGradient(T* raw_gradient, int n_layers) :
-        d_weight_forget(raw_gradient),
-        d_weight_ingate(&raw_gradient[n_layers]),
-        d_weight_outgate(&raw_gradient[2 * n_layers]),
-        d_weight_change(&raw_gradient[3 * n_layers]),
-        d_bias_forget(&raw_gradient[4 * n_layers]),
-        d_bias_ingate(&raw_gradient[5 * n_layers]),
-        d_bias_outgate(&raw_gradient[6 * n_layers]),
-        d_bias_change(&raw_gradient[7 * n_layers]),
-        d_hidden(&raw_gradient[8 * n_layers]),
-        d_cell(&raw_gradient[9 * n_layers]),
+        d_weight_forget(raw_gradient, n_layers),
+        d_weight_ingate(&raw_gradient[n_layers], n_layers),
+        d_weight_outgate(&raw_gradient[2 * n_layers], n_layers),
+        d_weight_change(&raw_gradient[3 * n_layers], n_layers),
+        d_bias_forget(&raw_gradient[4 * n_layers], n_layers),
+        d_bias_ingate(&raw_gradient[5 * n_layers], n_layers),
+        d_bias_outgate(&raw_gradient[6 * n_layers], n_layers),
+        d_bias_change(&raw_gradient[7 * n_layers], n_layers),
+        d_hidden(&raw_gradient[8 * n_layers], n_layers),
+        d_cell(&raw_gradient[9 * n_layers], n_layers),
         d_extra_in_weight(&raw_gradient[10 * n_layers]),
         d_extra_out_weight(&raw_gradient[10 * n_layers + 1]),
         d_extra_out_bias(&raw_gradient[10 * n_layers + 2])
@@ -230,16 +229,16 @@ struct PredictionJacobian
 template<typename T>
 struct GradByWeightOrBias
 {
-    T* forget;
-    T* ingate;
-    T* outgate;
-    T* change;
+    MapX<T> forget;
+    MapX<T> ingate;
+    MapX<T> outgate;
+    MapX<T> change;
 
     GradByWeightOrBias(T* grad_raw, int hsize) :
-        forget(grad_raw),
-        ingate(&grad_raw[hsize]),
-        outgate(&grad_raw[2 * hsize]),
-        change(&grad_raw[3 * hsize])
+        forget(grad_raw, hsize),
+        ingate(&grad_raw[hsize], hsize),
+        outgate(&grad_raw[2 * hsize], hsize),
+        change(&grad_raw[3 * hsize], hsize)
     {}
 };
 
@@ -259,9 +258,9 @@ template<typename T>
 struct GradByParams
 {
     std::vector<GradByLayerParams<T>> layer;
-    T* d_in_weight;
-    T* d_out_weight;
-    T* d_out_bias;
+    MapX<T> d_in_weight;
+    MapX<T> d_out_weight;
+    MapX<T> d_out_bias;
     T* raw_data;
     bool owns_memory;
 
@@ -269,9 +268,9 @@ struct GradByParams
     GradByParams(T* grad_raw, int n_layers, int hsize, bool should_own_memory = false) :
         raw_data(grad_raw),
         owns_memory(should_own_memory),
-        d_in_weight(&grad_raw[8 * hsize * n_layers]),
-        d_out_weight(&grad_raw[8 * hsize * n_layers + hsize]),
-        d_out_bias(&grad_raw[8 * hsize * n_layers + 2 * hsize])
+        d_in_weight(&grad_raw[8 * hsize * n_layers], hsize),
+        d_out_weight(&grad_raw[8 * hsize * n_layers + hsize], hsize),
+        d_out_bias(&grad_raw[8 * hsize * n_layers + 2 * hsize], hsize)
     {
         layer.reserve(n_layers);
         for (int i = 0; i < n_layers; ++i)
