@@ -6,9 +6,9 @@
 #include "finite.h"
 
 class FiniteHand : public ITest<HandInput, HandOutput> {
-    HandInput _input;
-    HandOutput _output;
-    bool _complicated = false;
+    HandInput input;
+    HandOutput result;
+    bool complicated = false;
     std::vector<double> jacobian_by_us;
     FiniteDifferencesEngine<double> engine;
 
