@@ -7,8 +7,8 @@
 void FiniteLSTM::prepare(LSTMInput&& input)
 {
     this->input = input;
-    int Jcols = 8 * input.l * input.b + 3 * input.b;
-    state = std::vector<double>(input.state.size());
+    int Jcols = 8 * this->input.l * this->input.b + 3 * this->input.b;
+    state = std::vector<double>(this->input.state.size());
     result = { 0, std::vector<double>(Jcols) };
     engine.set_max_output_size(1);
 }

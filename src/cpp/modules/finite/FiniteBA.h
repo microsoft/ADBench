@@ -9,9 +9,9 @@
 
 class FiniteBA : public ITest<BAInput, BAOutput> {
 private:
-    BAInput _input;
-    BAOutput _output;
-    std::vector<double> _reproj_err_d;
+    BAInput input;
+    BAOutput result;
+    std::vector<double> reproj_err_d;
     FiniteDifferencesEngine<double> engine;
 
 public:
