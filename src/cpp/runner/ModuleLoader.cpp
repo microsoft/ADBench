@@ -78,7 +78,7 @@ std::unique_ptr<ITest<LSTMInput, LSTMOutput>> ModuleLoader::get_lstm_test() cons
     }
     else
     {
-        throw runtime_error("Can't load GetHandTest function");
+        throw runtime_error("Can't load GetLSTMTest function");
     }
 }
 
