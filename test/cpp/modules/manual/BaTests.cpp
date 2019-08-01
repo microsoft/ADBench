@@ -9,7 +9,8 @@ class BaModuleTest : public ModuleTest {};
 INSTANTIATE_TEST_CASE_P(Ba, BaModuleTest,
     ::testing::Values(
         "../../../../src/cpp/modules/manual/Manual.dll",
-        "../../../../src/cpp/modules/manualEigen/ManualEigen.dll"
+        "../../../../src/cpp/modules/manualEigen/ManualEigen.dll",
+        "../../../../src/cpp/modules/finite/Finite.dll"
     ),
     get_module_name<ModuleTest::ParamType>);
 
