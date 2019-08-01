@@ -3,13 +3,14 @@
 
 #include "../../shared/ITest.h"
 #include "../../shared/HandData.h"
+#include "finite.h"
 
 class FiniteHand : public ITest<HandInput, HandOutput> {
     HandInput _input;
     HandOutput _output;
     bool _complicated = false;
     std::vector<double> jacobian_by_us;
-    std::vector<double> tmp_output;
+    FiniteDifferencesEngine<double> engine;
 
 public:
     // This function must be called before any other function.

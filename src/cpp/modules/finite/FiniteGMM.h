@@ -2,10 +2,12 @@
 
 #include "../../shared/ITest.h"
 #include "../../shared/GMMData.h"
+#include "finite.h"
 
 class FiniteGMM : public ITest<GMMInput, GMMOutput> {
     GMMInput _input;
     GMMOutput _output;
+    FiniteDifferencesEngine<double> engine;
 
 public:
     // This function must be called before any other function.
