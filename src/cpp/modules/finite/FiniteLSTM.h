@@ -3,6 +3,7 @@
 
 #include "../../shared/ITest.h"
 #include "../../shared/LSTMData.h"
+#include "finite.h"
 
 #include <vector>
 
@@ -11,6 +12,7 @@ private:
     LSTMInput input;
     LSTMOutput result;
     std::vector<double> state;
+    FiniteDifferencesEngine<double> engine;
 
 public:
     // This function must be called before any other function.

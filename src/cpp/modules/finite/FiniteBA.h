@@ -3,6 +3,7 @@
 
 #include "../../shared/ITest.h"
 #include "../../shared/BAData.h"
+#include "finite.h"
 
 #include <vector>
 
@@ -11,6 +12,7 @@ private:
     BAInput _input;
     BAOutput _output;
     std::vector<double> _reproj_err_d;
+    FiniteDifferencesEngine<double> engine;
 
 public:
     // This function must be called before any other function.
