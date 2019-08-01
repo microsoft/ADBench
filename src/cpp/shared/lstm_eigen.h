@@ -10,7 +10,7 @@
 
 // UTILS
 
-// Sigmoid on arrays
+// Sigmoid on vector
 template<typename T>
 ArrayX<T> sigmoid(const ArrayX<T>& x) {
     return (ArrayX<T>)inverse(exp(-x) + 1);

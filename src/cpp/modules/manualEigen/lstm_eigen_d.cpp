@@ -4,47 +4,7 @@
 
 // UTILS
 
-
-// Sigmoid on scalar
-template<typename T>
-T sigmoid_scalar(T x) {
-    return 1 / (1 + std::exp(-x));
-}
-// Sigmoid diff on scalar
-template<typename T>
-T sigmoid_scalar_d(T x, T* d) {
-    T s = sigmoid_scalar(x);
-    d[0] = s * (1 - s);
-    return s;
-}
-
-// tanh diff on scalar
-template<typename T>
-T tanh_scalar_d(T x, T* d) {
-    T t = tanh(x);
-    *d = 1 - t * t;
-    return t;
-}
-
-// value (returned) and gradient (written to J) of log(sum(exp(x), 2))
-template<typename T>
-T logsumexp_d(const T* vect, int sz, T* J) {
-    for (int i = 0; i < sz; i++) J[i] = exp(vect[i]);
-    T sum = 0.0;
-    for (int i = 0; i < sz; i++) sum += J[i];
-    sum += 2.;
-
-    for (int i = 0; i < sz; i++) J[i] /= sum;
-    return log(sum);
-}
-
-template<typename T>
-void swap(StateJacobianPredict<T>& j1, StateJacobianPredict<T>& j2)
-{
-    j1.layer.swap(j2.layer);
-}
-
-// Sigmoid diff on array
+// Sigmoid diff on vector
 template<typename T>
 ArrayX<T> sigmoid_d(const ArrayX<T>& x, ArrayX<T>& d) {
     ArrayX<T> s = sigmoid(x);
@@ -53,13 +13,30 @@ ArrayX<T> sigmoid_d(const ArrayX<T>& x, ArrayX<T>& d) {
     return s;
 }
 
-// tanh diff on array
+// tanh diff on vector
 template<typename T>
 ArrayX<T> tanh_d(const ArrayX<T>& x, ArrayX<T>& d) {
     ArrayX<T> t = tanh(x);
     d.resize(t.rows()); //DANGER may be incorrect size
     d = 1 - t * t;
     return t;
+}
+
+// value (returned) and gradient (written to J) of log(sum(exp(x), 2))
+template<typename T>
+T logsumexp_d(const ArrayX<T>& vect, ArrayX<T>& J) {
+    J = exp(vect);
+    T sum = J.sum();
+    sum += 2.;
+
+    J /= sum;
+    return log(sum);
+}
+
+template<typename T>
+void swap(StateJacobianPredict<T>& j1, StateJacobianPredict<T>& j2)
+{
+    j1.layer.swap(j2.layer);
 }
 
 // OBJECTIVE
@@ -632,7 +609,7 @@ void lstm_objective_d(int l, int c, int b,
 
     lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[0], zero_layer_jacobian, layer_state_d, ypred, prev_state_jacobian, ypred_jacobian);
 
-    double lse = logsumexp_d(ypred.data(), b, lse_d.data());
+    double lse = logsumexp_d(ypred, lse_d);
     logsumexp_grad(l, b, lse_d, ypred_jacobian, grad_lse_ypred);
 
     ArrayX<double> ygold = sequence_wrap.sequence[1];
@@ -652,7 +629,7 @@ void lstm_objective_d(int l, int c, int b,
         // Adding (D pred / D state_(t-1)) * (D state_(t-1) / D params) to ypred_jacobian w.r.t. params
         update_pred_jacobian_with_prev_state_jacobian(l, b, prev_state_jacobian, ypred_jacobian);
 
-        lse = logsumexp_d(ypred.data(), b, lse_d.data());
+        lse = logsumexp_d(ypred, lse_d);
         // D logsumexp(pred) / D params
         logsumexp_grad(l, b, lse_d, ypred_jacobian, grad_lse_ypred);
 
@@ -671,7 +648,7 @@ void lstm_objective_d(int l, int c, int b,
     // Adding (D pred / D state_(t-1)) * (D state_(t-1) / D params) to ypred_jacobian w.r.t. params
     update_pred_jacobian_with_prev_state_jacobian(l, b, prev_state_jacobian, ypred_jacobian);
 
-    lse = logsumexp_d(ypred.data(), b, lse_d.data());
+    lse = logsumexp_d(ypred, lse_d);
     // D logsumexp(pred) / D params
     logsumexp_grad(l, b, lse_d, ypred_jacobian, grad_lse_ypred);
 
