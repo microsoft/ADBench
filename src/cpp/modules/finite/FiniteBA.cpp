@@ -10,6 +10,7 @@ void FiniteBA::prepare(BAInput&& input)
     _output = { std::vector<double>(2 * _input.p), std::vector<double>(_input.p), BASparseMat(_input.n, _input.m, _input.p) };
     int n_new_cols = BA_NCAMPARAMS + 3 + 1;
     _reproj_err_d = std::vector<double>(2 * n_new_cols);
+    engine.set_max_output_size(2);
 }
 
 BAOutput FiniteBA::output()
@@ -36,15 +37,15 @@ void FiniteBA::calculateJacobian(int times)
             int camIdx = _input.obs[2 * j + 0];
             int ptIdx = _input.obs[2 * j + 1];
 
-            finite_differences<double>([&](double* cam_in, double* reproj_err) {
+            engine.finite_differences([&](double* cam_in, double* reproj_err) {
                 computeReprojError(cam_in, &_input.X[ptIdx * 3], &_input.w[j], &_input.feats[2 * j], reproj_err);
                 }, &_input.cams[camIdx * BA_NCAMPARAMS], BA_NCAMPARAMS, &_output.reproj_err[2 * j], 2, _reproj_err_d.data());
 
-            finite_differences<double>([&](double* X_in, double* reproj_err) {
+            engine.finite_differences_continue([&](double* X_in, double* reproj_err) {
                 computeReprojError(&_input.cams[camIdx * BA_NCAMPARAMS], X_in, &_input.w[j], &_input.feats[2 * j], reproj_err);
                 }, &_input.X[ptIdx * 3], 3, &_output.reproj_err[2 * j], 2, &_reproj_err_d.data()[2 * BA_NCAMPARAMS]);
 
-            finite_differences<double>([&](double* w_in, double* reproj_err) {
+            engine.finite_differences_continue([&](double* w_in, double* reproj_err) {
                 computeReprojError(&_input.cams[camIdx * BA_NCAMPARAMS], &_input.X[ptIdx * 3], w_in, &_input.feats[2 * j], reproj_err);
                 }, &_input.w[j], 1, &_output.reproj_err[2 * j], 2, &_reproj_err_d.data()[2 * (BA_NCAMPARAMS + 3)]);
 
@@ -55,7 +56,7 @@ void FiniteBA::calculateJacobian(int times)
 
         for (int j = 0; j < _input.p; ++j)
         {
-            finite_differences<double>([&](double* w_in, double* w_er) {
+            engine.finite_differences([&](double* w_in, double* w_er) {
                 computeZachWeightError(w_in, w_er);
                 }, &_input.w[j], 1, &_output.w_err[j], 1, &w_d);
 
