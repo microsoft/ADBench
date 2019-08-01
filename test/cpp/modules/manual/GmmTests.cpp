@@ -9,7 +9,8 @@ class GmmModuleTest : public ModuleTest {};
 INSTANTIATE_TEST_CASE_P(Gmm, GmmModuleTest,
     ::testing::Values(
         "../../../../src/cpp/modules/manual/Manual.dll",
-        "../../../../src/cpp/modules/manualEigen/ManualEigen.dll"
+        "../../../../src/cpp/modules/manualEigen/ManualEigen.dll",
+        "../../../../src/cpp/modules/finite/Finite.dll"
         //,"../../../../src/cpp/modules/manualEigen/ManualEigenVector.dll"
     ),
     get_module_name<ModuleTest::ParamType>);
