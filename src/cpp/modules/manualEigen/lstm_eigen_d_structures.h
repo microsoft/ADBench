@@ -4,14 +4,59 @@
 
 #include "lstm_eigen_helpers.h"
 
+//template<typename T>
+//struct StatePartWeightOrBiasDerivatives
+//{
+//    T forget;
+//    T ingate;
+//    T outgate;
+//    T change;
+//};
+//
+//template<typename T>
+//struct StateElementGradientModel
+//{
+//    // 4 corresponding non-zero derivatives
+//    StatePartWeightOrBiasDerivatives<T> d_weight;
+//    // 4 corresponding non-zero derivatives
+//    StatePartWeightOrBiasDerivatives<T> d_bias;
+//    // a single corresponding non-zero derivative
+//    T d_hidden;
+//    // a single corresponding non-zero derivative
+//    T d_cell;
+//    // a single corresponding non-zero derivative
+//    T d_input;
+//};
+//
+//template<typename T>
+//struct ModelJacobian
+//{
+//    std::vector<StateElementGradientModel<T>> hidden;
+//    std::vector<StateElementGradientModel<T>> cell;
+//
+//    ModelJacobian(int hsize) :
+//        hidden(hsize),
+//        cell(hsize)
+//    {}
+//};
+
 template<typename T>
 struct StatePartWeightOrBiasDerivatives
 {
-    T forget;
-    T ingate;
-    T outgate;
-    T change;
+    ArrayX<T> forget;
+    ArrayX<T> ingate;
+    ArrayX<T> outgate;
+    ArrayX<T> change;
+
+    StatePartWeightOrBiasDerivatives(int hsize)
+    {
+        forget.resize(hsize);
+        ingate.resize(hsize);
+        outgate.resize(hsize);
+        change.resize(hsize);
+    }
 };
+
 
 template<typename T>
 struct StateElementGradientModel
@@ -21,18 +66,27 @@ struct StateElementGradientModel
     // 4 corresponding non-zero derivatives
     StatePartWeightOrBiasDerivatives<T> d_bias;
     // a single corresponding non-zero derivative
-    T d_hidden;
+    ArrayX<T> d_hidden;
     // a single corresponding non-zero derivative
-    T d_cell;
+    ArrayX<T> d_cell;
     // a single corresponding non-zero derivative
-    T d_input;
+    ArrayX<T> d_input;
+
+    StateElementGradientModel(int hsize) :
+        d_weight(hsize),
+        d_bias(hsize)
+    {
+        d_hidden.resize(hsize);
+        d_cell.resize(hsize);
+        d_input.resize(hsize);
+    }
 };
 
 template<typename T>
 struct ModelJacobian
 {
-    std::vector<StateElementGradientModel<T>> hidden;
-    std::vector<StateElementGradientModel<T>> cell;
+    StateElementGradientModel<T> hidden;
+    StateElementGradientModel<T> cell;
 
     ModelJacobian(int hsize) :
         hidden(hsize),
