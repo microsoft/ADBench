@@ -5,8 +5,8 @@
 #include "finite.h"
 
 class FiniteGMM : public ITest<GMMInput, GMMOutput> {
-    GMMInput _input;
-    GMMOutput _output;
+    GMMInput input;
+    GMMOutput result;
     FiniteDifferencesEngine<double> engine;
 
 public:
