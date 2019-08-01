@@ -164,10 +164,10 @@ void lstm_predict_d(int l, int b,
     PredictionJacobian<T>& output_jacobian)
 {
     // Intial setup (from predict())
+    output = input * extra_params.in_weight;
     for (int i = 0; i < b; ++i) {
-        output[i] = input[i] * extra_params.in_weight[i];
         // note that the rest of zero_layer_jacobian.d_hidden and zero_layer_jacobian.d_cell are unused
-        zero_layer_jacobian.d_hidden[i].d_extra_in_weight[0] = input[i];
+        *zero_layer_jacobian.d_hidden[i].d_extra_in_weight = input[i];
     }
 
     // Pointer to current output/next layer's input
@@ -187,9 +187,9 @@ void lstm_predict_d(int l, int b,
             T hidden_j_d_input = layer_state_d.hidden.d_input[j];
             T cell_j_d_input = layer_state_d.cell.d_input[j];
             // derivatives by variables on which layer_output depends
-            state_jacobian.layer[i].d_hidden[j].d_extra_in_weight[0] = hidden_j_d_input * (prev_layer_jacobian->d_hidden[j].d_extra_in_weight[0]);
-            state_jacobian.layer[i].d_cell[j].d_extra_in_weight[0] = cell_j_d_input * (prev_layer_jacobian->d_hidden[j].d_extra_in_weight[0]);
-            for (int k = 0; k < i ; ++k)
+            *state_jacobian.layer[i].d_hidden[j].d_extra_in_weight = hidden_j_d_input * (*prev_layer_jacobian->d_hidden[j].d_extra_in_weight);
+            *state_jacobian.layer[i].d_cell[j].d_extra_in_weight = cell_j_d_input * (*prev_layer_jacobian->d_hidden[j].d_extra_in_weight);
+            for (int k = 0; k < i; ++k)
             {
                 state_jacobian.layer[i].d_hidden[j].d_weight_forget[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_forget[k];
                 state_jacobian.layer[i].d_hidden[j].d_weight_ingate[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_ingate[k];
@@ -268,22 +268,20 @@ void lstm_predict_d(int l, int b,
         // compute output
         output[i] = layer_output[i] * cur_out_weight + extra_params.out_bias[i];
         // compute the derivatives of output
-        *output_jacobian.d_prediction[i].d_extra_in_weight = cur_out_weight * (prev_layer_jacobian->d_hidden[i].d_extra_in_weight[0]);
+        *output_jacobian.d_prediction[i].d_extra_in_weight = cur_out_weight * (*prev_layer_jacobian->d_hidden[i].d_extra_in_weight);
         *output_jacobian.d_prediction[i].d_extra_out_weight = layer_output[i];
         *output_jacobian.d_prediction[i].d_extra_out_bias = 1.;
-        for (int j = 0; j < l; ++j)
-        {
-            output_jacobian.d_prediction[i].d_weight_forget[j] = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_weight_forget[j];
-            output_jacobian.d_prediction[i].d_weight_ingate[j] = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_weight_ingate[j];
-            output_jacobian.d_prediction[i].d_weight_outgate[j] = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_weight_outgate[j];
-            output_jacobian.d_prediction[i].d_weight_change[j] = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_weight_change[j];
-            output_jacobian.d_prediction[i].d_bias_forget[j] = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_bias_forget[j];
-            output_jacobian.d_prediction[i].d_bias_ingate[j] = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_bias_ingate[j];
-            output_jacobian.d_prediction[i].d_bias_outgate[j] = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_bias_outgate[j];
-            output_jacobian.d_prediction[i].d_bias_change[j] = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_bias_change[j];
-            output_jacobian.d_prediction[i].d_hidden[j] = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_hidden[j];
-            output_jacobian.d_prediction[i].d_cell[j] = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_cell[j];
-        }
+
+        output_jacobian.d_prediction[i].d_weight_forget = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_weight_forget;
+        output_jacobian.d_prediction[i].d_weight_ingate = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_weight_ingate;
+        output_jacobian.d_prediction[i].d_weight_outgate = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_weight_outgate;
+        output_jacobian.d_prediction[i].d_weight_change = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_weight_change;
+        output_jacobian.d_prediction[i].d_bias_forget = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_bias_forget;
+        output_jacobian.d_prediction[i].d_bias_ingate = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_bias_ingate;
+        output_jacobian.d_prediction[i].d_bias_outgate = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_bias_outgate;
+        output_jacobian.d_prediction[i].d_bias_change = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_bias_change;
+        output_jacobian.d_prediction[i].d_hidden = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_hidden;
+        output_jacobian.d_prediction[i].d_cell = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_cell;
     }
     //// Intial setup (from predict())
     //for (int i = 0; i < b; ++i) {
