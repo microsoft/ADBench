@@ -1,16 +1,17 @@
-// ManualEigenHand.h - Contains declarations of tester functions
+// FiniteEigenHand.h - Contains declarations of GMM tester functions
 #pragma once
 
 #include "../../shared/ITest.h"
 #include "../../shared/HandData.h"
+#include "../finite/finite.h"
 #include "../../shared/HandEigenData.h"
 
-#include <vector>
-
-class ManualEigenHand : public ITest<HandInput, HandOutput> {
-    HandEigenInput _input;
-    HandOutput _output;
-    bool _complicated;
+class FiniteEigenHand : public ITest<HandInput, HandOutput> {
+    HandEigenInput input;
+    HandOutput result;
+    bool complicated = false;
+    std::vector<double> jacobian_by_us;
+    FiniteDifferencesEngine<double> engine;
 
 public:
     // This function must be called before any other function.
@@ -20,5 +21,5 @@ public:
     void calculateJacobian(int times) override;
     HandOutput output() override;
 
-    ~ManualEigenHand() = default;
+    ~FiniteEigenHand() = default;
 };
