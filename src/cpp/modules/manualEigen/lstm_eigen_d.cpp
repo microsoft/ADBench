@@ -91,7 +91,7 @@ void lstm_model_d(int hsize,
     // wrt bias
     jacobian.cell.d_bias.forget = orig_cell * forget_db;
     jacobian.cell.d_bias.ingate = change * ingate_db;
-    jacobian.cell.d_bias.outgate.setZero();// = 0.;
+    jacobian.cell.d_bias.outgate.setZero();
     jacobian.cell.d_bias.change = ingate * change_db;
     // wrt hidden, cell(original), input
     jacobian.cell.d_hidden = ingate * change_dh + change * ingate_dh;
@@ -166,29 +166,49 @@ void lstm_predict_d(int l, int b,
             // derivatives by variables on which layer_output depends
             *state_jacobian.layer[i].d_hidden[j].d_extra_in_weight = hidden_j_d_input * (*prev_layer_jacobian->d_hidden[j].d_extra_in_weight);
             *state_jacobian.layer[i].d_cell[j].d_extra_in_weight = cell_j_d_input * (*prev_layer_jacobian->d_hidden[j].d_extra_in_weight);
-            for (int k = 0; k < i; ++k)
-            {
-                state_jacobian.layer[i].d_hidden[j].d_weight_forget[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_forget[k];
-                state_jacobian.layer[i].d_hidden[j].d_weight_ingate[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_ingate[k];
-                state_jacobian.layer[i].d_hidden[j].d_weight_outgate[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_outgate[k];
-                state_jacobian.layer[i].d_hidden[j].d_weight_change[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_change[k];
-                state_jacobian.layer[i].d_hidden[j].d_bias_forget[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_forget[k];
-                state_jacobian.layer[i].d_hidden[j].d_bias_ingate[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_ingate[k];
-                state_jacobian.layer[i].d_hidden[j].d_bias_outgate[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_outgate[k];
-                state_jacobian.layer[i].d_hidden[j].d_bias_change[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_change[k];
-                state_jacobian.layer[i].d_hidden[j].d_hidden[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_hidden[k];
-                state_jacobian.layer[i].d_hidden[j].d_cell[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_cell[k];
-                state_jacobian.layer[i].d_cell[j].d_weight_forget[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_forget[k];
-                state_jacobian.layer[i].d_cell[j].d_weight_ingate[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_ingate[k];
-                state_jacobian.layer[i].d_cell[j].d_weight_outgate[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_outgate[k];
-                state_jacobian.layer[i].d_cell[j].d_weight_change[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_change[k];
-                state_jacobian.layer[i].d_cell[j].d_bias_forget[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_forget[k];
-                state_jacobian.layer[i].d_cell[j].d_bias_ingate[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_ingate[k];
-                state_jacobian.layer[i].d_cell[j].d_bias_outgate[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_outgate[k];
-                state_jacobian.layer[i].d_cell[j].d_bias_change[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_change[k];
-                state_jacobian.layer[i].d_cell[j].d_hidden[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_hidden[k];
-                state_jacobian.layer[i].d_cell[j].d_cell[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_cell[k];
-            }
+            state_jacobian.layer[i].d_hidden[j].d_weight_forget.topRows(i) = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_forget.topRows(i);
+            state_jacobian.layer[i].d_hidden[j].d_weight_ingate.topRows(i) = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_ingate.topRows(i);
+            state_jacobian.layer[i].d_hidden[j].d_weight_outgate.topRows(i) = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_outgate.topRows(i);
+            state_jacobian.layer[i].d_hidden[j].d_weight_change.topRows(i) = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_change.topRows(i);
+            state_jacobian.layer[i].d_hidden[j].d_bias_forget.topRows(i) = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_forget.topRows(i);
+            state_jacobian.layer[i].d_hidden[j].d_bias_ingate.topRows(i) = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_ingate.topRows(i);
+            state_jacobian.layer[i].d_hidden[j].d_bias_outgate.topRows(i) = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_outgate.topRows(i);
+            state_jacobian.layer[i].d_hidden[j].d_bias_change.topRows(i) = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_change.topRows(i);
+            state_jacobian.layer[i].d_hidden[j].d_hidden.topRows(i) = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_hidden.topRows(i);
+            state_jacobian.layer[i].d_hidden[j].d_cell.topRows(i) = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_cell.topRows(i);
+            state_jacobian.layer[i].d_cell[j].d_weight_forget.topRows(i) = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_forget.topRows(i);
+            state_jacobian.layer[i].d_cell[j].d_weight_ingate.topRows(i) = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_ingate.topRows(i);
+            state_jacobian.layer[i].d_cell[j].d_weight_outgate.topRows(i) = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_outgate.topRows(i);
+            state_jacobian.layer[i].d_cell[j].d_weight_change.topRows(i) = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_change.topRows(i);
+            state_jacobian.layer[i].d_cell[j].d_bias_forget.topRows(i) = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_forget.topRows(i);
+            state_jacobian.layer[i].d_cell[j].d_bias_ingate.topRows(i) = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_ingate.topRows(i);
+            state_jacobian.layer[i].d_cell[j].d_bias_outgate.topRows(i) = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_outgate.topRows(i);
+            state_jacobian.layer[i].d_cell[j].d_bias_change.topRows(i) = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_change.topRows(i);
+            state_jacobian.layer[i].d_cell[j].d_hidden.topRows(i) = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_hidden.topRows(i);
+            state_jacobian.layer[i].d_cell[j].d_cell.topRows(i) = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_cell.topRows(i);
+            //for (int k = 0; k < i; ++k)
+            //{
+            //    state_jacobian.layer[i].d_hidden[j].d_weight_forget[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_forget[k];
+            //    state_jacobian.layer[i].d_hidden[j].d_weight_ingate[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_ingate[k];
+            //    state_jacobian.layer[i].d_hidden[j].d_weight_outgate[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_outgate[k];
+            //    state_jacobian.layer[i].d_hidden[j].d_weight_change[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_change[k];
+            //    state_jacobian.layer[i].d_hidden[j].d_bias_forget[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_forget[k];
+            //    state_jacobian.layer[i].d_hidden[j].d_bias_ingate[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_ingate[k];
+            //    state_jacobian.layer[i].d_hidden[j].d_bias_outgate[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_outgate[k];
+            //    state_jacobian.layer[i].d_hidden[j].d_bias_change[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_change[k];
+            //    state_jacobian.layer[i].d_hidden[j].d_hidden[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_hidden[k];
+            //    state_jacobian.layer[i].d_hidden[j].d_cell[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_cell[k];
+            //    state_jacobian.layer[i].d_cell[j].d_weight_forget[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_forget[k];
+            //    state_jacobian.layer[i].d_cell[j].d_weight_ingate[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_ingate[k];
+            //    state_jacobian.layer[i].d_cell[j].d_weight_outgate[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_outgate[k];
+            //    state_jacobian.layer[i].d_cell[j].d_weight_change[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_change[k];
+            //    state_jacobian.layer[i].d_cell[j].d_bias_forget[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_forget[k];
+            //    state_jacobian.layer[i].d_cell[j].d_bias_ingate[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_ingate[k];
+            //    state_jacobian.layer[i].d_cell[j].d_bias_outgate[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_outgate[k];
+            //    state_jacobian.layer[i].d_cell[j].d_bias_change[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_change[k];
+            //    state_jacobian.layer[i].d_cell[j].d_hidden[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_hidden[k];
+            //    state_jacobian.layer[i].d_cell[j].d_cell[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_cell[k];
+            //}
             // derivatives by variables on which lstm_model_d depends directly
             state_jacobian.layer[i].d_hidden[j].d_weight_forget[i] = layer_state_d.hidden.d_weight.forget[j];
             state_jacobian.layer[i].d_hidden[j].d_weight_ingate[i] = layer_state_d.hidden.d_weight.ingate[j];
@@ -211,29 +231,49 @@ void lstm_predict_d(int l, int b,
             state_jacobian.layer[i].d_cell[j].d_hidden[i] = layer_state_d.cell.d_hidden[j];
             state_jacobian.layer[i].d_cell[j].d_cell[i] = layer_state_d.cell.d_cell[j];
             // derivatives by variable on which lstm_model_d does not depend (zero)
-            for (int k = i + 1; k < l; ++k)
-            {
-                state_jacobian.layer[i].d_hidden[j].d_weight_forget[k] = 0.;
-                state_jacobian.layer[i].d_hidden[j].d_weight_ingate[k] = 0.;
-                state_jacobian.layer[i].d_hidden[j].d_weight_outgate[k] = 0.;
-                state_jacobian.layer[i].d_hidden[j].d_weight_change[k] = 0.;
-                state_jacobian.layer[i].d_hidden[j].d_bias_forget[k] = 0.;
-                state_jacobian.layer[i].d_hidden[j].d_bias_ingate[k] = 0.;
-                state_jacobian.layer[i].d_hidden[j].d_bias_outgate[k] = 0.;
-                state_jacobian.layer[i].d_hidden[j].d_bias_change[k] = 0.;
-                state_jacobian.layer[i].d_hidden[j].d_hidden[k] = 0.;
-                state_jacobian.layer[i].d_hidden[j].d_cell[k] = 0.;
-                state_jacobian.layer[i].d_cell[j].d_weight_forget[k] = 0.;
-                state_jacobian.layer[i].d_cell[j].d_weight_ingate[k] = 0.;
-                state_jacobian.layer[i].d_cell[j].d_weight_outgate[k] = 0.;
-                state_jacobian.layer[i].d_cell[j].d_weight_change[k] = 0.;
-                state_jacobian.layer[i].d_cell[j].d_bias_forget[k] = 0.;
-                state_jacobian.layer[i].d_cell[j].d_bias_ingate[k] = 0.;
-                state_jacobian.layer[i].d_cell[j].d_bias_outgate[k] = 0.;
-                state_jacobian.layer[i].d_cell[j].d_bias_change[k] = 0.;
-                state_jacobian.layer[i].d_cell[j].d_hidden[k] = 0.;
-                state_jacobian.layer[i].d_cell[j].d_cell[k] = 0.;
-            }
+            state_jacobian.layer[i].d_hidden[j].d_weight_forget.bottomRows(l - i - 1).setZero();
+            state_jacobian.layer[i].d_hidden[j].d_weight_ingate.bottomRows(l - i - 1).setZero();
+            state_jacobian.layer[i].d_hidden[j].d_weight_outgate.bottomRows(l - i - 1).setZero();
+            state_jacobian.layer[i].d_hidden[j].d_weight_change.bottomRows(l - i - 1).setZero();
+            state_jacobian.layer[i].d_hidden[j].d_bias_forget.bottomRows(l - i - 1).setZero();
+            state_jacobian.layer[i].d_hidden[j].d_bias_ingate.bottomRows(l - i - 1).setZero();
+            state_jacobian.layer[i].d_hidden[j].d_bias_outgate.bottomRows(l - i - 1).setZero();
+            state_jacobian.layer[i].d_hidden[j].d_bias_change.bottomRows(l - i - 1).setZero();
+            state_jacobian.layer[i].d_hidden[j].d_hidden.bottomRows(l - i - 1).setZero();
+            state_jacobian.layer[i].d_hidden[j].d_cell.bottomRows(l - i - 1).setZero();
+            state_jacobian.layer[i].d_cell[j].d_weight_forget.bottomRows(l - i - 1).setZero();
+            state_jacobian.layer[i].d_cell[j].d_weight_ingate.bottomRows(l - i - 1).setZero();
+            state_jacobian.layer[i].d_cell[j].d_weight_outgate.bottomRows(l - i - 1).setZero();
+            state_jacobian.layer[i].d_cell[j].d_weight_change.bottomRows(l - i - 1).setZero();
+            state_jacobian.layer[i].d_cell[j].d_bias_forget.bottomRows(l - i - 1).setZero();
+            state_jacobian.layer[i].d_cell[j].d_bias_ingate.bottomRows(l - i - 1).setZero();
+            state_jacobian.layer[i].d_cell[j].d_bias_outgate.bottomRows(l - i - 1).setZero();
+            state_jacobian.layer[i].d_cell[j].d_bias_change.bottomRows(l - i - 1).setZero();
+            state_jacobian.layer[i].d_cell[j].d_hidden.bottomRows(l - i - 1).setZero();
+            state_jacobian.layer[i].d_cell[j].d_cell.bottomRows(l - i - 1).setZero();
+            //for (int k = i + 1; k < l; ++k)
+            //{
+            //    state_jacobian.layer[i].d_hidden[j].d_weight_forget[k] = 0.;
+            //    state_jacobian.layer[i].d_hidden[j].d_weight_ingate[k] = 0.;
+            //    state_jacobian.layer[i].d_hidden[j].d_weight_outgate[k] = 0.;
+            //    state_jacobian.layer[i].d_hidden[j].d_weight_change[k] = 0.;
+            //    state_jacobian.layer[i].d_hidden[j].d_bias_forget[k] = 0.;
+            //    state_jacobian.layer[i].d_hidden[j].d_bias_ingate[k] = 0.;
+            //    state_jacobian.layer[i].d_hidden[j].d_bias_outgate[k] = 0.;
+            //    state_jacobian.layer[i].d_hidden[j].d_bias_change[k] = 0.;
+            //    state_jacobian.layer[i].d_hidden[j].d_hidden[k] = 0.;
+            //    state_jacobian.layer[i].d_hidden[j].d_cell[k] = 0.;
+            //    state_jacobian.layer[i].d_cell[j].d_weight_forget[k] = 0.;
+            //    state_jacobian.layer[i].d_cell[j].d_weight_ingate[k] = 0.;
+            //    state_jacobian.layer[i].d_cell[j].d_weight_outgate[k] = 0.;
+            //    state_jacobian.layer[i].d_cell[j].d_weight_change[k] = 0.;
+            //    state_jacobian.layer[i].d_cell[j].d_bias_forget[k] = 0.;
+            //    state_jacobian.layer[i].d_cell[j].d_bias_ingate[k] = 0.;
+            //    state_jacobian.layer[i].d_cell[j].d_bias_outgate[k] = 0.;
+            //    state_jacobian.layer[i].d_cell[j].d_bias_change[k] = 0.;
+            //    state_jacobian.layer[i].d_cell[j].d_hidden[k] = 0.;
+            //    state_jacobian.layer[i].d_cell[j].d_cell[k] = 0.;
+            //}
         }
         prev_layer_jacobian = &state_jacobian.layer[i];
     }
