@@ -7,10 +7,7 @@
 // Sigmoid diff on vector
 template<typename T>
 ArrayX<T> sigmoid_d(const ArrayX<T>& x, ArrayX<T>& d) {
-    //ArrayX<T> s = sigmoid(x);
-    ArrayX<T>s(x);
-    sigmoid(s);
-    //--
+    ArrayX<T> s = sigmoid(x);
     d.resize(s.rows()); //DANGER may be incorrect size
     d = s * (1 - s);
     return s;
