@@ -10,10 +10,16 @@
 
 // UTILS
 
+//// Sigmoid on vector
+//template<typename T>
+//ArrayX<T> sigmoid(const ArrayX<T>& x) {
+//    return (ArrayX<T>)inverse(exp(-x) + 1);
+//};
+
 // Sigmoid on vector
 template<typename T>
-ArrayX<T> sigmoid(const ArrayX<T>& x) {
-    return (ArrayX<T>)inverse(exp(-x) + 1);
+void sigmoid(ArrayX<T>& x) {
+    x = inverse(exp(-x) + 1);
 };
 
 // log(sum(exp(x), 2))
@@ -135,10 +141,19 @@ void lstm_model(int hsize,
     LayerState<T>& state,
     const ArrayX<T>& input)
 {
-    ArrayX<T> forget(sigmoid((ArrayX<T>)(input * params.weight.forget + params.bias.forget)));
-    ArrayX<T> ingate(sigmoid((ArrayX<T>)(state.hidden * params.weight.ingate + params.bias.ingate)));
-    ArrayX<T> outgate(sigmoid((ArrayX<T>)(input * params.weight.outgate + params.bias.outgate)));
-    ArrayX<T> change(tanh(state.hidden * params.weight.change + params.bias.change));
+    //ArrayX<T> forget(sigmoid((ArrayX<T>)(input * params.weight.forget + params.bias.forget)));
+    //ArrayX<T> ingate(sigmoid((ArrayX<T>)(state.hidden * params.weight.ingate + params.bias.ingate)));
+    //ArrayX<T> outgate(sigmoid((ArrayX<T>)(input * params.weight.outgate + params.bias.outgate)));
+
+    ArrayX<T> forget(input * params.weight.forget + params.bias.forget);
+    ArrayX<T> ingate(state.hidden * params.weight.ingate + params.bias.ingate);
+    ArrayX<T> outgate(input * params.weight.outgate + params.bias.outgate);
+    
+    sigmoid(forget);
+    sigmoid(ingate);
+    sigmoid(outgate);
+
+    ArrayX<T> change(tanh(state.hidden * params.weight.change + params.bias.change)); //TODO think about change like above
 
     state.cell = state.cell * forget + ingate * change;
     state.hidden = outgate * tanh(state.cell);
