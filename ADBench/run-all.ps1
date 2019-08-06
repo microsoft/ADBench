@@ -234,7 +234,7 @@ Class Tool {
 	[void] run ([string]$objective, [string]$dir_in, [string]$dir_out, [string]$fn) {
 		if ($objective.contains("Eigen")) { $out_name = "$($this.name)_Eigen" }
 		elseif ($objective.contains("Light")) { $out_name = "$($this.name)_Light" }
-		elseif ($objective.endswith("SPLIT")) { $out_name = "$($this.name)_SPLIT" }
+		elseif ($objective.endswith("SPLIT")) { $out_name = "$($this.name)_split" }
 		else { $out_name = $this.name }
 		$output_file = "${dir_out}${fn}_times_${out_name}.txt"
 		if (!$script:repeat -and (Test-Path $output_file)) {
