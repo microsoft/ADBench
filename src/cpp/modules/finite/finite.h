@@ -80,14 +80,7 @@ public:
         T* result, T delta = FINITE_DIFFERENCES_DEFAULT_DELTA)
     {
         func(input, output);
-        for (int i = 0; i < input_size; i++)
-        {
-            input[i] += delta;
-            func(input, tmp_output.data());
-            div_vec(sub_vec(tmp_output.data(), output, output_size), output_size, delta);
-            vec_ins(&result[output_size * i], tmp_output.data(), output_size);
-            input[i] -= delta;
-        }
+        finite_differences_continue(func, input, input_size, output, output_size, result, delta);
     }
 
     /// <summary>Approximately differentiate a function using finite differences.
