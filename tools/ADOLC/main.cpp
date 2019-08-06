@@ -28,7 +28,6 @@ size_t adtl::refcounter::refcnt = 0;
 
 //#define DO_CPP
 //#define DO_EIGEN
-#define DO_LIGHT_MATRIX
 
 #if (defined DO_GMM_FULL || defined DO_GMM_SPLIT) && defined DO_CPP
 #include "../../src/cpp/shared/gmm.h"
@@ -41,12 +40,12 @@ size_t adtl::refcounter::refcnt = 0;
 #endif
 
 #elif defined DO_HAND || defined DO_HAND_SPARSE || defined DO_HAND_COMPLICATED
-#ifdef DO_LIGHT_MATRIX
-typedef HandDataLightMatrix HandDataType;
-#include "../../src/cpp/shared/hand_light_matrix.h"
-#elif defined DO_EIGEN
+#ifdef DO_EIGEN
 typedef HandDataEigen HandDataType;
 #include "../cpp-common/hand_eigen.h"
+#else
+typedef HandDataLightMatrix HandDataType;
+#include "../../src/cpp/shared/hand_light_matrix.h"
 #endif
 #endif
 
@@ -671,8 +670,8 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
 
 #ifdef DO_EIGEN
 	string name("ADOLC_eigen");
-#elif defined DO_LIGHT_MATRIX
-	string name("ADOLC_light");
+#else
+	string name("ADOLC");
 #endif
 #ifdef ADOLC_TAPELESS
 	name = name + "_tapeless";
@@ -882,8 +881,8 @@ void test_hand(const string& model_dir, const string& fn_in, const string& fn_ou
 
 #ifdef DO_EIGEN
   string name("ADOLC_eigen");
-#elif defined DO_LIGHT_MATRIX
-  string name("ADOLC_light");
+#else 
+  string name("ADOLC");
 #endif
   double t_sparsity;
   double tJ = compute_hand_J(nruns_J, time_limit, params, data, &err, &J, &t_sparsity);
