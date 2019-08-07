@@ -82,6 +82,13 @@ Class ComparisonResult {
     [double] $MaxRelDifference
     [string] $Error
 
+    ComparisonResult(){
+        $this.Near = $false
+        $this.MaxAbsDifference = 0.0
+        $this.MaxRelDifference = 0.0
+        $this.Error = ""
+    }
+
     ComparisonResult(
         [bool] $near,
         [double] $maxAbsDifference,
@@ -130,36 +137,42 @@ Class ComparisonResult {
 }
 
 Class Comparison {
-    [ComparisonResult] static areNumbersNear([string]$x, [string]$y, [double]$toleranceAbs, [double]$toleranceRel) {
+    [void] static areNumbersNear([string]$x, [string]$y, [double]$toleranceAbs, [double]$toleranceRel, [ComparisonResult]$result) {
         $xd = $x -as [double]
         $yd = $y -as [double]
         # relative difference = |x - y| / max(|x|,|y|)
         $absdiff = [Math]::Abs($xd - $yd)
         $reldiff = $absdiff / [Math]::Max([Math]::Abs($xd), [Math]::Abs($yd))
         if ($absdiff -gt $toleranceAbs -and $reldiff -gt $toleranceRel) {
-            return [ComparisonResult]::new($false, $absdiff, $reldiff,
+            $result.Set($false, $absdiff, $reldiff,
                 "Relative difference between the numbers $x and $y (parsed as $xd and $yd) is $reldiff, which is greater than the allowed tolerance($toleranceRel)`n" +
                 "Absolute difference between the numbers $x and $y (parsed as $xd and $yd) is $absdiff, which is greater than the allowed tolerance($toleranceAbs)")
+            return
         }
-        return [ComparisonResult]::new($true, $absdiff, $reldiff)
+        $result.Set($true, $absdiff, $reldiff)
+        return
     }
     
-    [ComparisonResult] static areNumLinesNear([string]$line1, [string]$line2, [double]$toleranceAbs, [double]$toleranceRel) {
+    [void] static areNumLinesNear([string]$line1, [string]$line2, [double]$toleranceAbs, [double]$toleranceRel, [ComparisonResult]$result) {
         $separators=(" ","`t")
         $split1 = $line1.Split($separators)
         $split2 = $line2.Split($separators)
         $maxAbsDiff = 0.0
         $maxRelDiff = 0.0
+        $nthResult = [ComparisonResult]::new()
         if ($split1.count -ne $split2.count) {
-            return [ComparisonResult]::new($false, $maxAbsDiff, $maxRelDiff, "Lines have different numbers of elements")
+            $result.Set($false, $maxAbsDiff, $maxRelDiff, "Lines have different numbers of elements")
+            return
         }
         if ($split1.count -eq 1) {
-            return [Comparison]::areNumbersNear($split1, $split2, $toleranceAbs, $toleranceRel)
+            [Comparison]::areNumbersNear($split1, $split2, $toleranceAbs, $toleranceRel, $result)
+            return
         } else {
             for ($n = 0; $n -lt $split1.count; $n++) {
-                $nthResult = [Comparison]::areNumbersNear($split1[$n], $split2[$n], $toleranceAbs, $toleranceRel)
+                [Comparison]::areNumbersNear($split1[$n], $split2[$n], $toleranceAbs, $toleranceRel, $nthResult)
                 if (!$nthResult.Near) {
-                    return [ComparisonResult]::new($false, $nthResult.MaxAbsDifference, $nthResult.MaxRelDifference, "Error in position $n - $($nthResult.Error)")
+                    $result.Set($false, $nthResult.MaxAbsDifference, $nthResult.MaxRelDifference, "Error in position $n - $($nthResult.Error)")
+                    return
                 }
                 if ($nthResult.MaxAbsDifference -gt $maxAbsDiff) {
                     $maxAbsDiff = $nthResult.MaxAbsDifference
@@ -169,7 +182,8 @@ Class Comparison {
                 }
             }
         }
-        return [ComparisonResult]::new($true, $maxAbsDiff, $maxRelDiff)
+        $result.Set($true, $maxAbsDiff, $maxRelDiff)
+        return
     }
     
     [ComparisonResult] static areNumTextFilesNear([string]$path1, [string]$path2, [double]$toleranceAbs, [double]$toleranceRel) {
@@ -177,14 +191,16 @@ Class Comparison {
         $j2 = Get-Content $path2
         $maxAbsDiff = 0.0
         $maxRelDiff = 0.0
+        $nthResult = [ComparisonResult]::new()
         if ($j1.count -ne $j2.count) {
             return [ComparisonResult]::new($false, $maxAbsDiff, $maxRelDiff, "Texts have different numbers of lines")
         }
         if ($j1.count -eq 1) {
-            return [Comparison]::areNumLinesNear($j1, $j2, $toleranceAbs, $toleranceRel)
+            [Comparison]::areNumLinesNear($j1, $j2, $toleranceAbs, $toleranceRel, $nthResult)
+            return $nthResult
         } else {
             for ($n = 0; $n -lt $j1.count; $n++) {
-                $nthResult = [Comparison]::areNumLinesNear($j1[$n], $j2[$n], $toleranceAbs, $toleranceRel)
+                [Comparison]::areNumLinesNear($j1[$n], $j2[$n], $toleranceAbs, $toleranceRel, $nthResult)
                 if (!$nthResult.Near) {
                     return [ComparisonResult]::new($false, $nthResult.MaxAbsDifference, $nthResult.MaxRelDifference, "Error in line $n - $($nthResult.Error)")
                 }
@@ -205,10 +221,11 @@ Class Comparison {
         $parts = @((Get-Content $paths2[1]), (Get-Content $paths2[2]), (Get-Content $paths2[3]))
         $maxAbsDiff = 0.0
         $maxRelDiff = 0.0
+        $nthResult = [ComparisonResult]::new()
         for($i = 0; $i -lt 3; $i++) {
             $shift = $positions[$i] -as [int]
             for ($n = 0; $n -lt $parts[$i].count; $n++) {
-                $nthResult = [Comparison]::areNumbersNear($j1[$shift + $n], $parts[$i][$n], $toleranceAbs, $toleranceRel)
+                [Comparison]::areNumbersNear($j1[$shift + $n], $parts[$i][$n], $toleranceAbs, $toleranceRel, $nthResult)
                 if (!$nthResult.Near) {
                     return [ComparisonResult]::new($false, $nthResult.MaxAbsDifference, $nthResult.MaxRelDifference, "Error in position $($shift + $n) - $($nthResult.Error)")
                 }
