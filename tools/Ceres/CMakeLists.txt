@@ -23,6 +23,17 @@ function(build_ceres EXE_NAME)
 	target_link_libraries("Tools-Ceres-${EXE_NAME}" ${CERES_LIB} ${GLOG_LIB})
 endfunction(build_ceres)
 
+set(CERES_EIGEN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../Ceres-Eigen)
+function(build_ceres_eigen EXE_NAME)
+	set(CERES_PREV_OUTPUT_DIRECTORY CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CERES_EIGEN_OUTPUT_DIRECTORY})
+	add_executable("Tools-Ceres-Eigen-${EXE_NAME}" "main.cpp" "${CERES-SOLVER_ROOT}/include/ceres/ceres.h" "${CMAKE_SOURCE_DIR}/src/cpp/shared/utils.cpp")
+	target_compile_definitions("Tools-Ceres-Eigen-${EXE_NAME}" PUBLIC "DO_EIGEN" ${ARGN})
+	target_link_libraries("Tools-Ceres-Eigen-${EXE_NAME}" ${CERES_LIB} ${GLOG_LIB})
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY CERES_PREV_OUTPUT_DIRECTORY)
+	unset(CERES_PREV_OUTPUT_DIRECTORY)
+endfunction(build_ceres_eigen)
+
 # Create GMM with different #define D and K values
 foreach (D_VAL ${GMM_D_VALS})
 	foreach (K_VAL ${GMM_K_VALS})
@@ -31,10 +42,11 @@ foreach (D_VAL ${GMM_D_VALS})
 endforeach(D_VAL)
 
 build_ceres("BA" "DO_BA")
-build_ceres("Hand-Light-simple" "DO_HAND")
-build_ceres("Hand-Light-complicated" "DO_HAND")
-build_ceres("Hand-Eigen-simple" "DO_HAND" "DO_EIGEN")
-build_ceres("Hand-Eigen-complicated" "DO_HAND" "DO_EIGEN")
+build_ceres("Hand-simple" "DO_HAND")
+build_ceres("Hand-complicated" "DO_HAND")
+build_ceres_eigen("Hand-simple" "DO_HAND")
+build_ceres_eigen("Hand-complicated" "DO_HAND")
 
 # Copy GLOG DLL
 file(COPY ${GLOG_DLL} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+file(COPY ${GLOG_DLL} DESTINATION "${CERES_EIGEN_OUTPUT_DIRECTORY}")
