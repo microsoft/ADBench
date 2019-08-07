@@ -155,7 +155,17 @@ $datadir = "$dir/data"
 
 Write-Host "Build Type: $buildtype, output to $tmpdir`n"
 
-[flags()] enum ToolType
+enum ToolType
+{
+	bin
+    cpp
+    julia
+    matlab
+    py
+    pybat
+}
+
+[flags()] enum ObjectiveType
 {
 	GMM = 1
 	BA = 2
@@ -166,8 +176,8 @@ Write-Host "Build Type: $buildtype, output to $tmpdir`n"
 # Custom Tool class
 Class Tool {
 	[string]$name
-	[string]$type
-	[ToolType]$objectives
+	[ToolType]$type
+	[ObjectiveType]$objectives
 	[bool]$gmm_both
 	[bool]$gmm_use_defs
 
@@ -187,13 +197,13 @@ Class Tool {
 	# TODO probably want to set these in CMake somewhere
 
 	# Constructor
-	Tool ([string]$name, [string]$type, [ToolType]$objectives, [bool]$gmm_both, [bool]$gmm_use_defs) {
+	Tool ([string]$name, [ToolType]$type, [ObjectiveType]$objectives, [bool]$gmm_both, [bool]$gmm_use_defs) {
 		<#
 		.SYNOPSIS
 		Create a new Tool object to be run
 
 		.EXAMPLE
-		[Tool]::new("Finite", "bin", [ToolType] "GMM, BA, Hand, LSTM", 0, 0)
+		[Tool]::new("Finite", "bin", [ObjectiveType] "GMM, BA, Hand, LSTM", 0, 0)
 		This will create a Tool:
 		- called "Finite"
 		- run from binary executables
@@ -218,10 +228,10 @@ Class Tool {
 	# Run all tests for this tool
 	[void] runall () {
 		Write-Host $this.name
-		if ($this.objectives.HasFlag([ToolType]::GMM)) { $this.testgmm() }
-		if ($this.objectives.HasFlag([ToolType]::BA)) { $this.testba() }
-		if ($this.objectives.HasFlag([ToolType]::Hand)) { $this.testhand() }
-		if ($this.objectives.HasFlag([ToolType]::LSTM)) { $this.testlstm() }
+		if ($this.objectives.HasFlag([ObjectiveType]::GMM)) { $this.testgmm() }
+		if ($this.objectives.HasFlag([ObjectiveType]::BA)) { $this.testba() }
+		if ($this.objectives.HasFlag([ObjectiveType]::Hand)) { $this.testhand() }
+		if ($this.objectives.HasFlag([ObjectiveType]::LSTM)) { $this.testlstm() }
 	}
 
 	# Run a single test
@@ -245,27 +255,25 @@ Class Tool {
 
 		$cmd = ""
 		$cmdargs = @($dir_in, $dir_out, $fn, $script:nruns_f, $script:nruns_J, $script:time_limit)
-		if ($this.type -eq "bin") {
+		if ($this.type -eq [ToolType]::bin) {
 			$cmd = "$script:bindir/tools/$($this.name)/Tools-$($this.name)-$objective.exe"
-		} elseif ($this.type -eq "cpp") {
+		} elseif ($this.type -eq [ToolType]::cpp) {
 			$cmd = "$script:bindir/src/cpp/runner/CppRunner.exe"
             $dir_name = $this.name.ToLowerInvariant()[0] + $this.name.Substring(1)
             $module_path = "$script:bindir/src/cpp/modules/$($dir_name)/$($this.name).dll"
             $task = $objective.Split("-")[0]
             if ($objective.contains("complicated")) { $task = "$task-Complicated" }
 			$cmdargs = @("$task $module_path $dir_in$fn.txt $dir_out $script:minimum_measurable_time $script:nruns_f $script:nruns_J $script:time_limit")
-        } elseif ($this.type -eq "py" -or $this.type -eq "pybat") {
+        } elseif ($this.type -eq [ToolType]::py -or $this.type -eq [ToolType]::pybat) {
 			$objective = $objective.ToLower().Replace("-", "_")
 			if ($this.type -eq "py") { $cmd = "python" }
 			elseif ($this.type -eq "pybat") { $cmd = "$script:dir/tools/$($this.name)/run.bat" }
 			$cmdargs = @("$script:dir/tools/$($this.name)/$($this.name)_$objective.py") + $cmdargs
-
-		} elseif ($this.type -eq "julia") {
+		} elseif ($this.type -eq [ToolType]::julia) {
 			$objective = $objective.ToLower().Replace("-", "_")
 			$cmd = "julia"
 			$cmdargs = @("$script:dir/tools/$($this.name)/${objective}_F.jl") + $cmdargs
-
-		} elseif ($this.type -eq "matlab") {
+		} elseif ($this.type -eq [ToolType]::matlab) {
 			$objective = $objective.ToLower().Replace("-", "_")
 			$cmd = "matlab"
 			$cmdargs = @("-wait", "-nosplash", "-nodesktop", "-r", "cd '$script:dir/tools/$($this.name)/'; addpath('$script:bindir/tools/$($this.name)/'); $($this.name)_$objective $cmdargs; quit")
@@ -361,21 +369,20 @@ Class Tool {
 # Separate Full|Split?
 # Separate GMM sizes?
 $tool_descriptors = @(
-	#[Tool]::new("Adept", "bin", [ToolType] "GMM, BA, Hand", 1, 0)
-	#[Tool]::new("ADOLC", "bin", [ToolType] "GMM, BA, Hand", 1, 0)
-	#[Tool]::new("ADOLCEigen", "bin", [ToolType] "Hand", 1, 0)
-	#[Tool]::new("Ceres", "bin", [ToolType] "GMM, BA, Hand", 0, 1)
-	#[Tool]::new("CeresEigen", "bin", [ToolType] "Hand", 0, 1)
-	 [Tool]::new("Finite", "cpp", [ToolType] "GMM, BA, Hand, LSTM", 0, 0)
-	 [Tool]::new("FiniteEigen", "cpp", [ToolType] "Hand", 0, 0)
-	[Tool]::new("Finite", "bin", [ToolType] "GMM, BA, Hand, LSTM", 0, 0)
-    [Tool]::new("Manual", "cpp", [ToolType] "GMM, BA, Hand, LSTM", 0, 0)
-	[Tool]::new("ManualEigen", "cpp", [ToolType] "GMM, BA, Hand", 0, 0)
-	[Tool]::new("DiffSharp", "bin", [ToolType] "BA", 1, 0)
-	[Tool]::new("Autograd", "py", [ToolType] "GMM, BA", 1, 0)
-	[Tool]::new("PyTorch", "py", [ToolType] "GMM, LSTM", 0, 0)
-	[Tool]::new("Julia", "julia", [ToolType] "GMM, BA", 0, 0)
-	#[Tool]::new("Theano", "pybat", [ToolType] "GMM, BA, Hand", 0, 0)
+	#[Tool]::new("Adept", "bin", [ObjectiveType] "GMM, BA, Hand", 1, 0)
+	#[Tool]::new("ADOLC", "bin", [ObjectiveType] "GMM, BA, Hand", 1, 0)
+	#[Tool]::new("ADOLCEigen", "bin", [ObjectiveType] "Hand", 1, 0)
+	#[Tool]::new("Ceres", "bin", [ObjectiveType] "GMM, BA, Hand", 0, 1)
+	#[Tool]::new("CeresEigen", "bin", [ObjectiveType] "Hand", 0, 1)
+    [Tool]::new("Finite", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", 0, 0)
+    [Tool]::new("FiniteEigen", "cpp", [ObjectiveType] "Hand", 0, 0)
+    [Tool]::new("Manual", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", 0, 0)
+	[Tool]::new("ManualEigen", "cpp", [ObjectiveType] "GMM, BA, Hand", 0, 0)
+	[Tool]::new("DiffSharp", "bin", [ObjectiveType] "BA", 1, 0)
+	[Tool]::new("Autograd", "py", [ObjectiveType] "GMM, BA", 1, 0)
+	[Tool]::new("PyTorch", "py", [ObjectiveType] "GMM, LSTM", 0, 0)
+	[Tool]::new("Julia", "julia", [ObjectiveType] "GMM, BA", 0, 0)
+	#[Tool]::new("Theano", "pybat", [ObjectiveType] "GMM, BA, Hand", 0, 0)
 	#[Tool]::new("MuPad", "matlab", 0, 0, 0)
 	#[Tool]::new("ADiMat", "matlab", 0, 0, 0)
 )
