@@ -13,13 +13,13 @@
 int main(const int argc, const char* argv[])
 {
     try {
-        if (argc < 3) {
+        if (argc < 4) {
             std::cerr << "usage: FinitePartialGmm input_filepath output_dir gradient_size_limit\n";
             return 1;
         }
-        const std::string input_filepath(argv[0]);
-        const std::string output_prefix(argv[1]);
-        const auto max_grad_size = std::stoi(argv[2]);
+        const std::string input_filepath(argv[1]);
+        const std::string output_prefix(argv[2]);
+        const auto max_grad_size = std::stoi(argv[3]);
 
         GMMInput input;
 
@@ -32,6 +32,7 @@ int main(const int argc, const char* argv[])
         int out_icfs = std::min(max_grad_size, (input.k * input.d * (input.d + 1)) / 2);
         double objective;
         std::vector<double> d_alphas(out_alphas), d_means(out_means), d_icfs(out_icfs);
+        std::vector<int> positions{ 0, input.k , input.k + input.d * input.k };
         FiniteDifferencesEngine<double> engine(1);
 
         engine.finite_differences([&](double* alphas_in, double* err) {
@@ -47,6 +48,11 @@ int main(const int argc, const char* argv[])
             }, input.icf.data(), out_icfs, &objective, 1, d_icfs.data());
 
         const auto input_basename = filepath_to_basename(input_filepath);
+        std::ofstream out(jacobian_file_name(output_prefix, input_basename, "positions"));
+        for (const auto& i : positions)
+        {
+            out << i << std::endl;
+        }
         save_vector_to_file(jacobian_file_name(output_prefix, input_basename, "alphas"), d_alphas);
         save_vector_to_file(jacobian_file_name(output_prefix, input_basename, "means"), d_means);
         save_vector_to_file(jacobian_file_name(output_prefix, input_basename, "icfs"), d_icfs);
