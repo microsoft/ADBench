@@ -170,7 +170,6 @@ Class Tool {
 	[ToolType]$objectives
 	[bool]$gmm_both
 	[bool]$gmm_use_defs
-	[array]$eigen_config
 
 	# Static constants
 	static [string]$gmm_dir_in = "$datadir/gmm/"
@@ -188,29 +187,25 @@ Class Tool {
 	# TODO probably want to set these in CMake somewhere
 
 	# Constructor
-	Tool ([string]$name, [string]$type, [ToolType]$objectives, [bool]$gmm_both, [bool]$gmm_use_defs, [string]$eigen_config) {
+	Tool ([string]$name, [string]$type, [ToolType]$objectives, [bool]$gmm_both, [bool]$gmm_use_defs) {
 		<#
 		.SYNOPSIS
 		Create a new Tool object to be run
 
 		.EXAMPLE
-		[Tool]::new("Finite", "bin", [ToolType] "GMM, BA, Hand, LSTM", 0, 0, "101011")
+		[Tool]::new("Finite", "bin", [ToolType] "GMM, BA, Hand, LSTM", 0, 0)
 		This will create a Tool:
 		- called "Finite"
 		- run from binary executables
 		- runs all five tests 
 		- does not do GMM in separate FULL and SPLIT modes
 		- doesn't require separate executables for different GMM sizes
-		- Runs all tests without eigen, and Hand tests with Eigen
 
 		.NOTES
-		$objectives is a binary string used to represent a boolean array, 
-		where each element determines whether to run a certain objective:
+		$objectives is an enumerable variable, 
+		where each flag determines whether to run a certain objective:
 		GMM, BA, HAND, LSTM
 		
-		$eigen_config works similarly, but now each pair of elements 
-		determines firstly whether to run the objective with eigen, and 
-		secondly whether to run it without.
 		#>
 
 		$this.name = $name
@@ -218,7 +213,6 @@ Class Tool {
 		$this.objectives = $objectives
 		$this.gmm_both = $gmm_both
 		$this.gmm_use_defs = $gmm_use_defs
-		$this.eigen_config = $eigen_config.ToCharArray() | % { $_ -band "1" }
 	}
 
 	# Run all tests for this tool
@@ -233,7 +227,6 @@ Class Tool {
 	# Run a single test
 	[void] run ([string]$objective, [string]$dir_in, [string]$dir_out, [string]$fn) {
 		if ($objective.contains("Eigen")) { $out_name = "$($this.name)_Eigen" }
-		elseif ($objective.contains("Light")) { $out_name = "$($this.name)_Light" }
 		elseif ($objective.endswith("SPLIT")) { $out_name = "$($this.name)_split" }
 		else { $out_name = $this.name }
 		$output_file = "${dir_out}${fn}_times_${out_name}.txt"
@@ -255,7 +248,6 @@ Class Tool {
 		if ($this.type -eq "bin") {
 			$cmd = "$script:bindir/tools/$($this.name)/Tools-$($this.name)-$objective.exe"
 		} elseif ($this.type -eq "cpp") {
-            #temporary solution until this script refactoring
 			$cmd = "$script:bindir/src/cpp/runner/CppRunner.exe"
             $dir_name = $this.name.ToLowerInvariant()[0] + $this.name.Substring(1)
             $module_path = "$script:bindir/src/cpp/modules/$($dir_name)/$($this.name).dll"
@@ -287,32 +279,26 @@ Class Tool {
 
 	# Run all gmm tests for this tool
 	[void] testgmm () {
-		$objs = @()
-		if ($this.eigen_config[0]) { $objs += @("GMM") }
-		if ($this.eigen_config[1]) { $objs += @("GMM-Eigen") }
-
 		if ($this.gmm_both) { $types = @("-FULL", "-SPLIT") }
 		else { $types = @("") }
 
-		foreach ($obj in $objs) {
-			foreach ($type in $types) {
-				Write-Host "  $obj$type"
+		foreach ($type in $types) {
+			Write-Host "  GMM$type"
 
-				foreach ($sz in [Tool]::gmm_sizes) {
-					Write-Host "    $sz"
+			foreach ($sz in [Tool]::gmm_sizes) {
+				Write-Host "    $sz"
 
-					$dir_in = "$([Tool]::gmm_dir_in)$sz/"
-					$dir_out = "$script:tmpdir/gmm/$sz/$($this.name)/"
-					mkdir_p $dir_out
+				$dir_in = "$([Tool]::gmm_dir_in)$sz/"
+				$dir_out = "$script:tmpdir/gmm/$sz/$($this.name)/"
+				mkdir_p $dir_out
 
-					foreach ($d in $script:gmm_d_vals) {
-						Write-Host "      d=$d"
-						foreach ($k in $script:gmm_k_vals) {
-							Write-Host "        K=$k"
-							$run_obj = "$obj$type"
-							if ($this.gmm_use_defs) { $run_obj += "-d$d-K$k" }
-							$this.run($run_obj, $dir_in, $dir_out, "gmm_d${d}_K${k}")
-						}
+				foreach ($d in $script:gmm_d_vals) {
+					Write-Host "      d=$d"
+					foreach ($k in $script:gmm_k_vals) {
+						Write-Host "        K=$k"
+						$run_obj = "GMM$type"
+						if ($this.gmm_use_defs) { $run_obj += "-d$d-K$k" }
+						$this.run($run_obj, $dir_in, $dir_out, "gmm_d${d}_K${k}")
 					}
 				}
 			}
@@ -321,47 +307,32 @@ Class Tool {
 
 	# Run all BA tests for this tool
 	[void] testba () {
-		$objs = @()
-		if ($this.eigen_config[2]) { $objs += @("BA") }
-		if ($this.eigen_config[3]) {$objs += @("BA-Eigen") }
-
 		$dir_out = "$script:tmpdir/ba/$($this.name)/"
 		if (!(Test-Path $dir_out)) { mkdir_p $dir_out }
 
-		foreach ($obj in $objs) {
-			Write-Host "  $obj"
+		Write-Host "  BA"
 
-			for ($n = [Tool]::ba_min_n; $n -le [Tool]::ba_max_n; $n++) {
-				Write-Host "    $n"
-				$this.run("$obj", [Tool]::ba_dir_in, $dir_out, "ba$n")
-			}
+		for ($n = [Tool]::ba_min_n; $n -le [Tool]::ba_max_n; $n++) {
+			Write-Host "    $n"
+			$this.run("BA", [Tool]::ba_dir_in, $dir_out, "ba$n")
 		}
 	}
 
 	# Run all Hand tests for this tool
 	[void] testhand () {
-		$objs = @()
-		if ($this.eigen_config[4]) {
-			if ($this.type -eq "bin") { $objs += @("Hand-Light") }
-			else { $objs += @("Hand") }
-		}
-		if ($this.eigen_config[5]) { $objs += @("Hand-Eigen") }
+		Write-Host "  Hand"
 
-		foreach ($obj in $objs) {
-			Write-Host "  $obj"
+		foreach ($type in @("simple", "complicated")) {
+			foreach ($sz in [Tool]::hand_sizes) {
+				Write-Host "    ${type}_$sz"
 
-			foreach ($type in @("simple", "complicated")) {
-				foreach ($sz in [Tool]::hand_sizes) {
-					Write-Host "    ${type}_$sz"
+				$dir_in = "$([Tool]::hand_dir_in)${type}_$sz/"
+				$dir_out = "$script:tmpdir/hand/${type}_$sz/$($this.name)/"
+				mkdir_p $dir_out
 
-					$dir_in = "$([Tool]::hand_dir_in)${type}_$sz/"
-					$dir_out = "$script:tmpdir/hand/${type}_$sz/$($this.name)/"
-					mkdir_p $dir_out
-
-					for ($n = [Tool]::hand_min_n; $n -le [Tool]::hand_max_n; $n++) {
-						Write-Host "      $n"
-						$this.run("$obj-${type}", $dir_in, $dir_out, "hand$n")
-					}
+				for ($n = [Tool]::hand_min_n; $n -le [Tool]::hand_max_n; $n++) {
+					Write-Host "      $n"
+					$this.run("Hand-${type}", $dir_in, $dir_out, "hand$n")
 				}
 			}
 		}
@@ -390,18 +361,21 @@ Class Tool {
 # Separate Full|Split?
 # Separate GMM sizes?
 $tool_descriptors = @(
-	#[Tool]::new("Adept", "bin", [ToolType] "GMM, BA, Hand", 1, 0, "101010")
-	#[Tool]::new("ADOLC", "bin", [ToolType] "GMM, BA, Hand", 1, 0, "101011")
-	#[Tool]::new("Ceres", "bin", [ToolType] "GMM, BA", 0, 1, "101011")
-	 [Tool]::new("Finite", "cpp", [ToolType] "GMM, BA, Hand, LSTM", 0, 0, "101010")
-	 [Tool]::new("FiniteEigen", "cpp", [ToolType] "Hand", 0, 0, "000010")
-	 [Tool]::new("Manual", "cpp", [ToolType] "GMM, BA, Hand, LSTM", 0, 0, "101010")
-	 [Tool]::new("ManualEigen", "cpp", [ToolType] "GMM, BA, Hand", 0, 0, "101010")
-	 [Tool]::new("DiffSharp", "bin", [ToolType] "BA", 1, 0, "101010")
-	 [Tool]::new("Autograd", "py", [ToolType] "GMM, BA", 1, 0, "101010")
-	 [Tool]::new("PyTorch", "py", [ToolType] "GMM, LSTM", 0, 0, "101010")
-	 [Tool]::new("Julia", "julia", [ToolType] "GMM, BA", 0, 0, "101010")
-	#[Tool]::new("Theano", "pybat", [ToolType] "GMM, BA, Hand", 0, 0, "101010")
+	#[Tool]::new("Adept", "bin", [ToolType] "GMM, BA, Hand", 1, 0)
+	#[Tool]::new("ADOLC", "bin", [ToolType] "GMM, BA, Hand", 1, 0)
+	#[Tool]::new("ADOLC-Eigen", "bin", [ToolType] "Hand", 1, 0)
+	#[Tool]::new("Ceres", "bin", [ToolType] "GMM, BA, Hand", 0, 1)
+	#[Tool]::new("Ceres-Eigen", "bin", [ToolType] "Hand", 0, 1)
+	 [Tool]::new("Finite", "cpp", [ToolType] "GMM, BA, Hand, LSTM", 0, 0)
+	 [Tool]::new("FiniteEigen", "cpp", [ToolType] "Hand", 0, 0)
+	[Tool]::new("Finite", "bin", [ToolType] "GMM, BA, Hand, LSTM", 0, 0)
+    [Tool]::new("Manual", "cpp", [ToolType] "GMM, BA, Hand, LSTM", 0, 0)
+	[Tool]::new("ManualEigen", "cpp", [ToolType] "GMM, BA, Hand", 0, 0)
+	[Tool]::new("DiffSharp", "bin", [ToolType] "BA", 1, 0)
+	[Tool]::new("Autograd", "py", [ToolType] "GMM, BA", 1, 0)
+	[Tool]::new("PyTorch", "py", [ToolType] "GMM, LSTM", 0, 0)
+	[Tool]::new("Julia", "julia", [ToolType] "GMM, BA", 0, 0)
+	#[Tool]::new("Theano", "pybat", [ToolType] "GMM, BA, Hand", 0, 0)
 	#[Tool]::new("MuPad", "matlab", 0, 0, 0)
 	#[Tool]::new("ADiMat", "matlab", 0, 0, 0)
 )
