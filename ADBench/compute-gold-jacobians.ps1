@@ -1,5 +1,6 @@
 $buildtype = "Release"
-[double]$defaultTolerance = 1.0e-2;
+[double]$defaultRelativeTolerance = 1.0e-2;
+[double]$defaultAbsoluteTolerance = 1.0e-6;
 $maxGmmGradSizeForFinite = 10000;
 
 # Make a directory (including its parents if necessary) after checking
@@ -75,82 +76,152 @@ function computePartGmmJ ([string]$dir_in, [string]$dir_out, [string]$fn) {
     return $output_files
 }
 
-function areNumbersNear($x, $y, [double]$tolerance) {
-    $xd = $x -as [double]
-    $yd = $y -as [double]
-    # relative difference = |x - y| / max(|x|,|y|)
-    $reldiff = [Math]::Abs($xd - $yd) / [Math]::Max([Math]::Abs($xd), [Math]::Abs($yd))
-    if ($reldiff -gt $tolerance) {
-        return $false, $reldiff, "Relative difference between the numbers $x and $y (parsed as $xd and $yd) is $reldiff, which is greater than the allowed tolerance($tolerance)"
+Class ComparisonResult {
+    [bool] $Near
+    [double] $MaxAbsDifference
+    [double] $MaxRelDifference
+    [string] $Error
+
+    ComparisonResult(
+        [bool] $near,
+        [double] $maxAbsDifference,
+        [double] $maxRelDifference
+    ){
+        $this.Near = $near
+        $this.MaxAbsDifference = $maxAbsDifference
+        $this.MaxRelDifference = $maxRelDifference
+        $this.Error = ""
     }
-    return $true, $reldiff, ""
+
+    ComparisonResult(
+        [bool] $near,
+        [double] $maxAbsDifference,
+        [double] $maxRelDifference,
+        [string] $error
+    ){
+        $this.Near = $near
+        $this.MaxAbsDifference = $maxAbsDifference
+        $this.MaxRelDifference = $maxRelDifference
+        $this.Error = $error
+    }
+
+    [void] Set(
+        [bool] $near,
+        [double] $maxAbsDifference,
+        [double] $maxRelDifference
+    ){
+        $this.Near = $near
+        $this.MaxAbsDifference = $maxAbsDifference
+        $this.MaxRelDifference = $maxRelDifference
+        $this.Error = ""
+    }
+
+    [void] Set(
+        [bool] $near,
+        [double] $maxAbsDifference,
+        [double] $maxRelDifference,
+        [string] $error
+    ){
+        $this.Near = $near
+        $this.MaxAbsDifference = $maxAbsDifference
+        $this.MaxRelDifference = $maxRelDifference
+        $this.Error = $error
+    }
 }
 
-function areNumLinesNear([string]$line1, [string]$line2, [double]$tolerance) {
-    $separators=(" ","`t")
-    $split1 = $line1.Split($separators)
-    $split2 = $line2.Split($separators)
-    $maxRelDiff = 0.0
-    if ($split1.count -ne $split2.count) {
-        return $false, $maxRelDiff, "Lines have different numbers of elements"
+Class Comparison {
+    [ComparisonResult] static areNumbersNear([string]$x, [string]$y, [double]$toleranceAbs, [double]$toleranceRel) {
+        $xd = $x -as [double]
+        $yd = $y -as [double]
+        # relative difference = |x - y| / max(|x|,|y|)
+        $absdiff = [Math]::Abs($xd - $yd)
+        $reldiff = $absdiff / [Math]::Max([Math]::Abs($xd), [Math]::Abs($yd))
+        if ($absdiff -gt $toleranceAbs -and $reldiff -gt $toleranceRel) {
+            return [ComparisonResult]::new($false, $absdiff, $reldiff,
+                "Relative difference between the numbers $x and $y (parsed as $xd and $yd) is $reldiff, which is greater than the allowed tolerance($toleranceRel)`n" +
+                "Absolute difference between the numbers $x and $y (parsed as $xd and $yd) is $absdiff, which is greater than the allowed tolerance($toleranceAbs)")
+        }
+        return [ComparisonResult]::new($true, $absdiff, $reldiff)
     }
-    if ($split1.count -eq 1) {
-        return areNumbersNear $split1 $split2 $tolerance
-    } else {
-        for ($n = 0; $n -lt $split1.count; $n++) {
-            $nthResult = areNumbersNear $split1[$n] $split2[$n] $tolerance
-            if (!$nthResult[0]) {
-                return $false, $nthResult[1], "Error in position $n - $($nthResult[2])"
-            }
-            if ($nthResult[1] -gt $maxRelDiff) {
-                $maxRelDiff = $nthResult[1]
+    
+    [ComparisonResult] static areNumLinesNear([string]$line1, [string]$line2, [double]$toleranceAbs, [double]$toleranceRel) {
+        $separators=(" ","`t")
+        $split1 = $line1.Split($separators)
+        $split2 = $line2.Split($separators)
+        $maxAbsDiff = 0.0
+        $maxRelDiff = 0.0
+        if ($split1.count -ne $split2.count) {
+            return [ComparisonResult]::new($false, $maxAbsDiff, $maxRelDiff, "Lines have different numbers of elements")
+        }
+        if ($split1.count -eq 1) {
+            return [Comparison]::areNumbersNear($split1, $split2, $toleranceAbs, $toleranceRel)
+        } else {
+            for ($n = 0; $n -lt $split1.count; $n++) {
+                $nthResult = [Comparison]::areNumbersNear($split1[$n], $split2[$n], $toleranceAbs, $toleranceRel)
+                if (!$nthResult.Near) {
+                    return [ComparisonResult]::new($false, $nthResult.MaxAbsDifference, $nthResult.MaxRelDifference, "Error in position $n - $($nthResult.Error)")
+                }
+                if ($nthResult.MaxAbsDifference -gt $maxAbsDiff) {
+                    $maxAbsDiff = $nthResult.MaxAbsDifference
+                }
+                if ($nthResult.MaxRelDifference -gt $maxRelDiff) {
+                    $maxRelDiff = $nthResult.MaxRelDifference
+                }
             }
         }
+        return [ComparisonResult]::new($true, $maxAbsDiff, $maxRelDiff)
     }
-    return $true, $maxRelDiff, ""
-}
-
-function areNumTextFilesNear([string]$path1, [string]$path2, [double]$tolerance) {
-    $j1 = Get-Content $path1
-    $j2 = Get-Content $path2
-    $maxRelDiff = 0.0
-    if ($j1.count -ne $j2.count) {
-        return $false, $maxRelDiff, "Texts have different numbers of lines"
-    }
-    if ($j1.count -eq 1) {
-        return areNumLinesNear $j1 $j2 $tolerance
-    } else {
-        for ($n = 0; $n -lt $j1.count; $n++) {
-            $nthResult = areNumLinesNear $j1[$n] $j2[$n] $tolerance
-            if (!$nthResult[0]) {
-                return $false, $nthResult[1], "Error in line $n - $($nthResult[2])"
-            }
-            if ($nthResult[1] -gt $maxRelDiff) {
-                $maxRelDiff = $nthResult[1]
+    
+    [ComparisonResult] static areNumTextFilesNear([string]$path1, [string]$path2, [double]$toleranceAbs, [double]$toleranceRel) {
+        $j1 = Get-Content $path1
+        $j2 = Get-Content $path2
+        $maxAbsDiff = 0.0
+        $maxRelDiff = 0.0
+        if ($j1.count -ne $j2.count) {
+            return [ComparisonResult]::new($false, $maxAbsDiff, $maxRelDiff, "Texts have different numbers of lines")
+        }
+        if ($j1.count -eq 1) {
+            return [Comparison]::areNumLinesNear($j1, $j2, $toleranceAbs, $toleranceRel)
+        } else {
+            for ($n = 0; $n -lt $j1.count; $n++) {
+                $nthResult = [Comparison]::areNumLinesNear($j1[$n], $j2[$n], $toleranceAbs, $toleranceRel)
+                if (!$nthResult.Near) {
+                    return [ComparisonResult]::new($false, $nthResult.MaxAbsDifference, $nthResult.MaxRelDifference, "Error in line $n - $($nthResult.Error)")
+                }
+                if ($nthResult.MaxAbsDifference -gt $maxAbsDiff) {
+                    $maxAbsDiff = $nthResult.MaxAbsDifference
+                }
+                if ($nthResult.MaxRelDifference -gt $maxRelDiff) {
+                    $maxRelDiff = $nthResult.MaxRelDifference
+                }
             }
         }
+        return [ComparisonResult]::new($true, $maxAbsDiff, $maxRelDiff)
     }
-    return $true, $maxRelDiff, ""
-}
-
-function areGmmFullAndPartGradientsNear([string]$path1, [string[]]$paths2, [double]$tolerance) {
-    $j1 = Get-Content $path1
-    $positions = Get-Content $paths2[0]
-    $parts = @((Get-Content $paths2[1]), (Get-Content $paths2[2]), (Get-Content $paths2[3]))
-    $maxRelDiff = 0.0
-    for($i = 0; $i -lt 3; $i++) {
-        $shift = $positions[$i] -as [int]
-        for ($n = 0; $n -lt $parts[$i].count; $n++) {
-            $nthResult = areNumbersNear $j1[$shift + $n] $parts[$i][$n] $tolerance
-            if (!$nthResult[0]) {
-                return $false, $nthResult[1], "Error in position $($shift + $n) - $($nthResult[2])"
-            }
-            if ($nthResult[1] -gt $maxRelDiff) {
-                $maxRelDiff = $nthResult[1]
+    
+    [ComparisonResult] static areGmmFullAndPartGradientsNear([string]$path1, [string[]]$paths2, [double]$toleranceAbs, [double]$toleranceRel) {
+        $j1 = Get-Content $path1
+        $positions = Get-Content $paths2[0]
+        $parts = @((Get-Content $paths2[1]), (Get-Content $paths2[2]), (Get-Content $paths2[3]))
+        $maxAbsDiff = 0.0
+        $maxRelDiff = 0.0
+        for($i = 0; $i -lt 3; $i++) {
+            $shift = $positions[$i] -as [int]
+            for ($n = 0; $n -lt $parts[$i].count; $n++) {
+                $nthResult = [Comparison]::areNumbersNear($j1[$shift + $n], $parts[$i][$n], $toleranceAbs, $toleranceRel)
+                if (!$nthResult.Near) {
+                    return [ComparisonResult]::new($false, $nthResult.MaxAbsDifference, $nthResult.MaxRelDifference, "Error in position $($shift + $n) - $($nthResult.Error)")
+                }
+                if ($nthResult.MaxAbsDifference -gt $maxAbsDiff) {
+                    $maxAbsDiff = $nthResult.MaxAbsDifference
+                }
+                if ($nthResult.MaxRelDifference -gt $maxRelDiff) {
+                    $maxRelDiff = $nthResult.MaxRelDifference
+                }
             }
         }
+        return [ComparisonResult]::new($true, $maxAbsDiff, $maxRelDiff)
     }
-    return $true, $maxRelDiff, ""
 }
 
 # Get source dir
@@ -189,6 +260,7 @@ $gmm_d_vals = @(2, 10)#, 20, 32, 64)
 $gmm_k_vals = @(5, 10)#, 25, 50, 100, 200)
 
 $errors = New-Object Collections.Generic.List[string]
+$maxAbsDiff = 0.0
 $maxRelDiff = 0.0
 
 # Manual BA
@@ -206,19 +278,23 @@ foreach ($sz in $gmm_sizes) {
 			Write-Host "        K=$k"
             $m = computeJ "GMM" "Manual" $dir_in $dir_out "gmm_d${d}_K${k}"
             $f = computePartGmmJ $dir_in $dir_out "gmm_d${d}_K${k}"
-            $near = areGmmFullAndPartGradientsNear $m $f $defaultTolerance
-            if ($near[0]) {
+            $near = [Comparison]::areGmmFullAndPartGradientsNear($m, $f, $defaultAbsoluteTolerance, $defaultRelativeTolerance)
+            if ($near.Near) {
                 Remove-Item $f
                 Rename-Item $m "${dir_out}gmm_d${d}_K${k}.txt"
-                Write-Host "Maximum relative difference: $($near[1])"
+                Write-Host "Maximum absolute difference: $($near.MaxAbsDifference)"
+                Write-Host "Maximum relative difference: $($near.MaxRelDifference)"
             } else {
-                $msg = "Inconsistent results between manual and finite on gmm_d${d}_K${k}`n" + $near[2]
+                $msg = "Inconsistent results between manual and finite on gmm_d${d}_K${k}`n" + $near.Error
                 Write-Error $msg
                 $errors.Add($msg)
                 Rename-Item $m "${dir_out}gmm_d${d}_K${k}.txt"
             }
-            if ($near[1] -gt $maxRelDiff) {
-                $maxRelDiff = $near[1]
+            if ($near.MaxAbsDifference -gt $maxAbsDiff) {
+                $maxAbsDiff = $near.MaxAbsDifference
+            }
+            if ($near.MaxRelDifference -gt $maxRelDiff) {
+                $maxRelDiff = $near.MaxRelDifference
             }
 		}
 	}
@@ -234,18 +310,22 @@ for ($n = $ba_min_n; $n -le $ba_max_n; $n++) {
 	Write-Host "    $n"
     $m = computeJ "BA" "Manual" $ba_dir_in $dir_out "ba$n"
     $f = computeJ "BA" "Finite" $ba_dir_in $dir_out "ba$n"
-    $near = areNumTextFilesNear $m $f $defaultTolerance
-    if ($near[0]) {
+    $near = [Comparison]::areNumTextFilesNear($m, $f, $defaultAbsoluteTolerance, $defaultRelativeTolerance)
+    if ($near.Near) {
         Remove-Item $f
         Rename-Item $m "${dir_out}ba$n.txt"
-        Write-Host "Maximum relative difference: $($near[1])"
+        Write-Host "Maximum absolute difference: $($near.MaxAbsDifference)"
+        Write-Host "Maximum relative difference: $($near.MaxRelDifference)"
     } else {
-        $msg = "Inconsistent results between manual and finite on ba$n`n" + $near[2]
+        $msg = "Inconsistent results between manual and finite on ba$n`n" + $near.Error
         Write-Error $msg
         $errors.Add($msg)
     }
-    if ($near[1] -gt $maxRelDiff) {
-        $maxRelDiff = $near[1]
+    if ($near.MaxAbsDifference -gt $maxAbsDiff) {
+        $maxAbsDiff = $near.MaxAbsDifference
+    }
+    if ($near.MaxRelDifference -gt $maxRelDiff) {
+        $maxRelDiff = $near.MaxRelDifference
     }
 }
 
@@ -269,18 +349,22 @@ foreach ($type in @("simple", "complicated")) {
             }
             $m = computeJ "Hand${task}" "Manual" $dir_in $dir_out "hand$n"
             $f = computeJ "Hand${task}" "Finite" $dir_in $dir_out "hand$n"
-            $near = areNumTextFilesNear $m $f $defaultTolerance
-            if ($near[0]) {
+            $near = [Comparison]::areNumTextFilesNear($m, $f, $defaultAbsoluteTolerance, $defaultRelativeTolerance)
+            if ($near.Near) {
                 Remove-Item $f
                 Rename-Item $m "${dir_out}hand$n.txt"
-                Write-Host "Maximum relative difference: $($near[1])"
+                Write-Host "Maximum absolute difference: $($near.MaxAbsDifference)"
+                Write-Host "Maximum relative difference: $($near.MaxRelDifference)"
             } else {
-                $msg = "Inconsistent results between manual and finite on hand$n`n" + $near[2]
+                $msg = "Inconsistent results between manual and finite on hand$n`n" + $near.Error
                 Write-Error $msg
                 $errors.Add($msg)
             }
-            if ($near[1] -gt $maxRelDiff) {
-                $maxRelDiff = $near[1]
+            if ($near.MaxAbsDifference -gt $maxAbsDiff) {
+                $maxAbsDiff = $near.MaxAbsDifference
+            }
+            if ($near.MaxRelDifference -gt $maxRelDiff) {
+                $maxRelDiff = $near.MaxRelDifference
             }
 		}
 	}
@@ -297,22 +381,28 @@ foreach ($l in $lstm_l_vals) {
 		Write-Host "      c=$c"
         $m = computeJ "LSTM" "Manual" $lstm_dir_in $dir_out "lstm_l${l}_c$c"
         $f = computeJ "LSTM" "Finite" $lstm_dir_in $dir_out "lstm_l${l}_c$c"
-        $near = areNumTextFilesNear $m $f $defaultTolerance
-        if ($near[0]) {
+        $near = [Comparison]::areNumTextFilesNear($m, $f, $defaultAbsoluteTolerance, $defaultRelativeTolerance)
+        if ($near.Near) {
             Remove-Item $f
             Rename-Item $m "${dir_out}lstm_l${l}_c$c.txt"
-            Write-Host "Maximum relative difference: $($near[1])"
+            Write-Host "Maximum absolute difference: $($near.MaxAbsDifference)"
+            Write-Host "Maximum relative difference: $($near.MaxRelDifference)"
         } else {
-            $msg = "Inconsistent results between manual and finite on lstm_l${l}_c$c`n" + $near[2]
+            $msg = "Inconsistent results between manual and finite on lstm_l${l}_c$c`n" + $near.Error
             Write-Error $msg
             $errors.Add($msg)
         }
-        if ($near[1] -gt $maxRelDiff) {
-            $maxRelDiff = $near[1]
+        if ($near.MaxAbsDifference -gt $maxAbsDiff) {
+            $maxAbsDiff = $near.MaxAbsDifference
+        }
+        if ($near.MaxRelDifference -gt $maxRelDiff) {
+            $maxRelDiff = $near.MaxRelDifference
         }
 	}
 }
 
+
+Write-Host "Maximum absolute difference between values produced by manual and by finite is`n$maxAbsDiff`n"
 Write-Host "Maximum relative difference between values produced by manual and by finite is`n$maxRelDiff`n"
 
 foreach($msg in $errors) {
