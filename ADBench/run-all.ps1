@@ -363,9 +363,9 @@ Class Tool {
 $tool_descriptors = @(
 	#[Tool]::new("Adept", "bin", [ToolType] "GMM, BA, Hand", 1, 0)
 	#[Tool]::new("ADOLC", "bin", [ToolType] "GMM, BA, Hand", 1, 0)
-	#[Tool]::new("ADOLC-Eigen", "bin", [ToolType] "Hand", 1, 0)
+	#[Tool]::new("ADOLCEigen", "bin", [ToolType] "Hand", 1, 0)
 	#[Tool]::new("Ceres", "bin", [ToolType] "GMM, BA, Hand", 0, 1)
-	#[Tool]::new("Ceres-Eigen", "bin", [ToolType] "Hand", 0, 1)
+	#[Tool]::new("CeresEigen", "bin", [ToolType] "Hand", 0, 1)
 	 [Tool]::new("Finite", "cpp", [ToolType] "GMM, BA, Hand, LSTM", 0, 0)
 	 [Tool]::new("FiniteEigen", "cpp", [ToolType] "Hand", 0, 0)
 	[Tool]::new("Finite", "bin", [ToolType] "GMM, BA, Hand, LSTM", 0, 0)
