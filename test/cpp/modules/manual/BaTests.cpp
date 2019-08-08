@@ -30,7 +30,7 @@ TEST_P(BaModuleTest, ObjectiveCalculationCorrectness)
     read_ba_instance("batest.txt", input.n, input.m, input.p,
         input.cams, input.X, input.w, input.obs, input.feats);
     module->prepare(std::move(input));
-    module->calculateObjective(1);
+    module->calculate_objective(1);
 
     auto output = module->output();
     for (int i = 0; i < 20; i += 2)
@@ -54,7 +54,7 @@ TEST_P(BaModuleTest, JacobianCalculationCorrectness)
     read_ba_instance("batest.txt", input.n, input.m, input.p,
         input.cams, input.X, input.w, input.obs, input.feats);
     module->prepare(std::move(input));
-    module->calculateJacobian(1);
+    module->calculate_jacobian(1);
 
     auto output = module->output();
     EXPECT_EQ(30, output.J.nrows);
@@ -91,7 +91,7 @@ TEST_P(BaModuleTest, ObjectiveRunsMultipleTimes)
         input.cams, input.X, input.w, input.obs, input.feats);
     module->prepare(std::move(input));
 
-    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<BAInput, BAOutput>::calculateObjective));
+    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<BAInput, BAOutput>::calculate_objective));
 }
 
 TEST_P(BaModuleTest, JacobianRunsMultipleTimes)
@@ -105,5 +105,5 @@ TEST_P(BaModuleTest, JacobianRunsMultipleTimes)
         input.cams, input.X, input.w, input.obs, input.feats);
     module->prepare(std::move(input));
 
-    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<BAInput, BAOutput>::calculateJacobian));
+    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<BAInput, BAOutput>::calculate_jacobian));
 }

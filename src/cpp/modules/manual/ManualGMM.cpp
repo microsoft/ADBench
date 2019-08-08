@@ -18,7 +18,7 @@ GMMOutput ManualGMM::output()
     return _output;
 }
 
-void ManualGMM::calculateObjective(int times)
+void ManualGMM::calculate_objective(int times)
 {
     for (int i = 0; i < times; ++i) {
         gmm_objective(_input.d, _input.k, _input.n, _input.alphas.data(), _input.means.data(),
@@ -26,7 +26,7 @@ void ManualGMM::calculateObjective(int times)
     }
 }
 
-void ManualGMM::calculateJacobian(int times)
+void ManualGMM::calculate_jacobian(int times)
 {
     for (int i = 0; i < times; ++i) {
         gmm_objective_d(_input.d, _input.k, _input.n, _input.alphas.data(), _input.means.data(),
