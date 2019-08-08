@@ -1,6 +1,6 @@
 #pragma once 
 
-#include "../../shared/hand_eigen_model.h"
+#include "./hand_eigen_model.h"
 
 #include <Eigen/Dense>
 #include <Eigen/StdVector>
