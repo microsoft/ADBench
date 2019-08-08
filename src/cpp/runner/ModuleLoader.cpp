@@ -26,14 +26,14 @@ typedef ITest<GMMInput, GMMOutput>* (*GmmTestFuncPtr)();
 
 std::unique_ptr<ITest<GMMInput, GMMOutput>> ModuleLoader::get_gmm_test() const
 {
-    auto GetGMMTest = (GmmTestFuncPtr)load_function("GetGMMTest");
-    if (GetGMMTest != nullptr)
+    auto get_gmm_test = (GmmTestFuncPtr)load_function("get_gmm_test");
+    if (get_gmm_test != nullptr)
     {
-        return std::unique_ptr<ITest<GMMInput, GMMOutput>>(GetGMMTest());
+        return std::unique_ptr<ITest<GMMInput, GMMOutput>>(get_gmm_test());
     }
     else
     {
-        throw runtime_error("Can't load GetGMMTest function");
+        throw runtime_error("Can't load get_gmm_test function");
     }
 }
 
@@ -41,14 +41,14 @@ typedef ITest<BAInput, BAOutput>* (*BaTestFuncPtr)();
 
 std::unique_ptr<ITest<BAInput, BAOutput>> ModuleLoader::get_ba_test() const
 {
-    auto GetBATest = (BaTestFuncPtr)load_function("GetBATest");
-    if (GetBATest != nullptr)
+    auto get_ba_test = (BaTestFuncPtr)load_function("get_ba_test");
+    if (get_ba_test != nullptr)
     {
-        return std::unique_ptr<ITest<BAInput, BAOutput>>(GetBATest());
+        return std::unique_ptr<ITest<BAInput, BAOutput>>(get_ba_test());
     }
     else
     {
-        throw runtime_error("Can't load GetGMMTest function");
+        throw runtime_error("Can't load get_ba_test function");
     }
 }
 
@@ -56,14 +56,14 @@ typedef ITest<HandInput, HandOutput>* (*HandTestFuncPtr)();
 
 std::unique_ptr<ITest<HandInput, HandOutput>> ModuleLoader::get_hand_test() const
 {
-    auto GetHandTest = (HandTestFuncPtr)load_function("GetHandTest");
-    if (GetHandTest != nullptr)
+    auto get_hand_test = (HandTestFuncPtr)load_function("get_hand_test");
+    if (get_hand_test != nullptr)
     {
-        return std::unique_ptr<ITest<HandInput, HandOutput>>(GetHandTest());
+        return std::unique_ptr<ITest<HandInput, HandOutput>>(get_hand_test());
     }
     else
     {
-        throw runtime_error("Can't load GetHandTest function");
+        throw runtime_error("Can't load get_hand_test function");
     }
 }
 
@@ -71,14 +71,14 @@ typedef ITest<LSTMInput, LSTMOutput>* (*LSTMTestFuncPtr)();
 
 std::unique_ptr<ITest<LSTMInput, LSTMOutput>> ModuleLoader::get_lstm_test() const
 {
-    auto GetLSTMTest = (LSTMTestFuncPtr)load_function("GetLSTMTest");
-    if (GetLSTMTest != nullptr)
+    auto get_lstm_test = (LSTMTestFuncPtr)load_function("get_lstm_test");
+    if (get_lstm_test != nullptr)
     {
-        return std::unique_ptr<ITest<LSTMInput, LSTMOutput>>(GetLSTMTest());
+        return std::unique_ptr<ITest<LSTMInput, LSTMOutput>>(get_lstm_test());
     }
     else
     {
-        throw runtime_error("Can't load GetLSTMTest function");
+        throw runtime_error("Can't load get_lstm_test function");
     }
 }
 
