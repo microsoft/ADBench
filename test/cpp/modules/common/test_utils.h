@@ -7,7 +7,7 @@
 #include "../../../../src/cpp/runner/Benchmark.h"
 #include "../../../../src/cpp/runner/Filepaths.h"
 
-// Checks whether test_member_function func (calculateObjective or calculateJacobian)
+// Checks whether test_member_function func (calculate_objective or calculate_jacobian)
 // of the provided ITest<Input, Output> instance runs for different time when the supplied
 // times parameter is different. To do so this function uses find_repeats_for_minimum_measurable_time
 // function. It tries to find such a minimum_measurable_time that
