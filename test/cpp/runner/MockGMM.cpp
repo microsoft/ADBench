@@ -3,7 +3,7 @@
 
 #include <chrono>
 
-extern "C" DLL_PUBLIC ITest<GMMInput, GMMOutput>* GetGMMTest()
+extern "C" DLL_PUBLIC ITest<GMMInput, GMMOutput>* get_gmm_test()
 {
     return new MockGMM();
 }
