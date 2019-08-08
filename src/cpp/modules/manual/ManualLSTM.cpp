@@ -17,7 +17,7 @@ LSTMOutput ManualLSTM::output()
     return result;
 }
 
-void ManualLSTM::calculateObjective(int times)
+void ManualLSTM::calculate_objective(int times)
 {
     for (int i = 0; i < times; ++i) {
         state = input.state;
@@ -25,7 +25,7 @@ void ManualLSTM::calculateObjective(int times)
     }
 }
 
-void ManualLSTM::calculateJacobian(int times)
+void ManualLSTM::calculate_jacobian(int times)
 {
     for (int i = 0; i < times; ++i) {
         state = input.state;

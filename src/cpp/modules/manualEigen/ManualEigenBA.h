@@ -16,8 +16,8 @@ public:
     // This function must be called before any other function.
     virtual void prepare(BAInput&& input) override;
 
-    virtual void calculateObjective(int times) override;
-    virtual void calculateJacobian(int times) override;
+    virtual void calculate_objective(int times) override;
+    virtual void calculate_jacobian(int times) override;
     virtual BAOutput output() override;
 
     ~ManualEigenBA() {}

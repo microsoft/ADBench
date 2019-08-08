@@ -127,10 +127,10 @@ void run_benchmark(const char* const module_path, const std::string& input_filep
     test->prepare(std::move(inputs));
 
     const auto objective_time =
-        measure_shortest_time(minimum_measurable_time, nruns_F, time_limit, *test, &ITest<Input, Output>::calculateObjective);
+        measure_shortest_time(minimum_measurable_time, nruns_F, time_limit, *test, &ITest<Input, Output>::calculate_objective);
 
     const auto derivative_time =
-        measure_shortest_time(minimum_measurable_time, nruns_J, time_limit, *test, &ITest<Input, Output>::calculateJacobian);
+        measure_shortest_time(minimum_measurable_time, nruns_J, time_limit, *test, &ITest<Input, Output>::calculate_jacobian);
 
     const auto output = test->output();
 
