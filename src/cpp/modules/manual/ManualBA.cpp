@@ -56,7 +56,7 @@ void ManualBA::calculateJacobian(int times)
     }
 }
 
-extern "C" DLL_PUBLIC ITest<BAInput, BAOutput>* GetBATest()
+extern "C" DLL_PUBLIC ITest<BAInput, BAOutput>* get_ba_test()
 {
     return new ManualBA();
 }

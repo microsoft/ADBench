@@ -42,7 +42,7 @@ void FiniteLSTM::calculateJacobian(int times)
     }
 }
 
-extern "C" DLL_PUBLIC ITest<LSTMInput, LSTMOutput>*  GetLSTMTest()
+extern "C" DLL_PUBLIC ITest<LSTMInput, LSTMOutput>*  get_lstm_test()
 {
     return new FiniteLSTM();
 }
