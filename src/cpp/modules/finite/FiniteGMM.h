@@ -13,8 +13,8 @@ public:
     // This function must be called before any other function.
     void prepare(GMMInput&& input) override;
 
-    void calculateObjective(int times) override;
-    void calculateJacobian(int times) override;
+    void calculate_objective(int times) override;
+    void calculate_jacobian(int times) override;
     GMMOutput output() override;
 
     ~FiniteGMM() = default;

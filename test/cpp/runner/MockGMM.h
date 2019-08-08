@@ -11,8 +11,8 @@ public:
     void prepare(GMMInput&& input) { prepare(input); }
     MOCK_METHOD1(prepare, void(const GMMInput& input));
 
-    MOCK_METHOD1(calculateObjective, void(int times));
-    MOCK_METHOD1(calculateJacobian, void(int times));
+    MOCK_METHOD1(calculate_objective, void(int times));
+    MOCK_METHOD1(calculate_jacobian, void(int times));
 
     //Returns results of calculation
     MOCK_METHOD0(output, GMMOutput());

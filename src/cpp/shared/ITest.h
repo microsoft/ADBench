@@ -22,8 +22,8 @@ public:
     // This function must be called before any other function.
     virtual void prepare(Input&& input) = 0;
     // calculate function
-    virtual void calculateObjective(int times) = 0;
-    virtual void calculateJacobian(int times) = 0;
+    virtual void calculate_objective(int times) = 0;
+    virtual void calculate_jacobian(int times) = 0;
     virtual Output output() = 0;
     virtual ~ITest() = 0;
 };

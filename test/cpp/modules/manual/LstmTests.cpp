@@ -28,7 +28,7 @@ TEST_P(LstmModuleTest, ObjectiveCalculationCorrectness)
     read_lstm_instance("lstmtest.txt", &input.l, &input.c, &input.b,
         input.main_params, input.extra_params, input.state, input.sequence);
     module->prepare(std::move(input));
-    module->calculateObjective(1);
+    module->calculate_objective(1);
 
     auto output = module->output();
     EXPECT_NEAR(0.66666518, output.objective, 0.000001);
@@ -44,7 +44,7 @@ TEST_P(LstmModuleTest, JacobianCalculationCorrectness)
     read_lstm_instance("lstmtest.txt", &input.l, &input.c, &input.b,
         input.main_params, input.extra_params, input.state, input.sequence);
     module->prepare(std::move(input));
-    module->calculateJacobian(1);
+    module->calculate_jacobian(1);
 
     auto output = module->output();
 
@@ -107,7 +107,7 @@ TEST_P(LstmModuleTest, ObjectiveRunsMultipleTimes)
         input.main_params, input.extra_params, input.state, input.sequence);
     module->prepare(std::move(input));
 
-    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<LSTMInput, LSTMOutput>::calculateObjective));
+    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<LSTMInput, LSTMOutput>::calculate_objective));
 }
 
 TEST_P(LstmModuleTest, JacobianRunsMultipleTimes)
@@ -121,5 +121,5 @@ TEST_P(LstmModuleTest, JacobianRunsMultipleTimes)
         input.main_params, input.extra_params, input.state, input.sequence);
     module->prepare(std::move(input));
 
-    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<LSTMInput, LSTMOutput>::calculateJacobian));
+    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<LSTMInput, LSTMOutput>::calculate_jacobian));
 }
