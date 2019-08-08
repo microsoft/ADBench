@@ -31,7 +31,7 @@ TEST_P(GmmModuleTest, ObjectiveCalculationCorrectness)
     read_gmm_instance("gmmtest.txt", &input.d, &input.k, &input.n,
         input.alphas, input.means, input.icf, input.x, input.wishart, false);
     module->prepare(std::move(input));
-    module->calculateObjective(1);
+    module->calculate_objective(1);
 
     auto output = module->output();
     EXPECT_NEAR(8.0738, output.objective, 0.00001);
@@ -47,7 +47,7 @@ TEST_P(GmmModuleTest, JacobianCalculationCorrectness)
     read_gmm_instance("gmmtest.txt", &input.d, &input.k, &input.n,
         input.alphas, input.means, input.icf, input.x, input.wishart, false);
     module->prepare(std::move(input));
-    module->calculateJacobian(1);
+    module->calculate_jacobian(1);
 
     auto output = module->output();
     EXPECT_EQ(18, output.gradient.size());
@@ -82,7 +82,7 @@ TEST_P(GmmModuleTest, ObjectiveRunsMultipleTimes)
         input.alphas, input.means, input.icf, input.x, input.wishart, false);
     module->prepare(std::move(input));
 
-    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<GMMInput, GMMOutput>::calculateObjective));
+    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<GMMInput, GMMOutput>::calculate_objective));
 }
 
 TEST_P(GmmModuleTest, JacobianRunsMultipleTimes)
@@ -96,5 +96,5 @@ TEST_P(GmmModuleTest, JacobianRunsMultipleTimes)
         input.alphas, input.means, input.icf, input.x, input.wishart, false);
     module->prepare(std::move(input));
 
-    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<GMMInput, GMMOutput>::calculateJacobian));
+    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<GMMInput, GMMOutput>::calculate_jacobian));
 }

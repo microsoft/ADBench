@@ -30,7 +30,7 @@ TEST_P(HandModuleTest, SimpleObjectiveCalculationCorrectness)
     // Read instance
     read_hand_instance("model/", "handtestsmall.txt", &input.theta, &input.data);
     module->prepare(std::move(input));
-    module->calculateObjective(1);
+    module->calculate_objective(1);
 
     auto output = module->output();
 
@@ -52,7 +52,7 @@ TEST_P(HandModuleTest, SimpleJacobianCalculationCorrectness)
     // Read instance
     read_hand_instance("model/", "handtestsmall.txt", &input.theta, &input.data);
     module->prepare(std::move(input));
-    module->calculateJacobian(1);
+    module->calculate_jacobian(1);
 
     auto output = module->output();
 
@@ -103,7 +103,7 @@ TEST_P(HandModuleTest, ComplicatedObjectiveCalculationCorrectness)
     // Read instance
     read_hand_instance("model/", "handtestcomplicated.txt", &input.theta, &input.data, &input.us);
     module->prepare(std::move(input));
-    module->calculateObjective(1);
+    module->calculate_objective(1);
 
     auto output = module->output();
 
@@ -124,7 +124,7 @@ TEST_P(HandModuleTest, ComplicatedJacobianCalculationCorrectness)
     // Read instance
     read_hand_instance("model/", "handtestcomplicated.txt", &input.theta, &input.data, &input.us);
     module->prepare(std::move(input));
-    module->calculateJacobian(1);
+    module->calculate_jacobian(1);
 
     auto output = module->output();
 
@@ -178,7 +178,7 @@ TEST_P(HandModuleTest, SimpleObjectiveRunsMultipleTimes)
     read_hand_instance("model/", "handtestsmall.txt", &input.theta, &input.data);
     module->prepare(std::move(input));
 
-    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<HandInput, HandOutput>::calculateObjective));
+    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<HandInput, HandOutput>::calculate_objective));
 }
 
 TEST_P(HandModuleTest, SimpleJacobianRunsMultipleTimes)
@@ -191,7 +191,7 @@ TEST_P(HandModuleTest, SimpleJacobianRunsMultipleTimes)
     read_hand_instance("model/", "handtestsmall.txt", &input.theta, &input.data);
     module->prepare(std::move(input));
 
-    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<HandInput, HandOutput>::calculateJacobian));
+    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<HandInput, HandOutput>::calculate_jacobian));
 }
 
 TEST_P(HandModuleTest, ComplicatedObjectiveRunsMultipleTimes)
@@ -204,7 +204,7 @@ TEST_P(HandModuleTest, ComplicatedObjectiveRunsMultipleTimes)
     read_hand_instance("model/", "handtestcomplicated.txt", &input.theta, &input.data, &input.us);
     module->prepare(std::move(input));
 
-    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<HandInput, HandOutput>::calculateObjective));
+    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<HandInput, HandOutput>::calculate_objective));
 }
 
 TEST_P(HandModuleTest, ComplicatedJacobianRunsMultipleTimes)
@@ -217,5 +217,5 @@ TEST_P(HandModuleTest, ComplicatedJacobianRunsMultipleTimes)
     read_hand_instance("model/", "handtestcomplicated.txt", &input.theta, &input.data, &input.us);
     module->prepare(std::move(input));
 
-    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<HandInput, HandOutput>::calculateJacobian));
+    EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<HandInput, HandOutput>::calculate_jacobian));
 }

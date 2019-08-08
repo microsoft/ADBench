@@ -19,7 +19,7 @@ GMMOutput ManualEigenGMM::output()
     return _output;
 }
 
-void ManualEigenGMM::calculateObjective(int times)
+void ManualEigenGMM::calculate_objective(int times)
 {
     for (int i = 0; i < times; ++i) {
         gmm_objective(_input.d, _input.k, _input.n, _input.alphas.data(), _input.means.data(),
@@ -27,7 +27,7 @@ void ManualEigenGMM::calculateObjective(int times)
     }
 }
 
-void ManualEigenGMM::calculateJacobian(int times)
+void ManualEigenGMM::calculate_jacobian(int times)
 {
     for (int i = 0; i < times; ++i) {
         gmm_objective_d(_input.d, _input.k, _input.n, _input.alphas.data(), _input.means.data(),

@@ -22,7 +22,7 @@ HandOutput ManualEigenHand::output()
     return _output;
 }
 
-void ManualEigenHand::calculateObjective(int times)
+void ManualEigenHand::calculate_objective(int times)
 {
     if (_complicated)
     {
@@ -38,7 +38,7 @@ void ManualEigenHand::calculateObjective(int times)
     }
 }
 
-void ManualEigenHand::calculateJacobian(int times)
+void ManualEigenHand::calculate_jacobian(int times)
 {
     if (_complicated)
     {

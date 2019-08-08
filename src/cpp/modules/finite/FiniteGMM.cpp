@@ -17,7 +17,7 @@ GMMOutput FiniteGMM::output()
     return result;
 }
 
-void FiniteGMM::calculateObjective(int times)
+void FiniteGMM::calculate_objective(int times)
 {
     for (int i = 0; i < times; ++i) {
         gmm_objective(input.d, input.k, input.n, input.alphas.data(), input.means.data(),
@@ -25,7 +25,7 @@ void FiniteGMM::calculateObjective(int times)
     }
 }
 
-void FiniteGMM::calculateJacobian(int times)
+void FiniteGMM::calculate_jacobian(int times)
 {
     for (int i = 0; i < times; ++i) {
         engine.finite_differences([&](double* alphas_in, double* err) {

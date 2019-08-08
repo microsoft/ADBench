@@ -18,7 +18,7 @@ BAOutput FiniteBA::output()
     return result;
 }
 
-void FiniteBA::calculateObjective(int times)
+void FiniteBA::calculate_objective(int times)
 {
     for (int i = 0; i < times; ++i) {
         ba_objective(input.n, input.m, input.p, input.cams.data(), input.X.data(), input.w.data(),
@@ -26,7 +26,7 @@ void FiniteBA::calculateObjective(int times)
     }
 }
 
-void FiniteBA::calculateJacobian(int times)
+void FiniteBA::calculate_jacobian(int times)
 {
     for (int i = 0; i < times; ++i) {
         result.J.clear();
