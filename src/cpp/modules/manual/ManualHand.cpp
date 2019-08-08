@@ -51,7 +51,7 @@ void ManualHand::calculateJacobian(int times)
     }
 }
 
-extern "C" DLL_PUBLIC ITest<HandInput, HandOutput>* GetHandTest()
+extern "C" DLL_PUBLIC ITest<HandInput, HandOutput>* get_hand_test()
 {
     return new ManualHand();
 }
