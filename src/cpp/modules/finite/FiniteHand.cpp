@@ -22,7 +22,7 @@ HandOutput FiniteHand::output()
     return result;
 }
 
-void FiniteHand::calculateObjective(int times)
+void FiniteHand::calculate_objective(int times)
 {
     if (complicated)
     {
@@ -38,7 +38,7 @@ void FiniteHand::calculateObjective(int times)
     }
 }
 
-void FiniteHand::calculateJacobian(int times)
+void FiniteHand::calculate_jacobian(int times)
 {
     if (complicated)
     {

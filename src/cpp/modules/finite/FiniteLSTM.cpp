@@ -18,7 +18,7 @@ LSTMOutput FiniteLSTM::output()
     return result;
 }
 
-void FiniteLSTM::calculateObjective(int times)
+void FiniteLSTM::calculate_objective(int times)
 {
     for (int i = 0; i < times; ++i) {
         state = input.state;
@@ -26,7 +26,7 @@ void FiniteLSTM::calculateObjective(int times)
     }
 }
 
-void FiniteLSTM::calculateJacobian(int times)
+void FiniteLSTM::calculate_jacobian(int times)
 {
     for (int i = 0; i < times; ++i) {
         state = input.state;

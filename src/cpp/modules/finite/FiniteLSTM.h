@@ -18,8 +18,8 @@ public:
     // This function must be called before any other function.
     virtual void prepare(LSTMInput&& input) override;
 
-    virtual void calculateObjective(int times) override;
-    virtual void calculateJacobian(int times) override;
+    virtual void calculate_objective(int times) override;
+    virtual void calculate_jacobian(int times) override;
     virtual LSTMOutput output() override;
 
     ~FiniteLSTM() {}

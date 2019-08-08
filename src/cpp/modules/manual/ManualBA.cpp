@@ -17,7 +17,7 @@ BAOutput ManualBA::output()
     return _output;
 }
 
-void ManualBA::calculateObjective(int times)
+void ManualBA::calculate_objective(int times)
 {
     for (int i = 0; i < times; ++i) {
         ba_objective(_input.n, _input.m, _input.p, _input.cams.data(), _input.X.data(), _input.w.data(),
@@ -25,7 +25,7 @@ void ManualBA::calculateObjective(int times)
     }
 }
 
-void ManualBA::calculateJacobian(int times)
+void ManualBA::calculate_jacobian(int times)
 {
     for (int i = 0; i < times; ++i) {
         _output.J.clear();
