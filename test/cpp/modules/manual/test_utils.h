@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <string>
 #include <gtest/gtest.h>
+#include <cctype>
 #include "../../../../src/cpp/runner/Benchmark.h"
 #include "../../../../src/cpp/runner/Filepaths.h"
 

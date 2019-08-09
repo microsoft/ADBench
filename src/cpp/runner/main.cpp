@@ -1,5 +1,6 @@
 ﻿#include <iostream>
 #include <string>
+#include <cctype>
 
 #include "GMMBenchmark.h"
 #include "BABenchmark.h"
