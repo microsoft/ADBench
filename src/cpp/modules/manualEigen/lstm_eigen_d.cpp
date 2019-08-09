@@ -262,7 +262,7 @@ void lstm_predict_d_new(int l, int b,
     PredictionJacobian<T>& output_jacobian_old)
 {
     LayerStateJacobianPredictNew<T> zero_layer_jacobian(zero_layer_jacobian_old.raw_data, l, b);
-    ModelJacobianNew<T> layer_state_d(layer_state_d_old, b);
+    ModelJacobianNew<T> layer_state_d(layer_state_d_old.raw_data, b);
     StateJacobianPredictNew<T> state_jacobian(state_jacobian_old.raw_data, l, b);
     PredictionJacobianNew<T> output_jacobian(output_jacobian_old.raw_data, l, b);
 
@@ -362,6 +362,9 @@ void lstm_predict_d_new(int l, int b,
 
         output_jacobian.d_prediction[i].d_raw = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_raw;
     }
+    /////
+    //layer_state_d_old = layer_state_d
+    /////
 }
 
 
