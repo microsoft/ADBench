@@ -43,18 +43,17 @@
 template<typename T>
 struct StatePartWeightOrBiasDerivatives
 {
-    ArrayX<T> forget;
-    ArrayX<T> ingate;
-    ArrayX<T> outgate;
-    ArrayX<T> change;
+    MapX<T> forget;
+    MapX<T> ingate;
+    MapX<T> outgate;
+    MapX<T> change;
 
-    StatePartWeightOrBiasDerivatives(int hsize)
-    {
-        forget.resize(hsize);
-        ingate.resize(hsize);
-        outgate.resize(hsize);
-        change.resize(hsize);
-    }
+    StatePartWeightOrBiasDerivatives(T* raw_model, int hsize) :
+        forget(raw_model, hsize),
+        ingate(&raw_model[hsize], hsize),
+        outgate(&raw_model[2 * hsize], hsize),
+        change(&raw_model[3 * hsize], hsize)
+    {}
 };
 
 
@@ -65,21 +64,20 @@ struct StateElementGradientModel
     StatePartWeightOrBiasDerivatives<T> d_weight;
     // 4 corresponding non-zero derivatives
     StatePartWeightOrBiasDerivatives<T> d_bias;
-    // a single corresponding non-zero derivative
-    ArrayX<T> d_hidden;
-    // a single corresponding non-zero derivative
-    ArrayX<T> d_cell;
-    // a single corresponding non-zero derivative
-    ArrayX<T> d_input;
+    // an array corresponding non-zero derivatives
+    MapX<T> d_hidden;
+    // an array corresponding non-zero derivatives
+    MapX<T> d_cell;
+    // an array corresponding non-zero derivatives
+    MapX<T> d_input;
 
-    StateElementGradientModel(int hsize) :
-        d_weight(hsize),
-        d_bias(hsize)
-    {
-        d_hidden.resize(hsize);
-        d_cell.resize(hsize);
-        d_input.resize(hsize);
-    }
+    StateElementGradientModel(T* raw_model, int hsize) :
+        d_weight(raw_model, hsize),
+        d_bias(&raw_model[4 * hsize], hsize),
+        d_hidden(&raw_model[8 * hsize], hsize),
+        d_cell(&raw_model[9 * hsize], hsize),
+        d_input(&raw_model[10 * hsize], hsize)
+    {}
 };
 
 template<typename T>
@@ -87,11 +85,26 @@ struct ModelJacobian
 {
     StateElementGradientModel<T> hidden;
     StateElementGradientModel<T> cell;
+    T* raw_data;
+    bool owns_memory;
+
+    // raw_jacobian must point to (11 * 2 * hsize) pre-allocated T
+    ModelJacobian(T* raw_model, int hsize, bool should_own_memory = false) :
+        owns_memory(should_own_memory),
+        raw_data(raw_model),
+        hidden(raw_model, hsize),
+        cell(&raw_model[11 * hsize], hsize)
+    {}
 
     ModelJacobian(int hsize) :
-        hidden(hsize),
-        cell(hsize)
+        ModelJacobian(new T[11 * 2 * hsize], hsize, true)
     {}
+
+    ~ModelJacobian()
+    {
+        if (owns_memory)
+            delete[] raw_data;
+    }
 };
 
 
@@ -99,15 +112,15 @@ template<typename T>
 struct StateElementGradientModelNew
 {
     // Matrix(hsize, 10) derivatives from all layers
-    ArrayX10<T> d_raw;
+    MapX10<T> d_raw;
     // array of corresponding non-zero derivatives
-    ArrayX<T> d_input;
+    MapX<T> d_input;
 
-    StateElementGradientModelNew(int hsize)
-    {
-        d_raw.resize(hsize, 10);
-        d_input.resize(hsize);
-    }
+    StateElementGradientModelNew(T* raw_data, int hsize) :
+        d_raw(raw_data, hsize, 10),//, Eigen::Stride<Eigen::Dynamic, 1>(hsize, 1)), // DANGER maybe need to change to colmajor
+        //d_raw(Map<MapX10<T>, hsize, 10, Eigen::Stride<> >(raw_data, hsize, 10, Eigen::Stride<14, 1>)),
+        d_input(&raw_data[10 * hsize], hsize)
+    {}
 };
 
 template<typename T>
@@ -115,16 +128,26 @@ struct ModelJacobianNew
 {
     StateElementGradientModelNew<T> hidden;
     StateElementGradientModelNew<T> cell;
+    T* raw_data;
+    bool owns_memory;
 
-    ModelJacobianNew(int hsize) :
-        hidden(hsize),
-        cell(hsize)
+    ModelJacobianNew(T* raw_model, int hsize, bool should_own_memory = false) :
+        owns_memory(should_own_memory),
+        raw_data(raw_model),
+        hidden(raw_model, hsize),
+        cell(&raw_model[11 * hsize], hsize)
     {}
 
-    ModelJacobianNew(ModelJacobian<T>& model_jacobian, int hsize) :
-        hidden(hsize),
-        cell(hsize)
+    //ModelJacobianNew(int hsize) :
+    //    hidden(hsize),
+    //    cell(hsize)
+    //{}
+
+    ModelJacobianNew(ModelJacobian<T>& model_jacobian, int hsize)
     {
+        this->hidden.d_raw.resize(hsize, 10);
+        this->cell.d_raw.resize(hsize, 10);
+
         this->hidden.d_raw.col(0) = model_jacobian.hidden.d_weight.forget;
         this->hidden.d_raw.col(1) = model_jacobian.hidden.d_weight.ingate;
         this->hidden.d_raw.col(2) = model_jacobian.hidden.d_weight.outgate;
@@ -148,6 +171,16 @@ struct ModelJacobianNew
         this->cell.d_raw.col(8) = model_jacobian.cell.d_hidden;
         this->cell.d_raw.col(9) = model_jacobian.cell.d_cell;
         this->cell.d_input << model_jacobian.cell.d_input;
+    }
+
+    ModelJacobianNew(int hsize) :
+        ModelJacobianNew(new T[11 * 2 * hsize], hsize, true)
+    {}
+
+    ~ModelJacobianNew()
+    {
+        if (owns_memory)
+            delete[] raw_data;
     }
 };
 
