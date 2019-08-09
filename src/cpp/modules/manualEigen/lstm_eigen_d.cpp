@@ -120,6 +120,251 @@ void lstm_model_d(int hsize,
 }
 
 
+// Manual Jacobian of lstm_model
+// Outputs jacobian containing the derivatives of the new state
+// with relation to params, state, and input
+template<typename T>
+void lstm_model_d_new(int hsize,
+    const LayerParams<T>& params,
+    LayerState<T>& state,
+    const ArrayX<T>& input,
+    ModelJacobianNew<T>& jacobian)
+{
+    //ArrayX10<T> raw(hsize, 10);
+
+    //raw.col(0)
+
+    ArrayX<T> forget_in(input * params.weight.forget + params.bias.forget);
+    ArrayX<T> forget_sd;
+    ArrayX<T> forget(sigmoid_d(forget_in, forget_sd));
+    ArrayX<T> forget_dw(forget_sd * input);
+    ArrayX<T> forget_db(forget_sd);
+    ArrayX<T> forget_di(forget_sd * params.weight.forget);
+
+    ArrayX<T> ingate_in(state.hidden * params.weight.ingate + params.bias.ingate);
+    ArrayX<T> ingate_sd;
+    ArrayX<T> ingate(sigmoid_d(ingate_in, ingate_sd));
+    ArrayX<T> ingate_dw(ingate_sd * state.hidden);
+    ArrayX<T> ingate_db(ingate_sd);
+    ArrayX<T> ingate_dh(ingate_sd * params.weight.ingate);
+
+    ArrayX<T> outgate_in(input * params.weight.outgate + params.bias.outgate);
+    ArrayX<T> outgate_sd;
+    ArrayX<T> outgate(sigmoid_d(outgate_in, outgate_sd));
+    ArrayX<T> outgate_dw(outgate_sd * input);
+    ArrayX<T> outgate_db(outgate_sd);
+    ArrayX<T> outgate_di(outgate_sd * params.weight.outgate);
+
+    ArrayX<T> change_in(state.hidden * params.weight.change + params.bias.change);
+    ArrayX<T> change_td;
+    ArrayX<T> change(tanh_d(change_in, change_td));
+    ArrayX<T> change_dw(change_td * state.hidden);
+    ArrayX<T> change_db(change_td);
+    ArrayX<T> change_dh(change_td * params.weight.change);
+
+    // Cell derivatives
+
+    ArrayX<T> orig_cell = state.cell;
+    state.cell = orig_cell * forget + ingate * change;
+    // wrt weight
+    jacobian.cell.d_raw.col(0) = orig_cell * forget_dw;
+    jacobian.cell.d_raw.col(1) = change * ingate_dw;
+    jacobian.cell.d_raw.col(2) = 0.;
+    jacobian.cell.d_raw.col(3) = ingate * change_dw;
+    // wrt bias
+    jacobian.cell.d_raw.col(4) = orig_cell * forget_db;
+    jacobian.cell.d_raw.col(5) = change * ingate_db;
+    jacobian.cell.d_raw.col(6).setZero();
+    jacobian.cell.d_raw.col(7) = ingate * change_db;
+    // wrt hidden, cell(original), input
+    jacobian.cell.d_raw.col(8) = ingate * change_dh + change * ingate_dh;
+    jacobian.cell.d_raw.col(9) = forget;
+    jacobian.cell.d_input = orig_cell * forget_di;
+
+    // Hidden derivatives
+    ArrayX<T> hidden_td;
+    ArrayX<T> hidden_t = tanh_d((ArrayX<T>)state.cell, hidden_td);
+    state.hidden = outgate * hidden_t;
+    hidden_td *= outgate;
+    // wrt weight
+    jacobian.hidden.d_raw.col(0) = hidden_td * jacobian.cell.d_raw.col(0);
+    jacobian.hidden.d_raw.col(1) = hidden_td * jacobian.cell.d_raw.col(1);
+    jacobian.hidden.d_raw.col(2) = hidden_t * outgate_dw;
+    jacobian.hidden.d_raw.col(3) = hidden_td * jacobian.cell.d_raw.col(3);
+    // wrt bias
+    jacobian.hidden.d_raw.col(4) = hidden_td * jacobian.cell.d_raw.col(4);
+    jacobian.hidden.d_raw.col(5) = hidden_td * jacobian.cell.d_raw.col(5);
+    jacobian.hidden.d_raw.col(6) = hidden_t * outgate_db;
+    jacobian.hidden.d_raw.col(7) = hidden_td * jacobian.cell.d_raw.col(7);
+    // wrt hidden, cell (original), input
+    jacobian.hidden.d_raw.col(8) = hidden_td * jacobian.cell.d_raw.col(8);
+    jacobian.hidden.d_raw.col(9) = hidden_td * jacobian.cell.d_raw.col(9);
+    jacobian.hidden.d_input = outgate_di * hidden_t + hidden_td * jacobian.cell.d_input;
+
+    //// Cell derivatives
+
+    //ArrayX<T> orig_cell = state.cell;
+    //state.cell = orig_cell * forget + ingate * change;
+    //// wrt weight
+    //jacobian.cell.d_weight.forget = orig_cell * forget_dw;
+    //jacobian.cell.d_weight.ingate = change * ingate_dw;
+    //jacobian.cell.d_weight.outgate = 0.;
+    //jacobian.cell.d_weight.change = ingate * change_dw;
+    //// wrt bias
+    //jacobian.cell.d_bias.forget = orig_cell * forget_db;
+    //jacobian.cell.d_bias.ingate = change * ingate_db;
+    //jacobian.cell.d_bias.outgate.setZero();
+    //jacobian.cell.d_bias.change = ingate * change_db;
+    //// wrt hidden, cell(original), input
+    //jacobian.cell.d_hidden = ingate * change_dh + change * ingate_dh;
+    //jacobian.cell.d_cell = forget;
+    //jacobian.cell.d_input = orig_cell * forget_di;
+
+    //// Hidden derivatives
+    //ArrayX<T> hidden_td;
+    //ArrayX<T> hidden_t = tanh_d((ArrayX<T>)state.cell, hidden_td);
+    //state.hidden = outgate * hidden_t;
+    //hidden_td *= outgate;
+    //// wrt weight
+    //jacobian.hidden.d_weight.forget = hidden_td * jacobian.cell.d_weight.forget;
+    //jacobian.hidden.d_weight.ingate = hidden_td * jacobian.cell.d_weight.ingate;
+    //jacobian.hidden.d_weight.outgate = hidden_t * outgate_dw;
+    //jacobian.hidden.d_weight.change = hidden_td * jacobian.cell.d_weight.change;
+    //// wrt bias
+    //jacobian.hidden.d_bias.forget = hidden_td * jacobian.cell.d_bias.forget;
+    //jacobian.hidden.d_bias.ingate = hidden_td * jacobian.cell.d_bias.ingate;
+    //jacobian.hidden.d_bias.outgate = hidden_t * outgate_db;
+    //jacobian.hidden.d_bias.change = hidden_td * jacobian.cell.d_bias.change;
+    //// wrt hidden, cell (original), input
+    //jacobian.hidden.d_hidden = hidden_td * jacobian.cell.d_hidden;
+    //jacobian.hidden.d_cell = hidden_td * jacobian.cell.d_cell;
+    //jacobian.hidden.d_input = outgate_di * hidden_t + hidden_td * jacobian.cell.d_input;
+}
+
+// Manual jacobian of lstm_predict
+// Outputs state_jacobian containing the derivatives of the new state
+// and output_jacobian containing the derivatives of the output
+// with relation to main_params, extra_params, and state
+//
+// zero_layer_jacobian and layer_state_d are references to
+// pre-allocated structures that will be used in computations.
+// This function is being called from a long loop, so allocating them only once
+// can save some time.
+template<typename T>
+void lstm_predict_d_new(int l, int b,
+    const MainParams<T>& main_params, const ExtraParams<T>& extra_params,
+    State<T>& state,
+    const ArrayX<T>& input,
+    LayerStateJacobianPredict<T>& zero_layer_jacobian_old,
+    ModelJacobian<T>& layer_state_d_old,
+    ArrayX<T>& output,
+    StateJacobianPredict<T>& state_jacobian_old,
+    PredictionJacobian<T>& output_jacobian_old)
+{
+    LayerStateJacobianPredictNew<T> zero_layer_jacobian(zero_layer_jacobian_old.raw_data, l, b);
+    ModelJacobianNew<T> layer_state_d(layer_state_d_old, b);
+    StateJacobianPredictNew<T> state_jacobian(state_jacobian_old.raw_data, l, b);
+    PredictionJacobianNew<T> output_jacobian(output_jacobian_old.raw_data, l, b);
+
+    // Intial setup (from predict())
+    output = input * extra_params.in_weight;
+    for (int i = 0; i < b; ++i) {
+        // note that the rest of zero_layer_jacobian.d_hidden and zero_layer_jacobian.d_cell are unused
+        *zero_layer_jacobian.d_hidden[i].d_extra_in_weight = input[i];
+    }
+
+    // Pointer to current output/next layer's input
+    ArrayX<T> layer_output = output;
+    // Pointer to the jacobian of the previous layer
+    LayerStateJacobianPredictNew<T>* prev_layer_jacobian = &zero_layer_jacobian;
+
+    // Main LSTM loop (from predict())
+    for (int i = 0; i < l; ++i)
+    {
+        lstm_model_d_new(b, main_params.layer_params[i], state.layer_state[i], layer_output, layer_state_d);
+        layer_output = state.layer_state[i].hidden;
+
+        // set state_jacobian.layer[i]
+        for (int j = 0; j < b; ++j)
+        {
+            T hidden_j_d_input = layer_state_d.hidden.d_input[j];
+            T cell_j_d_input = layer_state_d.cell.d_input[j];
+            // derivatives by variables on which layer_output depends
+            *state_jacobian.layer[i].d_hidden[j].d_extra_in_weight = hidden_j_d_input * (*prev_layer_jacobian->d_hidden[j].d_extra_in_weight);
+            *state_jacobian.layer[i].d_cell[j].d_extra_in_weight = cell_j_d_input * (*prev_layer_jacobian->d_hidden[j].d_extra_in_weight);
+            state_jacobian.layer[i].d_hidden[j].d_raw.topRows(i) = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_raw.topRows(i);
+            //for (int k = 0; k < i; ++k)
+            //{
+            //    state_jacobian.layer[i].d_hidden[j].d_weight_forget[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_forget[k];
+            //    state_jacobian.layer[i].d_hidden[j].d_weight_ingate[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_ingate[k];
+            //    state_jacobian.layer[i].d_hidden[j].d_weight_outgate[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_outgate[k];
+            //    state_jacobian.layer[i].d_hidden[j].d_weight_change[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_change[k];
+            //    state_jacobian.layer[i].d_hidden[j].d_bias_forget[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_forget[k];
+            //    state_jacobian.layer[i].d_hidden[j].d_bias_ingate[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_ingate[k];
+            //    state_jacobian.layer[i].d_hidden[j].d_bias_outgate[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_outgate[k];
+            //    state_jacobian.layer[i].d_hidden[j].d_bias_change[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_change[k];
+            //    state_jacobian.layer[i].d_hidden[j].d_hidden[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_hidden[k];
+            //    state_jacobian.layer[i].d_hidden[j].d_cell[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_cell[k];
+            //    state_jacobian.layer[i].d_cell[j].d_weight_forget[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_forget[k];
+            //    state_jacobian.layer[i].d_cell[j].d_weight_ingate[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_ingate[k];
+            //    state_jacobian.layer[i].d_cell[j].d_weight_outgate[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_outgate[k];
+            //    state_jacobian.layer[i].d_cell[j].d_weight_change[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_change[k];
+            //    state_jacobian.layer[i].d_cell[j].d_bias_forget[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_forget[k];
+            //    state_jacobian.layer[i].d_cell[j].d_bias_ingate[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_ingate[k];
+            //    state_jacobian.layer[i].d_cell[j].d_bias_outgate[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_outgate[k];
+            //    state_jacobian.layer[i].d_cell[j].d_bias_change[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_change[k];
+            //    state_jacobian.layer[i].d_cell[j].d_hidden[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_hidden[k];
+            //    state_jacobian.layer[i].d_cell[j].d_cell[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_cell[k];
+            //}
+            // derivatives by variables on which lstm_model_d depends directly
+            state_jacobian.layer[i].d_hidden[j].d_raw.row(i) = layer_state_d.hidden.d_raw.row(j);
+            state_jacobian.layer[i].d_cell[j].d_raw.row(i) = layer_state_d.cell.d_raw.row(j);
+            // derivatives by variable on which lstm_model_d does not depend (zero)
+            state_jacobian.layer[i].d_hidden[j].d_raw.bottomRows(l - i - 1).setZero();
+            state_jacobian.layer[i].d_cell[j].d_raw.bottomRows(l - i - 1).setZero();
+            //for (int k = i + 1; k < l; ++k)
+            //{
+            //    state_jacobian.layer[i].d_hidden[j].d_weight_forget[k] = 0.;
+            //    state_jacobian.layer[i].d_hidden[j].d_weight_ingate[k] = 0.;
+            //    state_jacobian.layer[i].d_hidden[j].d_weight_outgate[k] = 0.;
+            //    state_jacobian.layer[i].d_hidden[j].d_weight_change[k] = 0.;
+            //    state_jacobian.layer[i].d_hidden[j].d_bias_forget[k] = 0.;
+            //    state_jacobian.layer[i].d_hidden[j].d_bias_ingate[k] = 0.;
+            //    state_jacobian.layer[i].d_hidden[j].d_bias_outgate[k] = 0.;
+            //    state_jacobian.layer[i].d_hidden[j].d_bias_change[k] = 0.;
+            //    state_jacobian.layer[i].d_hidden[j].d_hidden[k] = 0.;
+            //    state_jacobian.layer[i].d_hidden[j].d_cell[k] = 0.;
+            //    state_jacobian.layer[i].d_cell[j].d_weight_forget[k] = 0.;
+            //    state_jacobian.layer[i].d_cell[j].d_weight_ingate[k] = 0.;
+            //    state_jacobian.layer[i].d_cell[j].d_weight_outgate[k] = 0.;
+            //    state_jacobian.layer[i].d_cell[j].d_weight_change[k] = 0.;
+            //    state_jacobian.layer[i].d_cell[j].d_bias_forget[k] = 0.;
+            //    state_jacobian.layer[i].d_cell[j].d_bias_ingate[k] = 0.;
+            //    state_jacobian.layer[i].d_cell[j].d_bias_outgate[k] = 0.;
+            //    state_jacobian.layer[i].d_cell[j].d_bias_change[k] = 0.;
+            //    state_jacobian.layer[i].d_cell[j].d_hidden[k] = 0.;
+            //    state_jacobian.layer[i].d_cell[j].d_cell[k] = 0.;
+            //}
+        }
+        prev_layer_jacobian = &state_jacobian.layer[i];
+    }
+
+    // Final changes (from predict())
+    for (int i = 0; i < b; ++i)
+    {
+        T cur_out_weight = extra_params.out_weight[i];
+        // compute output
+        output[i] = layer_output[i] * cur_out_weight + extra_params.out_bias[i];
+        // compute the derivatives of output
+        *output_jacobian.d_prediction[i].d_extra_in_weight = cur_out_weight * (*prev_layer_jacobian->d_hidden[i].d_extra_in_weight);
+        *output_jacobian.d_prediction[i].d_extra_out_weight = layer_output[i];
+        *output_jacobian.d_prediction[i].d_extra_out_bias = 1.;
+
+        output_jacobian.d_prediction[i].d_raw = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_raw;
+    }
+}
+
+
 // Manual jacobian of lstm_predict
 // Outputs state_jacobian containing the derivatives of the new state
 // and output_jacobian containing the derivatives of the output
@@ -641,13 +886,17 @@ void lstm_objective_d(int l, int c, int b,
     PredictionJacobian<double> ypred_jacobian(l, b);
     GradByParams<double> j_wrap(J, l, b), grad_lse_ypred(l, b);
 
+    //ModelJacobianNew<double> tmp(b);
+    //StateElementGradientModelNew<double> tmp2(b);
+    //PredictionJacobianNew<double> tmp3(l, b);
+
     // temps for lstm_predict_d
     LayerStateJacobianPredict<double> zero_layer_jacobian(l, b);
     ModelJacobian<double> layer_state_d(b);
 
     std::fill_n(J, total_params_count, 0.);
 
-    lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[0], zero_layer_jacobian, layer_state_d, ypred, prev_state_jacobian, ypred_jacobian);
+    lstm_predict_d_new(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[0], zero_layer_jacobian, layer_state_d, ypred, prev_state_jacobian, ypred_jacobian);
 
     double lse = logsumexp_d(ypred, lse_d);
     logsumexp_grad(l, b, lse_d, ypred_jacobian, grad_lse_ypred);
@@ -660,7 +909,7 @@ void lstm_objective_d(int l, int c, int b,
 
     for (int t = 1; t < c - 2; ++t)
     {
-        lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t], zero_layer_jacobian, layer_state_d, ypred, state_jacobian, ypred_jacobian);
+        lstm_predict_d_new(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t], zero_layer_jacobian, layer_state_d, ypred, state_jacobian, ypred_jacobian);
 
         // Adding (D state_t / D state_(t-1)) * (D state_(t-1) / D params) to state_jacobian w.r.t. params
         update_state_jacobian_with_prev_state_jacobian(l, b, prev_state_jacobian, state_jacobian);
@@ -681,7 +930,7 @@ void lstm_objective_d(int l, int c, int b,
         swap(state_jacobian, prev_state_jacobian);
     }
 
-    lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[c - 2], zero_layer_jacobian, layer_state_d, ypred, state_jacobian, ypred_jacobian);
+    lstm_predict_d_new(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[c - 2], zero_layer_jacobian, layer_state_d, ypred, state_jacobian, ypred_jacobian);
     // No need to compute the jacobian for the last state
     // Adding (D pred / D state_(t-1)) * (D state_(t-1) / D params) to ypred_jacobian w.r.t. params
     update_pred_jacobian_with_prev_state_jacobian(l, b, prev_state_jacobian, ypred_jacobian);
