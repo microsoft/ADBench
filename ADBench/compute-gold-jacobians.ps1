@@ -1,7 +1,9 @@
 $buildtype = "Release"
-[double]$defaultRelativeTolerance = 1.0e-2;
+[double]$defaultRelativeTolerance = 1.0e-6;
 [double]$defaultAbsoluteTolerance = 1.0e-6;
-$maxGmmGradSizeForFinite = 10000;
+$maxGmmGradSizeForFinite = 1000;
+$logfile = "goldlog.tsv"
+$skipCompleted = $true
 
 # Make a directory (including its parents if necessary) after checking
 # that nothing else is in the way.  See
@@ -40,14 +42,19 @@ function run_command ($cmd) {
 	Write-Host "$allOutput"
 }
 
-function computeJ ([string]$objective, [string]$module, [string]$dir_in, [string]$dir_out, [string]$fn) {
+function computeJ ([string]$objective, [string]$module, [string]$dir_in, [string]$dir_out, [string]$fn, [bool]$replicatePoint = $false) {
 	$output_file = "${dir_out}${fn}_J_${module}.txt"
 
 	$cmd = "$script:bindir/src/cpp/runner/CppRunner.exe"
     $dir_name = $module.ToLowerInvariant()[0] + $module.Substring(1)
     $module_path = "$script:bindir/src/cpp/modules/$($dir_name)/$($module).dll"
     $task = $objective
-	$cmdargs = @("$task $module_path $dir_in$fn.txt $dir_out 0 1 1 0")
+    if ($replicatePoint) {
+        $rep = " -rep"
+    } else {
+        $rep = ""
+    }
+	$cmdargs = @("$task $module_path $dir_in$fn.txt $dir_out 0 1 1 0$rep")
     
 
 	run_command $cmd @cmdargs
@@ -59,11 +66,16 @@ function computeJ ([string]$objective, [string]$module, [string]$dir_in, [string
     return $output_file
 }
 
-function computePartGmmJ ([string]$dir_in, [string]$dir_out, [string]$fn) {
+function computePartGmmJ ([string]$dir_in, [string]$dir_out, [string]$fn, [int]$maxGradSize, [bool]$replicatePoint = $false) {
 	$output_files = @("${dir_out}${fn}_J_positions.txt", "${dir_out}${fn}_J_alphas.txt", "${dir_out}${fn}_J_means.txt", "${dir_out}${fn}_J_icfs.txt")
 
     $cmd = "$script:bindir/src/cpp/utils/finitePartialGmm/FinitePartialGmm.exe"
-	$cmdargs = @("$dir_in$fn.txt $dir_out $maxGmmGradSizeForFinite")
+    if ($replicatePoint) {
+        $rep = " -rep"
+    } else {
+        $rep = ""
+    }
+	$cmdargs = @("$dir_in$fn.txt $dir_out $maxGradSize$rep")
     
 
 	run_command $cmd @cmdargs
@@ -82,15 +94,21 @@ $dir = Split-Path $scriptdir
 
 Write-Host "Root Directory: $dir"
 
-Import-Module "$scriptdir/jacobian-comparison.psm1"
-$comparer = Get-Comparer
-
 # Load cmake variables
 $cmake_vars = "$dir/ADBench/cmake-vars-$buildtype.ps1"
 if (!(Test-Path $cmake_vars)) {
    throw "No cmake-vars file found at $cmake_vars. Remember to run cmake before running this script, and/or pass the -buildtype param."
 }
 . $cmake_vars
+
+Add-Type -Path "$bindir/src/dotnet/utils/JacobianComparisonLib/JacobianComparisonLib.dll"
+
+function New-JacobianComparison(
+    [double] $allowedAbsDifference,
+    [double] $allowedRelDifference
+){
+    return [JacobianComparisonLib.JacobianComparison]::new($allowedAbsDifference, $allowedRelDifference)
+}
 
 $outdir = "$dir/goldJ"
 
@@ -111,12 +129,12 @@ Write-Host "Build Type: $buildtype, output to $outdir`n"
 [int]$hand_max_n = 12
 [array]$lstm_l_vals = @(2, 4)
 [array]$lstm_c_vals = @(1024, 4096)
+#$gmm_d_vals = @(2, 10)#, 20, 32, 64)
+#$gmm_k_vals = @(5, 10)#, 25, 50, 100, 200)
 
-$errors = New-Object Collections.Generic.List[string]
-$maxAbsDiff = 0.0
-$maxRelDiff = 0.0
+[JacobianComparisonLib.JacobianComparison]::TabSeparatedHeader | Out-File $logfile
 
-# Manual BA
+# Manual GMM
 Write-Host "Manually computing GMM gradients"
 foreach ($sz in $gmm_sizes) {
 	Write-Host "    $sz"
@@ -128,26 +146,29 @@ foreach ($sz in $gmm_sizes) {
 	foreach ($d in $gmm_d_vals) {
 		Write-Host "      d=$d"
 		foreach ($k in $gmm_k_vals) {
-			Write-Host "        K=$k"
-            $m = computeJ "GMM" "Manual" $dir_in $dir_out "gmm_d${d}_K${k}"
-            $f = computePartGmmJ $dir_in $dir_out "gmm_d${d}_K${k}"
-            $near = $comparer.AreGmmFullAndPartGradientsNear($m, $f, $defaultAbsoluteTolerance, $defaultRelativeTolerance)
-            if ($near.Near) {
-                Remove-Item $f
+            if (!($skipCompleted -and (Test-Path "${dir_out}gmm_d${d}_K${k}.txt"))) {
+			    Write-Host "        K=$k"
+                if ($sz -eq "2.5M") {
+                    $rep = $true
+                    $finiteGradSize = 100
+                } else {
+                    $rep = $false
+                    $finiteGradSize = 1000
+                }
+                $m = computeJ "GMM" "Manual" $dir_in $dir_out "gmm_d${d}_K${k}" $rep
+                $f = computePartGmmJ $dir_in $dir_out "gmm_d${d}_K${k}" $finiteGradSize $rep
+                $comparison = New-JacobianComparison $defaultAbsoluteTolerance $defaultRelativeTolerance
+                $comparison.CompareGmmFullAndPartGradients($m, $f)
+                if (!$comparison.ViolationsHappened()) {
+                    Remove-Item $f
+                } else {
+                    Write-Host "Possibly inconsistent results between manual and finite on gmm_d${d}_K${k}"
+                    Write-Host $comparison.Error
+                }
                 Rename-Item $m "${dir_out}gmm_d${d}_K${k}.txt"
-                Write-Host "Maximum absolute difference: $($near.MaxAbsDifference)"
-                Write-Host "Maximum relative difference: $($near.MaxRelDifference)"
+                $comparison.ToTabSeparatedString() | Out-File $logfile -Append
             } else {
-                $msg = "Inconsistent results between manual and finite on gmm_d${d}_K${k}`n" + $near.Error
-                Write-Error $msg
-                $errors.Add($msg)
-                Rename-Item $m "${dir_out}gmm_d${d}_K${k}.txt"
-            }
-            if ($near.MaxAbsDifference -gt $maxAbsDiff) {
-                $maxAbsDiff = $near.MaxAbsDifference
-            }
-            if ($near.MaxRelDifference -gt $maxRelDiff) {
-                $maxRelDiff = $near.MaxRelDifference
+                Write-Host "${dir_out}gmm_d${d}_K${k}.txt is already computed. Skipping..."
             }
 		}
 	}
@@ -160,25 +181,22 @@ $dir_out = "$outdir/ba/"
 mkdir_p $dir_out
 
 for ($n = $ba_min_n; $n -le $ba_max_n; $n++) {
-	Write-Host "    $n"
-    $m = computeJ "BA" "Manual" $ba_dir_in $dir_out "ba$n"
-    $f = computeJ "BA" "Finite" $ba_dir_in $dir_out "ba$n"
-    $near = $comparer.AreNumTextFilesNear($m, $f, $defaultAbsoluteTolerance, $defaultRelativeTolerance)
-    if ($near.Near) {
-        Remove-Item $f
+    if (!($skipCompleted -and (Test-Path "${dir_out}ba$n.txt"))) {
+	    Write-Host "    $n"
+        $m = computeJ "BA" "Manual" $ba_dir_in $dir_out "ba$n"
+        $f = computeJ "BA" "Finite" $ba_dir_in $dir_out "ba$n"
+        $comparison = New-JacobianComparison $defaultAbsoluteTolerance $defaultRelativeTolerance
+        $comparison.CompareJaggedArrayFiles($m, $f)
+        if (!$comparison.ViolationsHappened()) {
+            Remove-Item $f
+        } else {
+            Write-Host "Possibly inconsistent results between manual and finite on ba$n"
+            Write-Host $comparison.Error
+        }
         Rename-Item $m "${dir_out}ba$n.txt"
-        Write-Host "Maximum absolute difference: $($near.MaxAbsDifference)"
-        Write-Host "Maximum relative difference: $($near.MaxRelDifference)"
+        $comparison.ToTabSeparatedString() | Out-File $logfile -Append
     } else {
-        $msg = "Inconsistent results between manual and finite on ba$n`n" + $near.Error
-        Write-Error $msg
-        $errors.Add($msg)
-    }
-    if ($near.MaxAbsDifference -gt $maxAbsDiff) {
-        $maxAbsDiff = $near.MaxAbsDifference
-    }
-    if ($near.MaxRelDifference -gt $maxRelDiff) {
-        $maxRelDiff = $near.MaxRelDifference
+        Write-Host "${dir_out}ba$n.txt is already computed. Skipping..."
     }
 }
 
@@ -194,30 +212,27 @@ foreach ($type in @("simple", "complicated")) {
 		mkdir_p $dir_out
 
 		for ($n = $hand_min_n; $n -le $hand_max_n; $n++) {
-			Write-Host "      $n"
-            if ($type -eq "simple") {
-                $task = ""
-            } else {
-                $task = "-Complicated"
-            }
-            $m = computeJ "Hand${task}" "Manual" $dir_in $dir_out "hand$n"
-            $f = computeJ "Hand${task}" "Finite" $dir_in $dir_out "hand$n"
-            $near = $comparer.AreNumTextFilesNear($m, $f, $defaultAbsoluteTolerance, $defaultRelativeTolerance)
-            if ($near.Near) {
-                Remove-Item $f
+            if (!($skipCompleted -and (Test-Path "${dir_out}hand$n.txt"))) {
+			    Write-Host "      $n"
+                if ($type -eq "simple") {
+                    $task = ""
+                } else {
+                    $task = "-Complicated"
+                }
+                $m = computeJ "Hand${task}" "Manual" $dir_in $dir_out "hand$n"
+                $f = computeJ "Hand${task}" "Finite" $dir_in $dir_out "hand$n"
+                $comparison = New-JacobianComparison $defaultAbsoluteTolerance $defaultRelativeTolerance
+                $comparison.CompareJaggedArrayFiles($m, $f)
+                if (!$comparison.ViolationsHappened()) {
+                    Remove-Item $f
+                } else {
+                    Write-Host "Possibly inconsistent results between manual and finite on hand$n"
+                    Write-Host $comparison.Error
+                }
                 Rename-Item $m "${dir_out}hand$n.txt"
-                Write-Host "Maximum absolute difference: $($near.MaxAbsDifference)"
-                Write-Host "Maximum relative difference: $($near.MaxRelDifference)"
+                $comparison.ToTabSeparatedString() | Out-File $logfile -Append
             } else {
-                $msg = "Inconsistent results between manual and finite on hand$n`n" + $near.Error
-                Write-Error $msg
-                $errors.Add($msg)
-            }
-            if ($near.MaxAbsDifference -gt $maxAbsDiff) {
-                $maxAbsDiff = $near.MaxAbsDifference
-            }
-            if ($near.MaxRelDifference -gt $maxRelDiff) {
-                $maxRelDiff = $near.MaxRelDifference
+                Write-Host "${dir_out}hand$n.txt is already computed. Skipping..."
             }
 		}
 	}
@@ -231,33 +246,24 @@ mkdir_p $dir_out
 foreach ($l in $lstm_l_vals) {
 	Write-Host "    l=$l"
 	foreach ($c in $lstm_c_vals) {
-		Write-Host "      c=$c"
-        $m = computeJ "LSTM" "Manual" $lstm_dir_in $dir_out "lstm_l${l}_c$c"
-        $f = computeJ "LSTM" "Finite" $lstm_dir_in $dir_out "lstm_l${l}_c$c"
-        $near = $comparer.AreNumTextFilesNear($m, $f, $defaultAbsoluteTolerance, $defaultRelativeTolerance)
-        if ($near.Near) {
-            Remove-Item $f
+        if (!($skipCompleted -and (Test-Path "${dir_out}lstm_l${l}_c$c.txt"))) {
+		    Write-Host "      c=$c"
+            $m = computeJ "LSTM" "Manual" $lstm_dir_in $dir_out "lstm_l${l}_c$c"
+            $f = computeJ "LSTM" "Finite" $lstm_dir_in $dir_out "lstm_l${l}_c$c"
+            $comparison = New-JacobianComparison $defaultAbsoluteTolerance $defaultRelativeTolerance
+            $comparison.CompareVectorFiles($m, $f)
+            if (!$comparison.ViolationsHappened()) {
+                Remove-Item $f
+            } else {
+                Write-Host "Possibly inconsistent results between manual and finite on lstm_l${l}_c$c"
+                Write-Host $comparison.Error
+            }
             Rename-Item $m "${dir_out}lstm_l${l}_c$c.txt"
-            Write-Host "Maximum absolute difference: $($near.MaxAbsDifference)"
-            Write-Host "Maximum relative difference: $($near.MaxRelDifference)"
+            $comparison.ToTabSeparatedString() | Out-File $logfile -Append
         } else {
-            $msg = "Inconsistent results between manual and finite on lstm_l${l}_c$c`n" + $near.Error
-            Write-Error $msg
-            $errors.Add($msg)
-        }
-        if ($near.MaxAbsDifference -gt $maxAbsDiff) {
-            $maxAbsDiff = $near.MaxAbsDifference
-        }
-        if ($near.MaxRelDifference -gt $maxRelDiff) {
-            $maxRelDiff = $near.MaxRelDifference
+            Write-Host "${dir_out}lstm_l${l}_c$c.txt is already computed. Skipping..."
         }
 	}
 }
 
-
-Write-Host "Maximum absolute difference between values produced by manual and by finite is`n$maxAbsDiff`n"
-Write-Host "Maximum relative difference between values produced by manual and by finite is`n$maxRelDiff`n"
-
-foreach($msg in $errors) {
-    Write-Error $msg
-}
+Write-Host "Done! See $logfile for details"
