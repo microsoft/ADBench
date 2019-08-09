@@ -21,11 +21,13 @@ int main(const int argc, const char* argv[])
         const std::string output_prefix(argv[2]);
         const auto max_grad_size = std::stoi(argv[3]);
 
+        const auto replicate_point = (argc > 4 && std::string(argv[4]) == "-rep");
+
         GMMInput input;
 
         // Read instance
         read_gmm_instance(input_filepath, &input.d, &input.k, &input.n,
-            input.alphas, input.means, input.icf, input.x, input.wishart, false);
+            input.alphas, input.means, input.icf, input.x, input.wishart, replicate_point);
 
         int out_alphas = std::min(max_grad_size, input.k);
         int out_means = std::min(max_grad_size, input.d * input.k);
