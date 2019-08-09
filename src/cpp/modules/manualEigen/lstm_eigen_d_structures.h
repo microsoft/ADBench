@@ -125,29 +125,29 @@ struct ModelJacobianNew
         hidden(hsize),
         cell(hsize)
     {
-        this->hidden.d_raw << model_jacobian.hidden.d_weight.forget;
-        this->hidden.d_raw << model_jacobian.hidden.d_weight.ingate;
-        this->hidden.d_raw << model_jacobian.hidden.d_weight.outgate;
-        this->hidden.d_raw << model_jacobian.hidden.d_weight.change;
-        this->hidden.d_raw << model_jacobian.hidden.d_bias.forget;
-        this->hidden.d_raw << model_jacobian.hidden.d_bias.ingate;
-        this->hidden.d_raw << model_jacobian.hidden.d_bias.outgate;
-        this->hidden.d_raw << model_jacobian.hidden.d_bias.change;
-        this->hidden.d_raw << model_jacobian.hidden.d_hidden;
-        this->hidden.d_raw << model_jacobian.hidden.d_cell;
-        this->hidden.d_raw << model_jacobian.hidden.d_input;
+        this->hidden.d_raw.col(0) = model_jacobian.hidden.d_weight.forget;
+        this->hidden.d_raw.col(1) = model_jacobian.hidden.d_weight.ingate;
+        this->hidden.d_raw.col(2) = model_jacobian.hidden.d_weight.outgate;
+        this->hidden.d_raw.col(3) = model_jacobian.hidden.d_weight.change;
+        this->hidden.d_raw.col(4) = model_jacobian.hidden.d_bias.forget;
+        this->hidden.d_raw.col(5) = model_jacobian.hidden.d_bias.ingate;
+        this->hidden.d_raw.col(6) = model_jacobian.hidden.d_bias.outgate;
+        this->hidden.d_raw.col(7) = model_jacobian.hidden.d_bias.change;
+        this->hidden.d_raw.col(8) = model_jacobian.hidden.d_hidden;
+        this->hidden.d_raw.col(9) = model_jacobian.hidden.d_cell;
+        this->hidden.d_input = model_jacobian.hidden.d_input;
 
-        this->cell.d_raw << model_jacobian.cell.d_weight.forget;
-        this->cell.d_raw << model_jacobian.cell.d_weight.ingate;
-        this->cell.d_raw << model_jacobian.cell.d_weight.outgate;
-        this->cell.d_raw << model_jacobian.cell.d_weight.change;
-        this->cell.d_raw << model_jacobian.cell.d_bias.forget;
-        this->cell.d_raw << model_jacobian.cell.d_bias.ingate;
-        this->cell.d_raw << model_jacobian.cell.d_bias.outgate;
-        this->cell.d_raw << model_jacobian.cell.d_bias.change;
-        this->cell.d_raw << model_jacobian.cell.d_hidden;
-        this->cell.d_raw << model_jacobian.cell.d_cell;
-        this->cell.d_raw << model_jacobian.cell.d_input;
+        this->cell.d_raw.col(0) = model_jacobian.cell.d_weight.forget;
+        this->cell.d_raw.col(1) = model_jacobian.cell.d_weight.ingate;
+        this->cell.d_raw.col(2) = model_jacobian.cell.d_weight.outgate;
+        this->cell.d_raw.col(3) = model_jacobian.cell.d_weight.change;
+        this->cell.d_raw.col(4) = model_jacobian.cell.d_bias.forget;
+        this->cell.d_raw.col(5) = model_jacobian.cell.d_bias.ingate;
+        this->cell.d_raw.col(6) = model_jacobian.cell.d_bias.outgate;
+        this->cell.d_raw.col(7) = model_jacobian.cell.d_bias.change;
+        this->cell.d_raw.col(8) = model_jacobian.cell.d_hidden;
+        this->cell.d_raw.col(9) = model_jacobian.cell.d_cell;
+        this->cell.d_input << model_jacobian.cell.d_input;
     }
 };
 
