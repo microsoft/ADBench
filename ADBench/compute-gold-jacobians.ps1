@@ -1,7 +1,5 @@
 $buildtype = "Release"
-[double]$defaultRelativeTolerance = 1.0e-6;
-[double]$defaultAbsoluteTolerance = 1.0e-6;
-$maxGmmGradSizeForFinite = 1000;
+[double]$defaultTolerance = 1.0e-6;
 $logfile = "goldlog.tsv"
 $skipCompleted = $true
 
@@ -104,10 +102,9 @@ if (!(Test-Path $cmake_vars)) {
 Add-Type -Path "$bindir/src/dotnet/utils/JacobianComparisonLib/JacobianComparisonLib.dll"
 
 function New-JacobianComparison(
-    [double] $allowedAbsDifference,
-    [double] $allowedRelDifference
+    [double] $tolerance
 ){
-    return [JacobianComparisonLib.JacobianComparison]::new($allowedAbsDifference, $allowedRelDifference)
+    return [JacobianComparisonLib.JacobianComparison]::new($tolerance)
 }
 
 $outdir = "$dir/goldJ"
@@ -157,7 +154,7 @@ foreach ($sz in $gmm_sizes) {
                 }
                 $m = computeJ "GMM" "Manual" $dir_in $dir_out "gmm_d${d}_K${k}" $rep
                 $f = computePartGmmJ $dir_in $dir_out "gmm_d${d}_K${k}" $finiteGradSize $rep
-                $comparison = New-JacobianComparison $defaultAbsoluteTolerance $defaultRelativeTolerance
+                $comparison = New-JacobianComparison 1.0e-4
                 $comparison.CompareGmmFullAndPartGradients($m, $f)
                 if (!$comparison.ViolationsHappened()) {
                     Remove-Item $f
@@ -185,7 +182,7 @@ for ($n = $ba_min_n; $n -le $ba_max_n; $n++) {
 	    Write-Host "    $n"
         $m = computeJ "BA" "Manual" $ba_dir_in $dir_out "ba$n"
         $f = computeJ "BA" "Finite" $ba_dir_in $dir_out "ba$n"
-        $comparison = New-JacobianComparison $defaultAbsoluteTolerance $defaultRelativeTolerance
+        $comparison = New-JacobianComparison $defaultTolerance
         $comparison.CompareJaggedArrayFiles($m, $f)
         if (!$comparison.ViolationsHappened()) {
             Remove-Item $f
@@ -221,7 +218,7 @@ foreach ($type in @("simple", "complicated")) {
                 }
                 $m = computeJ "Hand${task}" "Manual" $dir_in $dir_out "hand$n"
                 $f = computeJ "Hand${task}" "Finite" $dir_in $dir_out "hand$n"
-                $comparison = New-JacobianComparison $defaultAbsoluteTolerance $defaultRelativeTolerance
+                $comparison = New-JacobianComparison $defaultTolerance
                 $comparison.CompareJaggedArrayFiles($m, $f)
                 if (!$comparison.ViolationsHappened()) {
                     Remove-Item $f
@@ -250,7 +247,7 @@ foreach ($l in $lstm_l_vals) {
 		    Write-Host "      c=$c"
             $m = computeJ "LSTM" "Manual" $lstm_dir_in $dir_out "lstm_l${l}_c$c"
             $f = computeJ "LSTM" "Finite" $lstm_dir_in $dir_out "lstm_l${l}_c$c"
-            $comparison = New-JacobianComparison $defaultAbsoluteTolerance $defaultRelativeTolerance
+            $comparison = New-JacobianComparison $defaultTolerance
             $comparison.CompareVectorFiles($m, $f)
             if (!$comparison.ViolationsHappened()) {
                 Remove-Item $f

@@ -14,7 +14,7 @@ int main(const int argc, const char* argv[])
 {
     try {
         if (argc < 4) {
-            std::cerr << "usage: FinitePartialGmm input_filepath output_dir gradient_size_limit\n";
+            std::cerr << "usage: FinitePartialGmm input_filepath output_dir gradient_size_limit [-rep]\n";
             return 1;
         }
         const std::string input_filepath(argv[1]);
@@ -39,15 +39,15 @@ int main(const int argc, const char* argv[])
 
         engine.finite_differences([&](double* alphas_in, double* err) {
             gmm_objective(input.d, input.k, input.n, alphas_in, input.means.data(), input.icf.data(), input.x.data(), input.wishart, err);
-            }, input.alphas.data(), out_alphas, &objective, 1, d_alphas.data());
+            }, input.alphas.data(), out_alphas, & objective, 1, d_alphas.data());// , FINITE_DIFFERENCES_DEFAULT_EPSILON, 4.0, 1.0);
 
         engine.finite_differences_continue([&](double* means_in, double* err) {
             gmm_objective(input.d, input.k, input.n, input.alphas.data(), means_in, input.icf.data(), input.x.data(), input.wishart, err);
-            }, input.means.data(), out_means, &objective, 1, d_means.data());
+            }, input.means.data(), out_means, &objective, 1, d_means.data());//, FINITE_DIFFERENCES_DEFAULT_EPSILON, 4.0, 1.0);
 
         engine.finite_differences_continue([&](double* icf_in, double* err) {
             gmm_objective(input.d, input.k, input.n, input.alphas.data(), input.means.data(), icf_in, input.x.data(), input.wishart, err);
-            }, input.icf.data(), out_icfs, &objective, 1, d_icfs.data());
+            }, input.icf.data(), out_icfs, &objective, 1, d_icfs.data());//, FINITE_DIFFERENCES_DEFAULT_EPSILON, 4.0, 1.0);
 
         const auto input_basename = filepath_to_basename(input_filepath);
         std::ofstream out(jacobian_file_name(output_prefix, input_basename, "positions"));
