@@ -207,7 +207,7 @@ Class Tool {
         This will create a Tool:
         - called "Finite"
         - run from binary executables
-        - runs all five tests 
+        - runs all four tests 
         - does not do GMM in separate FULL and SPLIT modes
         - doesn't require separate executables for different GMM sizes
 
