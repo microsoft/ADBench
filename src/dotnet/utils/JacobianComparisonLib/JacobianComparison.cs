@@ -7,59 +7,51 @@ namespace JacobianComparisonLib
 {
     public class JacobianComparison
     {
-        public double AllowedAbsDifference { get; protected set; }
-        public double AllowedRelDifference { get; protected set; }
+        public double Tolerance { get; protected set; }
 
         public string File1 { get; protected set; } = "";
         public string File2 { get; protected set; } = "";
 
         public bool DimensionMismatch { get; protected set; } = false;
         public bool ParseError { get; protected set; } = false;
-        public double MaxAbsDifference { get; protected set; } = 0.0;
-        public double MaxRelDifference { get; protected set; } = 0.0;
-        public double AvgAbsDifference { get; protected set; } = 0.0;
-        public double AvgRelDifference { get; protected set; } = 0.0;
-        public int AbsDifferenceViolationCount { get; protected set; } = 0;
-        public int RelDifferenceViolationCount { get; protected set; } = 0;
+        public double MaxDifference { get; protected set; } = 0.0;
+        public double AvgDifference { get; protected set; } = 0.0;
+        public int DifferenceViolationCount { get; protected set; } = 0;
         public int NumberComparisonCount { get; protected set; } = 0;
-        public List<(int, int)> AbsDifferenceViolations { get; protected set; } = new List<(int, int)>();
-        public List<(int, int)> RelDifferenceViolations { get; protected set; } = new List<(int, int)>();
+        public List<(int, int)> DifferenceViolations { get; protected set; } = new List<(int, int)>();
         public string Error { get; protected set; } = "";
 
-        public JacobianComparison(double allowedAbsDifference, double allowedRelDifference)
+        public JacobianComparison(double tolerance)
         {
-            this.AllowedAbsDifference = allowedAbsDifference;
-            this.AllowedRelDifference = allowedRelDifference;
+            this.Tolerance = tolerance;
+        }
+
+        public static double Difference(double x, double y)
+        {
+            if (x == y)
+                return 0.0;
+            
+            double absX = Math.Abs(x);
+            double absY = Math.Abs(y);
+            double absdiff = Math.Abs(x - y);
+            double normCoef = Math.Min(absX + absY, double.MaxValue);
+            return normCoef > 1.0 ? absdiff / normCoef : absdiff;
         }
     
         public void CompareNumbers(double x, double y, int posX, int posY)
         {
-            double absdiff = Math.Abs(x - y);
-            double reldiff = absdiff / Math.Max(Math.Abs(x), Math.Abs(y));
-            if (absdiff > this.AllowedAbsDifference)
+            double diff = Difference(x, y);
+            if (!(diff <= this.Tolerance))
             {
-                this.AbsDifferenceViolationCount++;
-                this.AbsDifferenceViolations.Add((posX, posY));
+                this.DifferenceViolationCount++;
+                this.DifferenceViolations.Add((posX, posY));
             }
-            if (reldiff > this.AllowedRelDifference)
-            {
-                this.RelDifferenceViolationCount++;
-                this.RelDifferenceViolations.Add((posX, posY));
-            }
-            if (absdiff > this.MaxAbsDifference)
-            {
-                this.MaxAbsDifference = absdiff;
-            }
-            if (reldiff > this.MaxRelDifference)
-            {
-                this.MaxRelDifference = reldiff;
-            }
+            this.MaxDifference = Math.Max(this.MaxDifference, diff);
             ++this.NumberComparisonCount;
             double compCount = (double)this.NumberComparisonCount;
             double a = (compCount - 1.0) / compCount;
             double b = 1.0 / compCount;
-            this.AvgAbsDifference = a * this.AvgAbsDifference + b * absdiff;
-            this.AvgRelDifference = a * this.AvgRelDifference + b * reldiff;
+            this.AvgDifference = a * this.AvgDifference + b * diff;
         }
     
         public void CompareNumLines(double[] line1, double[] line2, int posY)
@@ -140,14 +132,14 @@ namespace JacobianComparisonLib
 
         public bool ViolationsHappened()
         {
-            return this.ParseError || this.DimensionMismatch || (this.AbsDifferenceViolationCount + this.RelDifferenceViolationCount) > 0;
+            return this.ParseError || this.DimensionMismatch || this.DifferenceViolationCount > 0;
         }
 
-        public static string TabSeparatedHeader => "File 1\tFile 2\tAllowed Absolute Difference\tAllowed Relative Difference\tDimension Mismatch\tParse Error\tMax Absolute Difference\tMax Relative Difference\tAverage Absolute Difference\tAverage Relative Difference\tAbsolute Difference Violation Count\tRelative Difference Violation Count\tNumber Comparison Count\tAbsolute Difference Violations (1st 10)\tRelative Difference Violations (1st 10)\tError Message";
+        public static string TabSeparatedHeader => "File 1\tFile 2\tTolerance\tDimension Mismatch\tParse Error\tMax Difference\tAverage Difference\tDifference Violation Count\tNumber Comparison Count\tDifference Violations (1st 10)\tError Message";
 
         public string ToTabSeparatedString()
         {
-            return $"{this.File1}\t{this.File2}\t{this.AllowedAbsDifference}\t{this.AllowedRelDifference}\t{this.DimensionMismatch}\t{this.ParseError}\t{this.MaxAbsDifference}\t{this.MaxRelDifference}\t{this.AvgAbsDifference}\t{this.AvgRelDifference}\t{this.AbsDifferenceViolationCount}\t{this.RelDifferenceViolationCount}\t{this.NumberComparisonCount}\t{string.Join(" ", this.AbsDifferenceViolations.Take(10))}\t{string.Join(" ", this.RelDifferenceViolations.Take(10))}\t{this.Error}";
+            return $"{this.File1}\t{this.File2}\t{this.Tolerance}\t{this.DimensionMismatch}\t{this.ParseError}\t{this.MaxDifference}\t{this.AvgDifference}\t{this.DifferenceViolationCount}\t{this.NumberComparisonCount}\t{string.Join(" ", this.DifferenceViolations.Take(10))}\t{this.Error}";
         }
 
         private bool TryParseVectorFile(string path, out double[] result)
