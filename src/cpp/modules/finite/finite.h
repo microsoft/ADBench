@@ -103,11 +103,12 @@ public:
     {
         for (int i = 0; i < input_size; i++)
         {
+            T originalInput = input[i];
             input[i] += delta;
             func(input, tmp_output.data());
             div_vec(sub_vec(tmp_output.data(), output, output_size), output_size, delta);
             vec_ins(&result[output_size * i], tmp_output.data(), output_size);
-            input[i] -= delta;
+            input[i] = originalInput;
         }
     }
 };
