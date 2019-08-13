@@ -255,17 +255,12 @@ void lstm_predict_d_new(int l, int b,
     const MainParams<T>& main_params, const ExtraParams<T>& extra_params,
     State<T>& state,
     const ArrayX<T>& input,
-    LayerStateJacobianPredict<T>& zero_layer_jacobian_old,
-    ModelJacobian<T>& layer_state_d_old,
+    LayerStateJacobianPredictNew<T>& zero_layer_jacobian,
+    ModelJacobianNew<T>& layer_state_d,
     ArrayX<T>& output,
-    StateJacobianPredict<T>& state_jacobian_old,
-    PredictionJacobian<T>& output_jacobian_old)
+    StateJacobianPredictNew<T>& state_jacobian,
+    PredictionJacobianNew<T>& output_jacobian)
 {
-    LayerStateJacobianPredictNew<T> zero_layer_jacobian(zero_layer_jacobian_old.raw_data, l, b);
-    ModelJacobianNew<T> layer_state_d(layer_state_d_old.raw_data, b);
-    StateJacobianPredictNew<T> state_jacobian(state_jacobian_old.raw_data, l, b);
-    PredictionJacobianNew<T> output_jacobian(output_jacobian_old.raw_data, l, b);
-
     // Intial setup (from predict())
     output = input * extra_params.in_weight;
     for (int i = 0; i < b; ++i) {
@@ -293,58 +288,13 @@ void lstm_predict_d_new(int l, int b,
             *state_jacobian.layer[i].d_hidden[j].d_extra_in_weight = hidden_j_d_input * (*prev_layer_jacobian->d_hidden[j].d_extra_in_weight);
             *state_jacobian.layer[i].d_cell[j].d_extra_in_weight = cell_j_d_input * (*prev_layer_jacobian->d_hidden[j].d_extra_in_weight);
             state_jacobian.layer[i].d_hidden[j].d_raw.topRows(i) = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_raw.topRows(i);
-            //for (int k = 0; k < i; ++k)
-            //{
-            //    state_jacobian.layer[i].d_hidden[j].d_weight_forget[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_forget[k];
-            //    state_jacobian.layer[i].d_hidden[j].d_weight_ingate[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_ingate[k];
-            //    state_jacobian.layer[i].d_hidden[j].d_weight_outgate[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_outgate[k];
-            //    state_jacobian.layer[i].d_hidden[j].d_weight_change[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_change[k];
-            //    state_jacobian.layer[i].d_hidden[j].d_bias_forget[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_forget[k];
-            //    state_jacobian.layer[i].d_hidden[j].d_bias_ingate[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_ingate[k];
-            //    state_jacobian.layer[i].d_hidden[j].d_bias_outgate[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_outgate[k];
-            //    state_jacobian.layer[i].d_hidden[j].d_bias_change[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_change[k];
-            //    state_jacobian.layer[i].d_hidden[j].d_hidden[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_hidden[k];
-            //    state_jacobian.layer[i].d_hidden[j].d_cell[k] = hidden_j_d_input * prev_layer_jacobian->d_hidden[j].d_cell[k];
-            //    state_jacobian.layer[i].d_cell[j].d_weight_forget[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_forget[k];
-            //    state_jacobian.layer[i].d_cell[j].d_weight_ingate[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_ingate[k];
-            //    state_jacobian.layer[i].d_cell[j].d_weight_outgate[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_outgate[k];
-            //    state_jacobian.layer[i].d_cell[j].d_weight_change[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_weight_change[k];
-            //    state_jacobian.layer[i].d_cell[j].d_bias_forget[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_forget[k];
-            //    state_jacobian.layer[i].d_cell[j].d_bias_ingate[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_ingate[k];
-            //    state_jacobian.layer[i].d_cell[j].d_bias_outgate[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_outgate[k];
-            //    state_jacobian.layer[i].d_cell[j].d_bias_change[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_bias_change[k];
-            //    state_jacobian.layer[i].d_cell[j].d_hidden[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_hidden[k];
-            //    state_jacobian.layer[i].d_cell[j].d_cell[k] = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_cell[k];
-            //}
+            state_jacobian.layer[i].d_cell[j].d_raw.topRows(i) = cell_j_d_input * prev_layer_jacobian->d_hidden[j].d_raw.topRows(i);
             // derivatives by variables on which lstm_model_d depends directly
             state_jacobian.layer[i].d_hidden[j].d_raw.row(i) = layer_state_d.hidden.d_raw.row(j);
             state_jacobian.layer[i].d_cell[j].d_raw.row(i) = layer_state_d.cell.d_raw.row(j);
             // derivatives by variable on which lstm_model_d does not depend (zero)
             state_jacobian.layer[i].d_hidden[j].d_raw.bottomRows(l - i - 1).setZero();
             state_jacobian.layer[i].d_cell[j].d_raw.bottomRows(l - i - 1).setZero();
-            //for (int k = i + 1; k < l; ++k)
-            //{
-            //    state_jacobian.layer[i].d_hidden[j].d_weight_forget[k] = 0.;
-            //    state_jacobian.layer[i].d_hidden[j].d_weight_ingate[k] = 0.;
-            //    state_jacobian.layer[i].d_hidden[j].d_weight_outgate[k] = 0.;
-            //    state_jacobian.layer[i].d_hidden[j].d_weight_change[k] = 0.;
-            //    state_jacobian.layer[i].d_hidden[j].d_bias_forget[k] = 0.;
-            //    state_jacobian.layer[i].d_hidden[j].d_bias_ingate[k] = 0.;
-            //    state_jacobian.layer[i].d_hidden[j].d_bias_outgate[k] = 0.;
-            //    state_jacobian.layer[i].d_hidden[j].d_bias_change[k] = 0.;
-            //    state_jacobian.layer[i].d_hidden[j].d_hidden[k] = 0.;
-            //    state_jacobian.layer[i].d_hidden[j].d_cell[k] = 0.;
-            //    state_jacobian.layer[i].d_cell[j].d_weight_forget[k] = 0.;
-            //    state_jacobian.layer[i].d_cell[j].d_weight_ingate[k] = 0.;
-            //    state_jacobian.layer[i].d_cell[j].d_weight_outgate[k] = 0.;
-            //    state_jacobian.layer[i].d_cell[j].d_weight_change[k] = 0.;
-            //    state_jacobian.layer[i].d_cell[j].d_bias_forget[k] = 0.;
-            //    state_jacobian.layer[i].d_cell[j].d_bias_ingate[k] = 0.;
-            //    state_jacobian.layer[i].d_cell[j].d_bias_outgate[k] = 0.;
-            //    state_jacobian.layer[i].d_cell[j].d_bias_change[k] = 0.;
-            //    state_jacobian.layer[i].d_cell[j].d_hidden[k] = 0.;
-            //    state_jacobian.layer[i].d_cell[j].d_cell[k] = 0.;
-            //}
         }
         prev_layer_jacobian = &state_jacobian.layer[i];
     }
@@ -362,9 +312,6 @@ void lstm_predict_d_new(int l, int b,
 
         output_jacobian.d_prediction[i].d_raw = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_raw;
     }
-    /////
-    //layer_state_d_old = layer_state_d
-    /////
 }
 
 template<typename T>
@@ -1027,11 +974,20 @@ void lstm_objective_d(int l, int c, int b,
     // temps for lstm_predict_d
     LayerStateJacobianPredict<double> zero_layer_jacobian(l, b);
     ModelJacobian<double> layer_state_d(b);
+
+    ///
     ModelJacobianNew<double> layer_state_d_new(layer_state_d.raw_data, b);
+    LayerStateJacobianPredictNew<double> zero_layer_jacobian_new(zero_layer_jacobian.raw_data, l, b);
+    StateJacobianPredictNew<double> prev_state_jacobian_new(prev_state_jacobian.raw_data, l, b);
+    PredictionJacobianNew<double> ypred_jacobian_new(ypred_jacobian.raw_data, l, b);
+    ///
 
     std::fill_n(J, total_params_count, 0.);
 
-    lstm_predict_d_new2(layer_state_d_new, l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[0], zero_layer_jacobian, layer_state_d, ypred, prev_state_jacobian, ypred_jacobian);
+    //lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[0],
+    //    zero_layer_jacobian, layer_state_d, ypred, prev_state_jacobian, ypred_jacobian);
+    lstm_predict_d_new(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[0],
+        zero_layer_jacobian_new, layer_state_d_new, ypred, prev_state_jacobian_new, ypred_jacobian_new);
 
     double lse = logsumexp_d(ypred, lse_d);
     logsumexp_grad(l, b, lse_d, ypred_jacobian, grad_lse_ypred);
@@ -1044,7 +1000,10 @@ void lstm_objective_d(int l, int c, int b,
 
     for (int t = 1; t < c - 2; ++t)
     {
-        lstm_predict_d_new2(layer_state_d_new, l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t], zero_layer_jacobian, layer_state_d, ypred, state_jacobian, ypred_jacobian);
+        lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t],
+            zero_layer_jacobian, layer_state_d, ypred, state_jacobian, ypred_jacobian);
+        //lstm_predict_d_new(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t],
+        //    zero_layer_jacobian_new, layer_state_d_new, ypred, prev_state_jacobian_new, ypred_jacobian_new);
 
         // Adding (D state_t / D state_(t-1)) * (D state_(t-1) / D params) to state_jacobian w.r.t. params
         update_state_jacobian_with_prev_state_jacobian(l, b, prev_state_jacobian, state_jacobian);
@@ -1065,7 +1024,10 @@ void lstm_objective_d(int l, int c, int b,
         swap(state_jacobian, prev_state_jacobian);
     }
 
-    lstm_predict_d_new2(layer_state_d_new, l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[c - 2], zero_layer_jacobian, layer_state_d, ypred, state_jacobian, ypred_jacobian);
+    //lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[c - 2],
+    //    zero_layer_jacobian, layer_state_d, ypred, state_jacobian, ypred_jacobian);
+    lstm_predict_d_new(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[c - 2],
+        zero_layer_jacobian_new, layer_state_d_new, ypred, prev_state_jacobian_new, ypred_jacobian_new);
     // No need to compute the jacobian for the last state
     // Adding (D pred / D state_(t-1)) * (D state_(t-1) / D params) to ypred_jacobian w.r.t. params
     update_pred_jacobian_with_prev_state_jacobian(l, b, prev_state_jacobian, ypred_jacobian);
