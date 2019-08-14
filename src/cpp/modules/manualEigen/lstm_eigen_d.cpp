@@ -844,55 +844,19 @@ void update_loss_gradient_new(int n_layers, int hsize,
     {
         double ygold_i = ygold[i];
 
-        for (int j = 0; j < hsize; ++j)
+        for (int k = 0; k < n_layers; ++k)
         {
-            if (i != j)
-            {
-                for (int k = 0; k < n_layers; ++k)
-                {
-                    loss_grad.layer[k].d_params.row(j) -= ygold_i * grad_lse_ypred.layer[k].d_params.row(j);
-                    //loss_grad.layer[k].d_params.topRows(i) -= ygold_i * grad_lse_ypred.layer[k].d_params.topRows(i);
-                    //loss_grad.layer[k].d_params.bottomRows(hsize - i - 1) -= ygold_i * grad_lse_ypred.layer[k].d_params.bottomRows(hsize - i - 1);
-
-                    //loss_grad.layer[k].d_weight.forget[j] -= ygold_i * grad_lse_ypred.layer[k].d_weight.forget[j];
-                    //loss_grad.layer[k].d_weight.ingate[j] -= ygold_i * grad_lse_ypred.layer[k].d_weight.ingate[j];
-                    //loss_grad.layer[k].d_weight.outgate[j] -= ygold_i * grad_lse_ypred.layer[k].d_weight.outgate[j];
-                    //loss_grad.layer[k].d_weight.change[j] -= ygold_i * grad_lse_ypred.layer[k].d_weight.change[j];
-                    //loss_grad.layer[k].d_bias.ingate[j] -= ygold_i * grad_lse_ypred.layer[k].d_bias.ingate[j];
-                    //loss_grad.layer[k].d_bias.forget[j] -= ygold_i * grad_lse_ypred.layer[k].d_bias.forget[j];
-                    //loss_grad.layer[k].d_bias.outgate[j] -= ygold_i * grad_lse_ypred.layer[k].d_bias.outgate[j];
-                    //loss_grad.layer[k].d_bias.change[j] -= ygold_i * grad_lse_ypred.layer[k].d_bias.change[j];
-                }
-                loss_grad.d_in_out.row(j) -= ygold_i * grad_lse_ypred.d_in_out.row(j);
-                //loss_grad.d_in_out.topRows(i) -= ygold_i * grad_lse_ypred.d_in_out.topRows(i);
-                //loss_grad.d_in_out.bottomRows(i) -= ygold_i * grad_lse_ypred.d_in_out.bottomRows(i);
-
-                //loss_grad.d_in_weight[j] -= ygold_i * grad_lse_ypred.d_in_weight[j];
-                //loss_grad.d_out_weight[j] -= ygold_i * grad_lse_ypred.d_out_weight[j];
-                //loss_grad.d_out_bias[j] -= ygold_i * grad_lse_ypred.d_out_bias[j];
-            }
-            else
-            {
-                for (int k = 0; k < n_layers; ++k)
-                {
-                    loss_grad.layer[k].d_params.row(i) += ygold_i * (ypred_jacobian.d_prediction[i].d_raw.leftCols(8).row(k) - grad_lse_ypred.layer[k].d_params.row(i));
-                    // loss_grad.layer[k].[j].topCols(8) += ygold_i * (ypred_jacobian.d_prediction[i].topCols(8) - grad_lse_ypred.layer[k].[j].topCols(8);
-                    //loss_grad.layer[k].d_weight.forget[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_weight_forget[k] - grad_lse_ypred.layer[k].d_weight.forget[j]);
-                    //loss_grad.layer[k].d_weight.ingate[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_weight_ingate[k] - grad_lse_ypred.layer[k].d_weight.ingate[j]);
-                    //loss_grad.layer[k].d_weight.outgate[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_weight_outgate[k] - grad_lse_ypred.layer[k].d_weight.outgate[j]);
-                    //loss_grad.layer[k].d_weight.change[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_weight_change[k] - grad_lse_ypred.layer[k].d_weight.change[j]);
-                    //loss_grad.layer[k].d_bias.forget[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_bias_forget[k] - grad_lse_ypred.layer[k].d_bias.forget[j]);
-                    //loss_grad.layer[k].d_bias.ingate[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_bias_ingate[k] - grad_lse_ypred.layer[k].d_bias.ingate[j]);
-                    //loss_grad.layer[k].d_bias.outgate[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_bias_outgate[k] - grad_lse_ypred.layer[k].d_bias.outgate[j]);
-                    //loss_grad.layer[k].d_bias.change[j] += ygold_i * (ypred_jacobian.d_prediction[i].d_bias_change[k] - grad_lse_ypred.layer[k].d_bias.change[j]);
-                }
-                Eigen::Map<Eigen::Array<double, 1, 3>> d_extra_in_out(ypred_jacobian.d_prediction[i].d_extra_in_weight, 3);
-                loss_grad.d_in_out.row(i) += ygold_i * (d_extra_in_out - grad_lse_ypred.d_in_out.row(i));
-                //loss_grad.d_in_weight[j] += ygold_i * ((*ypred_jacobian.d_prediction[i].d_extra_in_weight) - grad_lse_ypred.d_in_weight[j]);
-                //loss_grad.d_out_weight[j] += ygold_i * ((*ypred_jacobian.d_prediction[i].d_extra_out_weight) - grad_lse_ypred.d_out_weight[j]);
-                //loss_grad.d_out_bias[j] += ygold_i * ((*ypred_jacobian.d_prediction[i].d_extra_out_bias) - grad_lse_ypred.d_out_bias[j]);
-            }
+            loss_grad.layer[k].d_params.topRows(i) -= ygold_i * grad_lse_ypred.layer[k].d_params.topRows(i);
+            loss_grad.layer[k].d_params.row(i) += ygold_i * (ypred_jacobian.d_prediction[i].d_raw.leftCols(8).row(k) -
+                grad_lse_ypred.layer[k].d_params.row(i));
+            loss_grad.layer[k].d_params.bottomRows(hsize - i - 1) -= ygold_i *
+                grad_lse_ypred.layer[k].d_params.bottomRows(hsize - i - 1);
         }
+
+        loss_grad.d_in_out.topRows(i) -= ygold_i * grad_lse_ypred.d_in_out.topRows(i);
+        loss_grad.d_in_out.row(i) += ygold_i * (Eigen::Map<Eigen::Array<double, 1, 3>>(ypred_jacobian.d_prediction[i].d_extra_in_weight, 3) -
+            grad_lse_ypred.d_in_out.row(i));
+        loss_grad.d_in_out.bottomRows(hsize - i - 1) -= ygold_i * grad_lse_ypred.d_in_out.bottomRows(hsize - i - 1);
     }
 }
 
