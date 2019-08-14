@@ -468,6 +468,8 @@ struct PredictionElementGradientNew
     MapX<T> d_hidden;
     //
     MapX<T> d_cell;
+    // d_extra_in_out
+    MapRow3<T> d_extra_in_out;
     // 1 derivative by the corresponding weight from extra params
     T* d_extra_in_weight;
     // 1 derivative by the corresponding weight from extra params
@@ -480,6 +482,7 @@ struct PredictionElementGradientNew
         d_rawX8(raw_gradient, n_layers, 8),
         d_hidden(&raw_gradient[8 * n_layers], n_layers),
         d_cell(&raw_gradient[9 * n_layers], n_layers),
+        d_extra_in_out(&raw_gradient[10 * n_layers]),
         d_extra_in_weight(&raw_gradient[10 * n_layers]),
         d_extra_out_weight(&raw_gradient[10 * n_layers + 1]),
         d_extra_out_bias(&raw_gradient[10 * n_layers + 2])

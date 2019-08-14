@@ -782,6 +782,35 @@ void logsumexp_grad(int n_layers, int hsize,
     }
 }
 
+// Gradient of the logsumexp(prediction(params)) with relation to params
+void logsumexp_grad_new(int n_layers, int hsize,
+    const ArrayX<double>& lse_d,
+    const PredictionJacobianNew<double>& ypred_jacobian,
+    GradByParamsNew<double>& grad_lse_ypred)
+{
+    for (int i = 0; i < hsize; ++i)
+    {
+        double lse_d_i = lse_d[i];
+        for (int j = 0; j < n_layers; ++j)
+        {
+            grad_lse_ypred.layer[j].d_params.row(i) = lse_d_i * ypred_jacobian.d_prediction[i].d_rawX8.row(j);
+
+            //grad_lse_ypred.layer[j].d_weight.forget[i] = lse_d_i * ypred_jacobian.d_prediction[i].d_weight_forget[j];
+            //grad_lse_ypred.layer[j].d_weight.ingate[i] = lse_d_i * ypred_jacobian.d_prediction[i].d_weight_ingate[j];
+            //grad_lse_ypred.layer[j].d_weight.outgate[i] = lse_d_i * ypred_jacobian.d_prediction[i].d_weight_outgate[j];
+            //grad_lse_ypred.layer[j].d_weight.change[i] = lse_d_i * ypred_jacobian.d_prediction[i].d_weight_change[j];
+            //grad_lse_ypred.layer[j].d_bias.forget[i] = lse_d_i * ypred_jacobian.d_prediction[i].d_bias_forget[j];
+            //grad_lse_ypred.layer[j].d_bias.ingate[i] = lse_d_i * ypred_jacobian.d_prediction[i].d_bias_ingate[j];
+            //grad_lse_ypred.layer[j].d_bias.outgate[i] = lse_d_i * ypred_jacobian.d_prediction[i].d_bias_outgate[j];
+            //grad_lse_ypred.layer[j].d_bias.change[i] = lse_d_i * ypred_jacobian.d_prediction[i].d_bias_change[j];
+        }
+        grad_lse_ypred.d_in_out.row(i) = lse_d_i * ypred_jacobian.d_prediction[i].d_extra_in_out;
+        //grad_lse_ypred.d_in_weight[i] = lse_d_i * (*ypred_jacobian.d_prediction[i].d_extra_in_weight);
+        //grad_lse_ypred.d_out_weight[i] = lse_d_i * (*ypred_jacobian.d_prediction[i].d_extra_out_weight);
+        //grad_lse_ypred.d_out_bias[i] = lse_d_i * (*ypred_jacobian.d_prediction[i].d_extra_out_bias);
+    }
+}
+
 // Updates the gradient of the loss function (loss_grad) after doing a prediction
 // using the gold value for the prediction (ygold),
 // jacobian of the prediction with relation to params (ypred_jacobian),
@@ -860,7 +889,7 @@ void update_loss_gradient_new(int n_layers, int hsize,
         }
 
         loss_grad.d_in_out.topRows(i) -= ygold_i * grad_lse_ypred.d_in_out.topRows(i);
-        loss_grad.d_in_out.row(i) += ygold_i * (Eigen::Map<Eigen::Array<double, 1, 3>>(ypred_jacobian.d_prediction[i].d_extra_in_weight, 3) -
+        loss_grad.d_in_out.row(i) += ygold_i * (MapRow3<double>(ypred_jacobian.d_prediction[i].d_extra_in_weight, 3) -
             grad_lse_ypred.d_in_out.row(i));
         loss_grad.d_in_out.bottomRows(hsize - i - 1) -= ygold_i * grad_lse_ypred.d_in_out.bottomRows(hsize - i - 1);
     }
@@ -1165,6 +1194,7 @@ void lstm_objective_d(int l, int c, int b,
     PredictionJacobianNew<double> ypred_jacobian_new(ypred_jacobian.raw_data, l, b);
     ///
     StateJacobianPredictNew<double> state_jacobian_new(state_jacobian.raw_data, l, b);
+    GradByParamsNew<double> grad_lse_ypred_new(grad_lse_ypred.raw_data, l, b);
     ///
 
     std::fill_n(J, total_params_count, 0.);
@@ -1175,14 +1205,15 @@ void lstm_objective_d(int l, int c, int b,
         zero_layer_jacobian_new, layer_state_d_new, ypred, prev_state_jacobian_new, ypred_jacobian_new);
 
     double lse = logsumexp_d(ypred, lse_d);
-    logsumexp_grad(l, b, lse_d, ypred_jacobian, grad_lse_ypred);
+    //logsumexp_grad(l, b, lse_d, ypred_jacobian, grad_lse_ypred);
+    logsumexp_grad_new(l, b, lse_d, ypred_jacobian_new, grad_lse_ypred_new);
 
     ArrayX<double> ygold = sequence_wrap.sequence[1];
 
     total += (ygold * (ypred - lse)).sum();
 
     ///
-    GradByParamsNew<double> grad_lse_ypred_new(grad_lse_ypred.raw_data, l, b);
+    //GradByParamsNew<double> grad_lse_ypred_new(grad_lse_ypred.raw_data, l, b);
     //PredictionJacobianNew<double> ypred_jacobian_new(ypred_jacobian, l, b);
     GradByParamsNew<double> j_wrap_new(j_wrap.raw_data, l, b);
     ///
@@ -1207,7 +1238,8 @@ void lstm_objective_d(int l, int c, int b,
 
         lse = logsumexp_d(ypred, lse_d);
         // D logsumexp(pred) / D params
-        logsumexp_grad(l, b, lse_d, ypred_jacobian, grad_lse_ypred);
+        //logsumexp_grad(l, b, lse_d, ypred_jacobian, grad_lse_ypred);
+        logsumexp_grad_new(l, b, lse_d, ypred_jacobian_new, grad_lse_ypred_new);
 
         ygold = sequence_wrap.sequence[t + 1];
 
@@ -1231,7 +1263,8 @@ void lstm_objective_d(int l, int c, int b,
 
     lse = logsumexp_d(ypred, lse_d);
     // D logsumexp(pred) / D params
-    logsumexp_grad(l, b, lse_d, ypred_jacobian, grad_lse_ypred);
+    //logsumexp_grad(l, b, lse_d, ypred_jacobian, grad_lse_ypred);
+    logsumexp_grad_new(l, b, lse_d, ypred_jacobian_new, grad_lse_ypred_new);
 
     ygold = sequence_wrap.sequence[c - 1];
 
