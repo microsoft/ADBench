@@ -112,12 +112,12 @@ template<typename T>
 struct StateElementGradientModelNew
 {
     // Matrix(hsize, 10) derivatives from all layers
-    MapX10<T> d_raw;
+    MapX10<T> d_rawX10;
     // array of corresponding non-zero derivatives
     MapX<T> d_input;
 
     StateElementGradientModelNew(T* raw_data, int hsize) :
-        d_raw(raw_data, hsize, 10),//, Eigen::Stride<Eigen::Dynamic, 1>(hsize, 1)), // DANGER maybe need to change to colmajor
+        d_rawX10(raw_data, hsize, 10),//, Eigen::Stride<Eigen::Dynamic, 1>(hsize, 1)), // DANGER maybe need to change to colmajor
         //d_raw(Map<MapX10<T>, hsize, 10, Eigen::Stride<> >(raw_data, hsize, 10, Eigen::Stride<14, 1>)),
         d_input(&raw_data[10 * hsize], hsize)
     {}
@@ -294,14 +294,23 @@ struct StateJacobianPredict
 template<typename T>
 struct StateElementGradientPredictNew
 {
+    // Matrix(n_layers, 8) derivatives from all layers
+    MapX8<T> d_rawX8;
     // Matrix(n_layers, 10) derivatives from all layers
-    MapX10<T> d_raw;
+    MapX10<T> d_rawX10;
+    //
+    MapX<T> d_hidden;
+    //
+    MapX<T> d_cell;
     // 1 derivative by the corresponding weight from extra params
     T* d_extra_in_weight;
 
     // raw_gradient must point to (10 * n_layers + 1) pre-allocated T
     StateElementGradientPredictNew(T* raw_gradient, int n_layers) :
-        d_raw(raw_gradient, n_layers, 10),
+        d_rawX8(raw_gradient, n_layers, 8),
+        d_rawX10(raw_gradient, n_layers, 10),
+        d_hidden(&raw_gradient[8 * n_layers], n_layers),
+        d_cell(&raw_gradient[9 * n_layers], n_layers),
         d_extra_in_weight(&raw_gradient[10 * n_layers])
     {}
 };
@@ -453,8 +462,12 @@ struct PredictionJacobian
 template<typename T>
 struct PredictionElementGradientNew
 {
-    // Matrix(n_layers, 10) derivatives from all layers
-    MapX10<T> d_raw;
+    // Matrix(n_layers, 8) derivatives from all layers
+    MapX8<T> d_rawX8;
+    //
+    MapX<T> d_hidden;
+    //
+    MapX<T> d_cell;
     // 1 derivative by the corresponding weight from extra params
     T* d_extra_in_weight;
     // 1 derivative by the corresponding weight from extra params
@@ -464,7 +477,9 @@ struct PredictionElementGradientNew
 
     // raw_gradient must point to (10 * n_layers + 3) pre-allocated T
     PredictionElementGradientNew(T* raw_gradient, int n_layers) :
-        d_raw(raw_gradient, n_layers, 10),
+        d_rawX8(raw_gradient, n_layers, 8),
+        d_hidden(&raw_gradient[8 * n_layers], n_layers),
+        d_cell(&raw_gradient[9 * n_layers], n_layers),
         d_extra_in_weight(&raw_gradient[10 * n_layers]),
         d_extra_out_weight(&raw_gradient[10 * n_layers + 1]),
         d_extra_out_bias(&raw_gradient[10 * n_layers + 2])
