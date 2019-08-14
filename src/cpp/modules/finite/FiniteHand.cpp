@@ -43,15 +43,18 @@ void FiniteHand::calculate_jacobian(int times)
     if (complicated)
     {
         for (int i = 0; i < times; ++i) {
+            // separately computing objective, because central differences won't compute it along the way
+            hand_objective(input.theta.data(), input.us.data(), input.data, result.objective.data());
+
             engine.finite_differences([&](double* theta_in, double* err) {
                 hand_objective(theta_in, input.us.data(), input.data, err);
-                }, input.theta.data(), input.theta.size(), result.objective.data(), result.objective.size(), &result.jacobian.data()[6 * input.data.correspondences.size()]);
+                }, input.theta.data(), input.theta.size(), result.objective.size(), &result.jacobian.data()[6 * input.data.correspondences.size()]);
 
             for (int j = 0; j < input.us.size() / 2; ++j) {
-                engine.finite_differences_continue([&](double* us_in, double* err) {
+                engine.finite_differences([&](double* us_in, double* err) {
                     // us_in points into the middle of _input.us.data()
                     hand_objective(input.theta.data(), input.us.data(), input.data, err);
-                    }, &input.us.data()[j * 2], 2, result.objective.data(), result.objective.size(), jacobian_by_us.data());
+                    }, &input.us.data()[j * 2], 2, result.objective.size(), jacobian_by_us.data());
 
                 for (int k = 0; k < 3; ++k) {
                     result.jacobian[j * 3 + k] = jacobian_by_us[j * 3 + k];
@@ -63,9 +66,12 @@ void FiniteHand::calculate_jacobian(int times)
     else
     {
         for (int i = 0; i < times; ++i) {
+            // separately computing objective, because central differences won't compute it along the way
+            hand_objective(input.theta.data(), input.data, result.objective.data());
+
             engine.finite_differences([&](double* theta_in, double* err) {
                 hand_objective(theta_in, input.data, err);
-                }, input.theta.data(), input.theta.size(), result.objective.data(), result.objective.size(), result.jacobian.data());
+                }, input.theta.data(), input.theta.size(), result.objective.size(), result.jacobian.data());
         }
     }
 }
