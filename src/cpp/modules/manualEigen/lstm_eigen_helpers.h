@@ -24,3 +24,6 @@ using MapX8 = Eigen::Map< Eigen::Array<T, -1, 8>>;
 
 template<typename T>
 using MapX3 = Eigen::Map< Eigen::Array<T, -1, 3>>;
+
+template<typename T>
+using MapRow3 =  Eigen::Map<Eigen::Array<T, 1, 3>>;
