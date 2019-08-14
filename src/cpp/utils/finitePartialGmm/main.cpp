@@ -39,15 +39,15 @@ int main(const int argc, const char* argv[])
 
         engine.finite_differences([&](double* alphas_in, double* err) {
             gmm_objective(input.d, input.k, input.n, alphas_in, input.means.data(), input.icf.data(), input.x.data(), input.wishart, err);
-            }, input.alphas.data(), out_alphas, & objective, 1, d_alphas.data());// , FINITE_DIFFERENCES_DEFAULT_EPSILON, 4.0, 1.0);
+            }, input.alphas.data(), out_alphas, 1, d_alphas.data());
 
-        engine.finite_differences_continue([&](double* means_in, double* err) {
+        engine.finite_differences([&](double* means_in, double* err) {
             gmm_objective(input.d, input.k, input.n, input.alphas.data(), means_in, input.icf.data(), input.x.data(), input.wishart, err);
-            }, input.means.data(), out_means, &objective, 1, d_means.data());//, FINITE_DIFFERENCES_DEFAULT_EPSILON, 4.0, 1.0);
+            }, input.means.data(), out_means, 1, d_means.data());
 
-        engine.finite_differences_continue([&](double* icf_in, double* err) {
+        engine.finite_differences([&](double* icf_in, double* err) {
             gmm_objective(input.d, input.k, input.n, input.alphas.data(), input.means.data(), icf_in, input.x.data(), input.wishart, err);
-            }, input.icf.data(), out_icfs, &objective, 1, d_icfs.data());//, FINITE_DIFFERENCES_DEFAULT_EPSILON, 4.0, 1.0);
+            }, input.icf.data(), out_icfs, 1, d_icfs.data());
 
         const auto input_basename = filepath_to_basename(input_filepath);
         std::ofstream out(jacobian_file_name(output_prefix, input_basename, "positions"));
