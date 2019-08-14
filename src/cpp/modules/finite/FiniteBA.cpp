@@ -30,6 +30,9 @@ void FiniteBA::calculate_jacobian(int times)
 {
     for (int i = 0; i < times; ++i) {
         result.J.clear();
+        // separately computing objective, because central differences won't compute it along the way
+        ba_objective(input.n, input.m, input.p, input.cams.data(), input.X.data(), input.w.data(),
+            input.obs.data(), input.feats.data(), result.reproj_err.data(), result.w_err.data());
         for (int j = 0; j < input.p; ++j)
         {
             std::fill(reproj_err_d.begin(), reproj_err_d.end(), (double)0);
@@ -39,15 +42,15 @@ void FiniteBA::calculate_jacobian(int times)
 
             engine.finite_differences([&](double* cam_in, double* reproj_err) {
                 computeReprojError(cam_in, &input.X[ptIdx * 3], &input.w[j], &input.feats[2 * j], reproj_err);
-                }, &input.cams[camIdx * BA_NCAMPARAMS], BA_NCAMPARAMS, &result.reproj_err[2 * j], 2, reproj_err_d.data());
+                }, &input.cams[camIdx * BA_NCAMPARAMS], BA_NCAMPARAMS, 2, reproj_err_d.data());
 
-            engine.finite_differences_continue([&](double* X_in, double* reproj_err) {
+            engine.finite_differences([&](double* X_in, double* reproj_err) {
                 computeReprojError(&input.cams[camIdx * BA_NCAMPARAMS], X_in, &input.w[j], &input.feats[2 * j], reproj_err);
-                }, &input.X[ptIdx * 3], 3, &result.reproj_err[2 * j], 2, &reproj_err_d.data()[2 * BA_NCAMPARAMS]);
+                }, &input.X[ptIdx * 3], 3, 2, &reproj_err_d.data()[2 * BA_NCAMPARAMS]);
 
-            engine.finite_differences_continue([&](double* w_in, double* reproj_err) {
+            engine.finite_differences([&](double* w_in, double* reproj_err) {
                 computeReprojError(&input.cams[camIdx * BA_NCAMPARAMS], &input.X[ptIdx * 3], w_in, &input.feats[2 * j], reproj_err);
-                }, &input.w[j], 1, &result.reproj_err[2 * j], 2, &reproj_err_d.data()[2 * (BA_NCAMPARAMS + 3)]);
+                }, &input.w[j], 1, 2, &reproj_err_d.data()[2 * (BA_NCAMPARAMS + 3)]);
 
             result.J.insert_reproj_err_block(j, camIdx, ptIdx, reproj_err_d.data());
         }
@@ -58,7 +61,7 @@ void FiniteBA::calculate_jacobian(int times)
         {
             engine.finite_differences([&](double* w_in, double* w_er) {
                 computeZachWeightError(w_in, w_er);
-                }, &input.w[j], 1, &result.w_err[j], 1, &w_d);
+                }, &input.w[j], 1, 1, &w_d);
 
             result.J.insert_w_err_block(j, w_d);
         }
