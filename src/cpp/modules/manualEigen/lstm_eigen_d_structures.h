@@ -565,3 +565,52 @@ struct GradByParams
             delete[] raw_data;
     }
 };
+
+template<typename T>
+struct GradByLayerParamsNew
+{
+    MapX8<T> d_params;
+
+    // grad_raw contains 8*hsize preallocated data
+    GradByLayerParamsNew(T* grad_raw, int hsize) :
+        d_params(grad_raw, hsize, 8)
+    {}
+};
+
+template<typename T>
+struct GradByParamsNew
+{
+    std::vector<GradByLayerParamsNew<T>> layer;
+    MapX3<T> d_in_out;
+    //MapX<T> d_in_weight;
+    //MapX<T> d_out_weight;
+    //MapX<T> d_out_bias;
+    T* raw_data;
+    bool owns_memory;
+
+    // raw_jacobian must point to (8 * n_layers * hsize + 3 * hsize) pre-allocated T
+    GradByParamsNew(T* grad_raw, int n_layers, int hsize, bool should_own_memory = false) :
+        raw_data(grad_raw),
+        owns_memory(should_own_memory),
+        d_in_out(&grad_raw[8 * hsize * n_layers], hsize, 3)
+        //d_in_weight(&grad_raw[8 * hsize * n_layers], hsize),
+        //d_out_weight(&grad_raw[8 * hsize * n_layers + hsize], hsize),
+        //d_out_bias(&grad_raw[8 * hsize * n_layers + 2 * hsize], hsize)
+    {
+        layer.reserve(n_layers);
+        for (int i = 0; i < n_layers; ++i)
+        {
+            layer.emplace_back(&grad_raw[8 * hsize * i], hsize);
+        }
+    }
+
+    GradByParamsNew(int n_layers, int hsize) :
+        GradByParamsNew(new T[8 * n_layers * hsize + 3 * hsize], n_layers, hsize, true)
+    {}
+
+    ~GradByParamsNew()
+    {
+        if (owns_memory)
+            delete[] raw_data;
+    }
+};
