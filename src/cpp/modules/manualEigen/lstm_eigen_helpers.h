@@ -18,3 +18,9 @@ using ArrayX10 = Eigen::Array<T, -1, 10>;
 
 template<typename T>
 using MapX10 = Eigen::Map< Eigen::Array<T, -1, 10>>;
+
+template<typename T>
+using MapX8 = Eigen::Map< Eigen::Array<T, -1, 8>>;
+
+template<typename T>
+using MapX3 = Eigen::Map< Eigen::Array<T, -1, 3>>;
