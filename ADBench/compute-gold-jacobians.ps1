@@ -129,7 +129,9 @@ Write-Host "Build Type: $buildtype, output to $outdir`n"
 #$gmm_d_vals = @(2, 10)#, 20, 32, 64)
 #$gmm_k_vals = @(5, 10)#, 25, 50, 100, 200)
 
-[JacobianComparisonLib.JacobianComparison]::TabSeparatedHeader | Out-File $logfile
+if (!(Test-Path $logfile)) {
+    [JacobianComparisonLib.JacobianComparison]::TabSeparatedHeader | Out-File $logfile
+}
 
 # Manual GMM
 Write-Host "Manually computing GMM gradients"
@@ -147,7 +149,11 @@ foreach ($sz in $gmm_sizes) {
 			    Write-Host "        K=$k"
                 if ($sz -eq "2.5M") {
                     $rep = $true
-                    $finiteGradSize = 100
+                    if ($d -le 32) {
+                        $finiteGradSize = 100
+                    } else {
+                        $finiteGradSize = 50
+                    }
                 } else {
                     $rep = $false
                     $finiteGradSize = 1000
