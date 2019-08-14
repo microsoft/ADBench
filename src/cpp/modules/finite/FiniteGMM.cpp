@@ -28,17 +28,21 @@ void FiniteGMM::calculate_objective(int times)
 void FiniteGMM::calculate_jacobian(int times)
 {
     for (int i = 0; i < times; ++i) {
+        // separately computing objective, because central differences won't compute it along the way
+        gmm_objective(input.d, input.k, input.n, input.alphas.data(), input.means.data(),
+            input.icf.data(), input.x.data(), input.wishart, &result.objective);
+
         engine.finite_differences([&](double* alphas_in, double* err) {
             gmm_objective(input.d, input.k, input.n, alphas_in, input.means.data(), input.icf.data(), input.x.data(), input.wishart, err);
-            }, input.alphas.data(), input.alphas.size(), &result.objective, 1, result.gradient.data());
+            }, input.alphas.data(), input.alphas.size(), 1, result.gradient.data());
 
-        engine.finite_differences_continue([&](double* means_in, double* err) {
+        engine.finite_differences([&](double* means_in, double* err) {
             gmm_objective(input.d, input.k, input.n, input.alphas.data(), means_in, input.icf.data(), input.x.data(), input.wishart, err);
-            }, input.means.data(), input.means.size(), &result.objective, 1, &result.gradient.data()[input.k]);
+            }, input.means.data(), input.means.size(), 1, &result.gradient.data()[input.k]);
 
-        engine.finite_differences_continue([&](double* icf_in, double* err) {
+        engine.finite_differences([&](double* icf_in, double* err) {
             gmm_objective(input.d, input.k, input.n, input.alphas.data(), input.means.data(), icf_in, input.x.data(), input.wishart, err);
-            }, input.icf.data(), input.icf.size(), &result.objective, 1, &result.gradient.data()[input.k + input.d * input.k]);
+            }, input.icf.data(), input.icf.size(), 1, &result.gradient.data()[input.k + input.d * input.k]);
     }
 }
 
