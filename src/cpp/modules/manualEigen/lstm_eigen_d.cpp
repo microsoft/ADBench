@@ -34,7 +34,7 @@ T logsumexp_d(const ArrayX<T>& vect, ArrayX<T>& J) {
 }
 
 template<typename T>
-void swap_new(StateJacobianPredictNew<T>& j1, StateJacobianPredictNew<T>& j2)
+void swap_new(StateJacobianPredict<T>& j1, StateJacobianPredict<T>& j2)
 {
     j1.layer.swap(j2.layer);
 }
@@ -49,7 +49,7 @@ void lstm_model_d_new(int hsize,
     const LayerParams<T>& params,
     LayerState<T>& state,
     const ArrayX<T>& input,
-    ModelJacobianNew<T>& jacobian)
+    ModelJacobian<T>& jacobian)
 {
     ArrayX<T> forget_in(input * params.weight.forget + params.bias.forget);
     ArrayX<T> forget_sd;
@@ -133,11 +133,11 @@ void lstm_predict_d_new(int l, int b,
     const MainParams<T>& main_params, const ExtraParams<T>& extra_params,
     State<T>& state,
     const ArrayX<T>& input,
-    LayerStateJacobianPredictNew<T>& zero_layer_jacobian,
-    ModelJacobianNew<T>& layer_state_d,
+    LayerStateJacobianPredict<T>& zero_layer_jacobian,
+    ModelJacobian<T>& layer_state_d,
     ArrayX<T>& output,
-    StateJacobianPredictNew<T>& state_jacobian,
-    PredictionJacobianNew<T>& output_jacobian)
+    StateJacobianPredict<T>& state_jacobian,
+    PredictionJacobian<T>& output_jacobian)
 {
     // Intial setup (from predict())
     output = input * extra_params.in_weight;
@@ -149,7 +149,7 @@ void lstm_predict_d_new(int l, int b,
     // Pointer to current output/next layer's input
     ArrayX<T> layer_output = output;
     // Pointer to the jacobian of the previous layer
-    LayerStateJacobianPredictNew<T>* prev_layer_jacobian = &zero_layer_jacobian;
+    LayerStateJacobianPredict<T>* prev_layer_jacobian = &zero_layer_jacobian;
 
     // Main LSTM loop (from predict())
     for (int i = 0; i < l; ++i)
@@ -195,8 +195,8 @@ void lstm_predict_d_new(int l, int b,
 // Gradient of the logsumexp(prediction(params)) with relation to params
 void logsumexp_grad_new(int n_layers, int hsize,
     const ArrayX<double>& lse_d,
-    const PredictionJacobianNew<double>& ypred_jacobian,
-    GradByParamsNew<double>& grad_lse_ypred)
+    const PredictionJacobian<double>& ypred_jacobian,
+    GradByParams<double>& grad_lse_ypred)
 {
     for (int i = 0; i < hsize; ++i)
     {
@@ -227,9 +227,9 @@ void logsumexp_grad_new(int n_layers, int hsize,
 // and the gradient of the logsumexp(prediction(params)) with relation to params (grad_lse_ypred)
 void update_loss_gradient_new(int n_layers, int hsize,
     const ArrayX<double>& ygold,
-    const GradByParamsNew<double>& grad_lse_ypred,
-    const PredictionJacobianNew<double>& ypred_jacobian,
-    GradByParamsNew<double>& loss_grad)
+    const GradByParams<double>& grad_lse_ypred,
+    const PredictionJacobian<double>& ypred_jacobian,
+    GradByParams<double>& loss_grad)
 {
     for (int i = 0; i < hsize; ++i)
     {
@@ -253,8 +253,8 @@ void update_loss_gradient_new(int n_layers, int hsize,
 
 // Add (D pred / D state_(t-1)) * (D state_(t-1) / D params) to ypred_jacobian with relation to params
 void update_pred_jacobian_with_prev_state_jacobian_new(int n_layers, int hsize,
-    const StateJacobianPredictNew<double>& prev_state_jacobian,
-    PredictionJacobianNew<double>& ypred_jacobian)
+    const StateJacobianPredict<double>& prev_state_jacobian,
+    PredictionJacobian<double>& ypred_jacobian)
 {
     for (int pos = 0; pos < hsize; ++pos)
     {
@@ -273,8 +273,8 @@ void update_pred_jacobian_with_prev_state_jacobian_new(int n_layers, int hsize,
 
 // Add (D state_t / D state_(t-1)) * (D state_(t-1) / D params) to state_jacobian with relation to params
 void update_state_jacobian_with_prev_state_jacobian_new(int n_layers, int hsize,
-    const StateJacobianPredictNew<double>& prev_state_jacobian,
-    StateJacobianPredictNew<double>& state_jacobian)
+    const StateJacobianPredict<double>& prev_state_jacobian,
+    StateJacobianPredict<double>& state_jacobian)
 {
     for (int pos = 0; pos < hsize; ++pos)
     {
@@ -317,13 +317,13 @@ void lstm_objective_d(int l, int c, int b,
     State<double> state_wrap(state.data(), b, l);
     InputSequence<double> sequence_wrap(sequence, b, c);
     ArrayX<double> ypred(b), lse_d(b);
-    StateJacobianPredictNew<double> prev_state_jacobian_new(l, b), state_jacobian_new(l, b);
-    PredictionJacobianNew<double> ypred_jacobian_new(l, b);
-    GradByParamsNew<double> j_wrap_new(J, l, b), grad_lse_ypred_new(l, b);
+    StateJacobianPredict<double> prev_state_jacobian_new(l, b), state_jacobian_new(l, b);
+    PredictionJacobian<double> ypred_jacobian_new(l, b);
+    GradByParams<double> j_wrap_new(J, l, b), grad_lse_ypred_new(l, b);
 
     // temps for lstm_predict_d
-    LayerStateJacobianPredictNew<double> zero_layer_jacobian_new(l, b);
-    ModelJacobianNew<double> layer_state_d_new(b);
+    LayerStateJacobianPredict<double> zero_layer_jacobian_new(l, b);
+    ModelJacobian<double> layer_state_d_new(b);
 
     std::fill_n(J, total_params_count, 0.);
 

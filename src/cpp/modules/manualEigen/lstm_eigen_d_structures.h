@@ -4,79 +4,18 @@
 
 #include "lstm_eigen_helpers.h"
 
-//template<typename T>
-//struct StatePartWeightOrBiasDerivatives
-//{
-//    T forget;
-//    T ingate;
-//    T outgate;
-//    T change;
-//};
-//
-//template<typename T>
-//struct StateElementGradientModel
-//{
-//    // 4 corresponding non-zero derivatives
-//    StatePartWeightOrBiasDerivatives<T> d_weight;
-//    // 4 corresponding non-zero derivatives
-//    StatePartWeightOrBiasDerivatives<T> d_bias;
-//    // a single corresponding non-zero derivative
-//    T d_hidden;
-//    // a single corresponding non-zero derivative
-//    T d_cell;
-//    // a single corresponding non-zero derivative
-//    T d_input;
-//};
-//
-//template<typename T>
-//struct ModelJacobian
-//{
-//    std::vector<StateElementGradientModel<T>> hidden;
-//    std::vector<StateElementGradientModel<T>> cell;
-//
-//    ModelJacobian(int hsize) :
-//        hidden(hsize),
-//        cell(hsize)
-//    {}
-//};
-
-template<typename T>
-struct StatePartWeightOrBiasDerivatives
-{
-    MapX<T> forget;
-    MapX<T> ingate;
-    MapX<T> outgate;
-    MapX<T> change;
-
-    StatePartWeightOrBiasDerivatives(T* raw_model, int hsize) :
-        forget(raw_model, hsize),
-        ingate(&raw_model[hsize], hsize),
-        outgate(&raw_model[2 * hsize], hsize),
-        change(&raw_model[3 * hsize], hsize)
-    {}
-};
-
-
 template<typename T>
 struct StateElementGradientModel
 {
-    // 4 corresponding non-zero derivatives
-    StatePartWeightOrBiasDerivatives<T> d_weight;
-    // 4 corresponding non-zero derivatives
-    StatePartWeightOrBiasDerivatives<T> d_bias;
-    // an array corresponding non-zero derivatives
-    MapX<T> d_hidden;
-    // an array corresponding non-zero derivatives
-    MapX<T> d_cell;
-    // an array corresponding non-zero derivatives
+    // Matrix(hsize, 10) derivatives from all layers
+    MapX10<T> d_rawX10;
+    // array of corresponding non-zero derivatives
     MapX<T> d_input;
 
-    StateElementGradientModel(T* raw_model, int hsize) :
-        d_weight(raw_model, hsize),
-        d_bias(&raw_model[4 * hsize], hsize),
-        d_hidden(&raw_model[8 * hsize], hsize),
-        d_cell(&raw_model[9 * hsize], hsize),
-        d_input(&raw_model[10 * hsize], hsize)
+    // raw_data must point to (11 * hsize) pre-allocated T
+    StateElementGradientModel(T* raw_data, int hsize) :
+        d_rawX10(raw_data, hsize, 10),
+        d_input(&raw_data[10 * hsize], hsize)
     {}
 };
 
@@ -88,7 +27,7 @@ struct ModelJacobian
     T* raw_data;
     bool owns_memory;
 
-    // raw_jacobian must point to (11 * 2 * hsize) pre-allocated T
+    // raw_model must point to (11 * 2 * hsize) pre-allocated T
     ModelJacobian(T* raw_model, int hsize, bool should_own_memory = false) :
         owns_memory(should_own_memory),
         raw_data(raw_model),
@@ -107,49 +46,8 @@ struct ModelJacobian
     }
 };
 
-
 template<typename T>
-struct StateElementGradientModelNew
-{
-    // Matrix(hsize, 10) derivatives from all layers
-    MapX10<T> d_rawX10;
-    // array of corresponding non-zero derivatives
-    MapX<T> d_input;
-
-    StateElementGradientModelNew(T* raw_data, int hsize) :
-        d_rawX10(raw_data, hsize, 10),
-        d_input(&raw_data[10 * hsize], hsize)
-    {}
-};
-
-template<typename T>
-struct ModelJacobianNew
-{
-    StateElementGradientModelNew<T> hidden;
-    StateElementGradientModelNew<T> cell;
-    T* raw_data;
-    bool owns_memory;
-
-    ModelJacobianNew(T* raw_model, int hsize, bool should_own_memory = false) :
-        owns_memory(should_own_memory),
-        raw_data(raw_model),
-        hidden(raw_model, hsize),
-        cell(&raw_model[11 * hsize], hsize)
-    {}
-
-    ModelJacobianNew(int hsize) :
-        ModelJacobianNew(new T[11 * 2 * hsize], hsize, true)
-    {}
-
-    ~ModelJacobianNew()
-    {
-        if (owns_memory)
-            delete[] raw_data;
-    }
-};
-
-template<typename T>
-struct StateElementGradientPredictNew
+struct StateElementGradientPredict
 {
     // Matrix(n_layers, 8) derivatives from all layers
     MapX8<T> d_rawX8;
@@ -163,7 +61,7 @@ struct StateElementGradientPredictNew
     T* d_extra_in_weight;
 
     // raw_gradient must point to (10 * n_layers + 1) pre-allocated T
-    StateElementGradientPredictNew(T* raw_gradient, int n_layers) :
+    StateElementGradientPredict(T* raw_gradient, int n_layers) :
         d_rawX8(raw_gradient, n_layers, 8),
         d_rawX10(raw_gradient, n_layers, 10),
         d_hidden(&raw_gradient[8 * n_layers], n_layers),
@@ -173,15 +71,15 @@ struct StateElementGradientPredictNew
 };
 
 template<typename T>
-struct LayerStateJacobianPredictNew
+struct LayerStateJacobianPredict
 {
-    std::vector<StateElementGradientPredictNew<T>> d_hidden;
-    std::vector<StateElementGradientPredictNew<T>> d_cell;
+    std::vector<StateElementGradientPredict<T>> d_hidden;
+    std::vector<StateElementGradientPredict<T>> d_cell;
     T* raw_data;
     bool owns_memory;
 
     // raw_jacobian must point to ((10 * n_layers + 1) * 2 * hsize) pre-allocated T
-    LayerStateJacobianPredictNew(T* raw_jacobian, int n_layers, int hsize, bool should_own_memory = false) :
+    LayerStateJacobianPredict(T* raw_jacobian, int n_layers, int hsize, bool should_own_memory = false) :
         owns_memory(should_own_memory),
         raw_data(raw_jacobian)
     {
@@ -195,11 +93,11 @@ struct LayerStateJacobianPredictNew
         }
     }
 
-    LayerStateJacobianPredictNew(int n_layers, int hsize) :
-        LayerStateJacobianPredictNew(new T[(10 * n_layers + 1) * 2 * hsize], n_layers, hsize, true)
+    LayerStateJacobianPredict(int n_layers, int hsize) :
+        LayerStateJacobianPredict(new T[(10 * n_layers + 1) * 2 * hsize], n_layers, hsize, true)
     {}
 
-    ~LayerStateJacobianPredictNew()
+    ~LayerStateJacobianPredict()
     {
         if (owns_memory)
             delete[] raw_data;
@@ -207,14 +105,14 @@ struct LayerStateJacobianPredictNew
 };
 
 template<typename T>
-struct StateJacobianPredictNew
+struct StateJacobianPredict
 {
-    std::vector<LayerStateJacobianPredictNew<T>> layer;
+    std::vector<LayerStateJacobianPredict<T>> layer;
     T* raw_data;
     bool owns_memory;
 
     // raw_jacobian must point to (((10 * n_layers + 1) * 2 * hsize) * n_layers) pre-allocated T
-    StateJacobianPredictNew(T* raw_jacobian, int n_layers, int hsize, bool should_own_memory = false) :
+    StateJacobianPredict(T* raw_jacobian, int n_layers, int hsize, bool should_own_memory = false) :
         raw_data(raw_jacobian),
         owns_memory(should_own_memory)
     {
@@ -226,11 +124,11 @@ struct StateJacobianPredictNew
         }
     }
 
-    StateJacobianPredictNew(int n_layers, int hsize) :
-        StateJacobianPredictNew(new T[((10 * n_layers + 1) * 2 * hsize) * n_layers], n_layers, hsize, true)
+    StateJacobianPredict(int n_layers, int hsize) :
+        StateJacobianPredict(new T[((10 * n_layers + 1) * 2 * hsize) * n_layers], n_layers, hsize, true)
     {}
 
-    ~StateJacobianPredictNew()
+    ~StateJacobianPredict()
     {
         if (owns_memory)
             delete[] raw_data;
@@ -238,7 +136,7 @@ struct StateJacobianPredictNew
 };
 
 template<typename T>
-struct PredictionElementGradientNew
+struct PredictionElementGradient
 {
     // Matrix(n_layers, 8) derivatives from all layers
     MapX8<T> d_rawX8;
@@ -258,7 +156,7 @@ struct PredictionElementGradientNew
     T* d_extra_out_bias;
 
     // raw_gradient must point to (10 * n_layers + 3) pre-allocated T
-    PredictionElementGradientNew(T* raw_gradient, int n_layers) :
+    PredictionElementGradient(T* raw_gradient, int n_layers) :
         d_rawX8(raw_gradient, n_layers, 8),
         d_rawX10(raw_gradient, n_layers, 10),
         d_hidden(&raw_gradient[8 * n_layers], n_layers),
@@ -271,14 +169,14 @@ struct PredictionElementGradientNew
 };
 
 template<typename T>
-struct PredictionJacobianNew
+struct PredictionJacobian
 {
-    std::vector<PredictionElementGradientNew<T>> d_prediction;
+    std::vector<PredictionElementGradient<T>> d_prediction;
     T* raw_data;
     bool owns_memory;
 
     // raw_jacobian must point to ((10 * n_layers + 3) * hsize) pre-allocated T
-    PredictionJacobianNew(T* raw_jacobian, int n_layers, int hsize, bool should_own_memory = false) :
+    PredictionJacobian(T* raw_jacobian, int n_layers, int hsize, bool should_own_memory = false) :
         raw_data(raw_jacobian),
         owns_memory(should_own_memory)
     {
@@ -290,11 +188,11 @@ struct PredictionJacobianNew
         }
     }
 
-    PredictionJacobianNew(int n_layers, int hsize) :
-        PredictionJacobianNew(new T[(10 * n_layers + 3) * hsize], n_layers, hsize, true)
+    PredictionJacobian(int n_layers, int hsize) :
+        PredictionJacobian(new T[(10 * n_layers + 3) * hsize], n_layers, hsize, true)
     {}
 
-    ~PredictionJacobianNew()
+    ~PredictionJacobian()
     {
         if (owns_memory)
             delete[] raw_data;
@@ -302,27 +200,27 @@ struct PredictionJacobianNew
 };
 
 template<typename T>
-struct GradByLayerParamsNew
+struct GradByLayerParams
 {
     // Matrix(n_layers, 8) derivatives for all params
     MapX8<T> d_params;
 
     // grad_raw must point to (8 * hsize) pre-allocated T
-    GradByLayerParamsNew(T* grad_raw, int hsize) :
+    GradByLayerParams(T* grad_raw, int hsize) :
         d_params(grad_raw, hsize, 8)
     {}
 };
 
 template<typename T>
-struct GradByParamsNew
+struct GradByParams
 {
-    std::vector<GradByLayerParamsNew<T>> layer;
+    std::vector<GradByLayerParams<T>> layer;
     MapX3<T> d_in_out;
     T* raw_data;
     bool owns_memory;
 
     // raw_jacobian must point to (8 * n_layers * hsize + 3 * hsize) pre-allocated T
-    GradByParamsNew(T* grad_raw, int n_layers, int hsize, bool should_own_memory = false) :
+    GradByParams(T* grad_raw, int n_layers, int hsize, bool should_own_memory = false) :
         raw_data(grad_raw),
         owns_memory(should_own_memory),
         d_in_out(&grad_raw[8 * hsize * n_layers], hsize, 3)
@@ -334,11 +232,11 @@ struct GradByParamsNew
         }
     }
 
-    GradByParamsNew(int n_layers, int hsize) :
-        GradByParamsNew(new T[8 * n_layers * hsize + 3 * hsize], n_layers, hsize, true)
+    GradByParams(int n_layers, int hsize) :
+        GradByParams(new T[8 * n_layers * hsize + 3 * hsize], n_layers, hsize, true)
     {}
 
-    ~GradByParamsNew()
+    ~GradByParams()
     {
         if (owns_memory)
             delete[] raw_data;
