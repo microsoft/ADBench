@@ -464,8 +464,6 @@ struct PredictionElementGradientNew
 {
     // Matrix(n_layers, 8) derivatives from all layers
     MapX8<T> d_rawX8;
-    // Matrix(n_layers, 10) derivatives from all layers
-    MapX10<T> d_rawX10;
     //
     MapX<T> d_hidden;
     //
@@ -482,7 +480,6 @@ struct PredictionElementGradientNew
     // raw_gradient must point to (10 * n_layers + 3) pre-allocated T
     PredictionElementGradientNew(T* raw_gradient, int n_layers) :
         d_rawX8(raw_gradient, n_layers, 8),
-        d_rawX10(raw_gradient, n_layers, 10),
         d_hidden(&raw_gradient[8 * n_layers], n_layers),
         d_cell(&raw_gradient[9 * n_layers], n_layers),
         d_extra_in_out(&raw_gradient[10 * n_layers]),
