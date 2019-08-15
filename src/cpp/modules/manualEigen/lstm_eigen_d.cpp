@@ -1175,28 +1175,28 @@ void lstm_objective_d(int l, int c, int b,
     State<double> state_wrap(state.data(), b, l);
     InputSequence<double> sequence_wrap(sequence, b, c);
     ArrayX<double> ypred(b), lse_d(b);
-    StateJacobianPredict<double> prev_state_jacobian(l, b), state_jacobian(l, b);
-    PredictionJacobian<double> ypred_jacobian(l, b);
-    GradByParams<double> j_wrap(J, l, b), grad_lse_ypred(l, b);
+    StateJacobianPredictNew<double> prev_state_jacobian_new(l, b), state_jacobian_new(l, b);
+    PredictionJacobianNew<double> ypred_jacobian_new(l, b);
+    GradByParamsNew<double> j_wrap_new(J, l, b), grad_lse_ypred_new(l, b);
 
     //ModelJacobianNew<double> tmp(b);
     //StateElementGradientModelNew<double> tmp2(b);
     //PredictionJacobianNew<double> tmp3(l, b);
 
     // temps for lstm_predict_d
-    LayerStateJacobianPredict<double> zero_layer_jacobian(l, b);
-    ModelJacobian<double> layer_state_d(b);
+    LayerStateJacobianPredictNew<double> zero_layer_jacobian_new(l, b);
+    ModelJacobianNew<double> layer_state_d_new(b);
 
-    ///
-    ModelJacobianNew<double> layer_state_d_new(layer_state_d.raw_data, b);
-    LayerStateJacobianPredictNew<double> zero_layer_jacobian_new(zero_layer_jacobian.raw_data, l, b);
-    StateJacobianPredictNew<double> prev_state_jacobian_new(prev_state_jacobian.raw_data, l, b);
-    PredictionJacobianNew<double> ypred_jacobian_new(ypred_jacobian.raw_data, l, b);
-    ///
-    StateJacobianPredictNew<double> state_jacobian_new(state_jacobian.raw_data, l, b);
-    GradByParamsNew<double> grad_lse_ypred_new(grad_lse_ypred.raw_data, l, b);
-    GradByParamsNew<double> j_wrap_new(j_wrap.raw_data, l, b);
-    ///
+    /////
+    //ModelJacobianNew<double> layer_state_d_new(layer_state_d.raw_data, b);
+    //LayerStateJacobianPredictNew<double> zero_layer_jacobian_new(zero_layer_jacobian.raw_data, l, b);
+    //StateJacobianPredictNew<double> prev_state_jacobian_new(prev_state_jacobian.raw_data, l, b);
+    //PredictionJacobianNew<double> ypred_jacobian_new(ypred_jacobian.raw_data, l, b);
+    /////
+    //StateJacobianPredictNew<double> state_jacobian_new(state_jacobian.raw_data, l, b);
+    //GradByParamsNew<double> grad_lse_ypred_new(grad_lse_ypred.raw_data, l, b);
+    //GradByParamsNew<double> j_wrap_new(j_wrap.raw_data, l, b);
+    /////
 
     std::fill_n(J, total_params_count, 0.);
 
@@ -1224,18 +1224,18 @@ void lstm_objective_d(int l, int c, int b,
 
     for (int t = 1; t < c - 2; ++t)
     {
-        lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t],
-            zero_layer_jacobian, layer_state_d, ypred, state_jacobian, ypred_jacobian);
-        //lstm_predict_d_new(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t],
-        //    zero_layer_jacobian_new, layer_state_d_new, ypred, state_jacobian_new, ypred_jacobian_new);
+        //lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t],
+        //    zero_layer_jacobian, layer_state_d, ypred, state_jacobian, ypred_jacobian);
+        lstm_predict_d_new(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t],
+            zero_layer_jacobian_new, layer_state_d_new, ypred, state_jacobian_new, ypred_jacobian_new);
 
         // Adding (D state_t / D state_(t-1)) * (D state_(t-1) / D params) to state_jacobian w.r.t. params
-        update_state_jacobian_with_prev_state_jacobian(l, b, prev_state_jacobian, state_jacobian);
-        //update_state_jacobian_with_prev_state_jacobian_new(l, b, prev_state_jacobian_new, state_jacobian_new);
+        //update_state_jacobian_with_prev_state_jacobian(l, b, prev_state_jacobian, state_jacobian);
+        update_state_jacobian_with_prev_state_jacobian_new(l, b, prev_state_jacobian_new, state_jacobian_new);
 
         // Adding (D pred / D state_(t-1)) * (D state_(t-1) / D params) to ypred_jacobian w.r.t. params
-        update_pred_jacobian_with_prev_state_jacobian(l, b, prev_state_jacobian, ypred_jacobian);
-        //update_pred_jacobian_with_prev_state_jacobian_new(l, b, prev_state_jacobian_new, ypred_jacobian_new);
+        //update_pred_jacobian_with_prev_state_jacobian(l, b, prev_state_jacobian, ypred_jacobian);
+        update_pred_jacobian_with_prev_state_jacobian_new(l, b, prev_state_jacobian_new, ypred_jacobian_new);
 
         lse = logsumexp_d(ypred, lse_d);
         // D logsumexp(pred) / D params
@@ -1249,20 +1249,18 @@ void lstm_objective_d(int l, int c, int b,
         //update_loss_gradient(l, b, ygold, grad_lse_ypred, ypred_jacobian, j_wrap);
         update_loss_gradient_new(l, b, ygold, grad_lse_ypred_new, ypred_jacobian_new, j_wrap_new);
 
-        swap(state_jacobian, prev_state_jacobian);
-        //state_jacobian_new = StateJacobianPredictNew<double>(state_jacobian.raw_data, l, b);
-        //prev_state_jacobian_new = StateJacobianPredictNew<double>(prev_state_jacobian.raw_data, l, b);
-        //swap_new(state_jacobian_new, prev_state_jacobian_new);
+        //swap(state_jacobian, prev_state_jacobian);
+        swap_new(state_jacobian_new, prev_state_jacobian_new);
     }
 
     //lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[c - 2],
     //    zero_layer_jacobian, layer_state_d, ypred, state_jacobian, ypred_jacobian);
     lstm_predict_d_new(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[c - 2],
-        zero_layer_jacobian_new, layer_state_d_new, ypred, prev_state_jacobian_new, ypred_jacobian_new);
+        zero_layer_jacobian_new, layer_state_d_new, ypred, state_jacobian_new, ypred_jacobian_new);
     // No need to compute the jacobian for the last state
     // Adding (D pred / D state_(t-1)) * (D state_(t-1) / D params) to ypred_jacobian w.r.t. params
-    update_pred_jacobian_with_prev_state_jacobian(l, b, prev_state_jacobian, ypred_jacobian);
-    //update_pred_jacobian_with_prev_state_jacobian_new(l, b, prev_state_jacobian_new, ypred_jacobian_new);
+    //update_pred_jacobian_with_prev_state_jacobian(l, b, prev_state_jacobian, ypred_jacobian);
+    update_pred_jacobian_with_prev_state_jacobian_new(l, b, prev_state_jacobian_new, ypred_jacobian_new);
 
     lse = logsumexp_d(ypred, lse_d);
     // D logsumexp(pred) / D params
