@@ -248,6 +248,9 @@ struct PredictionJacobian
 };
 
 template<typename T>
+    // Matrix(n_layers, 10) derivatives from all layers
+    MapX10<T> d_rawX10;
+        d_rawX10(raw_gradient, n_layers, 10),
 struct GradByLayerParams
 {
     // Matrix(n_layers, 8) derivatives for all params

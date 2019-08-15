@@ -109,6 +109,7 @@ void lstm_model_d(int hsize,
     jacobian.hidden.d_bias_outgate = hidden_t * outgate_db;
     // wrt input
     jacobian.hidden.d_input = outgate_di * hidden_t + hidden_td * jacobian.cell.d_input;
+        output_jacobian.d_prediction[i].d_rawX10 = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_rawX10;
 }
 
 // Manual jacobian of lstm_predict
