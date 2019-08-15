@@ -14,9 +14,6 @@ using MapX = Eigen::Map<ArrayX<T>>;
 template<typename T>
 using MapConstX = Eigen::Map<const ArrayX<T>>;
 
-template<typename T>
-using ArrayX10 = Eigen::Array<T, -1, 10>;
-
 //Map of array with X rows and 10 cols
 template<typename T>
 using MapX10 = Eigen::Map< Eigen::Array<T, -1, 10>>;
