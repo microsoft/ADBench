@@ -267,6 +267,37 @@ Class Tool {
         $this.objectives = $objectives
         $this.check_results = $check_results
         $this.result_check_tolerance = $result_check_tolerance
+        $this.gmm_both = $false
+        $this.gmm_use_defs = $false
+    }
+
+    Tool ([string]$name, [ToolType]$type, [ObjectiveType]$objectives, [bool]$check_results, [double]$result_check_tolerance, [bool]$gmm_both, [bool]$gmm_use_defs) {
+        <#
+        .SYNOPSIS
+        Create a new Tool object to be run
+
+        .EXAMPLE
+        [Tool]::new("Finite", "bin", [ObjectiveType] "GMM, BA, Hand, LSTM", $false, 0.0, $false, $false)
+        This will create a Tool:
+        - called "Finite"
+        - run from binary executables
+        - runs all four tests 
+        - does not do GMM in separate FULL and SPLIT modes
+        - doesn't require separate executables for different GMM sizes
+        - does not check the correctness of the computed jacobians
+
+        .NOTES
+        $objectives is an enumerable variable, 
+        where each flag determines whether to run a certain objective:
+        GMM, BA, HAND, LSTM
+        
+        #>
+
+        $this.name = $name
+        $this.type = $type
+        $this.objectives = $objectives
+        $this.check_results = $check_results
+        $this.result_check_tolerance = $result_check_tolerance
         $this.gmm_both = $gmm_both
         $this.gmm_use_defs = $gmm_use_defs
     }
@@ -347,6 +378,14 @@ Class Tool {
             if ($comparison.ViolationsHappened()) {
                 Write-Host "          Discrepancies with the correct jacobian found. See ${dir_out}${fn}_correctness_${out_name}.txt for details."
             }
+        }
+
+        if ($this.check_results -and (![string]::IsNullOrEmpty([Tool]::golden_tool_name))) {
+            $current_jacobian_path = "${dir_out}${fn}_J_${out_name}.txt"
+            $golden_jacobian_path = "${dir_out}../$([Tool]::golden_tool_name)/${fn}_J_$([Tool]::golden_tool_name).txt"
+            $comparison = New-JacobianComparison $this.result_check_tolerance
+            $comparison.CompareFiles($current_jacobian_path, $golden_jacobian_path)
+            $comparison.ToJsonString() | Out-File "${dir_out}${fn}_correctness_${out_name}.txt"
         }
     }
 

@@ -181,6 +181,23 @@ namespace JacobianComparisonLib
 }}";
         }
 
+        public string ToJsonString()
+        {
+            return $@"{{
+    ""{nameof(Tolerance)}"": {this.Tolerance},
+    ""{nameof(File1)}"": ""{this.File1.Replace("\\", "/")}"",
+    ""{nameof(File2)}"": ""{this.File2.Replace("\\", "/")}"",
+    ""{nameof(DimensionMismatch)}"": {this.DimensionMismatch.ToString().ToLower()},
+    ""{nameof(ParseError)}"": {this.ParseError.ToString().ToLower()},
+    ""{nameof(MaxDifference)}"": {this.MaxDifference},
+    ""{nameof(AvgDifference)}"": {this.AvgDifference},
+    ""{nameof(DifferenceViolationCount)}"": {this.DifferenceViolationCount},
+    ""{nameof(NumberComparisonCount)}"": {this.NumberComparisonCount},
+    ""{nameof(Error)}"": ""{this.Error}"",
+    ""ViolationsHappened"": {this.ViolationsHappened().ToString().ToLower()}
+}}";
+        }
+
         private enum TokenKind
         {
             Number,
