@@ -1227,7 +1227,7 @@ void lstm_objective_d(int l, int c, int b,
         lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t],
             zero_layer_jacobian, layer_state_d, ypred, state_jacobian, ypred_jacobian);
         //lstm_predict_d_new(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t],
-        //    zero_layer_jacobian_new, layer_state_d_new, ypred, prev_state_jacobian_new, ypred_jacobian_new);
+        //    zero_layer_jacobian_new, layer_state_d_new, ypred, state_jacobian_new, ypred_jacobian_new);
 
         // Adding (D state_t / D state_(t-1)) * (D state_(t-1) / D params) to state_jacobian w.r.t. params
         update_state_jacobian_with_prev_state_jacobian(l, b, prev_state_jacobian, state_jacobian);
