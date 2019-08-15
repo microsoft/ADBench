@@ -138,6 +138,14 @@ if (!(Test-Path $cmake_vars)) {
 }
 . $cmake_vars
 
+Add-Type -Path "$bindir/src/dotnet/utils/JacobianComparisonLib/JacobianComparisonLib.dll"
+
+function New-JacobianComparison(
+    [double] $tolerance
+){
+    return [JacobianComparisonLib.JacobianComparison]::new($tolerance)
+}
+
 # $gmm_d_vals and $gmm_k_vals are configured using CMake because some
 # tools (i.e. the tools that use matrices whose size is known at
 # compile time) have one executable per matrix size.  I added a way to
@@ -180,8 +188,11 @@ Class Tool {
     [ObjectiveType]$objectives
     [bool]$gmm_both
     [bool]$gmm_use_defs
+    [bool]$check_results
+    [double]$result_check_tolerance
 
     # Static constants
+    static [string]$golden_tool_name = "" # Name of the tool that is known to produce correct results, other tools can be checked against.
     static [string]$gmm_dir_in = "$datadir/gmm/"
     static [string]$ba_dir_in = "$datadir/ba/"
     static [string]$hand_dir_in = "$datadir/hand/"
@@ -197,19 +208,20 @@ Class Tool {
     # TODO probably want to set these in CMake somewhere
 
     # Constructor
-    Tool ([string]$name, [ToolType]$type, [ObjectiveType]$objectives, [bool]$gmm_both, [bool]$gmm_use_defs) {
+    Tool ([string]$name, [ToolType]$type, [ObjectiveType]$objectives, [bool]$check_results, [double]$result_check_tolerance) {
         <#
         .SYNOPSIS
         Create a new Tool object to be run
 
         .EXAMPLE
-        [Tool]::new("Finite", "bin", [ObjectiveType] "GMM, BA, Hand, LSTM", 0, 0)
+        [Tool]::new("Finite", "bin", [ObjectiveType] "GMM, BA, Hand, LSTM", $false, 0.0)
         This will create a Tool:
         - called "Finite"
         - run from binary executables
         - runs all four tests 
         - does not do GMM in separate FULL and SPLIT modes
         - doesn't require separate executables for different GMM sizes
+        - does not check the correctness of the computed jacobians
 
         .NOTES
         $objectives is an enumerable variable, 
@@ -221,6 +233,39 @@ Class Tool {
         $this.name = $name
         $this.type = $type
         $this.objectives = $objectives
+        $this.check_results = $check_results
+        $this.result_check_tolerance = $result_check_tolerance
+        $this.gmm_both = $false
+        $this.gmm_use_defs = $false
+    }
+
+    Tool ([string]$name, [ToolType]$type, [ObjectiveType]$objectives, [bool]$check_results, [double]$result_check_tolerance, [bool]$gmm_both, [bool]$gmm_use_defs) {
+        <#
+        .SYNOPSIS
+        Create a new Tool object to be run
+
+        .EXAMPLE
+        [Tool]::new("Finite", "bin", [ObjectiveType] "GMM, BA, Hand, LSTM", $false, 0.0, $false, $false)
+        This will create a Tool:
+        - called "Finite"
+        - run from binary executables
+        - runs all four tests 
+        - does not do GMM in separate FULL and SPLIT modes
+        - doesn't require separate executables for different GMM sizes
+        - does not check the correctness of the computed jacobians
+
+        .NOTES
+        $objectives is an enumerable variable, 
+        where each flag determines whether to run a certain objective:
+        GMM, BA, HAND, LSTM
+        
+        #>
+
+        $this.name = $name
+        $this.type = $type
+        $this.objectives = $objectives
+        $this.check_results = $check_results
+        $this.result_check_tolerance = $result_check_tolerance
         $this.gmm_both = $gmm_both
         $this.gmm_use_defs = $gmm_use_defs
     }
@@ -282,6 +327,14 @@ Class Tool {
         run_command "          " $output_file $script:timeout $cmd @cmdargs
         if (!(test-path $output_file)) {
             throw "Command ran, but did not produce output file [$output_file]"
+        }
+
+        if ($this.check_results -and (![string]::IsNullOrEmpty([Tool]::golden_tool_name))) {
+            $current_jacobian_path = "${dir_out}${fn}_J_${out_name}.txt"
+            $golden_jacobian_path = "${dir_out}../$([Tool]::golden_tool_name)/${fn}_J_$([Tool]::golden_tool_name).txt"
+            $comparison = New-JacobianComparison $this.result_check_tolerance
+            $comparison.CompareFiles($current_jacobian_path, $golden_jacobian_path)
+            $comparison.ToJsonString() | Out-File "${dir_out}${fn}_correctness_${out_name}.txt"
         }
     }
 
@@ -362,34 +415,45 @@ Class Tool {
     }
 }
 
+
+[Tool]::golden_tool_name = "Manual"
+$default_tolerance = 1e-6
 # Full list of tool_descriptors
 # Name
 # runtype
 # GMM, BA, HAND, LSTM
+# Compare jacobian to those produced by the golden tool?
+# Comparison tolerance (ignored, when previous is $false)
 # Separate Full|Split?
 # Separate GMM sizes?
 $tool_descriptors = @(
-    #[Tool]::new("Adept", "bin", [ObjectiveType] "GMM, BA, Hand", $true, $false)
-    #[Tool]::new("ADOLC", "bin", [ObjectiveType] "GMM, BA, Hand", $true, $false)
-    #[Tool]::new("ADOLCEigen", "bin", [ObjectiveType] "Hand", $true, $false)
-    #[Tool]::new("Ceres", "bin", [ObjectiveType] "GMM, BA, Hand", $false, $true)
-    #[Tool]::new("CeresEigen", "bin", [ObjectiveType] "Hand", $false, $true)
-    [Tool]::new("Finite", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $false, $false)
-    [Tool]::new("FiniteEigen", "cpp", [ObjectiveType] "Hand", $false, $false)
-    [Tool]::new("Manual", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $false, $false)
-    [Tool]::new("ManualEigen", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $false, $false)
-    [Tool]::new("ManualEigenVector", "cpp", [ObjectiveType] "GMM", $false, $false)
-    [Tool]::new("DiffSharp", "bin", [ObjectiveType] "BA", $true, $false)
-    [Tool]::new("Autograd", "py", [ObjectiveType] "GMM, BA", $true, $false)
-    [Tool]::new("PyTorch", "py", [ObjectiveType] "GMM, LSTM", $false, $false)
-    [Tool]::new("Julia", "julia", [ObjectiveType] "GMM, BA", $false, $false)
-    #[Tool]::new("Theano", "pybat", [ObjectiveType] "GMM, BA, Hand", $false, $false)
-    #[Tool]::new("MuPad", "matlab", 0, $false, $false)
-    #[Tool]::new("ADiMat", "matlab", 0, $false, $false)
+    #[Tool]::new("Adept", "bin", [ObjectiveType] "GMM, BA, Hand", $false, 0.0, $true, $false)
+    #[Tool]::new("ADOLC", "bin", [ObjectiveType] "GMM, BA, Hand", $false, 0.0, $true, $false)
+    #[Tool]::new("ADOLCEigen", "bin", [ObjectiveType] "Hand", $false, 0.0, $true, $false)
+    #[Tool]::new("Ceres", "bin", [ObjectiveType] "GMM, BA, Hand", $false, 0.0, $false, $true)
+    #[Tool]::new("CeresEigen", "bin", [ObjectiveType] "Hand", $false, 0.0, $false, $true)
+    [Tool]::new("Finite", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $true, $default_tolerance)
+    [Tool]::new("FiniteEigen", "cpp", [ObjectiveType] "Hand", $true, $default_tolerance)
+    [Tool]::new("Manual", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $false, 0.0)
+    [Tool]::new("ManualEigen", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $true, $default_tolerance)
+    [Tool]::new("ManualEigenVector", "cpp", [ObjectiveType] "GMM", $true, $default_tolerance)
+    [Tool]::new("DiffSharp", "bin", [ObjectiveType] "BA", $false, 0.0, $true, $false)
+    [Tool]::new("Autograd", "py", [ObjectiveType] "GMM, BA", $false, 0.0, $true, $false)
+    [Tool]::new("PyTorch", "py", [ObjectiveType] "GMM, LSTM", $false, 0.0)
+    [Tool]::new("Julia", "julia", [ObjectiveType] "GMM, BA", $false, 0.0)
+    #[Tool]::new("Theano", "pybat", [ObjectiveType] "GMM, BA, Hand", $false, 0.0)
+    #[Tool]::new("MuPad", "matlab", 0, $false, 0.0)
+    #[Tool]::new("ADiMat", "matlab", 0, $false, 0.0)
 )
 
+$golden_tool = $tool_descriptors | ? { $_.name -eq [Tool]::golden_tool_name }
+
 if ($tools) {
-    foreach($tool in $tools) {
+    if ($golden_tool -and $tools.Contains([Tool]::golden_tool_name)) {
+        write-host "User-specified tool $([Tool]::golden_tool_name))"
+        $golden_tool.runall()
+    }
+    foreach($tool in $tools | Where-Object { $_ -ne [Tool]::golden_tool_name }) {
         write-host "User-specified tool $tool"
         $tool_descriptor = $tool_descriptors | ? { $_.name -eq $tool }
         if (!$tool_descriptor) {
@@ -399,8 +463,11 @@ if ($tools) {
     }
 }
 else {
-    # Run all tests on each tool
-    foreach ($tool_descriptor in $tool_descriptors) {
+    # Run all tests on each tool. If the golden tool is defined, tests on it run first.
+    if ($golden_tool) {
+        $golden_tool.runall()
+    }
+    foreach ($tool_descriptor in $tool_descriptors | Where-Object { $_.name -ne [Tool]::golden_tool_name }) {
         $tool_descriptor.runall()
     }
 }

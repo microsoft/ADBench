@@ -59,6 +59,23 @@ namespace JacobianComparisonLib
         {
             this.File1 = path1;
             this.File2 = string.Join("; ", paths2);
+
+            if (!File.Exists(path1))
+            {
+                this.ParseError = true;
+                this.Error = $"File {path1} doesn't exist.";
+                return;
+            }
+            foreach (var path2 in paths2)
+            {
+                if (!File.Exists(path2))
+                {
+                    this.ParseError = true;
+                    this.Error = $"File {path2} doesn't exist.";
+                    return;
+                }
+            }
+
             if (TryParseVectorFile(path1, out double[] j1)
                 && TryParseIntVectorFile(paths2[0], out int[] positions)
                 && TryParseVectorFile(paths2[1], out double[] alphas)
@@ -82,6 +99,20 @@ namespace JacobianComparisonLib
             this.File1 = path1;
             this.File2 = path2;
             int posX = 0, posY = 0;
+
+            if (!File.Exists(path1))
+            {
+                this.ParseError = true;
+                this.Error = $"File {path1} doesn't exist.";
+                return;
+            }
+
+            if (!File.Exists(path2))
+            {
+                this.ParseError = true;
+                this.Error = $"File {path2} doesn't exist.";
+                return;
+            }
 
             using (var tokenEnumerator1 = ParseFile(path1).GetEnumerator())
             using (var tokenEnumerator2 = ParseFile(path2).GetEnumerator())
@@ -125,6 +156,23 @@ namespace JacobianComparisonLib
         public string ToTabSeparatedString()
         {
             return $"{this.File1}\t{this.File2}\t{this.Tolerance}\t{this.DimensionMismatch}\t{this.ParseError}\t{this.MaxDifference}\t{this.AvgDifference}\t{this.DifferenceViolationCount}\t{this.NumberComparisonCount}\t{string.Join(" ", this.DifferenceViolations.Take(10))}\t{this.Error}";
+        }
+
+        public string ToJsonString()
+        {
+            return $@"{{
+    ""{nameof(Tolerance)}"": {this.Tolerance},
+    ""{nameof(File1)}"": ""{this.File1.Replace("\\", "/")}"",
+    ""{nameof(File2)}"": ""{this.File2.Replace("\\", "/")}"",
+    ""{nameof(DimensionMismatch)}"": {this.DimensionMismatch.ToString().ToLower()},
+    ""{nameof(ParseError)}"": {this.ParseError.ToString().ToLower()},
+    ""{nameof(MaxDifference)}"": {this.MaxDifference},
+    ""{nameof(AvgDifference)}"": {this.AvgDifference},
+    ""{nameof(DifferenceViolationCount)}"": {this.DifferenceViolationCount},
+    ""{nameof(NumberComparisonCount)}"": {this.NumberComparisonCount},
+    ""{nameof(Error)}"": ""{this.Error}"",
+    ""ViolationsHappened"": {this.ViolationsHappened().ToString().ToLower()}
+}}";
         }
 
         private enum TokenKind
