@@ -316,7 +316,7 @@ void lstm_predict_d_new(int l, int b,
         *output_jacobian.d_prediction[i].d_extra_out_weight = layer_output[i];
         *output_jacobian.d_prediction[i].d_extra_out_bias = 1.;
 
-        output_jacobian.d_prediction[i].d_rawX8 = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_rawX8;
+        output_jacobian.d_prediction[i].d_rawX10 = cur_out_weight * prev_layer_jacobian->d_hidden[i].d_rawX10;
     }
 }
 
