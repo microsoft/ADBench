@@ -34,7 +34,7 @@ T logsumexp_d(const ArrayX<T>& vect, ArrayX<T>& J) {
 }
 
 template<typename T>
-void swap_new(StateJacobianPredict<T>& j1, StateJacobianPredict<T>& j2)
+void swap(StateJacobianPredict<T>& j1, StateJacobianPredict<T>& j2)
 {
     j1.layer.swap(j2.layer);
 }
@@ -45,7 +45,7 @@ void swap_new(StateJacobianPredict<T>& j1, StateJacobianPredict<T>& j2)
 // Outputs jacobian containing the derivatives of the new state
 // with relation to params, state, and input
 template<typename T>
-void lstm_model_d_new(int hsize,
+void lstm_model_d(int hsize,
     const LayerParams<T>& params,
     LayerState<T>& state,
     const ArrayX<T>& input,
@@ -129,7 +129,7 @@ void lstm_model_d_new(int hsize,
 // This function is being called from a long loop, so allocating them only once
 // can save some time.
 template<typename T>
-void lstm_predict_d_new(int l, int b,
+void lstm_predict_d(int l, int b,
     const MainParams<T>& main_params, const ExtraParams<T>& extra_params,
     State<T>& state,
     const ArrayX<T>& input,
@@ -154,7 +154,7 @@ void lstm_predict_d_new(int l, int b,
     // Main LSTM loop (from predict())
     for (int i = 0; i < l; ++i)
     {
-        lstm_model_d_new(b, main_params.layer_params[i], state.layer_state[i], layer_output, layer_state_d);
+        lstm_model_d(b, main_params.layer_params[i], state.layer_state[i], layer_output, layer_state_d);
         layer_output = state.layer_state[i].hidden;
 
         // set state_jacobian.layer[i]
@@ -193,7 +193,7 @@ void lstm_predict_d_new(int l, int b,
 }
 
 // Gradient of the logsumexp(prediction(params)) with relation to params
-void logsumexp_grad_new(int n_layers, int hsize,
+void logsumexp_grad(int n_layers, int hsize,
     const ArrayX<double>& lse_d,
     const PredictionJacobian<double>& ypred_jacobian,
     GradByParams<double>& grad_lse_ypred)
@@ -225,7 +225,7 @@ void logsumexp_grad_new(int n_layers, int hsize,
 // using the gold value for the prediction (ygold),
 // jacobian of the prediction with relation to params (ypred_jacobian),
 // and the gradient of the logsumexp(prediction(params)) with relation to params (grad_lse_ypred)
-void update_loss_gradient_new(int n_layers, int hsize,
+void update_loss_gradient(int n_layers, int hsize,
     const ArrayX<double>& ygold,
     const GradByParams<double>& grad_lse_ypred,
     const PredictionJacobian<double>& ypred_jacobian,
@@ -252,7 +252,7 @@ void update_loss_gradient_new(int n_layers, int hsize,
 }
 
 // Add (D pred / D state_(t-1)) * (D state_(t-1) / D params) to ypred_jacobian with relation to params
-void update_pred_jacobian_with_prev_state_jacobian_new(int n_layers, int hsize,
+void update_pred_jacobian_with_prev_state_jacobian(int n_layers, int hsize,
     const StateJacobianPredict<double>& prev_state_jacobian,
     PredictionJacobian<double>& ypred_jacobian)
 {
@@ -272,7 +272,7 @@ void update_pred_jacobian_with_prev_state_jacobian_new(int n_layers, int hsize,
 }
 
 // Add (D state_t / D state_(t-1)) * (D state_(t-1) / D params) to state_jacobian with relation to params
-void update_state_jacobian_with_prev_state_jacobian_new(int n_layers, int hsize,
+void update_state_jacobian_with_prev_state_jacobian(int n_layers, int hsize,
     const StateJacobianPredict<double>& prev_state_jacobian,
     StateJacobianPredict<double>& state_jacobian)
 {
@@ -317,67 +317,67 @@ void lstm_objective_d(int l, int c, int b,
     State<double> state_wrap(state.data(), b, l);
     InputSequence<double> sequence_wrap(sequence, b, c);
     ArrayX<double> ypred(b), lse_d(b);
-    StateJacobianPredict<double> prev_state_jacobian_new(l, b), state_jacobian_new(l, b);
-    PredictionJacobian<double> ypred_jacobian_new(l, b);
-    GradByParams<double> j_wrap_new(J, l, b), grad_lse_ypred_new(l, b);
+    StateJacobianPredict<double> prev_state_jacobian(l, b), state_jacobian(l, b);
+    PredictionJacobian<double> ypred_jacobian(l, b);
+    GradByParams<double> j_wrap(J, l, b), grad_lse_ypred(l, b);
 
     // temps for lstm_predict_d
-    LayerStateJacobianPredict<double> zero_layer_jacobian_new(l, b);
-    ModelJacobian<double> layer_state_d_new(b);
+    LayerStateJacobianPredict<double> zero_layer_jacobian(l, b);
+    ModelJacobian<double> layer_state_d(b);
 
     std::fill_n(J, total_params_count, 0.);
 
-    lstm_predict_d_new(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[0],
-        zero_layer_jacobian_new, layer_state_d_new, ypred, prev_state_jacobian_new, ypred_jacobian_new);
+    lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[0],
+        zero_layer_jacobian, layer_state_d, ypred, prev_state_jacobian, ypred_jacobian);
 
     double lse = logsumexp_d(ypred, lse_d);
-    logsumexp_grad_new(l, b, lse_d, ypred_jacobian_new, grad_lse_ypred_new);
+    logsumexp_grad(l, b, lse_d, ypred_jacobian, grad_lse_ypred);
 
     ArrayX<double> ygold = sequence_wrap.sequence[1];
 
     total += (ygold * (ypred - lse)).sum();
 
-    update_loss_gradient_new(l, b, ygold, grad_lse_ypred_new, ypred_jacobian_new, j_wrap_new);
+    update_loss_gradient(l, b, ygold, grad_lse_ypred, ypred_jacobian, j_wrap);
 
     for (int t = 1; t < c - 2; ++t)
     {
-        lstm_predict_d_new(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t],
-            zero_layer_jacobian_new, layer_state_d_new, ypred, state_jacobian_new, ypred_jacobian_new);
+        lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[t],
+            zero_layer_jacobian, layer_state_d, ypred, state_jacobian, ypred_jacobian);
 
         // Adding (D state_t / D state_(t-1)) * (D state_(t-1) / D params) to state_jacobian w.r.t. params
-        update_state_jacobian_with_prev_state_jacobian_new(l, b, prev_state_jacobian_new, state_jacobian_new);
+        update_state_jacobian_with_prev_state_jacobian(l, b, prev_state_jacobian, state_jacobian);
 
         // Adding (D pred / D state_(t-1)) * (D state_(t-1) / D params) to ypred_jacobian w.r.t. params
-        update_pred_jacobian_with_prev_state_jacobian_new(l, b, prev_state_jacobian_new, ypred_jacobian_new);
+        update_pred_jacobian_with_prev_state_jacobian(l, b, prev_state_jacobian, ypred_jacobian);
 
         lse = logsumexp_d(ypred, lse_d);
         // D logsumexp(pred) / D params
-        logsumexp_grad_new(l, b, lse_d, ypred_jacobian_new, grad_lse_ypred_new);
+        logsumexp_grad(l, b, lse_d, ypred_jacobian, grad_lse_ypred);
 
         ygold = sequence_wrap.sequence[t + 1];
 
         total += (ygold * (ypred - lse)).sum();
 
-        update_loss_gradient_new(l, b, ygold, grad_lse_ypred_new, ypred_jacobian_new, j_wrap_new);
+        update_loss_gradient(l, b, ygold, grad_lse_ypred, ypred_jacobian, j_wrap);
 
-        swap_new(state_jacobian_new, prev_state_jacobian_new);
+        swap(state_jacobian, prev_state_jacobian);
     }
 
-    lstm_predict_d_new(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[c - 2],
-        zero_layer_jacobian_new, layer_state_d_new, ypred, state_jacobian_new, ypred_jacobian_new);
+    lstm_predict_d(l, b, main_params_wrap, extra_params_wrap, state_wrap, sequence_wrap.sequence[c - 2],
+        zero_layer_jacobian, layer_state_d, ypred, state_jacobian, ypred_jacobian);
     // No need to compute the jacobian for the last state
     // Adding (D pred / D state_(t-1)) * (D state_(t-1) / D params) to ypred_jacobian w.r.t. params
-    update_pred_jacobian_with_prev_state_jacobian_new(l, b, prev_state_jacobian_new, ypred_jacobian_new);
+    update_pred_jacobian_with_prev_state_jacobian(l, b, prev_state_jacobian, ypred_jacobian);
 
     lse = logsumexp_d(ypred, lse_d);
     // D logsumexp(pred) / D params
-    logsumexp_grad_new(l, b, lse_d, ypred_jacobian_new, grad_lse_ypred_new);
+    logsumexp_grad(l, b, lse_d, ypred_jacobian, grad_lse_ypred);
 
     ygold = sequence_wrap.sequence[c - 1];
 
     total += (ygold * (ypred - lse)).sum();
 
-    update_loss_gradient_new(l, b, ygold, grad_lse_ypred_new, ypred_jacobian_new, j_wrap_new);
+    update_loss_gradient(l, b, ygold, grad_lse_ypred, ypred_jacobian, j_wrap);
 
     *loss = -total / count;
 
