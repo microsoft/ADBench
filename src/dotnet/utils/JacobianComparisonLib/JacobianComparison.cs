@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace JacobianComparisonLib
 {
@@ -53,60 +54,6 @@ namespace JacobianComparisonLib
             double b = 1.0 / compCount;
             this.AvgDifference = a * this.AvgDifference + b * diff;
         }
-    
-        public void CompareNumLines(double[] line1, double[] line2, int posY)
-        {
-            if (line1.Length != line2.Length)
-            {
-                this.DimensionMismatch = true;
-                this.Error = "Dimension mismatch on line posY";
-                return;
-            }
-            for (int n = 0; n < line1.Length; ++n)
-            {
-                this.CompareNumbers(line1[n], line2[n], n, posY);
-            }
-        }
-    
-        public void CompareJaggedArrayFiles(string path1, string path2)
-        {
-            this.File1 = path1;
-            this.File2 = path2;
-            if (TryParseJaggedArrayFile(path1, out double[][] j1)
-                && TryParseJaggedArrayFile(path2, out double[][] j2))
-            {
-                if (j1.Length != j2.Length)
-                {
-                    this.DimensionMismatch = true;
-                    this.Error = "Texts have different numbers of lines";
-                    return;
-                }
-                for (int n = 0; n < j1.Length; ++n)
-                {
-                    this.CompareNumLines(j1[n], j2[n], n);
-                }
-            }
-        }
-
-        public void CompareVectorFiles(string path1, string path2)
-        {
-            this.File1 = path1;
-            this.File2 = path2;
-            if (TryParseVectorFile(path1, out double[] j1)
-                && TryParseVectorFile(path2, out double[] j2))
-            {
-                if (j1.Length != j2.Length)
-                {
-                    this.DimensionMismatch = true;
-                    this.Error = "Texts have different numbers of lines";
-                    return;
-                }
-                for (int n = 0; n < j1.Length; ++n)
-                {
-                    this.CompareNumbers(j1[n], j2[n], 0, n);
-                }
-            }
-        }
 
         public void CompareGmmFullAndPartGradients(string path1, string[] paths2)
         {
@@ -130,6 +77,44 @@ namespace JacobianComparisonLib
             }
         }
 
+        public void CompareFiles(string path1, string path2)
+        {
+            this.File1 = path1;
+            this.File2 = path2;
+            int posX = 0, posY = 0;
+
+            using (var tokenEnumerator1 = ParseFile(path1).GetEnumerator())
+            using (var tokenEnumerator2 = ParseFile(path2).GetEnumerator())
+            {
+                while (tokenEnumerator1.MoveNext() && tokenEnumerator2.MoveNext())
+                {
+                    if (tokenEnumerator1.Current.Kind == TokenKind.Error || tokenEnumerator2.Current.Kind == TokenKind.Error)
+                        return;
+                    if (tokenEnumerator1.Current.Kind != tokenEnumerator2.Current.Kind)
+                    {
+                        this.DimensionMismatch = true;
+                        this.Error = $"Dimension mismatch at ({posX}, {posY})";
+                        return;
+                    }
+                    if (tokenEnumerator1.Current.Kind == TokenKind.Number)
+                    {
+                        CompareNumbers(tokenEnumerator1.Current.Value, tokenEnumerator2.Current.Value, posX, posY);
+                        ++posX;
+                    }
+                    else
+                    {
+                        ++posY;
+                        posX = 0;
+                    }
+                }
+                if (tokenEnumerator1.MoveNext() || tokenEnumerator2.MoveNext())
+                {
+                    this.DimensionMismatch = true;
+                    this.Error = $"Dimension mismatch at ({posX}, {posY})";
+                }
+            }
+        }
+
         public bool ViolationsHappened()
         {
             return this.ParseError || this.DimensionMismatch || this.DifferenceViolationCount > 0;
@@ -140,6 +125,109 @@ namespace JacobianComparisonLib
         public string ToTabSeparatedString()
         {
             return $"{this.File1}\t{this.File2}\t{this.Tolerance}\t{this.DimensionMismatch}\t{this.ParseError}\t{this.MaxDifference}\t{this.AvgDifference}\t{this.DifferenceViolationCount}\t{this.NumberComparisonCount}\t{string.Join(" ", this.DifferenceViolations.Take(10))}\t{this.Error}";
+        }
+
+        private enum TokenKind
+        {
+            Number,
+            NewLine,
+            Error
+        }
+
+        private struct Token
+        {
+            public TokenKind Kind;
+            public double Value;
+
+            public static Token CreateNewLine() => new Token { Kind = TokenKind.NewLine };
+            public static Token CreateDouble(double value) => new Token { Kind = TokenKind.Number, Value = value };
+            public static Token CreateError() => new Token { Kind = TokenKind.Error };
+        }
+
+        private IEnumerable<Token> ParseFile(string path)
+        {
+            int curLine = 0, curPos = 0, lastNumStartPos = 0;
+            StringBuilder acc = new StringBuilder(32);
+            char c;
+            bool foundNewLine = false;
+            using (var reader = File.OpenText(path))
+            {
+                // Skipping whitespace in the beginning
+                while (reader.Peek() >= 0 && char.IsWhiteSpace((char)reader.Peek()))
+                {
+                    c = (char)reader.Read();
+                    if (c == '\n')
+                    {
+                        ++curLine;
+                        curPos = 0;
+                    }
+                    else
+                    {
+                        ++curPos;
+                    }
+                }
+
+                while (reader.Peek() >= 0)
+                {
+                    c = (char)reader.Read();
+                    if (char.IsWhiteSpace(c))
+                    {
+                        if (acc.Length > 0)
+                        {
+                            if (double.TryParse(acc.ToString(), out double d))
+                            {
+                                acc.Clear();
+                                yield return Token.CreateDouble(d);
+                            }
+                            else
+                            {
+                                this.ParseError = true;
+                                this.Error = $"Failed to parse file {path} - line {curLine} position {lastNumStartPos}.";
+                                yield return Token.CreateError();
+                                yield break;
+                            }
+                        }
+                        if (c == '\n')
+                        {
+                            foundNewLine = true;
+                            ++curLine;
+                            curPos = 0;
+                        }
+                        else
+                        {
+                            ++curPos;
+                        }
+                    }
+                    else
+                    {
+                        if (acc.Length == 0)
+                        {
+                            if (foundNewLine)
+                            {
+                                yield return Token.CreateNewLine();
+                                foundNewLine = false;
+                            }
+                            lastNumStartPos = curPos;
+                        }
+                        acc.Append(c);
+                        ++curPos;
+                    }
+                }
+
+                if (acc.Length > 0)
+                {
+                    if (double.TryParse(acc.ToString(), out double d))
+                    {
+                        yield return Token.CreateDouble(d);
+                    }
+                    else
+                    {
+                        this.ParseError = true;
+                        this.Error = $"Failed to parse file {path} - line {curLine} position {lastNumStartPos}.";
+                        yield return Token.CreateError();
+                    }
+                }
+            }
         }
 
         private bool TryParseVectorFile(string path, out double[] result)
@@ -185,38 +273,6 @@ namespace JacobianComparisonLib
                 ++curLine;
             }
             result = acc.ToArray();
-            return true;
-        }
-
-        private bool TryParseJaggedArrayFile(string path, out double[][] result)
-        {
-            List<double[]> fileAcc = new List<double[]>();
-            int curLine = 0;
-            foreach (string line in File.ReadLines(path))
-            {
-                string[] parts = line.Split(' ', '\t');
-                List<double> lineAcc = new List<double>(parts.Length);
-                int curPos = 0;
-                foreach (string elem in parts.Where(s => !string.IsNullOrWhiteSpace(s)))
-                {
-                    if (double.TryParse(elem, out double d) && !double.IsNaN(d))
-                    {
-                        lineAcc.Add(d);
-                    }
-                    else
-                    {
-                        this.ParseError = true;
-                        this.Error = $"Failed to parse file {path} - line {curLine} - element {elem} with index {curPos}.";
-                        result = null;
-                        return false;
-                    }
-                    ++curPos;
-                }
-                if (lineAcc.Count > 0)
-                    fileAcc.Add(lineAcc.ToArray());
-                ++curLine;
-            }
-            result = fileAcc.ToArray();
             return true;
         }
     }
