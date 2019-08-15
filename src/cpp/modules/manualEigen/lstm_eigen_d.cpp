@@ -952,7 +952,7 @@ void update_pred_jacobian_with_prev_state_jacobian_new(int n_layers, int hsize,
 
 
             ypred_jacobian.d_prediction[pos].d_rawX8.col(0) +=
-                ypred_jacobian.d_prediction[pos].d_hidden[i] * prev_state_jacobian.layer[i].d_hidden[pos].d_rawX8.col(0);
+                ypred_jacobian.d_prediction[pos].d_hidden[i] * prev_state_jacobian.layer[i].d_hidden[pos].d_rawX8.col(0)
                 + ypred_jacobian.d_prediction[pos].d_cell[i] * prev_state_jacobian.layer[i].d_cell[pos].d_rawX8.col(0);
             ypred_jacobian.d_prediction[pos].d_rawX8.col(1) +=
                 ypred_jacobian.d_prediction[pos].d_hidden[i] * prev_state_jacobian.layer[i].d_hidden[pos].d_rawX8.col(1)
