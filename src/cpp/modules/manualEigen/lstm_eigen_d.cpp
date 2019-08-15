@@ -1250,6 +1250,8 @@ void lstm_objective_d(int l, int c, int b,
         update_loss_gradient_new(l, b, ygold, grad_lse_ypred_new, ypred_jacobian_new, j_wrap_new);
 
         swap(state_jacobian, prev_state_jacobian);
+        //state_jacobian_new = StateJacobianPredictNew<double>(state_jacobian.raw_data, l, b);
+        //prev_state_jacobian_new = StateJacobianPredictNew<double>(prev_state_jacobian.raw_data, l, b);
         //swap_new(state_jacobian_new, prev_state_jacobian_new);
     }
 
