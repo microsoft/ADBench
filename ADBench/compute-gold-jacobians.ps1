@@ -189,7 +189,7 @@ for ($n = $ba_min_n; $n -le $ba_max_n; $n++) {
         $m = computeJ "BA" "Manual" $ba_dir_in $dir_out "ba$n"
         $f = computeJ "BA" "Finite" $ba_dir_in $dir_out "ba$n"
         $comparison = New-JacobianComparison $defaultTolerance
-        $comparison.CompareJaggedArrayFiles($m, $f)
+        $comparison.CompareFiles($m, $f)
         if (!$comparison.ViolationsHappened()) {
             Remove-Item $f
         } else {
@@ -225,7 +225,7 @@ foreach ($type in @("simple", "complicated")) {
                 $m = computeJ "Hand${task}" "Manual" $dir_in $dir_out "hand$n"
                 $f = computeJ "Hand${task}" "Finite" $dir_in $dir_out "hand$n"
                 $comparison = New-JacobianComparison $defaultTolerance
-                $comparison.CompareJaggedArrayFiles($m, $f)
+                $comparison.CompareFiles($m, $f)
                 if (!$comparison.ViolationsHappened()) {
                     Remove-Item $f
                 } else {
@@ -254,7 +254,7 @@ foreach ($l in $lstm_l_vals) {
             $m = computeJ "LSTM" "Manual" $lstm_dir_in $dir_out "lstm_l${l}_c$c"
             $f = computeJ "LSTM" "Finite" $lstm_dir_in $dir_out "lstm_l${l}_c$c"
             $comparison = New-JacobianComparison $defaultTolerance
-            $comparison.CompareVectorFiles($m, $f)
+            $comparison.CompareFiles($m, $f)
             if (!$comparison.ViolationsHappened()) {
                 Remove-Item $f
             } else {
