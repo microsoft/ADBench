@@ -1195,6 +1195,7 @@ void lstm_objective_d(int l, int c, int b,
     ///
     StateJacobianPredictNew<double> state_jacobian_new(state_jacobian.raw_data, l, b);
     GradByParamsNew<double> grad_lse_ypred_new(grad_lse_ypred.raw_data, l, b);
+    GradByParamsNew<double> j_wrap_new(j_wrap.raw_data, l, b);
     ///
 
     std::fill_n(J, total_params_count, 0.);
@@ -1215,7 +1216,7 @@ void lstm_objective_d(int l, int c, int b,
     ///
     //GradByParamsNew<double> grad_lse_ypred_new(grad_lse_ypred.raw_data, l, b);
     //PredictionJacobianNew<double> ypred_jacobian_new(ypred_jacobian, l, b);
-    GradByParamsNew<double> j_wrap_new(j_wrap.raw_data, l, b);
+    //GradByParamsNew<double> j_wrap_new(j_wrap.raw_data, l, b);
     ///
 
     //update_loss_gradient(l, b, ygold, grad_lse_ypred, ypred_jacobian, j_wrap);
