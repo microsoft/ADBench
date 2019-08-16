@@ -1,7 +1,51 @@
 $buildtype = "Release"
 [double]$defaultTolerance = 1.0e-6;
-$logfile = "goldlog.tsv"
 $skipCompleted = $true
+
+# Get source dir
+$scriptdir = Split-Path ($MyInvocation.MyCommand.Path)
+$dir = Split-Path $scriptdir
+
+Write-Host "Root Directory: $dir"
+
+# Load cmake variables
+$cmake_vars = "$dir/ADBench/cmake-vars-$buildtype.ps1"
+if (!(Test-Path $cmake_vars)) {
+   throw "No cmake-vars file found at $cmake_vars. Remember to run cmake before running this script."
+}
+. $cmake_vars
+
+Add-Type -Path "$bindir/src/dotnet/utils/JacobianComparisonLib/JacobianComparisonLib.dll"
+
+function New-JacobianComparison(
+    [double] $tolerance
+){
+    return [JacobianComparisonLib.JacobianComparison]::new($tolerance)
+}
+
+$outdir = "$dir/tmp/manvfinite"
+
+$datadir = "$dir/data"
+
+$logfile = "$dir/tmp/manvfinitelog.tsv"
+
+Write-Host "Build Type: $buildtype, output to $outdir`n"
+
+# Constants
+[string]$gmm_dir_in = "$datadir/gmm/"
+[string]$ba_dir_in = "$datadir/ba/"
+[string]$hand_dir_in = "$datadir/hand/"
+[string]$lstm_dir_in = "$datadir/lstm/"
+[array]$gmm_sizes = @("1k", "10k", "2.5M")
+[array]$hand_sizes = @("small", "big")
+[int]$ba_min_n = 1
+[int]$ba_max_n = 20
+[int]$hand_min_n = 1
+[int]$hand_max_n = 12
+[array]$lstm_l_vals = @(2, 4)
+[array]$lstm_c_vals = @(1024, 4096)
+#$gmm_d_vals = @(2, 10)#, 20, 32, 64)
+#$gmm_k_vals = @(5, 10)#, 25, 50, 100, 200)
 
 # Make a directory (including its parents if necessary) after checking
 # that nothing else is in the way.  See
@@ -85,50 +129,6 @@ function computePartGmmJ ([string]$dir_in, [string]$dir_out, [string]$fn, [int]$
     return $output_files
 }
 
-
-# Get source dir
-$scriptdir = Split-Path ($MyInvocation.MyCommand.Path)
-$dir = Split-Path $scriptdir
-
-Write-Host "Root Directory: $dir"
-
-# Load cmake variables
-$cmake_vars = "$dir/ADBench/cmake-vars-$buildtype.ps1"
-if (!(Test-Path $cmake_vars)) {
-   throw "No cmake-vars file found at $cmake_vars. Remember to run cmake before running this script, and/or pass the -buildtype param."
-}
-. $cmake_vars
-
-Add-Type -Path "$bindir/src/dotnet/utils/JacobianComparisonLib/JacobianComparisonLib.dll"
-
-function New-JacobianComparison(
-    [double] $tolerance
-){
-    return [JacobianComparisonLib.JacobianComparison]::new($tolerance)
-}
-
-$outdir = "$dir/goldJ"
-
-$datadir = "$dir/data"
-
-Write-Host "Build Type: $buildtype, output to $outdir`n"
-
-# Constants
-[string]$gmm_dir_in = "$datadir/gmm/"
-[string]$ba_dir_in = "$datadir/ba/"
-[string]$hand_dir_in = "$datadir/hand/"
-[string]$lstm_dir_in = "$datadir/lstm/"
-[array]$gmm_sizes = @("1k", "10k", "2.5M")
-[array]$hand_sizes = @("small", "big")
-[int]$ba_min_n = 1
-[int]$ba_max_n = 20
-[int]$hand_min_n = 1
-[int]$hand_max_n = 12
-[array]$lstm_l_vals = @(2, 4)
-[array]$lstm_c_vals = @(1024, 4096)
-#$gmm_d_vals = @(2, 10)#, 20, 32, 64)
-#$gmm_k_vals = @(5, 10)#, 25, 50, 100, 200)
-
 if (!(Test-Path $logfile)) {
     [JacobianComparisonLib.JacobianComparison]::TabSeparatedHeader | Out-File $logfile
 }
@@ -160,7 +160,7 @@ foreach ($sz in $gmm_sizes) {
                 }
                 $m = computeJ "GMM" "Manual" $dir_in $dir_out "gmm_d${d}_K${k}" $rep
                 $f = computePartGmmJ $dir_in $dir_out "gmm_d${d}_K${k}" $finiteGradSize $rep
-                $comparison = New-JacobianComparison 1.0e-4
+                $comparison = New-JacobianComparison $defaultTolerance
                 $comparison.CompareGmmFullAndPartGradients($m, $f)
                 if (!$comparison.ViolationsHappened()) {
                     Remove-Item $f
