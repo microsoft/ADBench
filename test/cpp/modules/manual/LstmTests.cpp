@@ -9,6 +9,7 @@ class LstmModuleTest : public ModuleTest {};
 INSTANTIATE_TEST_CASE_P(Lstm, LstmModuleTest,
     ::testing::Values(
         "../../../../src/cpp/modules/manual/Manual.dll",
+        "../../../../src/cpp/modules/manualEigen/ManualEigen.dll",
         "../../../../src/cpp/modules/finite/Finite.dll"
     ),
     get_module_name<ModuleTest::ParamType>);
