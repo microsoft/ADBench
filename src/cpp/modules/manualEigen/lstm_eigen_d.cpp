@@ -8,7 +8,7 @@
 template<typename T>
 ArrayX<T> sigmoid_d(const ArrayX<T>& x, ArrayX<T>& d) {
     ArrayX<T> s = sigmoid(x);
-    d.resize(s.rows()); //DANGER may be incorrect size
+    d.resize(s.rows());
     d = s * (1 - s);
     return s;
 }
@@ -17,7 +17,7 @@ ArrayX<T> sigmoid_d(const ArrayX<T>& x, ArrayX<T>& d) {
 template<typename T>
 ArrayX<T> tanh_d(const ArrayX<T>& x, ArrayX<T>& d) {
     ArrayX<T> t = tanh(x);
-    d.resize(t.rows()); //DANGER may be incorrect size
+    d.resize(t.rows());
     d = 1 - t * t;
     return t;
 }
