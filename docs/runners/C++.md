@@ -46,6 +46,7 @@ CPPRunner test_type module_path input_filepath output_dir minimum_measurable_tim
   - nruns_J  - maximum number of times to run the computation of the considered derivative (gradient or Jacobian) for timing.
   - time_limit - soft (see [Architecture.md](./Architecture.md)) time limit for benchmarking the computation of either the objective function or its gradient/Jacobian.
   - \-rep *(applycable only for GMM)* - if enabled all input data points take one common value.
-## Adding new modules
 
+## Adding new modules
+(see [../modules/C++.md](../modules/C++.md))
 ## Adding new objective types
