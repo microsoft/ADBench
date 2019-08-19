@@ -2,6 +2,7 @@ project("ADBench_ManualEigen" CXX)
 
 add_library("ManualEigen" MODULE)
 target_sources("ManualEigen" PRIVATE "gmm_d.cpp")
+target_sources("ManualEigen" PRIVATE "gmm_scalar_d.cpp")
 target_sources("ManualEigen" PRIVATE "ba_d.cpp")
 target_sources("ManualEigen" PRIVATE "hand_eigen_d.cpp")
 target_sources("ManualEigen" PRIVATE "lstm_eigen_d.cpp")

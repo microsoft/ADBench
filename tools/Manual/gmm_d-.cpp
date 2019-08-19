@@ -229,8 +229,6 @@ double log_wishart_prior_d(int p, int k,
 
 #if defined DO_EIGEN
 
-#include "../../src/cpp/shared/gmm_eigen_scalar.h"
-
 void gmm_objective_no_priors_d(int d, int k, int n,
   Map<const ArrayXd> const& alphas,
   vector<Map<const VectorXd>> const& mus,
@@ -315,8 +313,6 @@ void gmm_objective_d(int d, int k, int n,
 }
 
 #elif DO_EIGEN_VECTOR
-
-#include "../../src/cpp/shared/gmm_eigen_vector.h"
 
 // logsumexp of cols
 void logsumexp_d(const MatrixXd& X, ArrayXd& lse, MatrixXd& logsumexp_partial_d)

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cmath>
 #include <vector>
 #include "defs.h"
@@ -38,12 +40,12 @@ using ArrayX = Eigen::Array<T, -1, 1>;
 // err: 1 output
 template<typename T>
 void gmm_objective(int d, int k, int n,
-  const T* const alphas,
-  const T* const means,
-  const T* const icf,
-  const T* const x,
-  Wishart wishart,
-  T* err);
+    const T* const alphas,
+    const T* const means,
+    const T* const icf,
+    const T* const x,
+    Wishart wishart,
+    T* err);
 
 template<typename T>
 double logsumexp(const ArrayX<T>& x);
@@ -56,28 +58,11 @@ double logsumexp(const ArrayX<T>& x);
 // icf: (p*(p+1)/2)*k inverse covariance factors
 template<typename T>
 double log_wishart_prior(int p, int k,
-  Wishart wishart,
-  const ArrayX<T>& sum_qs,
-  const vector<MatrixX<T>>& Qs,
-  const T* const icf);
+    Wishart wishart,
+    const ArrayX<T>& sum_qs,
+    const vector<MatrixX<T>>& Qs,
+    const T* const icf);
 
-template<typename T>
-void gmm_objective_no_priors(int d, int k, int n,
-  const Map<const ArrayX<T>>& alphas,
-  const vector<Map<const VectorX<T>>>& mus,
-  const ArrayX<T>& sum_qs,
-  const vector<MatrixX<T>>& Qs,
-  const double* const x,
-  Wishart wishart,
-  T* err);
-
-template<typename T>
-void preprocess(int d, int k,
-  const T* const means,
-  const T* const icf,
-  vector<Map<const VectorX<T>>>& mus,
-  ArrayX<T>& sum_qs,
-  vector<MatrixX<T>>& Qs);
 
 ////////////////////////////////////////////////////////////
 //////////////////// Definitions ///////////////////////////
@@ -87,128 +72,29 @@ void preprocess(int d, int k,
 template<typename T>
 T logsumexp(const ArrayX<T>& x)
 {
-  T mx = x.maxCoeff();
-  T semx = (x.array() - mx).exp().sum();
-  return log(semx) + mx;
+    T mx = x.maxCoeff();
+    T semx = (x.array() - mx).exp().sum();
+    return log(semx) + mx;
 }
 
 template<typename T>
 double log_wishart_prior(int p, int k,
-  Wishart wishart,
-  const ArrayX<T>& sum_qs,
-  const vector<MatrixX<T>>& Qs,
-  const T* const icf)
+    Wishart wishart,
+    const ArrayX<T>& sum_qs,
+    const vector<MatrixX<T>>& Qs,
+    const T* const icf)
 {
-  int n = p + wishart.m + 1;
-  int icf_sz = p*(p + 1) / 2;
+    int n = p + wishart.m + 1;
+    int icf_sz = p * (p + 1) / 2;
 
-  double C = n*p*(log(wishart.gamma) - 0.5*log(2.)) - log_gamma_distrib(0.5*n, p);
+    double C = n * p * (log(wishart.gamma) - 0.5 * log(2.)) - log_gamma_distrib(0.5 * n, p);
 
-  double sum_frob = 0;
-  for (int ik = 0; ik < k; ik++)
-  {
-    Map<const VectorX<T>> L(&icf[icf_sz*ik + p], icf_sz - p);
-    sum_frob = sum_frob + L.squaredNorm() + Qs[ik].diagonal().squaredNorm();
-  }
-
-  return 0.5*wishart.gamma*wishart.gamma*sum_frob - wishart.m*sum_qs.sum() - k*C;
-}
-
-template<typename T>
-void gmm_objective_no_priors(int d, int k, int n,
-  const Map<const ArrayX<T>>& alphas,
-  const vector<Map<const VectorX<T>>>& mus,
-  const ArrayX<T>& sum_qs,
-  const vector<MatrixX<T>>& Qs,
-  const double* const x,
-  Wishart wishart,
-  T* err)
-{
-  VectorX<T> xcentered(d), Qxcentered(d);
-  ArrayX<T> lse(k);
-  T slse = 0.;
-  for (int ix = 0; ix < n; ix++)
-  {
-    Map<const VectorX<T>> curr_x(&x[ix*d], d);
+    double sum_frob = 0;
     for (int ik = 0; ik < k; ik++)
     {
-      switch (3) // 3 is the fastest, (and 2 is slightly faster than 4)
-      {
-      case 2:
-        xcentered = curr_x - mus[ik];
-        Qxcentered.noalias() = Qs[ik].template triangularView<Eigen::Lower>()*xcentered;
-        lse(ik) = -0.5*Qxcentered.squaredNorm();
-        break;
-      case 3:
-        xcentered = curr_x - mus[ik];
-        Qxcentered.noalias() = Qs[ik] * xcentered;
-        lse(ik) = -0.5*Qxcentered.squaredNorm();
-        break;
-      case 4:
-        lse(ik) = -0.5*(Qs[ik].template triangularView<Eigen::Lower>() * (curr_x - mus[ik])).squaredNorm();
-        break;
-      }
+        Map<const VectorX<T>> L(&icf[icf_sz * ik + p], icf_sz - p);
+        sum_frob = sum_frob + L.squaredNorm() + Qs[ik].diagonal().squaredNorm();
     }
-    lse = lse + alphas + sum_qs;
-    slse = slse + logsumexp(lse);
-  }
 
-  T lse_alphas = logsumexp(alphas);
-  double CONSTANT = -n*d*0.5*log(2 * PI);
-
-  *err = CONSTANT + slse - n*lse_alphas;
-}
-
-template<typename T>
-void preprocess(int d, int k,
-  const T* const means,
-  const T* const icf,
-  vector<Map<const VectorX<T>>>& mus,
-  ArrayX<T>& sum_qs,
-  vector<MatrixX<T>>& Qs)
-{
-  int icf_sz = d*(d + 1) / 2;
-
-  sum_qs.resize(k);
-  Qs.resize(k, MatrixX<T>::Zero(d, d));
-
-  for (int ik = 0; ik < k; ik++)
-  {
-    int icf_off = ik*icf_sz;
-    mus.emplace_back(&means[ik*d], d);
-    Map<const ArrayX<T>> q(&icf[icf_off], d);
-    sum_qs[ik] = q.sum();
-    int Lparamsidx = d;
-    for (int i = 0; i < d; i++)
-    {
-      int n_curr_elems = d - i - 1;
-      Qs[ik].col(i).bottomRows(n_curr_elems) =
-        Map<const VectorX<T>>(&icf[icf_off + Lparamsidx], n_curr_elems);
-      Lparamsidx = Lparamsidx + n_curr_elems;
-    }
-    Qs[ik].diagonal() = q.exp();
-  }
-}
-
-template<typename T>
-void gmm_objective(int d, int k, int n,
-  const T* const alphas,
-  const T* const means,
-  const T* const icf,
-  const T* const x,
-  Wishart wishart,
-  T* err)
-{
-  int icf_sz = d*(d + 1) / 2;
-
-  // init eigen wrappers first
-  vector<Map<const VectorX<T>>> mus;
-  ArrayX<T> sum_qs;
-  vector<MatrixX<T>> Qs;
-  preprocess(d, k, means, icf, mus, sum_qs, Qs);
-
-  Map<const ArrayX<T>> map_alphas(alphas, k);
-  gmm_objective_no_priors(d, k, n, map_alphas, mus, sum_qs,
-    Qs, x, wishart, err);
-  *err = *err + log_wishart_prior(d, k, wishart, sum_qs, Qs, icf);
+    return 0.5 * wishart.gamma * wishart.gamma * sum_frob - wishart.m * sum_qs.sum() - k * C;
 }
