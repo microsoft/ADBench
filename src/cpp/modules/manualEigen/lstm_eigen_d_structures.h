@@ -9,12 +9,42 @@ struct StateElementGradientModel
 {
     // Matrix(hsize, 10) derivatives from all layers
     MapX10<T> d_rawX10;
-    // array of corresponding non-zero derivatives
+    // hsize derivatives by corresponding weights from all layers
+    MapX<T> d_weight_forget;
+    // hsize derivatives by corresponding weights from all layers
+    MapX<T> d_weight_ingate;
+    // hsize derivatives by corresponding weights from all layers
+    MapX<T> d_weight_outgate;
+    // hsize derivatives by corresponding weights from all layers
+    MapX<T> d_weight_change;
+    // hsize derivatives by corresponding biases from all layers
+    MapX<T> d_bias_forget;
+    // hsize derivatives by corresponding biases from all layers
+    MapX<T> d_bias_ingate;
+    // hsize derivatives by corresponding biases from all layers
+    MapX<T> d_bias_outgate;
+    // hsize derivatives by corresponding biases from all layers
+    MapX<T> d_bias_change;
+    // hsize derivatives by corresponding hidden values from previous state from all layers
+    MapX<T> d_hidden;
+    // hsize derivatives by corresponding cell values from previous state from all layers
+    MapX<T> d_cell;
+    // hsize derivatives of corresponding input values
     MapX<T> d_input;
 
     // raw_data must point to (11 * hsize) pre-allocated T
     StateElementGradientModel(T* raw_data, int hsize) :
         d_rawX10(raw_data, hsize, 10),
+        d_weight_forget(raw_data, hsize),
+        d_weight_ingate(&raw_data[hsize], hsize),
+        d_weight_outgate(&raw_data[2 * hsize], hsize),
+        d_weight_change(&raw_data[3 * hsize], hsize),
+        d_bias_forget(&raw_data[4 * hsize], hsize),
+        d_bias_ingate(&raw_data[5 * hsize], hsize),
+        d_bias_outgate(&raw_data[6 * hsize], hsize),
+        d_bias_change(&raw_data[7 * hsize], hsize),
+        d_hidden(&raw_data[8 * hsize], hsize),
+        d_cell(&raw_data[9 * hsize], hsize),
         d_input(&raw_data[10 * hsize], hsize)
     {}
 };
