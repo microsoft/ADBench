@@ -11,7 +11,8 @@ INSTANTIATE_TEST_CASE_P(Gmm, GmmModuleTest,
         "../../../../src/cpp/modules/manual/Manual.dll",
         "../../../../src/cpp/modules/manualEigen/ManualEigen.dll",
         "../../../../src/cpp/modules/finite/Finite.dll",
-        "../../../../src/cpp/modules/manualEigenVector/ManualEigenVector.dll"
+        "../../../../src/cpp/modules/manualEigenVector/ManualEigenVector.dll",
+        "../../../../src/cpp/modules/tapenade/Tapenade.dll"
     ),
     get_module_name<ModuleTest::ParamType>);
 
