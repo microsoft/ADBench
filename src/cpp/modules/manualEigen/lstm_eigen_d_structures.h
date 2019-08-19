@@ -176,7 +176,7 @@ struct PredictionElementGradient
     MapX<T> d_hidden;
     // n_layers derivatives by corresponding cell values from previous state from all layers
     MapX<T> d_cell;
-    // d_extra_in_out
+    // 3 derivatives by the corresponding weight and bias from extra params
     MapRow3<T> d_extra_in_out;
     // 1 derivative by the corresponding weight from extra params
     T* d_extra_in_weight;
