@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "lstm_eigen_types.h"
+#include "../../shared/lstm_eigen_types.h"
 
 template<typename T>
 struct StateElementGradientModel
