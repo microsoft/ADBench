@@ -2,7 +2,8 @@
 
 #include "../../shared/ITest.h"
 #include "../../shared/LSTMData.h"
-#include "../../shared/lstm.h"
+
+#include "lstm.h"
 #include "lstm_d.h"
 
 #include <vector>
@@ -17,8 +18,6 @@ private:
 	// buffers for holding differentitation directions
 	std::vector<double> main_params_d;
 	std::vector<double> extra_params_d;
-	std::vector<double> state_d;
-	std::vector<double> sequence_d;
 
 public:
 	// This function must be called before any other function.
@@ -31,6 +30,7 @@ public:
 	~TapenadeLSTM() {}
 
 private:
+	// Calculates a part of a gradient.
 	void calculate_gradient_part(int shift, std::vector<double>& directions);
 };
 
