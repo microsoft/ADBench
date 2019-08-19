@@ -8,8 +8,6 @@ void TapenadeLSTM::prepare(LSTMInput&& input)
 
 	main_params_d = std::vector<double>(this->input.main_params.size(), 0.0);
 	extra_params_d = std::vector<double>(this->input.extra_params.size(), 0.0);
-	state_d = std::vector<double>(this->input.state.size(), 0.0);
-	sequence_d = std::vector<double>(this->input.sequence.size(), 0.0);
 
 	result = { 0, std::vector<double>(Jcols) };
 }
@@ -34,7 +32,7 @@ void TapenadeLSTM::calculate_objective(int times)
 			input.b,
 			input.main_params.data(),
 			input.extra_params.data(),
-			state,
+			state.data(),
 			input.sequence.data(),
 			&result.objective
 		);
@@ -55,14 +53,6 @@ void TapenadeLSTM::calculate_jacobian(int times)
 		// calculate extra_params gradient part
 		shift += input.main_params.size();
 		calculate_gradient_part(shift, extra_params_d);
-
-		// calculate state gradient part
-		shift += input.extra_params.size();
-	    calculate_gradient_part(shift, state_d);
-
-		// calculate sequence gradient part
-		shift += input.state.size();
-		calculate_gradient_part(shift, sequence_d);
 	}
 }
 
@@ -78,7 +68,7 @@ void TapenadeLSTM::calculate_gradient_part(int shift, std::vector<double>& direc
 		{
 			directions[i - 1] = 0.0;	// erase last direction
 		}
-
+		
 		lstm_objective_d(
 			input.l,
 			input.c,
@@ -88,9 +78,7 @@ void TapenadeLSTM::calculate_gradient_part(int shift, std::vector<double>& direc
 			input.extra_params.data(),
 			extra_params_d.data(),
 			state.data(),
-			state_d.data(),
 			input.sequence.data(),
-			sequence_d.data(),
 			&result.objective,
 			&result.gradient[shift + i]
 		);
