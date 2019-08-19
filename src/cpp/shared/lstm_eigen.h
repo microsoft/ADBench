@@ -5,7 +5,7 @@
 #include <cmath>
 #include <string>
 
-#include "lstm_eigen_helpers.h"
+#include "lstm_eigen_types.h"
 
 
 // UTILS
