@@ -17,7 +17,7 @@ LSTMOutput ManualEigenLSTM::output()
     return result;
 }
 
-void ManualEigenLSTM::calculateObjective(int times)
+void ManualEigenLSTM::calculate_objective(int times)
 {
     for (int i = 0; i < times; ++i) {
         state = input.state;
@@ -25,7 +25,7 @@ void ManualEigenLSTM::calculateObjective(int times)
     }
 }
 
-void ManualEigenLSTM::calculateJacobian(int times)
+void ManualEigenLSTM::calculate_jacobian(int times)
 {
     for (int i = 0; i < times; ++i) {
         state = input.state;
@@ -33,7 +33,7 @@ void ManualEigenLSTM::calculateJacobian(int times)
     }
 }
 
-extern "C" DLL_PUBLIC ITest<LSTMInput, LSTMOutput>*  GetLSTMTest()
+extern "C" DLL_PUBLIC ITest<LSTMInput, LSTMOutput>* get_lstm_test()
 {
     return new ManualEigenLSTM();
 }
