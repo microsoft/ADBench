@@ -12,7 +12,7 @@
 	add_subdirectory ("YourModule")
 	```
 3. For each objective create a class implementing ITest<TInput,TOuput> interface where T is an objective type (GMM, BA etc.). *TInput* and *TOutput* are input and output types specific for an objective. Their definitions are stored in the "../../shared/TData.h" file relatively to the directory of your module.
-4. For each class add a class factory function just below class implementation as follows:
+4. For each class add an exported factory function just below class implementation as follows:
 	```
 	extern "C" DLL_PUBLIC ITest<TInput, TOutput>* get_T_test()
 	{
