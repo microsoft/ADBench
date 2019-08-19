@@ -80,22 +80,21 @@ void lstm_model_d(int hsize,
     ArrayX<T> change_dh(change_td * params.weight.change);
 
     // Cell derivatives
-
     ArrayX<T> orig_cell = state.cell;
     state.cell = orig_cell * forget + ingate * change;
     // wrt weight
-    jacobian.cell.d_rawX10.col(0) = orig_cell * forget_dw;
-    jacobian.cell.d_rawX10.col(1) = change * ingate_dw;
-    jacobian.cell.d_rawX10.col(2) = 0.;
-    jacobian.cell.d_rawX10.col(3) = ingate * change_dw;
+    jacobian.cell.d_weight_forget = orig_cell * forget_dw;
+    jacobian.cell.d_weight_ingate = change * ingate_dw;
+    jacobian.cell.d_weight_outgate = 0.;
+    jacobian.cell.d_weight_change = ingate * change_dw;
     // wrt bias
-    jacobian.cell.d_rawX10.col(4) = orig_cell * forget_db;
-    jacobian.cell.d_rawX10.col(5) = change * ingate_db;
-    jacobian.cell.d_rawX10.col(6).setZero();
-    jacobian.cell.d_rawX10.col(7) = ingate * change_db;
+    jacobian.cell.d_bias_forget = orig_cell * forget_db;
+    jacobian.cell.d_bias_ingate = change * ingate_db;
+    jacobian.cell.d_bias_outgate.setZero();
+    jacobian.cell.d_bias_change = ingate * change_db;
     // wrt hidden, cell(original), input
-    jacobian.cell.d_rawX10.col(8) = ingate * change_dh + change * ingate_dh;
-    jacobian.cell.d_rawX10.col(9) = forget;
+    jacobian.cell.d_hidden = ingate * change_dh + change * ingate_dh;
+    jacobian.cell.d_cell = forget;
     jacobian.cell.d_input = orig_cell * forget_di;
 
     // Hidden derivatives
@@ -103,19 +102,12 @@ void lstm_model_d(int hsize,
     ArrayX<T> hidden_t = tanh_d((ArrayX<T>)state.cell, hidden_td);
     state.hidden = outgate * hidden_t;
     hidden_td *= outgate;
-    // wrt weight
-    jacobian.hidden.d_rawX10.col(0) = hidden_td * jacobian.cell.d_rawX10.col(0);
-    jacobian.hidden.d_rawX10.col(1) = hidden_td * jacobian.cell.d_rawX10.col(1);
-    jacobian.hidden.d_rawX10.col(2) = hidden_t * outgate_dw;
-    jacobian.hidden.d_rawX10.col(3) = hidden_td * jacobian.cell.d_rawX10.col(3);
-    // wrt bias
-    jacobian.hidden.d_rawX10.col(4) = hidden_td * jacobian.cell.d_rawX10.col(4);
-    jacobian.hidden.d_rawX10.col(5) = hidden_td * jacobian.cell.d_rawX10.col(5);
-    jacobian.hidden.d_rawX10.col(6) = hidden_t * outgate_db;
-    jacobian.hidden.d_rawX10.col(7) = hidden_td * jacobian.cell.d_rawX10.col(7);
-    // wrt hidden, cell (original), input
-    jacobian.hidden.d_rawX10.col(8) = hidden_td * jacobian.cell.d_rawX10.col(8);
-    jacobian.hidden.d_rawX10.col(9) = hidden_td * jacobian.cell.d_rawX10.col(9);
+
+    // wrt weight, bias, hidden, cell(original)
+    jacobian.hidden.d_rawX10 = jacobian.cell.d_rawX10.colwise() * hidden_td;
+    jacobian.hidden.d_weight_outgate = hidden_t * outgate_dw;
+    jacobian.hidden.d_bias_outgate = hidden_t * outgate_db;
+    // wrt input
     jacobian.hidden.d_input = outgate_di * hidden_t + hidden_td * jacobian.cell.d_input;
 }
 
