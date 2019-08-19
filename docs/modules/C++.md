@@ -1,3 +1,5 @@
+# C++ Modules
+
 ## Adding new modules
 1. Create a CMakeLists.txt file in the /src/cpp/modules/your_module directory to read as follows:
 	```
@@ -19,6 +21,6 @@
 	```
 	T is still an objective type here.
 5. Specify target sources in the project CMakeLists.txt file.
-6. Compile, run and enjoy!
+6. Compile, run via C++ runner and enjoy!
 
 Please, don't forget to add unit tests.
