@@ -9,7 +9,7 @@
 using std::vector;
 
 #include "../../shared/gmm.h"
-#include "gmm_d.h"
+#include "../manualEigen/gmm_d.h"
 #include "../../shared/gmm_eigen_vector.h"
 
 #include "Eigen/Dense"
