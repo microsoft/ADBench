@@ -195,7 +195,7 @@ void logsumexp_grad(int n_layers, int hsize,
         double lse_d_i = lse_d[i];
         for (int j = 0; j < n_layers; ++j)
         {
-            grad_lse_ypred.layer[j].d_params.row(i) = lse_d_i * ypred_jacobian.d_prediction[i].d_rawX8.row(j);
+            grad_lse_ypred.layer[j].d_rawX8.row(i) = lse_d_i * ypred_jacobian.d_prediction[i].d_rawX8.row(j);
         }
         grad_lse_ypred.d_in_out.row(i) = lse_d_i * ypred_jacobian.d_prediction[i].d_extra_in_out;
     }
@@ -217,11 +217,11 @@ void update_loss_gradient(int n_layers, int hsize,
 
         for (int k = 0; k < n_layers; ++k)
         {
-            loss_grad.layer[k].d_params.topRows(i) -= ygold_i * grad_lse_ypred.layer[k].d_params.topRows(i);
-            loss_grad.layer[k].d_params.row(i) += ygold_i * (ypred_jacobian.d_prediction[i].d_rawX8.row(k) -
-                grad_lse_ypred.layer[k].d_params.row(i));
-            loss_grad.layer[k].d_params.bottomRows(hsize - i - 1) -= ygold_i *
-                grad_lse_ypred.layer[k].d_params.bottomRows(hsize - i - 1);
+            loss_grad.layer[k].d_rawX8.topRows(i) -= ygold_i * grad_lse_ypred.layer[k].d_rawX8.topRows(i);
+            loss_grad.layer[k].d_rawX8.row(i) += ygold_i * (ypred_jacobian.d_prediction[i].d_rawX8.row(k) -
+                grad_lse_ypred.layer[k].d_rawX8.row(i));
+            loss_grad.layer[k].d_rawX8.bottomRows(hsize - i - 1) -= ygold_i *
+                grad_lse_ypred.layer[k].d_rawX8.bottomRows(hsize - i - 1);
         }
 
         loss_grad.d_in_out.topRows(i) -= ygold_i * grad_lse_ypred.d_in_out.topRows(i);
