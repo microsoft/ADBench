@@ -85,7 +85,7 @@ void lstm_model_d(int hsize,
     // wrt weight
     jacobian.cell.d_weight_forget = orig_cell * forget_dw;
     jacobian.cell.d_weight_ingate = change * ingate_dw;
-    jacobian.cell.d_weight_outgate = 0.;
+    jacobian.cell.d_weight_outgate.setZero();
     jacobian.cell.d_weight_change = ingate * change_dw;
     // wrt bias
     jacobian.cell.d_bias_forget = orig_cell * forget_db;
