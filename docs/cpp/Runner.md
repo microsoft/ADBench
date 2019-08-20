@@ -48,7 +48,7 @@ CPPRunner test_type module_path input_filepath output_dir minimum_measurable_tim
   - \-rep *(applycable only for GMM)* - if enabled all input data points take one common value.
 
 ## Adding new modules
-(see [C++Modules.md](./C++Modules.md))
+(see [Modules.md](./Modules.md))
 ## Adding new objective types
 
  1. Define *TInput*, *TOutput* and (if necessary) *TParameters* structs in the "/src/cpp/shared/TData.h" file where T is a name of a new objective. 
