@@ -4,6 +4,24 @@
 
 #include "../../shared/lstm_eigen_types.h"
 
+// To simlify eigen operations and reduce the amount of code
+// here used special maps of matrices with X rows and 8 or 10 cols:
+
+// d_rawX8 is a map of matrix which contains (by cols):
+// d_weight_forget  - n_layers derivatives by corresponding weights from all layers
+// d_weight_ingate  - n_layers derivatives by corresponding weights from all layers
+// d_weight_outgate - n_layers derivatives by corresponding weights from all layers
+// d_weight_change  - n_layers derivatives by corresponding weights from all layers
+// d_bias_forget    - n_layers derivatives by corresponding biases from all layers
+// d_bias_ingate    - n_layers derivatives by corresponding biases from all layers
+// d_bias_outgate   - n_layers derivatives by corresponding biases from all layers
+// d_bias_change    - n_layers derivatives by corresponding biases from all layers
+
+// d_rawX10 in addition contains two more vectors (by cols):
+// d_hidden         - n_layers derivatives by corresponding hidden values from previous state from all layers
+// d_cell           - n_layers derivatives by corresponding cell values from previous state from all layers
+
+
 template<typename T>
 struct StateElementGradientModel
 {
@@ -233,11 +251,11 @@ template<typename T>
 struct GradByLayerParams
 {
     // Matrix(n_layers, 8) derivatives for all params
-    MapX8<T> d_params;
+    MapX8<T> d_rawX8;
 
     // grad_raw must point to (8 * hsize) pre-allocated T
     GradByLayerParams(T* grad_raw, int hsize) :
-        d_params(grad_raw, hsize, 8)
+        d_rawX8(grad_raw, hsize, 8)
     {}
 };
 
@@ -245,6 +263,8 @@ template<typename T>
 struct GradByParams
 {
     std::vector<GradByLayerParams<T>> layer;
+    // Matrix contains X rows and 3 cols
+    // by cols: d_in_weight, d_out_weight & d_out_bias
     MapX3<T> d_in_out;
     T* raw_data;
     bool owns_memory;
