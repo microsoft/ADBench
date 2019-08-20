@@ -5,7 +5,7 @@
 #include "../../shared/lstm_eigen_types.h"
 
 // To simlify eigen operations and reduce the amount of code
-// here used special maps of matrices with X rows and 8 or 10 cols:
+// we use special maps of matrices with X rows and 8 or 10 cols:
 
 // d_rawX8 is a map of matrix which contains (by cols):
 // d_weight_forget  - n_layers derivatives by corresponding weights from all layers
