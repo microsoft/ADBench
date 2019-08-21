@@ -5,6 +5,7 @@
 #include "memory_size.h"
 
 #include <iostream>
+#include <iomanip>
 #include <memory>
 
 // This function must be called before any other function.
@@ -42,9 +43,9 @@ void ManualEigenVectorGMM::prepare(GMMInput&& input)
         need_memory += 2 * 1024 * 1024 * 1024; // + 2GB
 
         if (need_memory > memory_size) {
-            double need_GB = need_memory / 1024 / 1024 / 1024;
+            double need_GB = (long double)need_memory / 1024 / 1024 / 1024;
             std::cerr << "Not enough memory to run manualEigenVector module on this data." << "\n"
-                << "Your system should have about " << need_GB << " GB of RAM." << "\n";
+                << "Your system should have about " << std::fixed << std::setprecision(3) << need_GB << " GB of RAM." << "\n";
             std::exit(EXIT_FAILURE);
         }
     }
