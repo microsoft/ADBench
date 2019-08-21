@@ -72,7 +72,7 @@ void gmm_objective_no_priors(int d, int k, int n,
             {
             case 2:
                 xcentered = curr_x - mus[ik];
-                Qxcentered.noalias() = Qs[ik].triangularView<Eigen::Lower>() * xcentered;
+                Qxcentered.noalias() = Qs[ik].template triangularView<Eigen::Lower>() * xcentered;
                 lse(ik) = -0.5 * Qxcentered.squaredNorm();
                 break;
             case 3:
@@ -81,7 +81,7 @@ void gmm_objective_no_priors(int d, int k, int n,
                 lse(ik) = -0.5 * Qxcentered.squaredNorm();
                 break;
             case 4:
-                lse(ik) = -0.5 * (Qs[ik].triangularView<Eigen::Lower>() * (curr_x - mus[ik])).squaredNorm();
+                lse(ik) = -0.5 * (Qs[ik].template triangularView<Eigen::Lower>() * (curr_x - mus[ik])).squaredNorm();
                 break;
             }
         }
