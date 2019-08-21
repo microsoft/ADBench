@@ -67,7 +67,7 @@ void ManualEigenVectorGMM::calculate_jacobian(int times)
     }
 }
 
-extern "C" __declspec(dllexport) ITest<GMMInput, GMMOutput>* __cdecl get_gmm_test()
+extern "C" DLL_PUBLIC ITest<GMMInput, GMMOutput>* get_gmm_test()
 {
     return new ManualEigenVectorGMM();
 }
