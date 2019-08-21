@@ -40,7 +40,7 @@ void ManualEigenVectorGMM::prepare(GMMInput&& input)
         // We would like to prevent system even from freezes
         // so we don't run module if it's less than 2GB RAM
         // left for normal operation of the system
-        need_memory += 2 * 1024 * 1024 * 1024; // + 2GB
+        need_memory += 2UL * 1024UL * 1024UL * 1024UL; // + 2GB
 
         if (need_memory > memory_size) {
             double need_GB = (long double)need_memory / 1024 / 1024 / 1024;
