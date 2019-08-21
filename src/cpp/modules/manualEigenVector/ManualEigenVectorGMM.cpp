@@ -21,16 +21,16 @@ void ManualEigenVectorGMM::prepare(GMMInput&& input)
     // If it is not enough memory in system to store all data that
     // manualEigenVector need, then executing will interrupt
     // to prevent system deadlock
-    size_t memory_size = get_memory_size();
+    std::size_t memory_size = get_memory_size();
     // If memory_size != 0 then check memory size,
     // else OS is undefined by get_memory_size()
     // and we try to execute module
     if (memory_size != 0) {
-        size_t d = input.d;
-        size_t k = input.k;
-        size_t n = input.n;
-        size_t icf_sz = d * (d + 1) / 2;
-        size_t need_memory =
+        std::size_t d = input.d;
+        std::size_t k = input.k;
+        std::size_t n = input.n;
+        std::size_t icf_sz = d * (d + 1) / 2;
+        std::size_t need_memory =
             (
             (k + k * d + k * icf_sz) // J
             + k + (d * k) + (d * n)  // eigen wrappers
