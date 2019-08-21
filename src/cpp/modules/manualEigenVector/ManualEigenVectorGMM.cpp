@@ -2,6 +2,7 @@
 #include "ManualEigenVectorGMM.h"
 #include "../../shared/gmm.h"
 #include "gmm_vector_d.h"
+#include "memory_size.h"
 
 #include <iostream>
 #include <memory>
@@ -12,6 +13,37 @@ void ManualEigenVectorGMM::prepare(GMMInput&& input)
     _input = input;
     int Jcols = (_input.k * (_input.d + 1) * (_input.d + 2)) / 2;
     _output = { 0,  std::vector<double>(Jcols) };
+
+    // If it is not enough memory in system to store all data that
+    // manualEigenVector need, then executing will interrupt
+    // to prevent system deadlock
+    size_t memory_size = get_memory_size();
+    // If memory_size != 0 then check memory size,
+    // else OS is undefined by get_memory_size()
+    // and we try to execute module
+    if (memory_size != 0) {
+        size_t d = input.d;
+        size_t k = input.k;
+        size_t n = input.n;
+        size_t icf_sz = d * (d + 1) / 2;
+        size_t need_memory =
+            (
+            (k + k * d + k * icf_sz) // J
+            + k + (d * k) + (d * n)  // eigen wrappers
+            + k + (k * d * d) // sum_qs, Qs
+            + (d * n) + (d * n) + (k * n) //xcentered, Qxcentered, main_term
+            + (k * d * d) + (k * d * d) // tmp_means_d, tmp_qs_d
+            + (k * (icf_sz - d) * n) // tmp_L_d
+            + n + k // mX, semX
+            ) * sizeof(double);
+        need_memory += 100 * 1024 * 1024; // + 100MB
+        if (need_memory > memory_size) {
+            need_memory /= 1024 * 1024 * 1024;
+            std::cerr << "Not enough memory to run manualEigenVector module on this data." << "\n"
+                << "Your system should have about " << need_memory << " GB of RAM." << "\n";
+            std::exit(EXIT_FAILURE);
+        }
+    }
 }
 
 GMMOutput ManualEigenVectorGMM::output()
