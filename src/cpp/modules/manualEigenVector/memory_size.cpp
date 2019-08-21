@@ -1,14 +1,8 @@
 #include "memory_size.h"
 
-#if defined(_WIN32)
-#include <windows.h>
 
-#elif defined(__linux__)
-#include <cstddef>
-#include <sys/sysinfo.h>
-
-#else
-#error "Cannot define size of memory for current OS."
+#if defined(__linux__)
+using namespace std;
 #endif
 
 size_t get_memory_size()
