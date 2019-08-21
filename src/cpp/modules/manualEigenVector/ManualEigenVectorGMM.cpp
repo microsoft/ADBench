@@ -36,7 +36,11 @@ void ManualEigenVectorGMM::prepare(GMMInput&& input)
             + (k * (icf_sz - d) * n) // tmp_L_d
             + n + k // mX, semX
             ) * sizeof(double);
-        need_memory += 100 * 1024 * 1024; // + 100MB
+        // We would like to prevent system even from freezes
+        // so we don't run module if it's less than 2GB RAM
+        // left for normal operation of the system
+        need_memory += 2 * 1024 * 1024 * 1024; // + 2GB
+
         if (need_memory > memory_size) {
             double need_GB = need_memory / 1024 / 1024 / 1024;
             std::cerr << "Not enough memory to run manualEigenVector module on this data." << "\n"
