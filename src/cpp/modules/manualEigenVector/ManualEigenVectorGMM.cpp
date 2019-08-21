@@ -7,6 +7,10 @@
 #include <iostream>
 #include <memory>
 
+#if defined(__linux__)
+#include <cstddef>
+#endif
+
 // This function must be called before any other function.
 void ManualEigenVectorGMM::prepare(GMMInput&& input)
 {
