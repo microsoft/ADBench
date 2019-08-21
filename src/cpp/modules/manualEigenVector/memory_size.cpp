@@ -1,22 +1,28 @@
 #include "memory_size.h"
 
+#if defined(_WIN32)
+#include <windows.h>
 
-#if defined(__linux__)
-using namespace std;
+#elif defined(__linux__)
+#include <cstddef>
+#include <sys/sysinfo.h>
+
+#else
+#error "Cannot define size of memory for current OS."
 #endif
 
-size_t get_memory_size()
+unsigned long long int get_memory_size()
 {
 #if defined(_WIN32)
     MEMORYSTATUSEX status;
     status.dwLength = sizeof(status);
     GlobalMemoryStatusEx(&status);
-    return (size_t)status.ullTotalPhys;
+    return (unsigned long long int)status.ullTotalPhys;
 #elif defined(__linux__)
     struct sysinfo sys_info;
     size_t total_ram = 0;
     if (sysinfo(&sys_info) != -1)
-        total_ram = ((size_t)sys_info.totalram * sys_info.mem_unit);
+        total_ram = ((unsigned long long int)sys_info.totalram * sys_info.mem_unit);
     return total_ram;
 #else
     // Unknown OS
