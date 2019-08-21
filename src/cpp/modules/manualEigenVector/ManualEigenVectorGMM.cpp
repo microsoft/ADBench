@@ -38,9 +38,9 @@ void ManualEigenVectorGMM::prepare(GMMInput&& input)
             ) * sizeof(double);
         need_memory += 100 * 1024 * 1024; // + 100MB
         if (need_memory > memory_size) {
-            need_memory /= 1024 * 1024 * 1024;
+            double need_GB = need_memory / 1024 / 1024 / 1024;
             std::cerr << "Not enough memory to run manualEigenVector module on this data." << "\n"
-                << "Your system should have about " << need_memory << " GB of RAM." << "\n";
+                << "Your system should have about " << need_GB << " GB of RAM." << "\n";
             std::exit(EXIT_FAILURE);
         }
     }
