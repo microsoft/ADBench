@@ -62,32 +62,32 @@ function mkdir_p($path) {
 }
 
 function run_command ($cmd) {
-	write-host "Run [$cmd $args]"
-	$ProcessInfo = New-Object System.Diagnostics.ProcessStartInfo
-	$ProcessInfo.FileName = $cmd
-	$ProcessInfo.RedirectStandardError = $true
-	$ProcessInfo.RedirectStandardOutput = $true
-	$ProcessInfo.UseShellExecute = $false
-	$ProcessInfo.Arguments = $args
-	$Process = New-Object System.Diagnostics.Process
-	$Process.StartInfo = $ProcessInfo
-	try {
-		$Process.Start() | Out-Null
-	} catch {
-		write-error "Failed to start process $cmd $args"
-		throw "failed"
-	}
-	$Process.WaitForExit()
-	$stdout = $Process.StandardOutput.ReadToEnd().Trim().Replace("`n", "`nstdout> ")
-	$stderr = $Process.StandardError.ReadToEnd().Trim().Replace("`n", "`nstderr> ")
-	$allOutput = "stdout> " + $stdout + "`nstderr> " + $stderr
-	Write-Host "$allOutput"
+    write-host "Run [$cmd $args]"
+    $ProcessInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $ProcessInfo.FileName = $cmd
+    $ProcessInfo.RedirectStandardError = $true
+    $ProcessInfo.RedirectStandardOutput = $true
+    $ProcessInfo.UseShellExecute = $false
+    $ProcessInfo.Arguments = $args
+    $Process = New-Object System.Diagnostics.Process
+    $Process.StartInfo = $ProcessInfo
+    try {
+        $Process.Start() | Out-Null
+    } catch {
+        write-error "Failed to start process $cmd $args"
+        throw "failed"
+    }
+    $Process.WaitForExit()
+    $stdout = $Process.StandardOutput.ReadToEnd().Trim().Replace("`n", "`nstdout> ")
+    $stderr = $Process.StandardError.ReadToEnd().Trim().Replace("`n", "`nstderr> ")
+    $allOutput = "stdout> " + $stdout + "`nstderr> " + $stderr
+    Write-Host "$allOutput"
 }
 
 function computeJ ([string]$objective, [string]$module, [string]$dir_in, [string]$dir_out, [string]$fn, [bool]$replicatePoint = $false) {
-	$output_file = "${dir_out}${fn}_J_${module}.txt"
+    $output_file = "${dir_out}${fn}_J_${module}.txt"
 
-	$cmd = "$script:bindir/src/cpp/runner/CppRunner.exe"
+    $cmd = "$script:bindir/src/cpp/runner/CppRunner.exe"
     $dir_name = $module.ToLowerInvariant()[0] + $module.Substring(1)
     $module_path = "$script:bindir/src/cpp/modules/$($dir_name)/$($module).dll"
     $task = $objective
@@ -96,20 +96,20 @@ function computeJ ([string]$objective, [string]$module, [string]$dir_in, [string
     } else {
         $rep = ""
     }
-	$cmdargs = @("$task $module_path $dir_in$fn.txt $dir_out 0 1 1 0$rep")
+    $cmdargs = @("$task $module_path $dir_in$fn.txt $dir_out 0 1 1 0$rep")
     
 
-	run_command $cmd @cmdargs
-	if (!(test-path $output_file)) {
-		throw "Command ran, but did not produce output file [$output_file]"
-	}
+    run_command $cmd @cmdargs
+    if (!(test-path $output_file)) {
+        throw "Command ran, but did not produce output file [$output_file]"
+    }
     Remove-Item "${dir_out}${fn}_F_${module}.txt"
     Remove-Item "${dir_out}${fn}_times_${module}.txt"
     return $output_file
 }
 
 function computePartGmmJ ([string]$dir_in, [string]$dir_out, [string]$fn, [int]$maxGradSize, [bool]$replicatePoint = $false) {
-	$output_files = @("${dir_out}${fn}_J_positions.txt", "${dir_out}${fn}_J_alphas.txt", "${dir_out}${fn}_J_means.txt", "${dir_out}${fn}_J_icfs.txt")
+    $output_files = @("${dir_out}${fn}_J_positions.txt", "${dir_out}${fn}_J_alphas.txt", "${dir_out}${fn}_J_means.txt", "${dir_out}${fn}_J_icfs.txt")
 
     $cmd = "$script:bindir/src/cpp/utils/finitePartialGmm/FinitePartialGmm.exe"
     if ($replicatePoint) {
@@ -117,14 +117,14 @@ function computePartGmmJ ([string]$dir_in, [string]$dir_out, [string]$fn, [int]$
     } else {
         $rep = ""
     }
-	$cmdargs = @("$dir_in$fn.txt $dir_out $maxGradSize$rep")
+    $cmdargs = @("$dir_in$fn.txt $dir_out $maxGradSize$rep")
     
 
-	run_command $cmd @cmdargs
+    run_command $cmd @cmdargs
     foreach ($output_file in $output_files) {
-	    if (!(test-path $output_file)) {
-	    	throw "Command ran, but did not produce output file [$output_file]"
-	    }
+        if (!(test-path $output_file)) {
+            throw "Command ran, but did not produce output file [$output_file]"
+        }
     }
     return $output_files
 }
@@ -136,17 +136,17 @@ if (!(Test-Path $logfile)) {
 # Manual GMM
 Write-Host "Manually computing GMM gradients"
 foreach ($sz in $gmm_sizes) {
-	Write-Host "    $sz"
+    Write-Host "    $sz"
 
-	$dir_in = "$gmm_dir_in$sz/"
-	$dir_out = "$outdir/gmm/$sz/"
-	mkdir_p $dir_out
+    $dir_in = "$gmm_dir_in$sz/"
+    $dir_out = "$outdir/gmm/$sz/"
+    mkdir_p $dir_out
 
-	foreach ($d in $gmm_d_vals) {
-		Write-Host "      d=$d"
-		foreach ($k in $gmm_k_vals) {
+    foreach ($d in $gmm_d_vals) {
+        Write-Host "      d=$d"
+        foreach ($k in $gmm_k_vals) {
             if (!($skipCompleted -and (Test-Path "${dir_out}gmm_d${d}_K${k}.txt"))) {
-			    Write-Host "        K=$k"
+                Write-Host "        K=$k"
                 if ($sz -eq "2.5M") {
                     $rep = $true
                     if ($d -le 32) {
@@ -173,8 +173,8 @@ foreach ($sz in $gmm_sizes) {
             } else {
                 Write-Host "${dir_out}gmm_d${d}_K${k}.txt is already computed. Skipping..."
             }
-		}
-	}
+        }
+    }
 }
 
 # Manual BA
@@ -185,7 +185,7 @@ mkdir_p $dir_out
 
 for ($n = $ba_min_n; $n -le $ba_max_n; $n++) {
     if (!($skipCompleted -and (Test-Path "${dir_out}ba$n.txt"))) {
-	    Write-Host "    $n"
+        Write-Host "    $n"
         $m = computeJ "BA" "Manual" $ba_dir_in $dir_out "ba$n"
         $f = computeJ "BA" "Finite" $ba_dir_in $dir_out "ba$n"
         $comparison = New-JacobianComparison $defaultTolerance
@@ -207,16 +207,16 @@ for ($n = $ba_min_n; $n -le $ba_max_n; $n++) {
 Write-Host "Manually computing Hand jacobians"
 
 foreach ($type in @("simple", "complicated")) {
-	foreach ($sz in $hand_sizes) {
-		Write-Host "    ${type}_$sz"
+    foreach ($sz in $hand_sizes) {
+        Write-Host "    ${type}_$sz"
 
-		$dir_in = "$hand_dir_in${type}_$sz/"
-		$dir_out = "$outdir/hand/${type}_$sz/"
-		mkdir_p $dir_out
+        $dir_in = "$hand_dir_in${type}_$sz/"
+        $dir_out = "$outdir/hand/${type}_$sz/"
+        mkdir_p $dir_out
 
-		for ($n = $hand_min_n; $n -le $hand_max_n; $n++) {
+        for ($n = $hand_min_n; $n -le $hand_max_n; $n++) {
             if (!($skipCompleted -and (Test-Path "${dir_out}hand$n.txt"))) {
-			    Write-Host "      $n"
+                Write-Host "      $n"
                 if ($type -eq "simple") {
                     $task = ""
                 } else {
@@ -237,8 +237,8 @@ foreach ($type in @("simple", "complicated")) {
             } else {
                 Write-Host "${dir_out}hand$n.txt is already computed. Skipping..."
             }
-		}
-	}
+        }
+    }
 }
 
 # Manual LSTM
@@ -247,10 +247,10 @@ $dir_out = "$outdir/lstm/"
 mkdir_p $dir_out
 
 foreach ($l in $lstm_l_vals) {
-	Write-Host "    l=$l"
-	foreach ($c in $lstm_c_vals) {
+    Write-Host "    l=$l"
+    foreach ($c in $lstm_c_vals) {
         if (!($skipCompleted -and (Test-Path "${dir_out}lstm_l${l}_c$c.txt"))) {
-		    Write-Host "      c=$c"
+            Write-Host "      c=$c"
             $m = computeJ "LSTM" "Manual" $lstm_dir_in $dir_out "lstm_l${l}_c$c"
             $f = computeJ "LSTM" "Finite" $lstm_dir_in $dir_out "lstm_l${l}_c$c"
             $comparison = New-JacobianComparison $defaultTolerance
@@ -266,7 +266,7 @@ foreach ($l in $lstm_l_vals) {
         } else {
             Write-Host "${dir_out}lstm_l${l}_c$c.txt is already computed. Skipping..."
         }
-	}
+    }
 }
 
 Write-Host "Done! See $logfile for details"
