@@ -29,22 +29,3 @@ unsigned long long int get_memory_size()
     return 0L;
 #endif
 }
-
-    //FILE* meminfo = fopen("/proc/meminfo", "r");
-    //if (meminfo == NULL)
-    //    // handle error
-    //
-    //char line[256];
-    //while (fgets(line, sizeof(line), meminfo))
-    //{
-    //    int ram;
-    //    if (sscanf(line, "MemTotal: %d kB", &ram) == 1)
-    //    {
-    //        fclose(meminfo);
-    //        return ram;
-    //    }
-    //}
-    //
-    //// If we got here, then we couldn't find the proper line in the meminfo file
-    //fclose(meminfo);
-    //return 0;
