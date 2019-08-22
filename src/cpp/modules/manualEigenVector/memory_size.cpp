@@ -20,7 +20,7 @@ unsigned long long int get_memory_size()
     return (unsigned long long int)status.ullTotalPhys;
 #elif defined(__linux__)
     struct sysinfo sys_info;
-    size_t total_ram = 0;
+    unsigned long long int total_ram = 0;
     if (sysinfo(&sys_info) != -1)
         total_ram = ((unsigned long long int)sys_info.totalram * sys_info.mem_unit);
     return total_ram;
