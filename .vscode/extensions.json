@@ -1,0 +1,19 @@
+{
+    // See http://go.microsoft.com/fwlink/?LinkId=827846 to learn about workspace recommendations.
+    // Extension identifier format: ${publisher}.${name}. Example: vscode.csharp
+
+    // List of extensions which should be recommended for users of this workspace.
+    "recommendations": [
+        "ms-vscode.cpptools",                   // C/C++ language support
+        "twxs.cmake",                           // CMake language support
+        "vector-of-bool.cmake-tools",           // configure + build workflow for CMake-based projects
+        "maddouri.cmake-tools-helper",          // interop between ms-vscode.cpptools & vector-of-bool.cmake-tools
+        "hbenl.vscode-test-explorer",           // Test Explorer UI
+        "matepek.vscode-catch2-test-adapter",   // Google Test adapter
+        "austin.code-gnu-global"                // C++ Intellisense
+    ],
+    // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
+    "unwantedRecommendations": [
+
+    ]
+}
