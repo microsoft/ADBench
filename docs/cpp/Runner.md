@@ -1,7 +1,7 @@
 # C++ Runner
 
 ## Overview
-C++ Runner is one of _benchmark runners_ described in [Architecture.md](../Architecture.md). C++ runner loads and runs _testing modules_, which in this case are dynamic shared libraries with ".dll" extension on all platforms. 
+C++ Runner is one of the _benchmark runners_ described in [Architecture.md](../Architecture.md#benchmark-runners). C++ runner loads and runs _testing modules_, which in this case are dynamic shared libraries with ".dll" extension on all platforms. 
 
 Each _testing module_ contains implementation of some alghorithm computing objective functions and their derivatives. Each objective should be supported by both runner and module to be benchmarked.
 
@@ -12,23 +12,14 @@ Each module provides classes to load data in the module, calculate objective, it
 There is also a one exported constructing function for each such class in each module.
 
 ## Supported Objective Types
-Currently supported objective types:
+Currently supported objective types and their constructing functions:
 	 
-| Full Name | Short Name |
-|--|--|
-| Gaussian Mixture Model Fitting | GMM |
-| Bundle Adjustment| BA |
-| Hand Tracking | Hand |
-| Long short-term memory | LSTM |
-
-Conformity table of objective types and constructing functions:
-
-| Short Type Name | Function Name |
-|--|--|
-| GMM | get_gmm_test |
-| BA| get_ba_test |
-| Hand | get_hand_test |
-| LSTM | get_lstm_test|
+| Full Name | Short Name | Function Name |
+| -- | -- | -- |
+| Gaussian Mixture Model Fitting | GMM | get_gmm_test |
+| Bundle Adjustment| BA | get_ba_test |
+| Hand Tracking | Hand | get_hand_test |
+| Long short-term memory | LSTM | get_lstm_test |
 
 
 ## Command Line
