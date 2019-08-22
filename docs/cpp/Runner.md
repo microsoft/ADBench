@@ -1,4 +1,5 @@
 
+
 # C++ Runner
 
 ## Overview
@@ -8,7 +9,7 @@ Each _testing module_ contains an implementation of some alghorithm computing ob
 
 The runner has no information about the objective types supported by module. Howerever, a module may support only some of the objective types. That's why if a user asks the runner to benchmark any of unsupported objectives, the runner prints an error to `stderr` and stops.
 
-Each module provides classes to convert data to a format preferred by the module and load it in the module memory, calculate objective, its derivative and output results. Such classes always implement templated _ITest_ interface.
+Every module, for every objective it supports, defines a class that implements the corresponding templated [_ITest_](./Modules.md#itest-implementation) interface.
 
 There is also a one exported factory function for each such class in each module.
 
