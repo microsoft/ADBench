@@ -15,13 +15,12 @@ void ManualEigenVectorGMM::prepare(GMMInput&& input)
     int Jcols = (_input.k * (_input.d + 1) * (_input.d + 2)) / 2;
     _output = { 0,  std::vector<double>(Jcols) };
 
-    // If it is not enough memory in system to store all data that
-    // manualEigenVector need, then executing will interrupt
-    // to prevent system deadlock
+    // If there is not enough memory in the system to store
+    // all the data structures that manualEigenVector needs,
+    // then the execution will interrupt to prevent the system from deadlocking.
     unsigned long long int memory_size = get_memory_size();
-    // If memory_size != 0 then check memory size,
-    // else OS is undefined by get_memory_size()
-    // and we try to execute module
+    // If memory_size != 0 then compare it to the amount of memory we need,
+    // otherwise consider it indeterminable and continue the execution.
     if (memory_size != 0) {
         unsigned long long int d = input.d;
         unsigned long long int k = input.k;
@@ -37,15 +36,18 @@ void ManualEigenVectorGMM::prepare(GMMInput&& input)
             + (k * (icf_sz - d) * n) // tmp_L_d
             + n + k // mX, semX
             ) * sizeof(double);
-        // We would like to prevent system even from freezes
-        // so we don't run module if it's less than 2GB RAM
-        // left for normal operation of the system
+        // When the system doesn't have enough memory, running the test is not only pointless,
+        // because the results will be spoiled by excessive swapping,
+        // but may also be harmful to the functioning of the OS.
+        // Too much memory pressure may (and does in practice) render the system unresponsive
+        // and lead to the invocation of OOM Killer (or its equivalent).
         need_memory += 2UL * 1024UL * 1024UL * 1024UL; // + 2GB
 
         if (need_memory > memory_size) {
-            double need_GB = (long double)need_memory / 1024 / 1024 / 1024;
+            double need_memory_in_GB = (long double)need_memory / 1024 / 1024 / 1024;
             std::cerr << "Not enough memory to run manualEigenVector module on this data." << "\n"
-                << std::fixed << std::setprecision(3) << need_GB << " GB of RAM is required to run this test." << "\n";
+                << std::fixed << std::setprecision(3) << need_memory_in_GB
+                << " GB of RAM is required to run this test." << "\n";
             std::exit(EXIT_FAILURE);
         }
     }
