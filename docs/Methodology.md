@@ -3,7 +3,7 @@
 This document describes the process of obtaining time measurements for computations of objective functions and their derivatives using different automatic differentiation (AD) frameworks.
 
 Benchmarking process depends on the following variables:
-- `nruns_F` - maximum number of times to run the computation the objective function for timing
+- `nruns_F` - maximum number of times to run the computation of the objective function for timing
 - `nruns_J` - maximum number of times to run the computation of the considered derivative (gradient or Jacobian) for timing
 - `time_limit` - _soft_ (see below) time limit for benchmarking the computation of either the objective function or its gradient/Jacobian
 - `timeout` - _hard_ time limit for the complete (including time that is not measured) benchmark
