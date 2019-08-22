@@ -6,7 +6,7 @@ C++ Runner is one of the _benchmark runners_ described in [Architecture.md](../A
 
 Each _testing module_ contains an implementation of some alghorithm computing objective functions and their derivatives. Each objective should be supported by both the runner and the module to be benchmarked.
 
-The runner has no information about the objective types supported by module. Howerever, a module may support only some of the objective types. That's why if a user asks the runner to benchmark any of unsupported objectives, the runner prints an error to `sdterr` and stops.
+The runner has no information about the objective types supported by module. Howerever, a module may support only some of the objective types. That's why if a user asks the runner to benchmark any of unsupported objectives, the runner prints an error to `stderr` and stops.
 
 Each module provides classes to convert data to a format preferred by the module and load it in the module memory, calculate objective, its derivative and output results. Such classes always implement templated _ITest_ interface.
 
