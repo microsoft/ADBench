@@ -16,10 +16,10 @@
 	add_subdirectory ("YourModule")
 	```
 3. <span id="itest-implementation"> For each objective create a class implementing ITest<TInput,TOuput> interface where T is an objective type (GMM, BA etc.). *TInput* and *TOutput* are input and output types specific for the objective. They are defined in the file "../../shared/TData.h" (the path is relative to the directory of your module).
-	 - virtual void prepare(TInput&& input) - should load input struct into module memory
-	 - virtual  void  calculate_objective(int times) - should cyclically compute objective for *times* times
-	 - virtual  void  calculate_jacobian(int times)  - should cyclically compute derivatives of an objective function for *times* times
-	 - virtual TOutput output() - should return results of calculation via struct of TOutput  type
+	 - virtual void prepare(TInput&& input) - converts the input data from the format in which it is provided by the calling benchmark runner into the format optimized for use with the tested AD framework. It also allocates memory for internal buffers and results structure.
+	 - virtual  void  calculate_objective(int times) - repeatedly computes one of the objective functions given number of times, saving results into a pre-allocated internal structure.
+	 - virtual  void  calculate_jacobian(int times)  - repeatedly computing a derivative of one of the objective functions given number of times, saving results into a pre-allocated internal structure.
+	 - virtual TOutput output() - convertes internally saved outputs into the format specified by the runner.
 	</span>
 
 4. For each class add an exported factory function just below class implementation as follows:
