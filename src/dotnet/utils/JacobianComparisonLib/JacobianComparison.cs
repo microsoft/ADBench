@@ -88,6 +88,12 @@ namespace JacobianComparisonLib
                     int shift = positions[i];
                     for (int n = 0; n < parts[i].Length; ++n)
                     {
+                        if (shift + n >= j1.Length)
+                        {
+                            this.DimensionMismatch = true;
+                            this.Error = $"Dimension mismatch";
+                            return;
+                        }
                         this.CompareNumbers(j1[shift + n], parts[i][n], 0, shift + n);
                     }
                 }
