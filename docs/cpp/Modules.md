@@ -29,7 +29,8 @@
         return new YourClass();
     }
     ```
-    T is still an objective type here.
+    where T is still an objective type here.
+    DLL_PUBLIC is a macro defined in /src/shared/ITest.h. It is made to export functions from shared libraries both on Windows and Linux with GCC and MSVC compilers.
 5. Specify target sources in the project CMakeLists.txt file.
 6. Compile, run via C++ runner and enjoy!
 
