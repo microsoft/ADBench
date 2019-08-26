@@ -15,7 +15,7 @@ There is also a one exported factory function for each such class in each module
 
 ## Supported Objective Types
 Currently supported objective types and their factory functions:
-	 
+     
 | Full Name | Short Name | Function Name |
 | -- | -- | -- |
 | Gaussian Mixture Model Fitting | GMM | get_gmm_test |
@@ -46,39 +46,39 @@ CPPRunner test_type module_path input_filepath output_dir minimum_measurable_tim
 
  1. Define *TInput*, *TOutput* and (if necessary) *TParameters* structs in the "/src/cpp/shared/TData.h" file where T is the name of a new objective. 
 
-	*TInput* is the data type for the new objective's inputs, *TOutput* is a structure that contains outputs of both new objective function and its target jacobian.
-	*TParameters* is a data type containing all configurable parameters of the benchmark. If there're no such parameters in the benchmark then just use the *DefaultParameters* struct.
+    *TInput* is the data type for the new objective's inputs, *TOutput* is a structure that contains outputs of both new objective function and its target jacobian.
+    *TParameters* is a data type containing all configurable parameters of the benchmark. If there're no such parameters in the benchmark then just use the *DefaultParameters* struct.
 
  2. In the *ModuleLoader* class (/src/cpp/runner/ModuleLoader.h) implement the following function:
-	```
-	std::unique_ptr<ITest<TInput, TOutput>> get_T_test() const;
-	```
+    ```
+    std::unique_ptr<ITest<TInput, TOutput>> get_T_test() const;
+    ```
  3. Create "/src/cpp/modules/TBenchmark.h" with the following content and implement defined functions in the "TBenchmark.cpp":
-	 ```
-	#pragma once
+     ```
+    #pragma once
 
-	#include "Benchmark.h"
+    #include "Benchmark.h"
 
-	template<>
-	TInput read_input_data<TInput, TParameters>(const std::string& input_file, const TParameters& params);
+    template<>
+    TInput read_input_data<TInput, TParameters>(const std::string& input_file, const TParameters& params);
 
-	template<>
-	unique_ptr<ITest<TInput, TOutput>> get_test<TInput, TOutput>(const ModuleLoader& module_loader);
+    template<>
+    unique_ptr<ITest<TInput, TOutput>> get_test<TInput, TOutput>(const ModuleLoader& module_loader);
 
-	template<>
-	void save_output_to_file<TOutput>(const TOutput& output, const string& output_prefix, const string& input_basename,
-	                                    const string& module_basename);
+    template<>
+    void save_output_to_file<TOutput>(const TOutput& output, const string& output_prefix, const string& input_basename,
+                                        const string& module_basename);
 
-	 ```
+     ```
 4.  Include "TBenchmark.h" in "main.cpp" and add a new else-if branch to the "main" function as follows:
-	```
-	if (test_type == "GMM") {
+    ```
+    if (test_type == "GMM") {
         run_benchmark<GMMInput, GMMOutput, GMMParameters>(module_path, input_filepath, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit, { replicate_point });
     }
-	    ...
-	else if (test_type == "T") {
+        ...
+    else if (test_type == "T") {
             run_benchmark<TInput, TOutput, TParameters>(module_path, input_filepath, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit, parameters);
     }  
-	    ...
-	```
+        ...
+    ```
 5. Add *TBenchmark.cpp* to *TestExtenders* environment variable inside "/src/cpp/runner/CMakeLists.txt". 
