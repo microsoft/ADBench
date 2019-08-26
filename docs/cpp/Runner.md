@@ -34,9 +34,9 @@ CPPRunner test_type module_path input_filepath output_dir minimum_measurable_tim
  - module_path - an absolute or relative path to a .dll module responsible for testing algorithm of calculation.
  - input_filepath - an absolute or relative path to an input file.
  - output_dir - a directory where output files will be stored.
- -  minimum_measurable_time - minimum time that computation needs to run to produce a reliable measurement.
+ - minimum_measurable_time - minimum time that computation needs to run to produce a reliable measurement.
  - nruns_F - maximum number of times to run the computation of the objective function for timing.
- - nruns_J  - maximum number of times to run the computation of the considered derivative (gradient or Jacobian) for timing.
+ - nruns_J - maximum number of times to run the computation of the considered derivative (gradient or Jacobian) for timing.
  - time_limit - soft (see [Methodology.md](../Methodology.md)) time limit for benchmarking the computation of either the objective function or its gradient/Jacobian.
  - \-rep *(applycable only for GMM)* - if enabled all input data points have one shared value.
 
