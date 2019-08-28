@@ -1,6 +1,7 @@
 
 
 
+
 # C++ Modules
 
 ## Adding new modules
@@ -96,4 +97,12 @@ Follow the next steps to add a new test case for objective:
     5. compare the results of computations with the previously known correct ones
 
 ### Adding new objectives
+
+You might want to add a new type of objective to test. In that case just do the next things:
+
+1. In the "/test/cpp/modules/common/" directory create a "TTests.cpp" file.
+2. Include "gtest/gtest.h" in your file.
+3. Use INSTANTIATE_TEST_CASE_P macro to list all modules supporting T objective type as it described in the ["Adding tests for a new module"](#adding-tests-for-a-new-module) section.
+4. Use TEST_P macro to add new test cases as it described in the ["Adding a new test case"](#adding-a-new-test-case) section.
+5. Open /test/cpp/modules/common/CMakeLists.txt" and mark "TTests.cpp" file as source via "target_sources" command there.
 
