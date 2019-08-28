@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <cmath>
 
-#include "../../shared/defs.h"
+#include "../../../shared/defs.h"
 
 // d: dim
 // k: number of gaussians
