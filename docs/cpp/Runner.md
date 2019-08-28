@@ -71,7 +71,9 @@ CPPRunner test_type module_path input_filepath output_dir minimum_measurable_tim
       TInput read_input_data<TInput,TParameters>(const std::string& input_file, const TParameters& params);
       ```
           
-      Opens input_file and loads data to the structure of the TInput type. The format of the input file is specific for each objective type.
+      Opens input_file and loads data to the structure of the TInput type. 
+      
+      The format of the input file is specific for each objective type.
     - ```
       template<>
       unique_ptr<ITest<TInput, TOutput>> get_test<TInput, TOutput>(const ModuleLoader& module_loader);
@@ -85,6 +87,7 @@ CPPRunner test_type module_path input_filepath output_dir minimum_measurable_tim
       ```
           
       Saves results of computations stored in a structure of the TOutput type to the output files:
+      
             - output_prefix + input_basename + "_F_" + module_basename + ".txt" - stores the value of the objective function
             - output_prefix + input_basename + "_J_" + module_basename + ".txt" - stores the value of the objective function derivative
           
