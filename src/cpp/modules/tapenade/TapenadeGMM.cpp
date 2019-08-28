@@ -5,11 +5,6 @@ void TapenadeGMM::prepare(GMMInput&& input)
 {
     this->input = input;
     int Jcols = (this->input.k * (this->input.d + 1) * (this->input.d + 2)) / 2;
-
-    alphas_d = std::vector<double>(input.alphas.size(), 0.0);
-    means_d = std::vector<double>(input.means.size(), 0.0);
-    icf_d = std::vector<double>(input.icf.size(), 0.0);
-
     result = { 0, std::vector<double>(Jcols) };
 }
 
@@ -44,53 +39,37 @@ void TapenadeGMM::calculate_objective(int times)
 
 void TapenadeGMM::calculate_jacobian(int times)
 {
-    int shift;
+    double tmp = 0.0;       // stores fictive result
+                            // (Tapenade doesn't calculate an original function in reverse mode)
+
+    double errb = 1.0;      // stores dY
+                            // (equals to 1.0 for calculating gradient)
+
+    double* alphas_gradient_part = result.gradient.data();
+    double* means_gradient_part = result.gradient.data() + input.alphas.size();
+    double* icf_gradient_part =
+        result.gradient.data() +
+        input.alphas.size() +
+        input.means.size();
+
     for (int i = 0; i < times; i++)
     {
-        // calculate alphas gradient part
-        shift = 0;
-        calculate_gradient_part(shift, alphas_d);
-
-        // calculate means gradient part
-        shift += input.alphas.size();
-        calculate_gradient_part(shift, means_d);
-
-        // calculate icf gradient part
-        shift += input.means.size();
-        calculate_gradient_part(shift, icf_d);
-    }
-}
-
-
-
-void TapenadeGMM::calculate_gradient_part(int shift, std::vector<double>& directions)
-{
-    for (int i = 0; i < directions.size(); i++)
-    {
-        directions[i] = 1.0;    // set current direction
-        if (i > 0)
-        {
-            directions[i - 1] = 0.0;    // erase last direction
-        }
-
-        gmm_objective_d(
+        gmm_objective_b(
             input.d,
             input.k,
             input.n,
             input.alphas.data(),
-            alphas_d.data(),
+            alphas_gradient_part,
             input.means.data(),
-            means_d.data(),
+            means_gradient_part,
             input.icf.data(),
-            icf_d.data(),
+            icf_gradient_part,
             input.x.data(),
             input.wishart,
-            &result.objective,
-            &result.gradient[shift + i]
+            &tmp,
+            &errb
         );
     }
-
-    directions.back() = 0.0;        // erase last direction
 }
 
 

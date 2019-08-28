@@ -7,8 +7,9 @@
 // This throws error on n<1
 double arr_max(int n, const double* const x)
 {
+    int i;
     double m = x[0];
-    for (int i = 1; i < n; i++)
+    for (i = 1; i < n; i++)
     {
         if (m < x[i])
         {
@@ -19,17 +20,22 @@ double arr_max(int n, const double* const x)
     return m;
 }
 
+
+
 // sum of component squares
 double sqnorm(int n, const double* const x)
 {
+    int i;
     double res = x[0] * x[0];
-    for (int i = 1; i < n; i++)
+    for (i = 1; i < n; i++)
     {
         res = res + x[i] * x[i];
     }
 
     return res;
 }
+
+
 
 // out = a - b
 void subtract(
@@ -39,17 +45,22 @@ void subtract(
     double* out
 )
 {
-    for (int id = 0; id < d; id++)
+    int id;
+    for (id = 0; id < d; id++)
     {
         out[id] = x[id] - y[id];
     }
 }
 
+
+
 double logsumexp(int n, const double* const x)
 {
+    int i;
     double mx = arr_max(n, x);
-    double semx = 0.;
-    for (int i = 0; i < n; i++)
+    double semx = 0.0;
+
+    for (i = 0; i < n; i++)
     {
         semx = semx + exp(x[i] - mx);
     }
@@ -57,10 +68,12 @@ double logsumexp(int n, const double* const x)
     return log(semx) + mx;
 }
 
+
+
 double log_gamma_distrib(double a, double p)
 {
-    double out = 0.25 * p * (p - 1) * log(PI);
     int j;
+    double out = 0.25 * p * (p - 1) * log(PI);
 
     for (j = 1; j <= p; j++)
     {
@@ -69,7 +82,6 @@ double log_gamma_distrib(double a, double p)
 
     return out;
 }
-
 
 
 
@@ -86,21 +98,22 @@ double log_wishart_prior(
     const double* const icf
 )
 {
+    int ik;
     int n = p + wishart.m + 1;
     int icf_sz = p * (p + 1) / 2;
 
     double C = n * p * (log(wishart.gamma) - 0.5 * log(2)) - log_gamma_distrib(0.5 * n, p);
 
     double out = 0;
-    for (int ik = 0; ik < k; ik++)
+    for (ik = 0; ik < k; ik++)
     {
         double frobenius = sqnorm(p, &Qdiags[ik * p]) + sqnorm(icf_sz - p, &icf[ik * icf_sz + p]);
-        out = out + 0.5 * wishart.gamma * wishart.gamma * (frobenius)
-            -wishart.m * sum_qs[ik];
+        out = out + 0.5 * wishart.gamma * wishart.gamma * (frobenius) - wishart.m * sum_qs[ik];
     }
 
     return out - k * C;
 }
+
 
 
 void preprocess_qs(
@@ -111,11 +124,12 @@ void preprocess_qs(
     double* Qdiags
 )
 {
+    int ik, id;
     int icf_sz = d * (d + 1) / 2;
-    for (int ik = 0; ik < k; ik++)
+    for (ik = 0; ik < k; ik++)
     {
         sum_qs[ik] = 0.;
-        for (int id = 0; id < d; id++)
+        for (id = 0; id < d; id++)
         {
             double q = icf[ik * icf_sz + id];
             sum_qs[ik] = sum_qs[ik] + q;
@@ -123,6 +137,7 @@ void preprocess_qs(
         }
     }
 }
+
 
 
 void Qtimesx(
@@ -133,21 +148,23 @@ void Qtimesx(
     double* out
 )
 {
-    for (int id = 0; id < d; id++)
+    int i, j;
+    for (i = 0; i < d; i++)
     {
-        out[id] = Qdiag[id] * x[id];
+        out[i] = Qdiag[i] * x[i];
     }
 
     int Lparamsidx = 0;
-    for (int i = 0; i < d; i++)
+    for (i = 0; i < d; i++)
     {
-        for (int j = i + 1; j < d; j++)
+        for (j = i + 1; j < d; j++)
         {
             out[j] = out[j] + ltri[Lparamsidx] * x[i];
             Lparamsidx++;
         }
     }
 }
+
 
 
 void gmm_objective(
@@ -162,6 +179,7 @@ void gmm_objective(
     double* err
 )
 {
+    int ix, ik;
     const double CONSTANT = -n * d * 0.5 * log(2 * PI);
     int icf_sz = d * (d + 1) / 2;
 
@@ -174,15 +192,15 @@ void gmm_objective(
     preprocess_qs(d, k, icf, &sum_qs[0], &Qdiags[0]);
 
     double slse = 0.;
-    for (int ix = 0; ix < n; ix++)
+    for (ix = 0; ix < n; ix++)
     {
-        for (int ik = 0; ik < k; ik++)
+        for (ik = 0; ik < k; ik++)
         {
             subtract(d, &x[ix * d], &means[ik * d], &xcentered[0]);
             Qtimesx(d, &Qdiags[ik * d], &icf[ik * icf_sz + d], &xcentered[0], &Qxcentered[0]);
-
             main_term[ik] = alphas[ik] + sum_qs[ik] - 0.5 * sqnorm(d, &Qxcentered[0]);
         }
+
         slse = slse + logsumexp(k, &main_term[0]);
     }
 
