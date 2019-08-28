@@ -56,23 +56,37 @@ CPPRunner test_type module_path input_filepath output_dir minimum_measurable_tim
     It should find a function with the same name in the future shared library, execute it and return its result. In the case of the error it should throw a runtime_error. 
     
     Note that this function should be really similar to those already existing, for example "get_gmm_test".
- 3. Create "/src/cpp/modules/TBenchmark.h" with the following content and implement defined functions in the "TBenchmark.cpp":
+ 3. Create "/src/cpp/runner/TBenchmark.h" with the following content:
      ```
     #pragma once
 
     #include "Benchmark.h"
+    ```
 
+    Define the following functions in the "TBenchmark.h" and implement them in the "TBenchmark.cpp":
+
+    ```
     template<>
     TInput read_input_data<TInput, TParameters>(const std::string& input_file, const TParameters& params);
-
+    ```
+    Opens input_file and loads data to the structure of the TInput type. The format of the input file is specific for each objective type.
+    ```
     template<>
     unique_ptr<ITest<TInput, TOutput>> get_test<TInput, TOutput>(const ModuleLoader& module_loader);
-
+    ```
+    Chooses and calls the right method of the ModuleLoader corresponding to the TInput and TOutput types.
+    ```
     template<>
     void save_output_to_file<TOutput>(const TOutput& output, const string& output_prefix, const string& input_basename,
                                         const string& module_basename);
 
-     ```
+    ```
+    Saves results of computations stored in a structure of the TOutput type to the output files:
+        - output_prefix + input_basename + "_F_" + module_basename + ".txt" - stores the value of the objective function
+        - output_prefix + input_basename + "_J_" + module_basename + ".txt" - stores the value of the objective function derivative
+
+    The format of the output files is specific for each objective type.
+
 4.  Include "TBenchmark.h" in "main.cpp" and add a new else-if branch to the "main" function as follows:
     ```
     if (test_type == "GMM") {
