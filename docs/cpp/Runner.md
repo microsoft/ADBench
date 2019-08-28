@@ -88,8 +88,8 @@ CPPRunner test_type module_path input_filepath output_dir minimum_measurable_tim
           
       Saves results of computations stored in a structure of the TOutput type to the output files:
       
-        - output_prefix + input_basename + "_F_" + module_basename + ".txt" - stores the value of the objective function
-        - output_prefix + input_basename + "_J_" + module_basename + ".txt" - stores the value of the objective function derivative
+        - output_prefix + input_basename + "\_F\_" + module_basename + ".txt" - stores the value of the objective function
+        - output_prefix + input_basename + "\_J\_" + module_basename + ".txt" - stores the value of the objective function derivative
           
       The format of the output files is specific for each objective type.
 4.  Include "TBenchmark.h" in "main.cpp" and add a new else-if branch to the "main" function as follows:
