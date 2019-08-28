@@ -53,6 +53,9 @@ CPPRunner test_type module_path input_filepath output_dir minimum_measurable_tim
     ```
     std::unique_ptr<ITest<TInput, TOutput>> get_T_test() const;
     ```
+    It should find a function with the same name in the future shared library, execute it and return its result. In the case of the error it should throw a runtime_error. 
+    
+    Note that this function should be really similar to those already existing, for example "get_gmm_test".
  3. Create "/src/cpp/modules/TBenchmark.h" with the following content and implement defined functions in the "TBenchmark.cpp":
      ```
     #pragma once
