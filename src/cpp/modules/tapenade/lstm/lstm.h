@@ -4,8 +4,11 @@
 #include <cmath>
 
 // LSTM objective (loss function)
-// Input variables: main_params, extra_params
-// Output variable: loss
+// Input variables: main_params (8 * l * b), extra_params (3 * b)
+// Output variable: loss (scalar)
+// Parameters:
+//      state (2 * l * b)
+//      sequence (c * b)
 void lstm_objective(
     int l,
     int c,

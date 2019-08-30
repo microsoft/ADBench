@@ -3,12 +3,9 @@
 void TapenadeLSTM::prepare(LSTMInput&& input)
 {
     this->input = input;
-    int Jcols = 8 * this->input.l * this->input.b + 3 * this->input.b;
     state = std::vector<double>(this->input.state.size());
 
-    main_params_d = std::vector<double>(this->input.main_params.size(), 0.0);
-    extra_params_d = std::vector<double>(this->input.extra_params.size(), 0.0);
-
+    int Jcols = 8 * this->input.l * this->input.b + 3 * this->input.b;
     result = { 0, std::vector<double>(Jcols) };
 }
 
@@ -43,48 +40,32 @@ void TapenadeLSTM::calculate_objective(int times)
 
 void TapenadeLSTM::calculate_jacobian(int times)
 {
-    int shift;
+    double loss = 0.0;      // stores fictive result
+                            // (Tapenade doesn't calculate an original function in reverse mode)
+
+    double lossb = 1.0;     // stores dY
+                            // (equals to 1.0 for gradient calculation)
+
+    double* main_params_gradient_part = result.gradient.data();
+    double* extra_params_gradient_part = result.gradient.data() + input.main_params.size();
+
     for (int i = 0; i < times; i++)
     {
-        // calculate main_params gradient part
-        shift = 0;
-        calculate_gradient_part(shift, main_params_d);
-
-        // calculate extra_params gradient part
-        shift += input.main_params.size();
-        calculate_gradient_part(shift, extra_params_d);
-    }
-}
-
-
-
-void TapenadeLSTM::calculate_gradient_part(int shift, std::vector<double>& directions)
-{
-    for (int i = 0; i < directions.size(); i++)
-    {
         state = input.state;
-        directions[i] = 1.0;    // set current direction
-        if (i > 0)
-        {
-            directions[i - 1] = 0.0;    // erase last direction
-        }
-        
-        lstm_objective_d(
+        lstm_objective_b(
             input.l,
             input.c,
             input.b,
             input.main_params.data(),
-            main_params_d.data(),
+            main_params_gradient_part,
             input.extra_params.data(),
-            extra_params_d.data(),
+            extra_params_gradient_part,
             state.data(),
             input.sequence.data(),
-            &result.objective,
-            &result.gradient[shift + i]
+            &loss,
+            &lossb
         );
     }
-
-    directions.back() = 0.0;        // erase last direction
 }
 
 
