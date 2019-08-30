@@ -8,7 +8,7 @@ double sigmoid(double x)
 }
 
 // log(sum(exp(x), 2))
-double logsumexp(const double* const vect, int sz)
+double logsumexp(double const* vect, int sz)
 {
     double sum = 0.0;
     int i;
@@ -26,11 +26,11 @@ double logsumexp(const double* const vect, int sz)
 // The LSTM model
 void lstm_model(
     int hsize,
-    const double* const weight,
-    const double* const bias,
+    double const* weight,
+    double const* bias,
     double* hidden,
     double* cell,
-    const double* const input
+    double const* input
 )
 {
     double* gates = (double*)malloc(4 * hsize * sizeof(double));
@@ -65,10 +65,10 @@ void lstm_model(
 void lstm_predict(
     int l,
     int b,
-    const double* const w,
-    const double* const w2,
+    double const* w,
+    double const* w2,
     double* s,
-    const double* const x,
+    double const* x,
     double* x2
 )
 {
@@ -96,10 +96,10 @@ void lstm_objective(
     int l,
     int c,
     int b,
-    const double* const main_params,
-    const double* const extra_params,
+    double const* main_params,
+    double const* extra_params,
     double* state,
-    const double* const sequence,
+    double const* sequence,
     double* loss
 )
 {

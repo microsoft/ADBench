@@ -5,7 +5,7 @@
 /* ==================================================================== */
 
 // This throws error on n<1
-double arr_max(int n, const double* const x)
+double arr_max(int n, double const* x)
 {
     int i;
     double m = x[0];
@@ -23,7 +23,7 @@ double arr_max(int n, const double* const x)
 
 
 // sum of component squares
-double sqnorm(int n, const double* const x)
+double sqnorm(int n, double const* x)
 {
     int i;
     double res = x[0] * x[0];
@@ -40,8 +40,8 @@ double sqnorm(int n, const double* const x)
 // out = a - b
 void subtract(
     int d,
-    const double* const x,
-    const double* const y,
+    double const* x,
+    double const* y,
     double* out
 )
 {
@@ -54,7 +54,7 @@ void subtract(
 
 
 
-double logsumexp(int n, const double* const x)
+double logsumexp(int n, double const* x)
 {
     int i;
     double mx = arr_max(n, x);
@@ -93,9 +93,9 @@ double log_wishart_prior(
     int p,
     int k,
     Wishart wishart,
-    const double* const sum_qs,
-    const double* const Qdiags,
-    const double* const icf
+    double const* sum_qs,
+    double const* Qdiags,
+    double const* icf
 )
 {
     int ik;
@@ -119,7 +119,7 @@ double log_wishart_prior(
 void preprocess_qs(
     int d,
     int k,
-    const double* const icf,
+    double const* icf,
     double* sum_qs,
     double* Qdiags
 )
@@ -142,9 +142,9 @@ void preprocess_qs(
 
 void Qtimesx(
     int d,
-    const double* const Qdiag,
-    const double* const ltri, // strictly lower triangular part
-    const double* const x,
+    double const* Qdiag,
+    double const* ltri, // strictly lower triangular part
+    double const* x,
     double* out
 )
 {
@@ -171,10 +171,10 @@ void gmm_objective(
     int d,
     int k,
     int n,
-    const double* const alphas,
-    const double* const means,
-    const double* const icf,
-    const double* const x,
+    double const* alphas,
+    double const* means,
+    double const* icf,
+    double const* x,
     Wishart wishart,
     double* err
 )

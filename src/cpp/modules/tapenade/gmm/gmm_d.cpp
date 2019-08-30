@@ -14,7 +14,7 @@
                                 UTILS
  ==================================================================== */
  // This throws error on n<1
-void arr_max_b(int n, const double* const x, double* xb, double arr_maxb) {
+void arr_max_b(int n, double const* x, double* xb, double arr_maxb) {
     int i;
     double m = x[0];
     double mb = 0.0;
@@ -42,7 +42,7 @@ void arr_max_b(int n, const double* const x, double* xb, double arr_maxb) {
                                 UTILS
  ==================================================================== */
  // This throws error on n<1
-double arr_max_nodiff(int n, const double* const x) {
+double arr_max_nodiff(int n, double const* x) {
     int i;
     double m = x[0];
     for (i = 1; i < n; ++i)
@@ -58,7 +58,7 @@ double arr_max_nodiff(int n, const double* const x) {
    Plus diff mem management of: x:in
 */
 // sum of component squares
-void sqnorm_b(int n, const double* const x, double* xb, double sqnormb) {
+void sqnorm_b(int n, double const* x, double* xb, double sqnormb) {
     int i;
     double res = x[0] * x[0];
     double resb = 0.0;
@@ -70,7 +70,7 @@ void sqnorm_b(int n, const double* const x, double* xb, double sqnormb) {
 }
 
 // sum of component squares
-double sqnorm_nodiff(int n, const double* const x) {
+double sqnorm_nodiff(int n, double const* x) {
     int i;
     double res = x[0] * x[0];
     for (i = 1; i < n; ++i)
@@ -85,7 +85,7 @@ double sqnorm_nodiff(int n, const double* const x) {
    Plus diff mem management of: out:in y:in
 */
 // out = a - b
-void subtract_b(int d, const double* const x, const double* const y, double*
+void subtract_b(int d, double const* x, double const* y, double*
     yb, double* out, double* outb) {
     int id;
     for (id = d - 1; id > -1; --id) {
@@ -95,7 +95,7 @@ void subtract_b(int d, const double* const x, const double* const y, double*
 }
 
 // out = a - b
-void subtract_nodiff(int d, const double* const x, const double* const y,
+void subtract_nodiff(int d, double const* x, double const* y,
     double* out) {
     int id;
     for (id = 0; id < d; ++id)
@@ -108,7 +108,7 @@ void subtract_nodiff(int d, const double* const x, const double* const y,
    with respect to varying inputs: *x
    Plus diff mem management of: x:in
 */
-void logsumexp_b(int n, const double* const x, double* xb, double logsumexpb)
+void logsumexp_b(int n, double const* x, double* xb, double logsumexpb)
 {
     int i;
     double mx;
@@ -130,7 +130,7 @@ void logsumexp_b(int n, const double* const x, double* xb, double logsumexpb)
     arr_max_b(n, x, xb, mxb);
 }
 
-double logsumexp_nodiff(int n, const double* const x) {
+double logsumexp_nodiff(int n, double const* x) {
     int i;
     double mx;
     mx = arr_max_nodiff(n, x);
@@ -162,9 +162,9 @@ double log_gamma_distrib_nodiff(double a, double p) {
  ========================================================================
                                 MAIN LOGIC
  ======================================================================== */
-void log_wishart_prior_b(int p, int k, Wishart wishart, const double* const
-    sum_qs, double* sum_qsb, const double* const Qdiags, double* Qdiagsb,
-    const double* const icf, double* icfb, double log_wishart_priorb) {
+void log_wishart_prior_b(int p, int k, Wishart wishart, double const*
+    sum_qs, double* sum_qsb, double const* Qdiags, double* Qdiagsb,
+    double const* icf, double* icfb, double log_wishart_priorb) {
     int ik;
     int n = p + wishart.m + 1;
     int icf_sz = p * (p + 1) / 2;
@@ -207,7 +207,7 @@ void log_wishart_prior_b(int p, int k, Wishart wishart, const double* const
                                 MAIN LOGIC
  ======================================================================== */
 double log_wishart_prior_nodiff(int p, int k, Wishart wishart, const double*
-    const sum_qs, const double* const Qdiags, const double* const icf) {
+    const sum_qs, double const* Qdiags, double const* icf) {
     int ik;
     int n = p + wishart.m + 1;
     int icf_sz = p * (p + 1) / 2;
@@ -239,7 +239,7 @@ double log_wishart_prior_nodiff(int p, int k, Wishart wishart, const double*
    with respect to varying inputs: *icf
    Plus diff mem management of: Qdiags:in sum_qs:in icf:in
 */
-void preprocess_qs_b(int d, int k, const double* const icf, double* icfb,
+void preprocess_qs_b(int d, int k, double const* icf, double* icfb,
     double* sum_qs, double* sum_qsb, double* Qdiags, double* Qdiagsb) {
     int ik, id;
     int icf_sz = d * (d + 1) / 2;
@@ -262,7 +262,7 @@ void preprocess_qs_b(int d, int k, const double* const icf, double* icfb,
     }
 }
 
-void preprocess_qs_nodiff(int d, int k, const double* const icf, double*
+void preprocess_qs_nodiff(int d, int k, double const* icf, double*
     sum_qs, double* Qdiags) {
     int ik, id;
     int icf_sz = d * (d + 1) / 2;
@@ -282,8 +282,8 @@ void preprocess_qs_nodiff(int d, int k, const double* const icf, double*
    with respect to varying inputs: *out *Qdiag *x *ltri
    Plus diff mem management of: out:in Qdiag:in x:in ltri:in
 */
-void Qtimesx_b(int d, const double* const Qdiag, double* Qdiagb, const double
-    * const ltri, double* ltrib, const double* const x, double* xb, double
+void Qtimesx_b(int d, double const* Qdiag, double* Qdiagb, const double
+    * const ltri, double* ltrib, double const* x, double* xb, double
     * out, double* outb) {
     // strictly lower triangular part
     int i, j;
@@ -310,8 +310,8 @@ void Qtimesx_b(int d, const double* const Qdiag, double* Qdiagb, const double
     }
 }
 
-void Qtimesx_nodiff(int d, const double* const Qdiag, const double* const ltri
-    , const double* const x, double* out) {
+void Qtimesx_nodiff(int d, double const* Qdiag, double const* ltri
+    , double const* x, double* out) {
     // strictly lower triangular part
     int i, j;
     for (i = 0; i < d; ++i)
@@ -332,9 +332,9 @@ void Qtimesx_nodiff(int d, const double* const Qdiag, const double* const ltri
                 *alphas:out
    Plus diff mem management of: err:in means:in icf:in alphas:in
 */
-void gmm_objective_b(int d, int k, int n, const double* const alphas, double*
-    alphasb, const double* const means, double* meansb, const double*
-    const icf, double* icfb, const double* const x, Wishart wishart,
+void gmm_objective_b(int d, int k, int n, double const* alphas, double*
+    alphasb, double const* means, double* meansb, const double*
+    const icf, double* icfb, double const* x, Wishart wishart,
     double* err, double* errb) {
     int i, ix, ik;
     const double CONSTANT = -n * d * 0.5 * log(2 * PI);
