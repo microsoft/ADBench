@@ -4,10 +4,11 @@
 /*                                UTILS                                  */
 /* ===================================================================== */
 
-double sqsum(int n, const double* const x)
+double sqsum(int n, double const* x)
 {
+    int i;
     double res = 0;
-    for (int i = 0; i < n; i++)
+    for (i = 0; i < n; i++)
     {
         res = res + x[i] * x[i];
     }
@@ -17,11 +18,7 @@ double sqsum(int n, const double* const x)
 
 
 
-void cross(
-    const double* const a,
-    const double* const b,
-    double* out
-)
+void cross(double const* a, double const* b, double* out)
 {
     out[0] = a[1] * b[2] - a[2] * b[1];
     out[1] = a[2] * b[0] - a[0] * b[2];
@@ -44,12 +41,9 @@ void cross(
 //  n = w / theta;
 //  n_x = au_cross_matrix(n);
 //  R = eye(3) + n_x*sin(theta) + n_x*n_x*(1 - cos(theta));    
-void rodrigues_rotate_point(
-    const double* const rot,
-    const double* const pt,
-    double *rotatedPt
-)
+void rodrigues_rotate_point(double const* rot, double const* pt, double *rotatedPt)
 {
+    int i;
     double sqtheta = sqsum(3, rot);
     if (sqtheta != 0)
     {
@@ -61,7 +55,7 @@ void rodrigues_rotate_point(
         sintheta = sin(theta);
         theta_inverse = 1.0 / theta;
 
-        for (int i = 0; i < 3; i++)
+        for (i = 0; i < 3; i++)
         {
             w[i] = rot[i] * theta_inverse;
         }
@@ -71,7 +65,7 @@ void rodrigues_rotate_point(
         tmp = (w[0] * pt[0] + w[1] * pt[1] + w[2] * pt[2]) *
             (1. - costheta);
 
-        for (int i = 0; i < 3; i++)
+        for (i = 0; i < 3; i++)
         {
             rotatedPt[i] = pt[i] * costheta + w_cross_pt[i] * sintheta + w[i] * tmp;
         }
@@ -81,7 +75,7 @@ void rodrigues_rotate_point(
         double rot_cross_pt[3];
         cross(rot, pt, rot_cross_pt);
 
-        for (int i = 0; i < 3; i++)
+        for (i = 0; i < 3; i++)
         {
             rotatedPt[i] = pt[i] + rot_cross_pt[i];
         }
@@ -90,10 +84,7 @@ void rodrigues_rotate_point(
 
 
     
-void radial_distort(
-    const double* const rad_params,
-    double *proj
-)
+void radial_distort(double const* rad_params, double *proj)
 {
     double rsq, L;
     rsq = sqsum(2, proj);
@@ -104,13 +95,9 @@ void radial_distort(
 
     
 
-void project(
-    const double* const cam,
-    const double* const X,
-    double* proj
-)
+void project(double const* cam, double const* X, double* proj)
 {
-    const double* const C = &cam[3];
+    double const* C = &cam[3];
     double Xo[3], Xcam[3];
 
     Xo[0] = X[0] - C[0];
@@ -145,10 +132,10 @@ void project(
 // proj = distorted * f + principal_point
 // err = sqsum(proj - measurement)
 void compute_reproj_error(
-    const double* const cam,
-    const double* const X,
-    const double* const w,
-    const double* const feat,
+    double const* cam,
+    double const* X,
+    double const* w,
+    double const* feat,
     double *err
 )
 {
@@ -161,7 +148,7 @@ void compute_reproj_error(
 
     
 
-void compute_zach_weight_error(const double* const w, double* err)
+void compute_zach_weight_error(double const* w, double* err)
 {
     *err = 1 - (*w)*(*w);
 }
@@ -186,16 +173,17 @@ void ba_objective(
     int n,
     int m,
     int p,
-    const double* const cams,
-    const double* const X,
-    const double* const w,
-    const int* const obs,
-    const double* const feats,
+    double const* cams,
+    double const* X,
+    double const* w,
+    int const* obs,
+    double const* feats,
     double* reproj_err,
     double* w_err
 )
 {
-    for (int i = 0; i < p; i++)
+    int i;
+    for (i = 0; i < p; i++)
     {
         int camIdx = obs[i * 2 + 0];
         int ptIdx = obs[i * 2 + 1];
@@ -208,7 +196,7 @@ void ba_objective(
         );
     }
 
-    for (int i = 0; i < p; i++)
+    for (i = 0; i < p; i++)
     {
         compute_zach_weight_error(&w[i], &w_err[i]);
     }

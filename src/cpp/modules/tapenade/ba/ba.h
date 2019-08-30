@@ -4,7 +4,7 @@
 #include <cmath>
 #include <cfloat>
 
-#include "../../shared/defs.h"
+#include "../../../shared/defs.h"
 
 // n number of cameras
 // m number of points
@@ -24,11 +24,11 @@ void ba_objective(
     int n,
     int m,
     int p,
-    const double* const cams,
-    const double* const X,
-    const double* const w,
-    const int* const obs,
-    const double* const feats,
+    double const* cams,
+    double const* X,
+    double const* w,
+    int const* obs,
+    double const* feats,
     double* reproj_err,
     double* w_err
 );

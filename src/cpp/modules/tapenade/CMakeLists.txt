@@ -14,6 +14,6 @@ target_sources("Tapenade" PRIVATE "gmm/gmm.cpp")
 target_sources("Tapenade" PRIVATE "gmm/gmm_d.cpp")
 target_sources("Tapenade" PUBLIC "TapenadeGMM.cpp")
 
-target_sources("Tapenade" PRIVATE "ba.cpp")
-target_sources("Tapenade" PRIVATE "ba_d.cpp")
+target_sources("Tapenade" PRIVATE "ba/ba.cpp")
+target_sources("Tapenade" PRIVATE "ba/ba_d.cpp")
 target_sources("Tapenade" PUBLIC "TapenadeBA.cpp")
