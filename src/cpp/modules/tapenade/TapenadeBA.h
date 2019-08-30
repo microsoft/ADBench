@@ -4,8 +4,8 @@
 #include "../../shared/BAData.h"
 #include "../../shared/defs.h"
 
-#include "ba.h"
-#include "ba_d.h"
+#include "ba/ba.h"
+#include "ba/ba_d.h"
 
 #include <vector>
 
@@ -16,13 +16,11 @@ private:
     BAOutput result;
     std::vector<double> state;
 
-    // buffers for holding differentitation directions
-    std::vector<double> cam_d;
-    std::vector<double> x_d;
-    std::vector<double> w_d;
-
-    // buffer for reprojection error jacobian part holding
+    // buffer for reprojection error jacobian part holding (column-major)
     std::vector<double> reproj_err_d;
+
+    // buffer for reprojection error jacobian block row holding
+    std::vector<double> reproj_err_d_row;
 
 public:
     // This function must be called before any other function.
@@ -35,7 +33,6 @@ public:
     ~TapenadeBA() {}
 
 private:
-    void compute_jacobian_reproj_block(int block);
-    void compute_jacobian_columns(int block, int shift, std::vector<double>& direction);
+    void calculate_weight_error_jacobian_part();
+    void calculate_reproj_error_jacobian_part();
 };
-

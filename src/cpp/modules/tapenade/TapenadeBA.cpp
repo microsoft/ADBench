@@ -10,11 +10,8 @@ void TapenadeBA::prepare(BAInput&& input)
         BASparseMat(this->input.n, this->input.m, this->input.p)
     };
 
-    cam_d = std::vector<double>(BA_NCAMPARAMS, 0.0);
-    x_d = std::vector<double>(3, 0.0);
-    w_d = std::vector<double>(1, 0.0);
-
     reproj_err_d = std::vector<double>(2 * (BA_NCAMPARAMS + 3 + 1));
+    reproj_err_d_row = std::vector<double>(BA_NCAMPARAMS + 3 + 1);
 }
 
 
@@ -49,80 +46,96 @@ void TapenadeBA::calculate_objective(int times)
 
 void TapenadeBA::calculate_jacobian(int times)
 {
-    for (int i = 0; i < times; i++) {
-        result.J.clear();
-
-        // calculate reprojection error jacobian part
-        for (int j = 0; j < input.p; j++)
-        {
-            std::fill(reproj_err_d.begin(), reproj_err_d.end(), 0.0);
-            int camIdx = input.obs[2 * j + 0];
-            int ptIdx = input.obs[2 * j + 1];
-
-            compute_jacobian_reproj_block(j);
-            result.J.insert_reproj_err_block(j, camIdx, ptIdx, reproj_err_d.data());
-        }
-
-        // calculate weight error jacobian part
-        for (int j = 0; j < input.p; j++)
-        {
-            double w_d = 1.0;
-            double err_d;
-
-            compute_zach_weight_error_d(&input.w[j], &w_d, &result.w_err[j], &err_d);
-            result.J.insert_w_err_block(j, err_d);
-        }
-    }
-}
-
-
-
-void TapenadeBA::compute_jacobian_reproj_block(int block)
-{
-    int shift;
-
-    // calculate columns for camera
-    shift = 0;
-    compute_jacobian_columns(block, shift, cam_d);
-
-    // calculate columns for point
-    shift += 2 * BA_NCAMPARAMS;
-    compute_jacobian_columns(block, shift, x_d);
-
-    // calculate column for weight
-    shift += 2 * 3;
-    compute_jacobian_columns(block, shift, w_d);
-}
-
-
-
-void TapenadeBA::compute_jacobian_columns(int block, int shift, std::vector<double>& directions)
-{
-    int camIdx = input.obs[2 * block + 0];
-    int ptIdx = input.obs[2 * block + 1];
-
-    for (int i = 0; i < directions.size(); i++)
+    for (int i = 0; i < times; i++)
     {
-        directions[i] = 1.0;    // set current direction
-        if (i > 0)
+        result.J.clear();
+        calculate_reproj_error_jacobian_part();
+        calculate_weight_error_jacobian_part();
+    }
+}
+
+
+
+void TapenadeBA::calculate_reproj_error_jacobian_part()
+{
+    double errb[2];     // stores dY
+                        // (i-th element equals to 1.0 for calculating i-th jacobian row)
+
+    double err[2];      // stores fictive result
+                        // (Tapenade doesn't calculate an original function in reverse mode)
+
+    double* cam_gradient_part = reproj_err_d_row.data();
+    double* x_gradient_part = reproj_err_d_row.data() + BA_NCAMPARAMS;
+    double* weight_gradient_part = reproj_err_d_row.data() + BA_NCAMPARAMS + 3;
+
+    for (int i = 0; i < input.p; i++)
+    {
+        int camIdx = input.obs[2 * i + 0];
+        int ptIdx = input.obs[2 * i + 1];
+
+        // calculate first row
+        errb[0] = 1.0;
+        errb[1] = 0.0;
+        compute_reproj_error_b(
+            &input.cams[camIdx * BA_NCAMPARAMS],
+            cam_gradient_part,
+            &input.X[ptIdx * 3],
+            x_gradient_part,
+            &input.w[i],
+            weight_gradient_part,
+            &input.feats[i * 2],
+            err,
+            errb
+        );
+
+        // fill first row elements
+        for (int j = 0; j < BA_NCAMPARAMS + 3 + 1; j++)
         {
-            directions[i - 1] = 0.0;    // erase last direction
+            reproj_err_d[2 * j] = reproj_err_d_row[j];
         }
 
-        compute_reproj_error_d(
-            &input.cams[BA_NCAMPARAMS * camIdx],
-            cam_d.data(),
+        // calculate second row
+        errb[0] = 0.0;
+        errb[1] = 1.0;
+        compute_reproj_error_b(
+            &input.cams[camIdx * BA_NCAMPARAMS],
+            cam_gradient_part,
             &input.X[ptIdx * 3],
-            x_d.data(),
-            &input.w[block],
-            w_d.data(),
-            &input.feats[2 * block],
-            &result.reproj_err[2 * block],
-            &reproj_err_d[shift + 2 * i]
+            x_gradient_part,
+            &input.w[i],
+            weight_gradient_part,
+            &input.feats[i * 2],
+            err,
+            errb
         );
-    }
 
-    directions.back() = 0.0;        // erase last direction
+        // fill second row elements
+        for (int j = 0; j < BA_NCAMPARAMS + 3 + 1; j++)
+        {
+            reproj_err_d[2 * j + 1] = reproj_err_d_row[j];
+        }
+
+        result.J.insert_reproj_err_block(i, camIdx, ptIdx, reproj_err_d.data());
+    }
+}
+
+
+
+void TapenadeBA::calculate_weight_error_jacobian_part()
+{
+    for (int j = 0; j < input.p; j++)
+    {
+        double wb;              // stores calculated derivative
+
+        double err = 0.0;       // stores fictive result
+                                // (Tapenade doesn't calculate an original function in reverse mode)
+
+        double errb = 1.0;      // stores dY
+                                // (equals to 1.0 for derivative calculation)
+
+        compute_zach_weight_error_b(&input.w[j], &wb, &err, &errb);
+        result.J.insert_w_err_block(j, wb);
+    }
 }
 
 
