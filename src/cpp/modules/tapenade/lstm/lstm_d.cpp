@@ -31,7 +31,7 @@ double sigmoid_nodiff(double x) {
    Plus diff mem management of: vect:in
 */
 // log(sum(exp(x), 2))
-void logsumexp_b(const double* const vect, double* vectb, int sz, double
+void logsumexp_b(double const* vect, double* vectb, int sz, double
     logsumexpb) {
     double sum = 0.0;
     double sumb = 0.0;
@@ -46,7 +46,7 @@ void logsumexp_b(const double* const vect, double* vectb, int sz, double
 }
 
 // log(sum(exp(x), 2))
-double logsumexp_nodiff(const double* const vect, int sz) {
+double logsumexp_nodiff(double const* vect, int sz) {
     double sum = 0.0;
     int i;
     for (i = 0; i < sz; ++i)
@@ -66,9 +66,9 @@ double logsumexp_nodiff(const double* const vect, int sz) {
 */
 // LSTM OBJECTIVE
 // The LSTM model
-void lstm_model_b(int hsize, const double* const weight, double* weightb,
-    const double* const bias, double* biasb, double* hidden, double*
-    hiddenb, double* cell, double* cellb, const double* const input,
+void lstm_model_b(int hsize, double const* weight, double* weightb,
+    double const* bias, double* biasb, double* hidden, double*
+    hiddenb, double* cell, double* cellb, double const* input,
     double* inputb) {
     double* gates;
     double* gatesb;
@@ -149,8 +149,8 @@ void lstm_model_b(int hsize, const double* const weight, double* weightb,
 
 // LSTM OBJECTIVE
 // The LSTM model
-void lstm_model_nodiff(int hsize, const double* const weight, const double*
-    const bias, double* hidden, double* cell, const double* const input) {
+void lstm_model_nodiff(int hsize, double const* weight, const double*
+    const bias, double* hidden, double* cell, double const* input) {
     double* gates;
     double arg1;
     gates = (double*)malloc(4 * hsize * sizeof(double));
@@ -182,7 +182,7 @@ void lstm_model_nodiff(int hsize, const double* const weight, const double*
    Plus diff mem management of: s:in w:in w2:in x2:in
 */
 // Predict LSTM output given an input
-void lstm_predict_b(int l, int b, const double* const w, double* wb, const
+void lstm_predict_b(int l, int b, double const* w, double* wb, const
     double* const w2, double* w2b, double* s, double* sb, const double*
     const x, double* x2, double* x2b) {
     int i, j;
@@ -245,8 +245,8 @@ void lstm_predict_b(int l, int b, const double* const w, double* wb, const
 }
 
 // Predict LSTM output given an input
-void lstm_predict_nodiff(int l, int b, const double* const w, const double*
-    const w2, double* s, const double* const x, double* x2) {
+void lstm_predict_nodiff(int l, int b, double const* w, const double*
+    const w2, double* s, double const* x, double* x2) {
     int i;
     for (i = 0; i < b; ++i)
         x2[i] = x[i] * w2[i];
@@ -270,9 +270,9 @@ void lstm_predict_nodiff(int l, int b, const double* const w, const double*
    Plus diff mem management of: extra_params:in loss:in
 */
 // LSTM objective (loss function)
-void lstm_objective_b(int l, int c, int b, const double* const main_params,
-    double* main_paramsb, const double* const extra_params, double*
-    extra_paramsb, double* state, const double* const sequence, double*
+void lstm_objective_b(int l, int c, int b, double const* main_params,
+    double* main_paramsb, double const* extra_params, double*
+    extra_paramsb, double* state, double const* sequence, double*
     loss, double* lossb) {
     int i, t;
     double total = 0.0;

@@ -24,10 +24,10 @@ void gmm_objective(
     int d,
     int k,
     int n,
-    const double* const alphas,
-    const double* const means,
-    const double* const icf,
-    const double* const x,
+    double const* alphas,
+    double const* means,
+    double const* icf,
+    double const* x,
     Wishart wishart,
     double* err
 );
