@@ -103,6 +103,7 @@ void lstm_objective(
     double* loss
 )
 {
+    int i, t;
     double total = 0.0;
     int count = 0;
     const double* input = &(sequence[0]);
@@ -110,9 +111,6 @@ void lstm_objective(
     double* ynorm = (double*)malloc(b * sizeof(double));
     const double* ygold;
     double lse;
-
-    int i;
-    int t;
 
     for (t = 0; t <= (c - 1) * b - 1; t += b)
     {

@@ -1,7 +1,7 @@
 #include "helpers.h"
 
 // Initializes array with zeros.
-void init_zeros(double* arr, int size)
+void init_by_zeros(double* arr, int size)
 {
     int i;
 
@@ -15,6 +15,6 @@ void init_zeros(double* arr, int size)
 double* get_zero_array(int size)
 {
     double* arr = (double*)malloc(size * sizeof(double));
-    init_zeros(arr, size);
+    init_by_zeros(arr, size);
     return arr;
 }

@@ -6,8 +6,8 @@ target_sources("Tapenade" PRIVATE "utils/adBuffer.cpp")
 target_sources("Tapenade" PRIVATE "utils/adStack.cpp")
 target_sources("Tapenade" PRIVATE "utils/helpers.cpp")
 
-target_sources("Tapenade" PRIVATE "lstm.cpp")
-target_sources("Tapenade" PRIVATE "lstm_d.cpp")
+target_sources("Tapenade" PRIVATE "lstm/lstm.cpp")
+target_sources("Tapenade" PRIVATE "lstm/lstm_d.cpp")
 target_sources("Tapenade" PUBLIC "TapenadeLSTM.cpp")
 
 target_sources("Tapenade" PRIVATE "gmm/gmm.cpp")

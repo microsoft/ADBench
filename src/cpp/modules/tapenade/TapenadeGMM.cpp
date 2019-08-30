@@ -43,7 +43,7 @@ void TapenadeGMM::calculate_jacobian(int times)
                             // (Tapenade doesn't calculate an original function in reverse mode)
 
     double errb = 1.0;      // stores dY
-                            // (equals to 1.0 for calculating gradient)
+                            // (equals to 1.0 for gradient calculation)
 
     double* alphas_gradient_part = result.gradient.data();
     double* means_gradient_part = result.gradient.data() + input.alphas.size();
