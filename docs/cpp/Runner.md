@@ -1,3 +1,4 @@
+﻿
 
 
 
@@ -104,3 +105,102 @@ CPPRunner test_type module_path input_filepath output_dir minimum_measurable_tim
         ...
     ```
 5. Add *TBenchmark.cpp* to *TestExtenders* environment variable inside "/src/cpp/runner/CMakeLists.txt". 
+
+## Input/Output files format
+
+### GMM
+#### Input
+  D k n
+  α<sub>1</sub>
+    ...
+  α<sub>k</sub>
+  μ<sub>1,1</sub> ... μ<sub>D,1</sub>
+    ...
+  μ<sub>1,k</sub> ... μ<sub>D,k</sub>
+  q<sub>1,1</sub> ... q<sub>D,1</sub> l<sub>1,1</sub> ... l<sub>$\frac{D(D-1)}{2}$,1</sub>
+    ...
+  q<sub>1,k</sub> ... q<sub>D,k</sub> l<sub>1,k</sub> ... l<sub>$\frac{D(D-1)}{2}$,k</sub> 
+  x<sub>1,1</sub> ... x<sub>D,1</sub>
+    ...
+  x<sub>1,n</sub> ... x<sub>D,n</sub>
+  γ m
+  
+Definitions of all variables are given in the  [srajer-autodiff-screen.pdf](../../Documents/srajer-autodiff-screen.pdf), page 3.
+Note that if replicate point mode is enabled the benchmark expects only x<sub>1,1</sub> ... x<sub>D,1</sub> string and duplicates it n-1 times.
+
+#### Output
+
+1. \_F\_ file  
+    Contains only the value of the function in the specified point. 
+2. \_J\_ file  
+     v<sub>1</sub> ... v<sub>n</sub>      where v<sub>i</sub> are components of the objective gradient.
+     
+### BA
+#### Input
+  n m p
+  p<sub>1</sub> ... p<sub>11</sub>
+  x<sub>1</sub> x<sub>2</sub> x<sub>3</sub>
+  w<sub>1</sub>
+  feat<sub>1</sub> feat<sub>2</sub>
+
+n,m,p are number of cams, points and observations.
+Definitions of all other variables are given in the  [srajer-autodiff-screen.pdf](../../Documents/srajer-autodiff-screen.pdf), page 5.
+
+#### Output
+
+1. \_F\_ file  
+    Reprojection error
+    Zach weight error
+2. \_J\_ file  
+     j<sub>1,1</sub> ... j<sub>1,ncols</sub> 
+     ...
+      j<sub>nrows,1</sub> ... j<sub>nrows,ncols</sub> 
+    
+    where ncols=2*p+p, nrows=11*n+3*m+p
+
+### Hand
+#### Input
+1. model/bones.txt
+	Contains a list of lines whereas each line containts such parameters separated by ":" delimeter:
+	- bone_name
+	- bone_parent
+	- base_relative<sub>1</sub> ... base_relative<sub>16</sub>
+	- base_absolute<sub>1</sub> ... base_absolute<sub>16</sub>
+2. model/vertices.txt
+    Contains a list of lines whereas each line containts such parameters separated by ":" delimeter:
+	- v<sub>1</sub> ... v<sub>3</sub>
+	- dummy<sub>1</sub> ... dummy<sub>5</sub>
+	- n
+	- bone<sub>1</sub>:weight<sub>bone<sub>1</sub>,vert<sub>1</sub></sub>: ... :bone<sub>n</sub>:weight<sub>bone<sub>n</sub>,vert<sub>n</sub></sub>
+
+3. model/triangles.txt
+    Contains a list of lines:  
+      - v<sub>1</sub>:v<sub>2</sub>:v<sub>3</sub>
+ 
+ 4. input.txt
+    n_pts  n_theta
+    correspondance<sub>1</sub> point<sub>1,1</sub> point<sub>1,2</sub> point<sub>1,3</sub>
+    ...
+    correspondance<sub>n_pts</sub> point<sub>n_pts,1</sub> point<sub>n_pts,2</sub> point<sub>n_pts,3</sub>
+    us<sub>1,1</sub> us<sub>1,2</sub>
+    ...
+    us<sub>n_pts,1</sub> us<sub>n_pts,2</sub>
+    θ<sub>1</sub>
+    ...
+    θ<sub>n_theta</sub>
+Note that the benchmark expects "us" block only if complicated mode is enabled.
+
+#### Output
+1. \_F\_ file  
+     v<sub>1</sub> ... v<sub>n</sub>      where v<sub>i</sub> are components of the objective vector.
+2. \_J\_ file  
+     j<sub>1,1</sub> ... j<sub>1,ncols</sub> 
+     ...
+      j<sub>nrows,1</sub> ... j<sub>nrows,ncols</sub> 
+    
+    where ncols=(complicated ? 2 : 0) + n_theta, nrows=3*n_pts
+
+### LSTM
+#### Input
+#### Output
+
