@@ -110,20 +110,20 @@ CPPRunner test_type module_path input_filepath output_dir minimum_measurable_tim
 
 ### GMM
 #### Input
-    D k n
-    α<sub>1</sub>
-      ...
-    α<sub>k</sub>
-    μ<sub>1,1</sub> ... μ<sub>D,1</sub>
-      ...
-    μ<sub>1,k</sub> ... μ<sub>D,k</sub>
-    q<sub>1,1</sub> ... q<sub>D,1</sub> l<sub>1,1</sub> ... l<sub>$\frac{D(D-1)}{2}$,1</sub>
-      ...
-    q<sub>1,k</sub> ... q<sub>D,k</sub> l<sub>1,k</sub> ... l<sub>$\frac{D(D-1)}{2}$,k</sub> 
-    x<sub>1,1</sub> ... x<sub>D,1</sub>
-      ...
-    x<sub>1,n</sub> ... x<sub>D,n</sub>
-    γ m
+  D k n</br>
+  α<sub>1</sub></br>
+    ...</br>
+  α<sub>k</sub></br>
+  μ<sub>1,1</sub> ... μ<sub>D,1</sub></br>
+    ...</br>
+  μ<sub>1,k</sub> ... μ<sub>D,k</sub></br>
+  q<sub>1,1</sub> ... q<sub>D,1</sub> l<sub>1,1</sub> ... l<sub>$\frac{D(D-1)}{2}$,1</sub></br>
+    ...</br>
+  q<sub>1,k</sub> ... q<sub>D,k</sub> l<sub>1,k</sub> ... l<sub>$\frac{D(D-1)}{2}$,k</sub></br> 
+  x<sub>1,1</sub> ... x<sub>D,1</sub></br>
+    ...</br>
+  x<sub>1,n</sub> ... x<sub>D,n</sub></br>
+  γ m</br>
   
 Definitions of all variables are given in the  [srajer-autodiff-screen.pdf](../../Documents/srajer-autodiff-screen.pdf), page 3.
 Note that if replicate point mode is enabled the benchmark expects only x<sub>1,1</sub> ... x<sub>D,1</sub> string and duplicates it n-1 times.
@@ -137,11 +137,11 @@ Note that if replicate point mode is enabled the benchmark expects only x<sub>1,
      
 ### BA
 #### Input
-    n m p
-    p<sub>1</sub> ... p<sub>11</sub>
-    x<sub>1</sub> x<sub>2</sub> x<sub>3</sub>
-    w<sub>1</sub>
-    feat<sub>1</sub> feat<sub>2</sub>
+  n m p</br>
+  p<sub>1</sub> ... p<sub>11</sub></br>
+  x<sub>1</sub> x<sub>2</sub> x<sub>3</sub></br>
+  w<sub>1</sub></br>
+  feat<sub>1</sub> feat<sub>2</sub></br>
 
 n,m,p are number of cams, points and observations.
 Definitions of all other variables are given in the  [srajer-autodiff-screen.pdf](../../Documents/srajer-autodiff-screen.pdf), page 5.
@@ -178,18 +178,18 @@ Definitions of all other variables are given in the  [srajer-autodiff-screen.pdf
       - v<sub>1</sub>:v<sub>2</sub>:v<sub>3</sub>
  
  4. input.txt
-    ```
-     n_pts  n_theta
-     correspondance<sub>1</sub> point<sub>1,1</sub> point<sub>1,2</sub> point<sub>1,3</sub>
-     ...
-     correspondance<sub>n_pts</sub> point<sub>n_pts,1</sub> point<sub>n_pts,2</sub> point<sub>n_pts,3</sub>
-     us<sub>1,1</sub> us<sub>1,2</sub>
-     ...
-     us<sub>n_pts,1</sub> us<sub>n_pts,2</sub>
-     θ<sub>1</sub>
-     ...
-     θ<sub>n_theta</sub>
-    ```
+    
+      n_pts  n_theta</br>
+      correspondance<sub>1</sub> point<sub>1,1</sub> point<sub>1,2</sub> point<sub>1,3</sub></br>
+        ...</br>
+      correspondance<sub>n_pts</sub> point<sub>n_pts,1</sub> point<sub>n_pts,2</sub> point<sub>n_pts,3</sub></br>
+      us<sub>1,1</sub> us<sub>1,2</sub></br>
+        ...</br>
+      us<sub>n_pts,1</sub> us<sub>n_pts,2</sub></br>
+      θ<sub>1</sub></br>
+        ...</br>
+      θ<sub>n_theta</sub></br>
+   
 Note that the benchmark expects "us" block only if complicated mode is enabled.
 
 #### Output
