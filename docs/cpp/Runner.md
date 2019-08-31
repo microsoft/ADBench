@@ -110,20 +110,20 @@ CPPRunner test_type module_path input_filepath output_dir minimum_measurable_tim
 
 ### GMM
 #### Input
-  D k n
-  α<sub>1</sub>
-    ...
-  α<sub>k</sub>
-  μ<sub>1,1</sub> ... μ<sub>D,1</sub>
-    ...
-  μ<sub>1,k</sub> ... μ<sub>D,k</sub>
-  q<sub>1,1</sub> ... q<sub>D,1</sub> l<sub>1,1</sub> ... l<sub>$\frac{D(D-1)}{2}$,1</sub>
-    ...
-  q<sub>1,k</sub> ... q<sub>D,k</sub> l<sub>1,k</sub> ... l<sub>$\frac{D(D-1)}{2}$,k</sub> 
-  x<sub>1,1</sub> ... x<sub>D,1</sub>
-    ...
-  x<sub>1,n</sub> ... x<sub>D,n</sub>
-  γ m
+    D k n
+    α<sub>1</sub>
+      ...
+    α<sub>k</sub>
+    μ<sub>1,1</sub> ... μ<sub>D,1</sub>
+      ...
+    μ<sub>1,k</sub> ... μ<sub>D,k</sub>
+    q<sub>1,1</sub> ... q<sub>D,1</sub> l<sub>1,1</sub> ... l<sub>$\frac{D(D-1)}{2}$,1</sub>
+      ...
+    q<sub>1,k</sub> ... q<sub>D,k</sub> l<sub>1,k</sub> ... l<sub>$\frac{D(D-1)}{2}$,k</sub> 
+    x<sub>1,1</sub> ... x<sub>D,1</sub>
+      ...
+    x<sub>1,n</sub> ... x<sub>D,n</sub>
+    γ m
   
 Definitions of all variables are given in the  [srajer-autodiff-screen.pdf](../../Documents/srajer-autodiff-screen.pdf), page 3.
 Note that if replicate point mode is enabled the benchmark expects only x<sub>1,1</sub> ... x<sub>D,1</sub> string and duplicates it n-1 times.
@@ -137,11 +137,11 @@ Note that if replicate point mode is enabled the benchmark expects only x<sub>1,
      
 ### BA
 #### Input
-  n m p
-  p<sub>1</sub> ... p<sub>11</sub>
-  x<sub>1</sub> x<sub>2</sub> x<sub>3</sub>
-  w<sub>1</sub>
-  feat<sub>1</sub> feat<sub>2</sub>
+    n m p
+    p<sub>1</sub> ... p<sub>11</sub>
+    x<sub>1</sub> x<sub>2</sub> x<sub>3</sub>
+    w<sub>1</sub>
+    feat<sub>1</sub> feat<sub>2</sub>
 
 n,m,p are number of cams, points and observations.
 Definitions of all other variables are given in the  [srajer-autodiff-screen.pdf](../../Documents/srajer-autodiff-screen.pdf), page 5.
