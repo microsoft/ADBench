@@ -178,16 +178,16 @@ Definitions of all other variables are given in the  [srajer-autodiff-screen.pdf
       - v<sub>1</sub>:v<sub>2</sub>:v<sub>3</sub>
  
  4. input.txt
-    n_pts  n_theta
-    correspondance<sub>1</sub> point<sub>1,1</sub> point<sub>1,2</sub> point<sub>1,3</sub>
-    ...
-    correspondance<sub>n_pts</sub> point<sub>n_pts,1</sub> point<sub>n_pts,2</sub> point<sub>n_pts,3</sub>
-    us<sub>1,1</sub> us<sub>1,2</sub>
-    ...
-    us<sub>n_pts,1</sub> us<sub>n_pts,2</sub>
-    θ<sub>1</sub>
-    ...
-    θ<sub>n_theta</sub>
+      n_pts  n_theta
+      correspondance<sub>1</sub> point<sub>1,1</sub> point<sub>1,2</sub> point<sub>1,3</sub>
+      ...
+      correspondance<sub>n_pts</sub> point<sub>n_pts,1</sub> point<sub>n_pts,2</sub> point<sub>n_pts,3</sub>
+      us<sub>1,1</sub> us<sub>1,2</sub>
+      ...
+      us<sub>n_pts,1</sub> us<sub>n_pts,2</sub>
+      θ<sub>1</sub>
+      ...
+      θ<sub>n_theta</sub>
 Note that the benchmark expects "us" block only if complicated mode is enabled.
 
 #### Output
