@@ -205,9 +205,9 @@ Note that the benchmark expects "us" block only if complicated mode is enabled.
 ### LSTM
 #### Input
   l c b</br>
-  main_param<sub>1</sub> ... main_param<sub>2*l*4*b</sub></br>
+  main_param<sub>1</sub> ... main_param<sub>2l4b</sub></br>
   extra_param<sub>1</sub> ... extra_param<sub>3b</sub> </br>
-  state<sub>1</sub> ... state<sub>2*l*b</sub></br>
+  state<sub>1</sub> ... state<sub>2lb</sub></br>
   seq<sub>1</sub> ... seq<sub>cb</sub> </br>
 
 #### Output
