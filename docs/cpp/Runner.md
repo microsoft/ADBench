@@ -204,5 +204,16 @@ Note that the benchmark expects "us" block only if complicated mode is enabled.
 
 ### LSTM
 #### Input
+  l c b</br>
+  main_param<sub>1</sub> ... main_param<sub>2*l*4*b</sub></br>
+  extra_param<sub>1</sub> ... extra_param<sub>3*b</sub></br>
+  state<sub>1</sub> ... state<sub>2*l*b</sub></br>
+  seq<sub>1</sub> ... seq<sub>c*b</sub></br>
+
 #### Output
+
+1. \_F\_ file  
+    Contains only the value of the function in the specified point. 
+2. \_J\_ file  
+     v<sub>1</sub> ... v<sub>n</sub>      where v<sub>i</sub> are components of the objective gradient.
 
