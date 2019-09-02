@@ -12,10 +12,10 @@ _Testing modules_ here are modules in terms of the platform they are developed f
 
 _Benchmark runners_ are console applications that load _testing modules_ and input data and measure the time modules take to compute the objective function and its considered derivative for the loaded input data. Then they write measured times and computed derivatives to files with standardized names. We have one benchmark runner per development platform, so that we can use the same time-measuring code for all frameworks supporting that platform.
 
-_Global runner_ is a script that is aware of all existing _benchmark runners_, _testing modules_, and sets of input parameters for the objective functions. It consequitively runs all benchmarks using corresponding _benchmark runners_ while enforcing specified hard time limits.
+_Global runner_ is a script that is aware of all existing _benchmark runners_, _testing modules_, and sets of input parameters for the objective functions. It consecutively runs all benchmarks using corresponding _benchmark runners_ while enforcing specified hard time limits.
 
 _Result-processing scripts_ are scripts that consume the outputs of _benchmark runners_ and
-- Check the accuracy of computated objective functions and derivatives
+- Check the accuracy of computed objective functions and derivatives
 - Create visualizations
 
 <table>
@@ -58,11 +58,11 @@ Their interfaces are defined strictly within the specifications of the correspon
 
 ### Benchmark Runners
 
-_Benchmark runners_ are console applications that load _testing modules_ and input data and measure the time modules take to compute the objective function and its considered derivative for the loaded input data. Time measurement is perfomed according to the [methodology](Methodology.md). _Benchmark runners_ are started by the _global runner_. They write measured times and computed derivatives to files, that are then read by the _result-processing scripts_.
+_Benchmark runners_ are console applications that load _testing modules_ and input data and measure the time modules take to compute the objective function and its considered derivative for the loaded input data. Time measurement is performed according to the [methodology](Methodology.md). _Benchmark runners_ are started by the _global runner_. They write measured times and computed derivatives to files, that are then read by the _result-processing scripts_.
 
 Interfaces for interacting with the _testing modules_ are specific to each runner and, therefore, described in the specifications for the runners. The broad description is given in the section regarding [_testing modules_](#testing-modules).
 
-_Global runner_ tells _benchmark runners_ which _testing module_ to use, which test to run, etc via command-line arguments. The exact invokation specifications are specific to the _benchmark runners_ and known to the _global runner_. Generally, the arguments would include
+_Global runner_ tells _benchmark runners_ which _testing module_ to use, which test to run, etc. via command-line arguments. The exact invocation specifications are specific to the _benchmark runners_ and known to the _global runner_. Generally, the arguments would include
 - path to the _testing module_
 - path to the input data
 - path to the folder where the output should be saved
@@ -76,7 +76,7 @@ _Benchmark runners_ output 3 files into the folder specified by the _global runn
 
 ### Global Runner
 
-_Global runner_ is a script that consequitively runs all benchmarks using corresponding _benchmark runners_ while enforcing specified hard time limits.
+_Global runner_ is a script that consecutively runs all benchmarks using corresponding _benchmark runners_ while enforcing specified hard time limits.
 It contains code for starting all the _benchmark runners_ and is aware of all existing _testing modules_.
 
 _Global runner_ is started by the user. User may pass some or all of the variables listed in the [methodology](Methodology.md) as command line arguments.
@@ -85,6 +85,6 @@ __The exact specifications are to be developed along with the _global runner_ it
 
 ### Result-Processing Scripts
 
-Two scripts. One looks at the ouput files and compares the results in them to the manually computed correct ones, the other produces visualizations of the timings.
+Two scripts. One looks at the output files and compares the results in them to the manually computed correct ones, the other produces visualizations of the timings.
 
 __The exact specifications are to be developed along with the _result-processing scripts_ themselves__.
