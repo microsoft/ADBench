@@ -144,7 +144,7 @@ Note that if replicate point mode is enabled the benchmark expects only x<sub>1,
   feat<sub>1</sub> feat<sub>2</sub></br>
 
 n,m,p are number of cams, points and observations.
-Definitions of all other variables are given in the  [srajer-autodiff-screen.pdf](../../Documents/srajer-autodiff-screen.pdf), page 5.
+Definitions of all other variables are given in the  [srajer-autodiff-screen.pdf](../../Documents/srajer-autodiff-screen.pdf), page 4.
 
 #### Output
 
@@ -179,18 +179,20 @@ Definitions of all other variables are given in the  [srajer-autodiff-screen.pdf
  
  4. input.txt
     
-      n_pts  n_theta</br>
+      N  n_theta</br>
       correspondance<sub>1</sub> point<sub>1,1</sub> point<sub>1,2</sub> point<sub>1,3</sub></br>
         ...</br>
-      correspondance<sub>n_pts</sub> point<sub>n_pts,1</sub> point<sub>n_pts,2</sub> point<sub>n_pts,3</sub></br>
-      us<sub>1,1</sub> us<sub>1,2</sub></br>
+      correspondance<sub>N</sub> point<sub>N,1</sub> point<sub>N,2</sub> point<sub>N,3</sub></br>
+      u<sub>1,1</sub> u<sub>1,2</sub></br>
         ...</br>
-      us<sub>n_pts,1</sub> us<sub>n_pts,2</sub></br>
+      u<sub>n_pts,1</sub> u<sub>N,2</sub></br>
       θ<sub>1</sub></br>
         ...</br>
       θ<sub>n_theta</sub></br>
    
-Note that the benchmark expects "us" block only if complicated mode is enabled.
+Note that the benchmark expects "u" block only if complicated mode is enabled.
+
+Definitions of all variables are given in the  [srajer-autodiff-screen.pdf](../../Documents/srajer-autodiff-screen.pdf), page 5.
 
 #### Output
 1. \_F\_ file  
