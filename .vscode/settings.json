@@ -1,0 +1,7 @@
+{
+    "cmake.buildDirectory": "${workspaceRoot}/vsc-build",
+    "cmake.configureOnOpen": true,
+    "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
+    "dotnet-test-explorer.testProjectPath": "test/**/*.*proj",
+    "catch2TestExplorer.executables": "vsc-build/**/*{test,Test,TEST}*"
+}

@@ -10,7 +10,9 @@
         "maddouri.cmake-tools-helper",          // interop between ms-vscode.cpptools & vector-of-bool.cmake-tools
         "hbenl.vscode-test-explorer",           // Test Explorer UI
         "matepek.vscode-catch2-test-adapter",   // Google Test adapter
-        "austin.code-gnu-global"                // C++ Intellisense
+        "austin.code-gnu-global",               // C++ Intellisense
+        "ms-vscode.csharp",                     // C# language support
+        "formulahendry.dotnet-test-explorer"    // xunit (and nunit) test adapter
     ],
     // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
     "unwantedRecommendations": [
