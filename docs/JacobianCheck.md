@@ -1,6 +1,6 @@
 # Jacobian Correctness Verification
 
-ADBench needs not olny to measure the time different tools take to compute the Jacobians of objective functions, but also to check, whether produced Jacobians are accurate. This document describes, how the accuracy of the Jacobians is verified.
+ADBench needs not only to measure the time different tools take to compute the Jacobians of objective functions, but also to check, whether produced Jacobians are accurate. This document describes, how the accuracy of the Jacobians is verified.
 
 ## Source of the Ground Truth
 
@@ -8,7 +8,7 @@ Some of our tests (most notably, those related to bundle adjustments) result in 
 
 The accuracy of the results produced by the _golden module_ is verified separately.
 
-We designate the module `Manual`, which computes the Jacobians using the manually derived formuale, as the _golden module_. We do so, because
+We designate the module `Manual`, which computes the Jacobians using the manually derived formulae, as the _golden module_. We do so, because
 - It is fast enough not to timeout, so when some other module produces a Jacobian, we would have a Jacobian, we consider accurate, to compare it against
 - We have the complete control over this module, so if we ever encounter a bug in it, it will be within our power to fix it
 
@@ -44,7 +44,7 @@ Computing all the Jacobians using finite differences is a very time consuming pr
 It is still unfeasible to compute the complete gradients for large GMM problems using finite differences, so we compute only parts of them, and compare them to the corresponding parts of the gradients computed by `Manual`.
 This is done by a separate utility - `src/cpp/utils/finitePartialGmm`.
 
-The script `ADBench/compare-manvfinite.ps1` computes all the Jacobians using `Manual` and `Finite` modules (except GMM, see above) and outputs (alongside said Jacobians) a log, containing the following statistics for each pait of the Jacobians:
+The script `ADBench/compare-manvfinite.ps1` computes all the Jacobians using `Manual` and `Finite` modules (except GMM, see above) and outputs (alongside said Jacobians) a log, containing the following statistics for each pair of the Jacobians:
 - Whether or not the Jacobians have different shapes
 - Whether or not one of the Jacobians failed to parse
 - Maximum encountered difference (1) between the corresponding elements of the Jacobians
