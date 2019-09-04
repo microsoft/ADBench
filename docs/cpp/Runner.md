@@ -117,9 +117,9 @@ CPPRunner test_type module_path input_filepath output_dir minimum_measurable_tim
   μ<sub>1,1</sub> ... μ<sub>D,1</sub></br>
     ...</br>
   μ<sub>1,k</sub> ... μ<sub>D,k</sub></br>
-  q<sub>1,1</sub> ... q<sub>D,1</sub> l<sub>1,1</sub> ... l<sub>$\frac{D(D-1)}{2}$,1</sub></br>
+  q<sub>1,1</sub> ... q<sub>D,1</sub> l<sub>1,1</sub> ... l<sub><sup>D(D-1)</sup>&frasl;<sub>2</sub>,1</sub></br>
     ...</br>
-  q<sub>1,k</sub> ... q<sub>D,k</sub> l<sub>1,k</sub> ... l<sub>$\frac{D(D-1)}{2}$,k</sub></br> 
+  q<sub>1,k</sub> ... q<sub>D,k</sub> l<sub>1,k</sub> ... l<sub><sup>D(D-1)</sup>&frasl;<sub>2</sub>,k</sub></br> 
   x<sub>1,1</sub> ... x<sub>D,1</sub></br>
     ...</br>
   x<sub>1,n</sub> ... x<sub>D,n</sub></br>
