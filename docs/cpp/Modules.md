@@ -1,7 +1,3 @@
-
-
-
-
 # C++ Modules
 
 ## Adding new modules
@@ -20,7 +16,7 @@
 3. <span id="itest-implementation"> For each objective create a class implementing ITest<TInput,TOuput> interface where T is an objective type (GMM, BA etc.). *TInput* and *TOutput* are input and output types specific for the objective. They are defined in the file "../../shared/TData.h" (the path is relative to the directory of your module).
     - virtual void prepare(TInput&& input) - converts the input data from the format in which it is provided by the calling benchmark runner into the format optimized for use with the tested AD framework. It also allocates memory for internal buffers and results structure.
     - virtual void calculate_objective(int times) - repeatedly computes one of the objective functions given number of times, saving results into a pre-allocated internal structure.
-    - virtual void calculate_jacobian(int times) - repeatedly computing a derivative of one of the objective functions given number of times, saving results into a pre-allocated internal structure.
+    - virtual void calculate_jacobian(int times) - repeatedly computes a derivative of one of the objective functions given number of times, saving results into a pre-allocated internal structure.
     - virtual TOutput output() - convertes internally saved outputs into the format specified by the runner.
     </span>
 
@@ -46,7 +42,7 @@ GTest and GMock frameworks are used to test C++ modules in this project.
 ### Adding tests for a new module
 
 AD Bench already contains some tests for each objective.
-When you add a new module, first thing you should do is testing your module with the existing tests.
+When you add a new module, first thing you should do is to test your module with the existing tests.
 
 Follow the next steps for every objective you want to test:
 
