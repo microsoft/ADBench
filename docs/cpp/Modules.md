@@ -13,7 +13,9 @@
     ```cmake
     add_subdirectory ("YourModule")
     ```
-3. <span id="itest-implementation"> For each objective create a class implementing `ITest<TInput,TOuput>` interface where `T` is an objective type (GMM, BA etc.). `*TInput*` and `*TOutput*` are input and output types specific for the objective. They are defined in the file `../../shared/TData.h` (the path is relative to the directory of your module).
+3. <span id="itest-implementation"> For each objective create a class implementing `ITest<TInput,TOuput>` interface where `T` is an objective type (GMM, BA etc.). You can find this interface in the file `../../shared/ITest.h` (the path is relative to the directory of your module). `*TInput*` and `*TOutput*` are input and output types specific for the objective there. They are defined in the file `../../shared/TData.h` (the path is relative to the directory of your module).
+    
+    The functions you need to implement:
     - ```cpp
       virtual void prepare(TInput&& input)
       ```
