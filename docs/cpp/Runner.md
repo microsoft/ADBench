@@ -161,13 +161,13 @@ Definitions of all other variables are given in the  [srajer-autodiff-screen.pdf
 ### Hand
 #### Input
 1. model/bones.txt
-	Contains a list of lines whereas each line containts such parameters separated by ":" delimeter:
+	Contains a list of lines where each line contains such parameters separated by ":" delimeter:
 	- bone_name
 	- bone_parent
 	- base_relative<sub>1</sub> ... base_relative<sub>16</sub>
 	- base_absolute<sub>1</sub> ... base_absolute<sub>16</sub>
 2. model/vertices.txt
-    Contains a list of lines whereas each line containts such parameters separated by ":" delimeter:
+    Contains a list of lines where each line containts such parameters separated by ":" delimeter:
 	- v<sub>1</sub> ... v<sub>3</sub>
 	- dummy<sub>1</sub> ... dummy<sub>5</sub>
 	- n
