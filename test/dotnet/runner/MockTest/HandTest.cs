@@ -5,10 +5,10 @@ using System.Composition;
 
 namespace MockTest
 {
-    [Export(typeof(ITest<LSTMInput, LSTMOutput>))]
-    public class MockLSTM : ITest<LSTMInput, LSTMOutput>
+    [Export(typeof(ITest<HandInput, HandOutput>))]
+    public class HandTest : ITest<HandInput, HandOutput>
     {
-        public void Prepare(LSTMInput input)
+        public void Prepare(HandInput input)
         {
             throw new NotImplementedException();
         }
@@ -23,7 +23,7 @@ namespace MockTest
             throw new NotImplementedException();
         }
 
-        public LSTMOutput Output()
+        public HandOutput Output()
         {
             throw new NotImplementedException();
         }
