@@ -1,7 +1,6 @@
 ﻿using DotnetRunner.Data;
 using System.Composition;
 using System.Composition.Hosting;
-using System.IO;
 using System.Reflection;
 
 namespace DotnetRunner
@@ -9,6 +8,7 @@ namespace DotnetRunner
     public class ModuleLoader
     {
         private Assembly assembly;
+        private CompositionHost container;
         /// <summary>
         /// 
         /// </summary>
@@ -18,27 +18,20 @@ namespace DotnetRunner
             assembly = Assembly.LoadFile(modulePath);
             var configuration = new ContainerConfiguration()
             .WithAssembly(assembly);
-
-            using (var container = configuration.CreateContainer())
-            {
-                GMMTest = container.GetExport<ITest<GMMInput, GMMOutput>>();
-                BATest = container.GetExport<ITest<BAInput, BAOutput>>();
-                HandTest = container.GetExport<ITest<HandInput, HandOutput>>();
-                LSTMTest = container.GetExport<ITest<LSTMInput, LSTMOutput>>();
-            }
+            container = configuration.CreateContainer();
         }
 
-        [Import]
-        public ITest<GMMInput, GMMOutput> GMMTest { get; set; }
+        public ITest<GMMInput, GMMOutput> GetGMMTest() => container.GetExport<ITest<GMMInput, GMMOutput>>();
 
-        [Import]
-        public ITest<BAInput, BAOutput> BATest { get; set; }
+        public ITest<BAInput, BAOutput> GetBATest() => container.GetExport<ITest<BAInput, BAOutput>>();
 
-        [Import]
-        public ITest<HandInput, HandOutput> HandTest { get; set; }
+        public ITest<HandInput, HandOutput> GetHandTest() => container.GetExport<ITest<HandInput, HandOutput>>();
 
-        [Import]
-        public ITest<LSTMInput, LSTMOutput> LSTMTest { get; set; }
+        public ITest<LSTMInput, LSTMOutput> GetLSTMTest() => container.GetExport<ITest<LSTMInput, LSTMOutput>>();
 
+        ~ModuleLoader()
+        {
+            container.Dispose();
+        }
     }
 }
