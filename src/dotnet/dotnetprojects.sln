@@ -12,7 +12,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotnetRunnerTests", "..\..\test\dotnet\runner\DotnetRunnerTests\DotnetRunnerTests.csproj", "{D4EDF021-FEB6-48DB-A0D8-136E9B117791}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13DDCC04-1DFF-4BFB-8CF9-8F5F418C2585} = {13DDCC04-1DFF-4BFB-8CF9-8F5F418C2585}
+		{34682A0F-70FF-41C3-BE9C-59D07D27FA66} = {34682A0F-70FF-41C3-BE9C-59D07D27FA66}
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MockTest", "..\..\test\dotnet\runner\MockTest\MockTest.csproj", "{34682A0F-70FF-41C3-BE9C-59D07D27FA66}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,6 +39,10 @@ Global
 		{D4EDF021-FEB6-48DB-A0D8-136E9B117791}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D4EDF021-FEB6-48DB-A0D8-136E9B117791}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D4EDF021-FEB6-48DB-A0D8-136E9B117791}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34682A0F-70FF-41C3-BE9C-59D07D27FA66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34682A0F-70FF-41C3-BE9C-59D07D27FA66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34682A0F-70FF-41C3-BE9C-59D07D27FA66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34682A0F-70FF-41C3-BE9C-59D07D27FA66}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

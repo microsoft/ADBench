@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\dotnet\runner\DotnetRunner\DotnetRunner.csproj" />
+    <ProjectReference Include="..\MockTest\MockTest.csproj" />
   </ItemGroup>
 
 </Project>
