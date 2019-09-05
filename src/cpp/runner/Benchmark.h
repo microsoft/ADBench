@@ -117,7 +117,7 @@ void save_output_to_file(const Output& output, const string& output_prefix, cons
 
 //Performs the entire benchmark process according to the documentation
 template<class Input, class Output, class Parameters>
-void run_benchmark(const char* const module_path, const std::string& input_filepath, const std::string& output_prefix, const duration<double> minimum_measurable_time, const int nruns_F, const int nruns_J,
+void run_benchmark(const char* module_path, const std::string& input_filepath, const std::string& output_prefix, const duration<double> minimum_measurable_time, const int nruns_F, const int nruns_J,
                    const duration<double> time_limit, const Parameters parameters) {
 
     const ModuleLoader module_loader(module_path);
