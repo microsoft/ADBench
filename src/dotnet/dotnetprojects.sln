@@ -9,6 +9,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JacobianComparisonLibTests"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotnetRunner", "runner\DotnetRunner\DotnetRunner.csproj", "{13DDCC04-1DFF-4BFB-8CF9-8F5F418C2585}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotnetRunnerTests", "..\..\test\dotnet\runner\DotnetRunnerTests\DotnetRunnerTests.csproj", "{D4EDF021-FEB6-48DB-A0D8-136E9B117791}"
+	ProjectSection(ProjectDependencies) = postProject
+		{13DDCC04-1DFF-4BFB-8CF9-8F5F418C2585} = {13DDCC04-1DFF-4BFB-8CF9-8F5F418C2585}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +32,10 @@ Global
 		{13DDCC04-1DFF-4BFB-8CF9-8F5F418C2585}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13DDCC04-1DFF-4BFB-8CF9-8F5F418C2585}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{13DDCC04-1DFF-4BFB-8CF9-8F5F418C2585}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4EDF021-FEB6-48DB-A0D8-136E9B117791}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4EDF021-FEB6-48DB-A0D8-136E9B117791}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4EDF021-FEB6-48DB-A0D8-136E9B117791}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4EDF021-FEB6-48DB-A0D8-136E9B117791}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
