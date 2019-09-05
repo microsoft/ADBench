@@ -4,7 +4,7 @@ using System.Text;
 
 namespace DotnetRunner
 {
-    interface ITest<TInput, TOutput>
+    public interface ITest<TInput, TOutput>
     {
         // This function must be called before any other function.
         void Prepare(TInput input);

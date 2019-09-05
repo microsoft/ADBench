@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DotnetRunner.Data;
+using System;
 
 namespace DotnetRunner
 {
@@ -31,6 +32,26 @@ namespace DotnetRunner
 
                     Benchmark.Run<GMMInput, GMMOutput, GMMParameters>(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit, new GMMParameters() { });
                 }
+                else if (testType == "BA")
+                {
+
+                    Benchmark.Run<BAInput, BAOutput>(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit);
+                }
+                else if (testType == "HAND")
+                {
+
+                    Benchmark.Run<HandInput, HandOutput, HandParameters>(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit, new HandParameters() { });
+                }
+                else if (testType == "HAND-COMPLICATED")
+                {
+
+                    Benchmark.Run<HandInput, HandOutput, HandParameters>(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit, new HandParameters() { });
+                }
+                else if (testType == "LSTM")
+                {
+
+                    Benchmark.Run<LSTMInput, LSTMOutput>(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit);
+                }
                 else
                 {
                     throw new Exception("C++ runner doesn't support tests of " + testType + " type");
@@ -42,17 +63,5 @@ namespace DotnetRunner
             }
             return 0;
         }
-    }
-
-    internal class GMMParameters
-    {
-    }
-
-    internal class GMMOutput
-    {
-    }
-
-    internal class GMMInput
-    {
     }
 }
