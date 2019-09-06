@@ -23,8 +23,13 @@ function get_test(test_name::String, module_name::String)
         include_string(Box, "$module_name = Module()\n")
     end
     usingstr = "using $module_name\n"
-    @eval include_string($(Meta.parse("Box.$module_name")), $usingstr)
-    @eval Base.invokelatest($(Meta.parse("Box.$module_name.get_$(test_name)_test")))
+    module_symbol = Meta.parse("Box.$module_name")
+    get_test_function_name = "get_$(test_name)_test"
+    @eval include_string($module_symbol, $usingstr)
+    if @eval !isdefined($module_symbol, Symbol($get_test_function_name))
+        throw(ArgumentError("Module $module_name doesn't export a funtion $get_test_function_name."))
+    end
+    @eval Base.invokelatest($(Meta.parse("Box.$module_name.$get_test_function_name")))
 end
 
 end

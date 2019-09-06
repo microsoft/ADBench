@@ -1,6 +1,6 @@
 module HandData
 
-export HandModel, HandData, HandInput, HandOutput, empty_hand_output
+export HandModel, HandInput, HandOutput, empty_hand_output
 
 struct HandModel
     bone_names::Vector{String}
@@ -12,14 +12,10 @@ struct HandModel
     is_mirrored::Bool
 end
 
-struct HandData
+struct HandInput
     model::HandModel
     correspondences::Vector{Int}
     points::Matrix{Float64}
-end
-
-struct HandInput
-    data::HandData
     theta::Vector{Float64}
     us::Vector{Float64}
 end
