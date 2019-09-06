@@ -6,7 +6,7 @@ namespace DotnetRunner
 {
     public static class Benchmark
     {
-        private static readonly int measurableTimeNotAchieved = -1;
+        public static readonly int MeasurableTimeNotAchieved = -1;
 
         public static void Run<Input, Output, Parameters>(string modulePath, string inputFilePath, string outputPrefix, TimeSpan minimumMeasurableTime, int nrunsF, int nrunsJ,
                    TimeSpan timeLimit, Parameters parameters)
@@ -59,7 +59,7 @@ namespace DotnetRunner
         {
             var findRepeatsResult = FindRepeatsForMinimumMeasurableTime(minimumMeasurableTime, func);
 
-            if (findRepeatsResult.Repeats == measurableTimeNotAchieved)
+            if (findRepeatsResult.Repeats == MeasurableTimeNotAchieved)
             {
                 throw new Exception("It was not possible to reach the number of repeats sufficient to achieve the minimum measurable time.");
             }
@@ -85,7 +85,7 @@ namespace DotnetRunner
         }
 
         private const int maxPossiblePowerOfTwo = (int.MaxValue >> 1) + 1;
-        private static (int Repeats, TimeSpan Sample, TimeSpan TotalTime) FindRepeatsForMinimumMeasurableTime(TimeSpan minimumMeasurableTime, Action<int> func)
+        public static (int Repeats, TimeSpan Sample, TimeSpan TotalTime) FindRepeatsForMinimumMeasurableTime(TimeSpan minimumMeasurableTime, Action<int> func)
         {
             var totalTime = TimeSpan.Zero;
             var minSample = TimeSpan.MaxValue;
@@ -110,7 +110,7 @@ namespace DotnetRunner
                 //The next iteration will overflow a loop counter that's why we recognize that we cannot reach the minimum measurable time.
                 if (repeats == maxPossiblePowerOfTwo)
                 {
-                    repeats = measurableTimeNotAchieved;
+                    repeats = MeasurableTimeNotAchieved;
                     break;
                 }
                 repeats *= 2;
