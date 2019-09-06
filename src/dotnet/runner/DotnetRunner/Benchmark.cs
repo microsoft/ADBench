@@ -4,8 +4,10 @@ using System.Text;
 
 namespace DotnetRunner
 {
-    static class Benchmark
+    public static class Benchmark
     {
+        private static readonly int measurableTimeNotAchieved = -1;
+
         public static void Run<Input, Output, Parameters>(string modulePath, string inputFilePath, string outputPrefix, TimeSpan minimumMeasurableTime, int nrunsF, int nrunsJ,
                    TimeSpan timeLimit, Parameters parameters)
         {
@@ -17,10 +19,10 @@ namespace DotnetRunner
             test.Prepare(inputs);
 
             var objectiveTime =
-                measureShortestTime(minimumMeasurableTime, nrunsF, timeLimit, test, test.CalculateObjective);
+                MeasureShortestTime(minimumMeasurableTime, nrunsF, timeLimit, test.CalculateObjective);
 
             var derivativeTime =
-                measureShortestTime(minimumMeasurableTime, nrunsF, timeLimit, test, test.CalculateJacobian);
+                MeasureShortestTime(minimumMeasurableTime, nrunsF, timeLimit, test.CalculateJacobian);
 
             var output = test.Output();
 
@@ -35,7 +37,7 @@ namespace DotnetRunner
         public static void Run<Input, Output>(string modulePath, string inputFilePath, string outputPrefix, TimeSpan minimumMeasurableTime, int nrunsF, int nrunsJ,
                    TimeSpan timeLimit)
         {
-            Run<Input, Output, DefaultParameters> (modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit, new DefaultParameters());
+            Run<Input, Output, DefaultParameters>(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit, new DefaultParameters());
         }
 
         private static void SaveOutputToFile<Output>(Output output, string outputPrefix, string input_basename, string module_basename)
@@ -53,9 +55,68 @@ namespace DotnetRunner
             throw new NotImplementedException();
         }
 
-        private static TimeSpan measureShortestTime<Input, Output>(TimeSpan minimumMeasurableTime, int nrunsF, TimeSpan timeLimit, ITest<Input, Output> test, Action<int> calculateObjective)
+        public static TimeSpan MeasureShortestTime(TimeSpan minimumMeasurableTime, int nruns, TimeSpan timeLimit, Action<int> func)
         {
-            throw new NotImplementedException();
+            var findRepeatsResult = FindRepeatsForMinimumMeasurableTime(minimumMeasurableTime, func);
+
+            if (findRepeatsResult.Repeats == measurableTimeNotAchieved)
+            {
+                throw new Exception("It was not possible to reach the number of repeats sufficient to achieve the minimum measurable time.");
+            }
+
+            var repeats = findRepeatsResult.Repeats;
+            var minSample = findRepeatsResult.Sample;
+            var totalTime = findRepeatsResult.TotalTime;
+
+            var sw = new System.Diagnostics.Stopwatch();
+            // "run" begins from 1 because a first run already done by "findRepeatsForMinimumMeasurableTime" function
+            for (var run = 1; (run < nruns) && (totalTime < timeLimit); run++)
+            {
+                sw.Start();
+                func(repeats);
+                sw.Stop();
+                //Time in seconds
+                var currentRunTime = sw.Elapsed;
+                minSample = new TimeSpan(Math.Min(minSample.Ticks, currentRunTime.Ticks / repeats));
+                totalTime += currentRunTime;
+            }
+
+            return minSample;
+        }
+
+        private const int maxPossiblePowerOfTwo = (int.MaxValue >> 1) + 1;
+        private static (int Repeats, TimeSpan Sample, TimeSpan TotalTime) FindRepeatsForMinimumMeasurableTime(TimeSpan minimumMeasurableTime, Action<int> func)
+        {
+            var totalTime = TimeSpan.Zero;
+            var minSample = TimeSpan.MaxValue;
+
+            var repeats = 1;
+
+            var sw = new System.Diagnostics.Stopwatch();
+            do
+            {
+                sw.Start();
+                func(repeats);
+                sw.Stop();
+                //Time in seconds
+                var currentRunTime = sw.Elapsed;
+                if (currentRunTime > minimumMeasurableTime)
+                {
+                    var currentSample = currentRunTime / repeats;
+                    minSample = new TimeSpan(Math.Min(minSample.Ticks, currentSample.Ticks));
+                    totalTime += currentRunTime;
+                    break;
+                }
+                //The next iteration will overflow a loop counter that's why we recognize that we cannot reach the minimum measurable time.
+                if (repeats == maxPossiblePowerOfTwo)
+                {
+                    repeats = measurableTimeNotAchieved;
+                    break;
+                }
+                repeats *= 2;
+            } while (repeats <= maxPossiblePowerOfTwo);
+
+            return ( repeats, minSample, totalTime );
         }
 
         private static Input ReadInputData<Input, Parameters>(string inputFilePath, Parameters parameters)
