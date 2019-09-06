@@ -1,4 +1,3 @@
-
 class HandModel(object):
 
     def __init__(self, parents, base_relatives, inverse_base_absolutes, triangles, base_positions, weights, nbones, is_mirrored = False):
