@@ -148,14 +148,33 @@ Definitions of all other variables are given in the  [srajer-autodiff-screen.pdf
 #### Output
 
 1. `..._F_...` file  
-    Reprojection error
-    Zach weight error
-2. `..._J_...` file  
-     j<sub>1,1</sub> ... j<sub>1,ncols</sub> 
-     ...
-      j<sub>nrows,1</sub> ... j<sub>nrows,ncols</sub> 
-    
-    where ncols=2*p+p, nrows=11*n+3*m+p
+
+    Reprojection error:</br>
+    reproj_err<sub>1</sub></br>
+    ...</br>
+    reproj_err<sub>2*p</sub></br>
+    Zach weight error:</br>
+    w_err<sub>1</sub></br>
+    ...</br>
+    w_err<sub>p</sub></br>
+2. `..._J_...` file
+
+    This file contains sparse Jacobian of nrows * ncols size in the CSR format where ncols=2*p+p, nrows=11*n+3*m+p.
+    It suggests the use of three one-dimensional arrays (`rows`,`cols`,`vals`).
+     
+      - `vals` holds all the nonzero entries of the Jacobian in the left-to-right top-to-bottom order.
+      - `rows` is of length nrows + 1. It is defined recursively as follows:</br>
+        `rows[0]` = 0</br>
+	`rows[i]` = `rows[i-1]` + the number of nonzero elements on the i-1 string of the Jacobian
+      - `cols[i]` contains the column index in the Jacobian of each element of `vals` and that's why it has the same size
+      
+     The resulting file looks as follows:</br>
+     nrows ncols</br>
+     rows_size</br>
+     rows<sub>0</sub> ... rows<sub>rows_size-1</sub></br>
+     cols_size</br>
+     cols<sub>0</sub> ... cols<sub>cols_size-1</sub></br>
+     vals<sub>0</sub> ... vals<sub>rows_size-1</sub></br>
 
 ### Hand
 #### Input
@@ -199,7 +218,7 @@ Definitions of all variables are given in the  [srajer-autodiff-screen.pdf](../.
 2. `..._J_...` file  
      j<sub>1,1</sub> ... j<sub>1,ncols</sub> 
      ...
-      j<sub>nrows,1</sub> ... j<sub>nrows,ncols</sub> 
+     j<sub>nrows,1</sub> ... j<sub>nrows,ncols</sub> 
     
     where ncols=(complicated ? 2 : 0) + n_theta, nrows=3*n_pts
 
