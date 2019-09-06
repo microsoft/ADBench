@@ -216,9 +216,10 @@ Definitions of all variables are given in the  [srajer-autodiff-screen.pdf](../.
 1. `..._F_...` file  
      v<sub>1</sub> ... v<sub>n</sub>      where v<sub>i</sub> are components of the objective vector.
 2. `..._J_...` file  
-     j<sub>1,1</sub> ... j<sub>1,ncols</sub> 
-     ...
-     j<sub>nrows,1</sub> ... j<sub>nrows,ncols</sub> 
+
+     j<sub>1,1</sub> ... j<sub>1,ncols</sub></br>
+     ...</br>
+     j<sub>nrows,1</sub> ... j<sub>nrows,ncols</sub></br>
     
     where ncols=(complicated ? 2 : 0) + n_theta, nrows=3*n_pts
 
