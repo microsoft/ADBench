@@ -38,6 +38,7 @@ end
     #@test isdefined(Box, :get_gmm_test)
     test = TestLoader.get_gmm_test(mockgmmpath)
     @test test.calculate_jacobian!(test.context, 10) === "m1"
+    @test_throws ArgumentError TestLoader.get_ba_test(mockgmmpath)
     test = TestLoader.get_gmm_test(mockgmmpath * "2")
     @test test.calculate_jacobian!(test.context, 10) === "m2"
 
