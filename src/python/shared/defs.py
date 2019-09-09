@@ -1,10 +1,12 @@
+from dataclasses import dataclass, field
+from typing import List
 BA_NCAMPARAMS = 11  # number of camera parameters for BA
 
-class Wishart(object):
-    def __init__(self, gamma, m):
-        self.gamma = gamma
-        self.m = m
+@dataclass
+class Wishart:
+    gamma: float = 0.0
+    m: int = 0
 
-class Triangle(object):
-    def __init__(self, verts):
-        self.verts = verts
+@dataclass
+class Triangle:
+    verts: List[int] = field(default_factory = list)
