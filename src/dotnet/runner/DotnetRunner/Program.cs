@@ -1,4 +1,5 @@
-﻿using DotnetRunner.Data;
+﻿using DotnetRunner.Benchmarks;
+using DotnetRunner.Data;
 using System;
 
 namespace DotnetRunner
@@ -29,28 +30,28 @@ namespace DotnetRunner
 
                 if (testType == "GMM")
                 {
-
-                    Benchmark.Run<GMMInput, GMMOutput, GMMParameters>(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit, new GMMParameters() { });
+                    throw new NotImplementedException();
+                    //Benchmark.Run<GMMInput, GMMOutput, GMMParameters>(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit, new GMMParameters() { });
                 }
                 else if (testType == "BA")
                 {
-
-                    Benchmark.Run<BAInput, BAOutput>(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit);
+                    var benchmark = new BABenchmark();
+                    benchmark.Run(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit);
                 }
                 else if (testType == "HAND")
                 {
-
-                    Benchmark.Run<HandInput, HandOutput, HandParameters>(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit, new HandParameters() { });
+                    throw new NotImplementedException();
+                    //Benchmark.Run<HandInput, HandOutput, HandParameters>(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit, new HandParameters() { });
                 }
                 else if (testType == "HAND-COMPLICATED")
                 {
-
-                    Benchmark.Run<HandInput, HandOutput, HandParameters>(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit, new HandParameters() { });
+                    throw new NotImplementedException();
+                    // Benchmark.Run<HandInput, HandOutput, HandParameters>(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit, new HandParameters() { });
                 }
                 else if (testType == "LSTM")
                 {
-
-                    Benchmark.Run<LSTMInput, LSTMOutput>(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit);
+                    throw new NotImplementedException();
+                    // Benchmark.Run<LSTMInput, LSTMOutput>(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit);
                 }
                 else
                 {
