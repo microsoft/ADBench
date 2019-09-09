@@ -14,8 +14,8 @@ get_gmm_test() = Test{GMMInput, GMMOutput}(
     MockGMMContext(2.0),
     (ctx, input) -> nothing,
     (ctx, times) -> nothing,
-    (ctx, times) -> "m2",
-    (out, ctx) -> nothing
+    (ctx, times) -> nothing,
+    (out, ctx) -> begin out.objective = 2.0 end
 )
 
 end
