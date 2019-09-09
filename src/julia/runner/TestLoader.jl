@@ -6,19 +6,24 @@ using BAData
 using HandData
 using LSTMData
 
-export get_gmm_test, get_ba_test, get_hand_test, get_lstm_test
+export get_gmm_test, get_ba_test, get_hand_test, get_lstm_test, get_test_for
 
 module Box
 end
 
 loaded_modules = []
 
-get_gmm_test(module_name::String)::Test{GMMInput, GMMOutput} = get_test("gmm", module_name)
-get_ba_test(module_name::String)::Test{BAInput, BAOutput} = get_test("ba", module_name)
-get_hand_test(module_name::String)::Test{HandInput, HandOutput} = get_test("hand", module_name)
-get_lstm_test(module_name::String)::Test{LSTMInput, LSTMOutput} = get_test("lstm", module_name)
+get_gmm_test(module_name::AbstractString)::Test{GMMInput, GMMOutput} = get_test("gmm", module_name)
+get_ba_test(module_name::AbstractString)::Test{BAInput, BAOutput} = get_test("ba", module_name)
+get_hand_test(module_name::AbstractString)::Test{HandInput, HandOutput} = get_test("hand", module_name)
+get_lstm_test(module_name::AbstractString)::Test{LSTMInput, LSTMOutput} = get_test("lstm", module_name)
 
-function get_test(test_name::String, module_name::String)
+get_test_for(input::GMMInput, output::GMMOutput, module_name::AbstractString)::Test{GMMInput, GMMOutput} = get_gmm_test(module_name)
+get_test_for(input::BAInput, output::BAOutput, module_name::AbstractString)::Test{BAInput, BAOutput} = get_ba_test(module_name)
+get_test_for(input::HandInput, output::HandOutput, module_name::AbstractString)::Test{HandInput, HandOutput} = get_hand_test(module_name)
+get_test_for(input::LSTMInput, output::LSTMOutput, module_name::AbstractString)::Test{LSTMInput, LSTMOutput} = get_lstm_test(module_name)
+
+function get_test(test_name::AbstractString, module_name::AbstractString)
     box_module_name = module_name * "Box"
     if !(module_name ∈ loaded_modules)
         # Creating a new submodule coorespondig to the module being loaded
