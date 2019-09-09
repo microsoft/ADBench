@@ -6,40 +6,18 @@ include("../../../src/julia/runner/load.jl")
 using ADPerfTest
 import TestLoader
 
-#Base.require()
-mockgmmpath = "Mock" * "GMM"# * ".jl"
-#include(mockgmmpath)
+mockgmmcalcname = "Mock" * "GMM"
 
 dir = @__DIR__
-println(dir)
 if !(dir ∈ LOAD_PATH)
     push!(LOAD_PATH, dir)
 end
-#using MockGMM
-#Base.require(RunnerTests, Symbol(mockgmmpath))
-#Base.eval(Expr(:import, Symbol(mockgmmpath)))
-#m = Module(Symbol(mockgmmpath))
-#using RunnerTests.m
 
-#module Box
-#mockgmmpath = "Mock" * "GMM"
-#include_string(Box, "using " * mockgmmpath)
-#end
-
-function loadtest(modulename::String)
-    Box = Module()
-    include_string(Box, "using " * mockgmmpath)
-    @test isdefined(Box, :get_gmm_test)
-    Base.invokelatest(Box.get_gmm_test)
-end
-
-@testset "hello" begin
-    @test 1 == 1
-    #@test isdefined(Box, :get_gmm_test)
-    test = TestLoader.get_gmm_test(mockgmmpath)
+@testset "Module Loading" begin
+    test = TestLoader.get_gmm_test(mockgmmcalcname)
     @test test.calculate_jacobian!(test.context, 10) === "m1"
-    @test_throws ArgumentError TestLoader.get_ba_test(mockgmmpath)
-    test = TestLoader.get_gmm_test(mockgmmpath * "2")
+    @test_throws ArgumentError TestLoader.get_ba_test(mockgmmcalcname)
+    test = TestLoader.get_gmm_test(mockgmmcalcname * "2")
     @test test.calculate_jacobian!(test.context, 10) === "m2"
 
 end
