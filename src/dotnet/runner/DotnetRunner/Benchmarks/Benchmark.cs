@@ -2,19 +2,20 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace DotnetRunner
+namespace DotnetRunner.Benchmarks
 {
-    public static class Benchmark
+    public struct DefaultParameters { };
+
+    public abstract class Benchmark<Input, Output, Parameters>
     {
         public static readonly int MeasurableTimeNotAchieved = -1;
 
-        public static void Run<Input, Output, Parameters>(string modulePath, string inputFilePath, string outputPrefix, TimeSpan minimumMeasurableTime, int nrunsF, int nrunsJ,
+        public void Run(string modulePath, string inputFilePath, string outputPrefix, TimeSpan minimumMeasurableTime, int nrunsF, int nrunsJ,
                    TimeSpan timeLimit, Parameters parameters)
         {
-
             var moduleLoader = new ModuleLoader(modulePath);
-            var test = GetTest<Input, Output>(moduleLoader);
-            var inputs = ReadInputData<Input, Parameters>(inputFilePath, parameters);
+            var test = GetTest(moduleLoader);
+            var inputs = ReadInputData(inputFilePath, parameters);
 
             test.Prepare(inputs);
 
@@ -32,18 +33,8 @@ namespace DotnetRunner
             SaveTimeToFile(outputPrefix + inputBasename + "_times_" + moduleBasename + ".txt", objectiveTime, derivativeTime);
             SaveOutputToFile(output, outputPrefix, inputBasename, moduleBasename);
         }
-        struct DefaultParameters { };
 
-        public static void Run<Input, Output>(string modulePath, string inputFilePath, string outputPrefix, TimeSpan minimumMeasurableTime, int nrunsF, int nrunsJ,
-                   TimeSpan timeLimit)
-        {
-            Run<Input, Output, DefaultParameters>(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit, new DefaultParameters());
-        }
-
-        private static void SaveOutputToFile<Output>(Output output, string outputPrefix, string input_basename, string module_basename)
-        {
-            throw new NotImplementedException();
-        }
+        protected abstract void SaveOutputToFile(Output output, string outputPrefix, string input_basename, string module_basename);
 
         private static void SaveTimeToFile(string v, TimeSpan objectiveTime, TimeSpan derivativeTime)
         {
@@ -116,18 +107,21 @@ namespace DotnetRunner
                 repeats *= 2;
             } while (repeats <= maxPossiblePowerOfTwo);
 
-            return ( repeats, minSample, totalTime );
+            return (repeats, minSample, totalTime);
         }
 
-        private static Input ReadInputData<Input, Parameters>(string inputFilePath, Parameters parameters)
-        {
-            throw new NotImplementedException();
-        }
+        protected abstract Input ReadInputData(string inputFilePath, Parameters parameters);
 
-        private static ITest<Input, Output> GetTest<Input, Output>(ModuleLoader moduleLoader)
+        protected abstract ITest<Input, Output> GetTest(ModuleLoader moduleLoader);
+    }
+
+    public abstract class Benchmark<Input, Output> : Benchmark<Input, Output, DefaultParameters>
+    {
+        internal void Run(string modulePath, string inputFilePath, string outputPrefix, TimeSpan minimumMeasurableTime, int nrunsF, int nrunsJ, TimeSpan timeLimit)
         {
-            throw new NotImplementedException();
+            Run(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit, new DefaultParameters { });
         }
     }
+
 }
 
