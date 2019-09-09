@@ -1,16 +1,20 @@
-class GMMInput(object):
-    def __init__(self, alphas, means, icf, x, wishart):
-        self.alphas = alphas
-        self.means = means
-        self.icf = icf
-        self.x = x
-        self.wishart = wishart
+from dataclasses import dataclass, field
+from typing import List
+from shared.defs import Wishart
 
-class GMMOutput(object):
-    def __init__(self, objective, gradient):
-        self.objective = objective
-        self.gradient = gradient
+@dataclass
+class GMMInput:
+    alphas:     List[float] = field(default_factory = list)
+    means:      List[float] = field(default_factory = list)
+    icf:        List[float] = field(default_factory = list)
+    x:          List[float] = field(default_factory = list)
+    wishart:    Wishart = field(default_factory = Wishart)
 
-class GMMParameters(object):
-    def __init__(self, replicate_point):
-        self.replicate_point = replicate_point
+@dataclass
+class GMMOutput:
+    objective: float = 0.0
+    gradient: List[float] = field(default_factory = list)
+
+@dataclass
+class GMMParameters:
+    replicate_point: bool = False
