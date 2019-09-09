@@ -10,12 +10,12 @@ namespace DotnetRunner.Data
         public int M { get; set; }
         public int P { get; set; }
 
-        public double[] Cams { get; set; }
-        public double[] X1 { get; set; }
+        public double[][] Cams { get; set; }
+        public double[][] X { get; set; }
         public double[] W { get; set; }
-        public double[] Feats { get; set; }
+        public double[][] Feats { get; set; }
 
-        int[] Obs { get; set; }
+        public int[][] Obs { get; set; }
     };
 
     public struct BAOutput
