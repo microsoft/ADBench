@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from typing import List
-from shared.defs import Wishart
+from defs import Wishart
 
 @dataclass
 class GMMInput:

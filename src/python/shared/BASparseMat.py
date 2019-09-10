@@ -20,6 +20,9 @@ class Vector:
 
     def __setitem__(self, i, val):
         self.__data[i] = val
+    
+    def __len__(self):
+        return self.__n
 
     def get_last(self):
         '''Returns the last item of the data.'''
@@ -40,11 +43,6 @@ class Vector:
         '''Resets data.'''
 
         self.__n = 0
-
-    def len(self):
-        '''Returns data size.'''
-
-        return self.__n
 
     def storage_size(self):
         '''Returns storage size (max vector capacity).'''
