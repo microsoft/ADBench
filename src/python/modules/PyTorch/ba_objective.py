@@ -51,13 +51,15 @@ def compute_reproj_err(cam, X, w, feat):
     return w * (project(cam, X) - feat)
 
 
-def ba_objective(cams, X, w, obs, feats):
-    p = obs.shape[0]
-    reproj_err = torch.empty((p, 2), dtype=torch.float64)
-    for i in range(p):
-        reproj_err[i] = compute_reproj_err(
-            cams[obs[i, 0]], X[obs[i, 1]], w[i], feats[i])
+# Calculates a part of BA function
+def ba_objective_part(cams, X, w, obs, feats, i):
+    reproj_err = compute_reproj_err(
+        cams[obs[i, 0]],
+        X[obs[i, 1]],
+        w[i],
+        feats[i]
+    )
 
-    w_err = 1. - w ** 2
+    w_err = 1.0 - w[i] ** 2
 
-    return torch.cat((reproj_err.flatten(), w_err))
+    return reproj_err.flatten(), w_err

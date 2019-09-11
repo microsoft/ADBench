@@ -17,7 +17,7 @@ def lstm(weight, bias, hidden, cell, _input):
 
 # Predict output given an input
 def predict(w, w2, s, x):
-    s2 = torch.tensor(s)
+    s2 = s.clone().detach()
     # NOTE not sure if this should be element-wise or matrix multiplication
     x = x * w2[0]
     for i in range(0, len(s), 2):
@@ -27,7 +27,7 @@ def predict(w, w2, s, x):
 
 
 # Get the average loss for the LSTM across a sequence of inputs
-def loss(main_params, extra_params, state, sequence, _range=None):
+def lstm_objective(main_params, extra_params, state, sequence, _range=None):
     if _range is None:
         _range = range(0, len(sequence) - 1)
 

@@ -68,7 +68,7 @@ class BASparseMat:
         vals (Vector): holds info about values
     '''
 
-    def __init__(self, n, m, p):
+    def __init__(self, n = 0, m = 0, p = 0):
         '''
         
         Args:
