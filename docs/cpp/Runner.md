@@ -9,7 +9,7 @@ The runner has no information about the objective types supported by module. How
 
 Every module, for every objective it supports, defines a class that implements the corresponding templated [`ITest`](./Modules.md#itest-implementation) interface.
 
-There is also a one exported factory function for each such class in each module.
+There is also one exported factory function for each such class in each module.
 
 ## Supported Objective Types
 Currently supported objective types and their factory functions:
@@ -32,11 +32,11 @@ CPPRunner test_type module_path input_filepath output_dir minimum_measurable_tim
  - `module_path` - an absolute or relative path to a .dll module responsible for testing algorithm of calculation.
  - `input_filepath` - an absolute or relative path to an input file.
  - `output_dir` - a directory where output files will be stored.
- - `minimum_measurable_time` - minimum time that computation needs to run to produce a reliable measurement.
+ - `minimum_measurable_time` - minimum time that the computation needs to run to produce a reliable measurement.
  - `nruns_F` - maximum number of times to run the computation of the objective function for timing.
  - `nruns_J` - maximum number of times to run the computation of the considered derivative (gradient or Jacobian) for timing.
  - `time_limit` - soft (see [Methodology.md](../Methodology.md)) time limit for benchmarking the computation of either the objective function or its gradient/Jacobian.
- - `-rep` *(applycable only for GMM)* - if enabled all input data points have one shared value.
+ - `-rep` *(applicable only for GMM)* - if enabled all input data points have one shared value.
 
 ## Adding new modules
 (see [Modules.md](./Modules.md))
@@ -45,7 +45,7 @@ CPPRunner test_type module_path input_filepath output_dir minimum_measurable_tim
  1. Define `TInput`, `TOutput` and (if necessary) `TParameters` structs in the `/src/cpp/shared/TData.h` file where `T` is the name of a new objective. 
 
     `TInput` is the data type for the new objective's inputs, `TOutput` is a structure that contains outputs of both new objective function and its target jacobian.
-    `TParameters` is a data type containing all configurable parameters of the benchmark. If there're no such parameters in the benchmark then just use the `DefaultParameters` struct.
+    `TParameters` is a data type containing all configurable parameters of the benchmark. If there are no such parameters in the benchmark then just use the `DefaultParameters` struct.
 
  2. In the `ModuleLoader` class (`/src/cpp/runner/ModuleLoader.h`) implement the following function:
     ```cpp
@@ -125,7 +125,7 @@ CPPRunner test_type module_path input_filepath output_dir minimum_measurable_tim
   γ m</br>
   
 Definitions of all variables are given in the  [srajer-autodiff-screen.pdf](../../Documents/srajer-autodiff-screen.pdf), page 3.
-Note that if replicate point mode is enabled the benchmark expects only x<sub>1,1</sub> ... x<sub>D,1</sub> string and duplicates it n-1 times.
+Note that if replicate point mode is enabled the benchmark expects only a line containing x<sub>1,1</sub> ... x<sub>D,1</sub> and duplicates that point `n` times.
 
 #### Output
 
