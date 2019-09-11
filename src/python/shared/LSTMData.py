@@ -1,11 +1,14 @@
-class LSTMInput(object):
-    def __init__(self, main_params, extra_params, state, sequence):
-        self.main_params = main_params
-        self.extra_params = extra_params
-        self.state = state
-        self.sequence = sequence
+from dataclasses import dataclass, field
+import numpy as np
 
-class LSTMOutput(object):
-    def __init__(self, objective, gradient):
-        self.objective = objective
-        self.gradient = gradient
+@dataclass
+class LSTMInput:
+    main_params:   np.ndarray = field(default = np.empty(0, dtype = np.float64))
+    extra_params:  np.ndarray = field(default = np.empty(0, dtype = np.float64))
+    state:         np.ndarray = field(default = np.empty(0, dtype = np.float64))
+    sequence:      np.ndarray = field(default = np.empty(0, dtype = np.float64))
+
+@dataclass
+class LSTMOutput:
+    objective:     np.float64 = 0.0
+    gradient:      np.ndarray = field(default = np.empty(0, dtype = np.float64))

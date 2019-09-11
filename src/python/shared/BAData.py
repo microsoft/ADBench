@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List
+import numpy as np
 
 from BASparseMat import BASparseMat
 
@@ -7,14 +7,14 @@ from BASparseMat import BASparseMat
 
 @dataclass
 class BAInput:
-    cams:       List[float] = field(default_factory = list)
-    X:          List[float] = field(default_factory = list)
-    w:          List[float] = field(default_factory = list)
-    feats:      List[float] = field(default_factory = list)
-    obs:        List[int] = field(default_factory = list)
+    cams:       np.ndarray = field(default = np.empty(0, dtype = np.float64))
+    x:          np.ndarray = field(default = np.empty(0, dtype = np.float64))
+    w:          np.ndarray = field(default = np.empty(0, dtype = np.float64))
+    obs:        np.ndarray = field(default = np.empty(0, dtype = np.int32))
+    feats:      np.ndarray = field(default = np.empty(0, dtype = np.float64))
 
 @dataclass
 class BAOutput:
-    reproj_err: List[float] = field(default_factory = list)
-    w_err:      List[float] = field(default_factory = list)
-    J:          BASparseMat = field(default_factory = BASparseMat)
+    reproj_err: np.ndarray = field(default = np.empty(0, dtype = np.float64))
+    w_err:      np.ndarray = field(default = np.empty(0, dtype = np.float64))
+    J:          BASparseMat = field(default = BASparseMat())

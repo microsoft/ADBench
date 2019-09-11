@@ -11,10 +11,13 @@ sys.path.append(
     )
 )
 
-from torch_wrapper import torch_func
+import numpy as np
+import torch
+
+from utils import to_torch_tensors, torch_jacobian
 from ITest import ITest
 from LSTMData import LSTMInput, LSTMOutput
-from lstm_objective import loss
+from lstm_objective import lstm_objective
 
 
 
@@ -25,41 +28,32 @@ class PyTorchLSTM(ITest):
         '''Prepares calculating. This function must be run before
         any others.'''
 
-        self.input = input
-        self.result = LSTMOutput()
+        self.inputs = to_torch_tensors(
+            (input.main_params, input.extra_params),
+            grad_req = True
+        )
+
+        self.params = to_torch_tensors((input.state, input.sequence))
+        self.gradient = torch.empty(0)
+        self.objective = torch.zeros(1)
 
     def output(self):
         '''Returns calculation result.'''
 
-        return self.result
+        return LSTMOutput(self.objective.item(), self.gradient.numpy())
 
     def calculate_objective(self, times):
         '''Calculates objective function many times.'''
 
         for i in range(times):
-            self.result.objective = loss(
-                self.input.main_params,
-                self.input.extra_params,
-                self.input.state,
-                self.input.sequence
-            )
+            self.objective = lstm_objective(*self.inputs, *self.params)
 
     def calculate_jacobian(self, times):
         ''' Calculates objective function jacobian many times.'''
 
         for i in range(times):
-            obj, grad = torch_func(
-                loss,
-                (
-                    self.input.main_params,
-                    self.input.extra_params
-                ),
-                (
-                    self.input.state,
-                    self.input.sequence
-                ),
-                True
+            self.objective, self.gradient = torch_jacobian(
+                lstm_objective,
+                self.inputs,
+                self.params
             )
-
-            self.result.objective = obj
-            self.result.gradient = grad
