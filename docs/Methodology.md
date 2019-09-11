@@ -22,4 +22,4 @@ The following is done for all combinations of considered AD frameworks and sets 
 
 After this process is complete, the filesystem contains all the information necessary to
 - Check the correctness of all finished computations
-- Visualize the timings and/or their relations (e.g. we can plot the times for differentiation processes relative to the times for the computations of corresponding objective functions)
+- Visualize the timings and/or their relations (e.g. we can plot the times for the computations of differentiated functions relative to the times for the computations of corresponding objective functions)

@@ -1,19 +1,19 @@
 # C++ Modules
 
 ## Adding new modules
-1. Create a `CMakeLists.txt` file in the `/src/cpp/modules/yourModule` directory with the following content where `YourModule` is the name of your module:
+1. Create `/src/cpp/modules/yourModule/CMakeLists.txt` with the following content where `YourModule` is the name of your module:
     ```cmake
     project("ADBench_YourModule" CXX)
 
     add_library("YourModule" MODULE)
     ```
     
-    Note that [run-all.ps1 script](../Architecture.md#global-runner) expects directory name to be equal to module binary name but with a lowercase first letter.
-2. Open `/src/cpp/modules/CMakeLists.txt` and add the next string: 
+    Note that [run-all.ps1](../Architecture.md#global-runner) expects the directory name to be equal to the module binary name but with a lowercase first letter.
+2. Add the following line to `/src/cpp/modules/CMakeLists.txt`:
     ```cmake
     add_subdirectory ("YourModule")
     ```
-3. <span id="itest-implementation"> For each objective create a class implementing `ITest<TInput,TOutput>` interface where `T` is an objective type (GMM, BA etc.). You can find this interface in the file `../../shared/ITest.h` (the path is relative to the directory of your module). `TInput` and `TOutput` are input and output types specific for the objective there. They are defined in the file `../../shared/TData.h` (the path is relative to the directory of your module).
+3. <span id="itest-implementation"> For each objective create a class implementing the interface `ITest<TInput,TOutput>` where `T` is an objective type (`GMM`, `BA` etc.). You can find this interface in `../../shared/ITest.h` (the path is relative to the directory of your module). `TInput` and `TOutput` are input and output types specific for the objective there. They are defined in `../../shared/TData.h` (the path is relative to the directory of your module).
     
     The functions you need to implement:
     - ```cpp
@@ -44,25 +44,23 @@
     where `T` is still an objective type here.
 
     `DLL_PUBLIC` is a macro defined in `/src/shared/ITest.h`. It is made to export functions from shared libraries both on Windows and Linux with GCC and MSVC compilers.
-5. Specify target sources in the project `CMakeLists.txt` file.
+5. Specify target sources in the project `CMakeLists.txt`.
 6. Compile, run via C++ runner and enjoy!
 
 Please, don't forget to add unit tests.
 
 ## Unit Tests
 
-GTest and GMock frameworks are used to test C++ modules in this project.
+[GTest and GMock](https://github.com/google/googletest) are used to test C++ modules in this project.
 
 ### Adding tests for a new module
 
 AD Bench already contains some tests for each objective.
-When you add a new module, first thing you should do is to test your module with the existing tests.
-
-Follow the next steps for every objective you want to test:
+When you add a new module, the first thing you should do is to test your module with the existing tests.
+Follow these steps for every objective you want to test:
 
 1. Open `/test/cpp/modules/common/TTests.cpp` where `T` is the short name of the testing objective.
-    
-   You will see the next lines:
+   You will see the following lines:
     ```cpp
     INSTANTIATE_TEST_CASE_P(T, TModuleTest,
     ::testing::Values(
@@ -72,7 +70,7 @@ Follow the next steps for every objective you want to test:
     ),
     get_module_name<ModuleTest::ParamType>);
     ```
-2. Add module's path to the list of testing modules like this:
+2. Add the module's path to the list of testing modules like this:
     ```cpp
     INSTANTIATE_TEST_CASE_P(T, TModuleTest,
     ::testing::Values(
@@ -86,10 +84,10 @@ Follow the next steps for every objective you want to test:
 
 ### Adding a new test case
 
-Follow the next steps to add a new test case for objective:
+Follow these steps to add a new test case for objective:
 
 1. Open `/test/cpp/modules/common/TTests.cpp` where `T` is the short name of the testing objective.
-2. Add the next lines to the end of the file:
+2. Add the following lines to the end of the file:
     ```cpp
     TEST_P(TModuleTest, TestCaseName)
     {
@@ -108,11 +106,10 @@ Follow the next steps to add a new test case for objective:
 
 ### Adding new objectives
 
-You might want to add a new type of objective to test. In that case just do the next things:
+You might want to add a new type of objective to test. In that case just do the following:
 
-1. In the `/test/cpp/modules/common/` directory create a `TTests.cpp` file.
-2. Include `gtest/gtest.h` in your file.
+1. Create `/test/cpp/modules/common/TTests.cpp`.
+2. Include `gtest/gtest.h` in it.
 3. Use `INSTANTIATE_TEST_CASE_P` macro to list all modules supporting `T` objective type as it described in the ["Adding tests for a new module"](#adding-tests-for-a-new-module) section.
 4. Use `TEST_P` macro to add new test cases as it described in the ["Adding a new test case"](#adding-a-new-test-case) section.
-5. Open `/test/cpp/modules/common/CMakeLists.txt` and mark `TTests.cpp` file as source via `target_sources` command there.
-
+5. Open `/test/cpp/modules/common/CMakeLists.txt` and mark `TTests.cpp` as source via `target_sources` command there.
