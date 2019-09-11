@@ -18,13 +18,13 @@ nruns_J = parse(Int,ARGS[7])
 time_limit = parse(Float64, ARGS[8])
 replicate_point = size(ARGS,1) >= 9 && ARGS[9] == "-rep"
 
-if !ispath(module_path)
+if !ispath(module_path) || isdir(module_path)
     throw(ArgumentError("File $module_path does not exist."))
 end
 if !endswith(module_path, ".jl")
     throw(ArgumentError("File $module_path is expected to be a Julia module and end with '.jl'."))
 end
-if !ispath(input_filepath)
+if !ispath(input_filepath) || isdir(input_filepath)
     throw(ArgumentError("File $input_filepath does not exist."))
 end
 

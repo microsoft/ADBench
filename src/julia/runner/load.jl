@@ -1,4 +1,3 @@
-dir = @__DIR__
-if !(dir ∈ LOAD_PATH)
-    push!(LOAD_PATH, dir)
+if !((@__DIR__) ∈ LOAD_PATH)
+    push!(LOAD_PATH, (@__DIR__))
 end

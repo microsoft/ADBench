@@ -5,6 +5,7 @@ using GMMData
 using Zygote
 using Zygote: @adjoint
 using SpecialFunctions
+using LinearAlgebra
 
 export get_gmm_test
 
@@ -55,35 +56,13 @@ function log_gamma_distrib(a, p)
       out
 end
   
-function log_wishart_prior(wishart::Wishart, sum_qs, Qs, icf)
-    p = size(Qs[1],1)
-    n = p + wishart.m + 1
-    C = n*p*(log(wishart.gamma) - 0.5*log(2)) - log_gamma_distrib(0.5*n, p)
-  
-    frobenius = sum(sum.(abs2, Qs))
-    frobenius = 0.
-    for Q in Qs
-      frobenius += sum(abs2,diag(Q))
-    end
-    frobenius += sum(abs2,icf[d+1:end,:])
-      0.5*wishart.gamma^2 * frobenius - wishart.m*sum(sum_qs) - k*C
-end
-  
-function log_wishart_prior_zygote(wishart::Wishart, sum_qs, Qs)
-    p = size(Qs[1],1)
+function log_wishart_prior_zygote(wishart::Wishart, sum_qs, Qs, k)
+    p = size(Qs,1)
     n = p + wishart.m + 1
     C = n*p*(log(wishart.gamma) - 0.5*log(2)) - log_gamma_distrib(0.5*n, p)
   
     frobenius = sum(abs2, Qs)
-    # frobenius = 0.
-    # for Q in Qs
-    #   frobenius += sum(abs2,diag(Q))
-    # end
-    # frobenius += sum(abs2,icf[d+1:end,:])
-    # @show icf[d+1:end,:]
-    # @show icf
-    # @show Qs
-    0.5*wishart.gamma^2 * frobenius - wishart.m*sum(sum_qs) - k*C
+	0.5*wishart.gamma^2 * frobenius - wishart.m*sum(sum_qs) - k*C
 end
 
 function diagsums(Qs)
@@ -149,27 +128,25 @@ function gmm_objective(alphas,means,Qs,x,wishart::Wishart)
     k = size(means,2)
     CONSTANT = -n*d*0.5*log(2 * pi)
     sum_qs = reshape(diagsums(Qs), 1, size(Qs, 3))
-    slse = sum(sum_qs)
+    #slse = sum(sum_qs)
     Qs = expdiags(Qs)
   
     main_term = zeros(Float64,1,k)
   
     slse = 0.
     for ix=1:n
-      formula(ik) = -0.5*sum(abs2, Qs[:, :, ik] * (x[:,ix] .- means[:,ik]))
-      sumexp = 0.
-      for ik=1:k
-        sumexp += exp(formula(ik) + alphas[ik] + sum_qs[ik])
-      end
-      slse += log(sumexp)
+        formula(ik) = -0.5*sum(abs2, Qs[:, :, ik] * (x[:,ix] .- means[:,ik]))
+        sumexp = 0.
+        for ik=1:k
+            sumexp += exp(formula(ik) + alphas[ik] + sum_qs[ik])
+        end
+        slse += log(sumexp)
     end
   
-    CONSTANT + slse - n*logsumexp(alphas) + log_wishart_prior_zygote(wishart, sum_qs, Qs)
+    CONSTANT + slse - n*logsumexp(alphas) + log_wishart_prior_zygote(wishart, sum_qs, Qs, k)
 end
 
-g = (alphas, means, Qs)-> Zygote.gradient(gmm_objective, alphas, means, Qs)
-
-function zygote_J_to_packed_J(J)
+function zygote_J_to_packed_J(J, k, d)
     alphas = reshape(J[1], :)
     means = reshape(J[2], :)
     icf_unpacked = map(1:k) do Q_idx
@@ -187,24 +164,23 @@ function zygote_J_to_packed_J(J)
 mutable struct ZygoteGMMContext
     input::Union{GMMInput, Nothing}
     Qs
-    wrapper_gmm_objective::Function
-    g::Function
+    wrapper_gmm_objective::Union{Function, Nothing}
     objective::Float64
     zygote_J
 end
 
 get_gmm_test() = Test{GMMInput, GMMOutput}(
-    ZygoteGMMContext(nothing, 0.0, nothing),
+    ZygoteGMMContext(nothing, nothing, nothing, 0.0, nothing),
     (ctx::ZygoteGMMContext, input::GMMInput) -> begin
         ctx.input = input
-        d = size(means,1)
-        k = size(means,2)
+        d = size(input.means,1)
+        k = size(input.means,2)
         ctx.Qs = cat([get_Q_zygote(d, input.icfs[:,ik]) for ik in 1:k]...; dims=[3])
         ctx.wrapper_gmm_objective = (alphas, means, Qs) -> gmm_objective(alphas,means,Qs,input.x,input.wishart)
     end,
     (ctx::ZygoteGMMContext, times) -> begin
         for i in 1:times
-            gmm_objective(ctx.input.alphas,ctx.input.means,ctx.Qs,ctx.input.x,ctx.input.wishart)
+            ctx.objective = gmm_objective(ctx.input.alphas,ctx.input.means,ctx.Qs,ctx.input.x,ctx.input.wishart)
         end
     end,
     (ctx::ZygoteGMMContext, times) -> begin
@@ -214,7 +190,9 @@ get_gmm_test() = Test{GMMInput, GMMOutput}(
     end,
     (out::GMMOutput, ctx::ZygoteGMMContext) -> begin 
         out.objective = ctx.objective
-        out.gradient = zygote_J_to_packed_J(ctx.zygote_J)
+        d = size(ctx.input.means,1)
+        k = size(ctx.input.means,2)
+        out.gradient = ctx.zygote_J === nothing ? [] : zygote_J_to_packed_J(ctx.zygote_J, k, d)
     end
 )
 
