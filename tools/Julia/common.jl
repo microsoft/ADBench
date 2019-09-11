@@ -43,7 +43,7 @@ end
 function log_gamma_distrib(a, p)
   out = 0.25 * p * (p - 1) * 1.1447298858494002 #convert(Float64, log(pi))
 	for j in 1:p
-    out += lgamma(a + 0.5*(1 - j))
+    out += (logabsgamma(a + 0.5*(1 - j)))[1]
   end
 	out
 end
