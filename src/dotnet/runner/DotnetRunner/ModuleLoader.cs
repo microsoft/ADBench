@@ -15,7 +15,7 @@ namespace DotnetRunner
         /// <param name="modulePath">Absolute path to the module assembly</param>
         public ModuleLoader(string modulePath)
         {
-            assembly = Assembly.LoadFile(modulePath);
+            assembly = Assembly.LoadFrom(modulePath);
             var configuration = new ContainerConfiguration()
             .WithAssembly(assembly);
             container = configuration.CreateContainer();

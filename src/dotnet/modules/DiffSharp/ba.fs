@@ -6,6 +6,7 @@ open System.IO
 
 open DiffSharp.AD.Float64
 open DotnetRunner.Data
+open System.Composition
 
 let N_CAM_PARAMS = 11
 let ROT_IDX = 0
@@ -79,10 +80,11 @@ let create_sparse_J n m p obs (reproj_err_d:_[,][]) (w_err_d:_[]) =
 
     ()
 
+[<Export(typeof<DotnetRunner.ITest<BAInput, BAOutput>>)>]
 type DiffSharpBA() =
 
     [<DefaultValue>] val mutable input : BAInput
-    [<DefaultValue>] val mutable output : BAOutput
+    let output = new BAOutput()
  
     interface DotnetRunner.ITest<BAInput,BAOutput> with
         member this.Prepare(input: BAInput): unit = 
@@ -101,8 +103,8 @@ type DiffSharpBA() =
                 [|for i = 0 to p-1 do yield (compute_reproj_err ds_cams.[obs.[i].[0]] ds_X.[obs.[i].[1]] ds_w.[i] this.input.Feats.[i])|]
             let w_err = Array.map compute_zach_weight_error ds_w
 
-            this.output.ReprojErr <- convert (DV.concat reproj_err)
-            this.output.WErr <- convert (toDV w_err)
+            output.ReprojErr <- convert (DV.concat reproj_err)
+            output.WErr <- convert (toDV w_err)
 
         member this.CalculateJacobian(times: int): unit = 
             let n = this.input.N
@@ -139,7 +141,7 @@ type DiffSharpBA() =
             ()
 
         member this.Output(): BAOutput = 
-            raise (System.NotImplementedException())
+            output
 
 
 
