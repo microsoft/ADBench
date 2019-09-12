@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DotnetRunner": {
+      "commandName": "Project",
+      "commandLineArgs": "BA \"C:\\Sources\\ADBench\\src\\dotnet\\modules\\DiffSharp\\bin\\Debug\\netcoreapp2.1\\publish\\DiffSharpModule.dll\" \"C:\\\\Sources\\\\ADBench\\\\data\\\\ba\\\\test.txt\" \"C:\\\\Sources\\\\output\\\\\" 0.5 10 10 10 "
+    }
+  }
+}
