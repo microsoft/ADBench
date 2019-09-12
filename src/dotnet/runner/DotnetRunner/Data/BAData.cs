@@ -17,11 +17,13 @@ namespace DotnetRunner.Data
 
         int n, m, p; // number of cams, points and observations
         int nrows, ncols;
-        List<int> rows;
-        List<int> cols;
-        List<double> vals;
+        List<int> rows = new List<int>();
+        List<int> cols = new List<int>();
+        List<double> vals = new List<double>();
 
-        public BASparseMatrix() { }
+        public BASparseMatrix() {
+            rows.Add(0);
+        }
         public BASparseMatrix(int n, int m, int p)
         {
             this.n = n;
@@ -97,7 +99,6 @@ namespace DotnetRunner.Data
     {
         public double[] ReprojErr { get; set; }
         public double[] WErr { get; set; }
-
-        BASparseMatrix J;
+        public BASparseMatrix J { get; set; }
     }
 }
