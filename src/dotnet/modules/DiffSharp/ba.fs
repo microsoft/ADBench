@@ -68,17 +68,30 @@ let vectorize (cam:DV) (x:DV) (w:D) =
 let compute_zach_weight_error (w:D) =
     1. - w*w
 
-let create_sparse_J n m p obs (reproj_err_d:_[,][]) (w_err_d:_[]) =
+let create_sparse_J n m p (obs:_[][]) (reproj_err_d:_[,][]) (w_err_d:_[]) =
     let nrows = 2 * p + p;
     let ncols = N_CAM_PARAMS*n + 3 * m + p;
 
-    let toArray (arr: 'T [,]) = arr |> Seq.cast<'T> |> Seq.toArray
+    let to1DArray (arr: 'T [,]) =
+        seq { for y in [0..(Array2D.length2 arr) - 1] do 
+                  for x in [0..(Array2D.length1 arr) - 1] do 
+                      yield arr.[x, y] } |> Seq.toArray
 
-    let J = new BASparseMatrix()
+    let J = new BASparseMatrix(n, m, p);
 
-    raise (System.NotImplementedException())
+    let reproj_iterator i value =
+        let camIdx = obs.[i].[0];
+        let ptIdx = obs.[i].[1];
+        J.InsertReprojErrBlock(i,camIdx,ptIdx, to1DArray value)
 
-    ()
+    Array.iteri reproj_iterator reproj_err_d  
+
+    let w_iterator i value =
+        J.InsertWErrBlock(i, value)
+
+    Array.iteri w_iterator w_err_d
+
+    J
 
 [<Export(typeof<DotnetRunner.ITest<BAInput, BAOutput>>)>]
 type DiffSharpBA() =
@@ -138,7 +151,7 @@ type DiffSharpBA() =
             
             let J = create_sparse_J m n p obs reproj_err_d w_err_d
 
-            ()
+            output.J <- J
 
         member this.Output(): BAOutput = 
             output
