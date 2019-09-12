@@ -31,16 +31,11 @@ namespace DotnetRunner.Benchmarks
             var inputBasename = Path.GetFileNameWithoutExtension(inputFilePath);
             var moduleBasename = Path.GetFileNameWithoutExtension(modulePath);
 
-            SaveTimeToFile(outputPrefix + inputBasename + "_times_" + moduleBasename + ".txt", objectiveTime, derivativeTime);
+            SavingOutput.SaveTimeToFile(outputPrefix + inputBasename + "_times_" + moduleBasename + ".txt", objectiveTime, derivativeTime);
             SaveOutputToFile(output, outputPrefix, inputBasename, moduleBasename);
         }
 
         protected abstract void SaveOutputToFile(Output output, string outputPrefix, string input_basename, string module_basename);
-
-        private static void SaveTimeToFile(string v, TimeSpan objectiveTime, TimeSpan derivativeTime)
-        {
-            throw new NotImplementedException();
-        }
 
         public static TimeSpan MeasureShortestTime(TimeSpan minimumMeasurableTime, int nruns, TimeSpan timeLimit, Action<int> func)
         {

@@ -17,9 +17,9 @@ namespace DotnetRunner.Data
 
         int n, m, p; // number of cams, points and observations
         int nrows, ncols;
-        List<int> rows = new List<int>();
-        List<int> cols = new List<int>();
-        List<double> vals = new List<double>();
+        public List<int> rows { get; } = new List<int>();
+        public List<int> cols { get; } = new List<int>();
+        public List<double> vals { get; } = new List<double>();
 
         public BASparseMatrix() {
             rows.Add(0);
