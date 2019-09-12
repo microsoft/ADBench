@@ -51,9 +51,13 @@ end
 function log_gamma_distrib(a, p)
     out = 0.25 * p * (p - 1) * 1.1447298858494002 #convert(Float64, log(pi))
       for j in 1:p
-      out += lgamma(a + 0.5*(1 - j))
+      out += loggamma(a + 0.5*(1 - j)) #(logabsgamma(a + 0.5*(1 - j)))[1]
     end
       out
+end
+
+@adjoint function loggamma(x)
+    loggamma(x), Δ -> (Δ * digamma(x),)
 end
   
 function log_wishart_prior_zygote(wishart::Wishart, sum_qs, Qs, k)
