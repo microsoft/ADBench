@@ -61,7 +61,9 @@ namespace DotnetRunner.Benchmarks
 
         protected override void SaveOutputToFile(BAOutput output, string outputPrefix, string input_basename, string module_basename)
         {
-            throw new NotImplementedException();
+            SavingOutput.SaveErrorsToFile(SavingOutput.ObjectiveFileName(outputPrefix, input_basename, module_basename), output.ReprojErr,
+                                                                         output.WErr);
+            SavingOutput.SaveSparseJToFile(SavingOutput.JacobianFileName(outputPrefix, input_basename, module_basename), output.J);
         }
     }
 }
