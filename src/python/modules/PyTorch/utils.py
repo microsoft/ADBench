@@ -47,7 +47,7 @@ def to_torch_tensors(params, grad_req = False, dtype = torch.float64):
 
 
 
-def torch_jacobian(func, inputs, params, flatten = True):
+def torch_jacobian(func, inputs, params = None, flatten = True):
     '''Calculates jacobian and return value of the given function that uses
     torch tensors.
 
@@ -55,17 +55,26 @@ def torch_jacobian(func, inputs, params, flatten = True):
         func (callable): function which jacobian is calculating.
         inputs (tuple of torch tensors): function inputs by which it is
             differentiated.
-        params (tuple of torch tensors): function inputs by which it is doesn't
-            differentiated.
-        flatten (bool, optional): If true then jacobian is stored in 1D tensor
-            column-major. Defaults to True.
+        params (tuple of torch tensors, optional): function inputs by which it
+            is doesn't differentiated. Defaults to None.
 
     Returns:
         torch tensor, torch tensor: function result and function jacobian.
+            Note that jacobian is stored in a 1D tensor column-major.
     '''
 
-    def recurse_backwards(output, inputs, J, flatten = False):
+    def recurse_backwards(output, inputs, J):
         '''Recursively calls .backward on multi-dimensional output.'''
+
+        def get_flatten(tensor):
+            '''Returns tensor gradient flatten representation. Added for
+            performing concatenation of scalar tensors gradients.'''
+
+            if tensor.dim() > 0:
+                return tensor.grad.flatten()
+            else:
+                return tensor.grad.view(1)
+
 
         if output.dim() > 0:
             for item in output:
@@ -74,30 +83,16 @@ def torch_jacobian(func, inputs, params, flatten = True):
             for inp in inputs:
                 inp.grad = None
             output.backward(retain_graph = True)
-
-            if flatten:
-                J.append(torch.cat(list(inp.grad.flatten() for inp in inputs)))
-            else:
-                J.append(list(inp.grad for inp in inputs))
-
-    def handle_out(output, inputs, flatten = False):
-        '''Handles one of the output if there is tuple of outputs.'''
-
-        J = []
-        recurse_backwards(output, inputs, J, flatten)
-        try:
-            J = torch.stack(J)
-        except TypeError:
-            if len(J) == 1:
-                J = J[0]
-        
-        return J
+            J.append(torch.cat(list(get_flatten(inp) for inp in inputs)))
 
 
-    res = func(*inputs, *params)
-    if type(res) is tuple:
-        J = tuple(handle_out(out, inputs, flatten) for out in res)
+    if params != None:
+        res = func(*inputs, *params)
     else:
-        J = handle_out(res, inputs, flatten)
+        res = func(*inputs)
+
+    J = []
+    recurse_backwards(res, inputs, J)
+    J = torch.stack(J).t().flatten()
 
     return res, J
