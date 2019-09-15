@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import Tuple
+from numpy import float64, int32
 
 # BA global parameters
 BA_NCAMPARAMS = 11  # number of camera parameters for BA
@@ -11,9 +12,5 @@ RAD_IDX = 9
 
 @dataclass
 class Wishart:
-    gamma: float = 0.0
-    m: int = 0
-
-@dataclass
-class Triangle:
-    verts: List[int] = field(default_factory = list)
+    gamma:  float64 = 0.0
+    m:      int32 = 0
