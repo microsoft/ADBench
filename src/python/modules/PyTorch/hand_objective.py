@@ -57,7 +57,10 @@ def get_posed_relatives(pose_params, base_relatives):
         tr[:3, :3] = R
         return base_relative @ tr
 
-    relatives = torch.stack([inner(pose_params[3:][i], base_relatives[i]) for i in range(len(pose_params[3:]))])
+    relatives = torch.stack([
+        inner(pose_params[3:][i], base_relatives[i])
+        for i in range(len(pose_params[3:]))
+    ])
 
     # relatives, _ = th.scan(fn=inner,
     #                       outputs_info=None,
@@ -124,18 +127,31 @@ def apply_global_transform(pose_params, positions):
     return torch.transpose(R @ torch.transpose(positions, 0, 1), 0, 1) + t
 
 # TODO this one
-def get_skinned_vertex_positions(pose_params, base_relatives, parents, inverse_base_absolutes,
-                                 base_positions, weights, mirror_factor):
+def get_skinned_vertex_positions(
+    pose_params,
+    base_relatives,
+    parents,
+    inverse_base_absolutes,
+    base_positions,
+    weights,
+    mirror_factor
+):
     relatives = get_posed_relatives(pose_params, base_relatives)
 
     absolutes = relatives_to_absolutes(relatives, parents)
 
-    transforms = torch.stack([(absolutes[i] @ inverse_base_absolutes[i]) for i in range(len(absolutes))])
+    transforms = torch.stack([
+        (absolutes[i] @ inverse_base_absolutes[i])
+        for i in range(len(absolutes))
+    ])
 
     # transforms, _ = th.scan(fn=(lambda A, B: torch.dot(A, B)),
     #                        sequences=[absolutes, inverse_base_absolutes])
 
-    positions = torch.stack([transforms[i, :, :] @ base_positions.transpose(0, 1) for i in range(transforms.shape[0])]).transpose(0, 2).transpose(1, 2)
+    positions = torch.stack([
+        transforms[i, :, :] @ base_positions.transpose(0, 1)
+        for i in range(transforms.shape[0])
+    ]).transpose(0, 2).transpose(1, 2)
 
     #positions = torch.dot(transforms, base_positions, [2, 1]).dimshuffle((2, 0, 1))  # T.tensordot
 
@@ -148,14 +164,33 @@ def get_skinned_vertex_positions(pose_params, base_relatives, parents, inverse_b
     return positions3
 
 
-def hand_objective(params, nbones, base_relatives, parents, inverse_base_absolutes, base_positions,
-                   weights, mirror_factor, points, correspondences):
+def hand_objective(
+    params,
+    nbones,
+    parents,
+    base_relatives,
+    inverse_base_absolutes,
+    base_positions,
+    weights,
+    mirror_factor,
+    points,
+    correspondences
+):
     pose_params = to_pose_params(params, nbones)
-    vertex_positions = get_skinned_vertex_positions(pose_params, base_relatives, parents,
-                                                    inverse_base_absolutes, base_positions,
-                                                    weights, mirror_factor)
+    vertex_positions = get_skinned_vertex_positions(
+        pose_params,
+        base_relatives,
+        parents,
+        inverse_base_absolutes,
+        base_positions,
+        weights,
+        mirror_factor
+    )
 
-    err = torch.stack([points[i] - vertex_positions[int(correspondences[i])] for i in range(points.shape[0])])
+    err = torch.stack([
+        points[i] - vertex_positions[int(correspondences[i])]
+        for i in range(points.shape[0])
+    ])
 
     # err, _ = th.scan(fn=(lambda pt, i_vert: pt - vertex_positions[i_vert]),
     #                 sequences=[points, correspondences],
@@ -164,20 +199,43 @@ def hand_objective(params, nbones, base_relatives, parents, inverse_base_absolut
     return err
 
 
-def hand_objective_complicated(all_params, nbones, base_relatives, parents, inverse_base_absolutes, base_positions,
-                               weights, mirror_factor, points, correspondences, triangles):
+def hand_objective_complicated(
+    all_params,
+    nbones,
+    parents,
+    base_relatives,
+    inverse_base_absolutes,
+    base_positions,
+    weights,
+    mirror_factor,
+    points,
+    correspondences,
+    triangles
+):
     npts = points.shape[0]
     us = all_params[: 2 * npts].reshape((npts, 2))
     theta = all_params[2 * npts:]
     pose_params = to_pose_params(theta, nbones)
-    vertex_positions = get_skinned_vertex_positions(pose_params, base_relatives, parents,
-                                                    inverse_base_absolutes, base_positions,
-                                                    weights, mirror_factor)
+    vertex_positions = get_skinned_vertex_positions(
+        pose_params,
+        base_relatives,
+        parents,
+        inverse_base_absolutes,
+        base_positions,
+        weights,
+        mirror_factor
+    )
 
     def get_hand_pt(u, triangle):
-        return u[0] * vertex_positions[int(triangle[0])] + u[1] * vertex_positions[int(triangle[1])] + (1. - u[0] - u[1]) * vertex_positions[int(triangle[2])]
+        return \
+            u[0] * vertex_positions[int(triangle[0])] + \
+            u[1] * vertex_positions[int(triangle[1])] + \
+            (1. - u[0] - u[1]) * vertex_positions[int(triangle[2])]
 
-    err = torch.stack([points[i] - get_hand_pt(us[i], triangles[int(correspondences[i])]) for i in range(points.shape[0])])
+    err = torch.stack([
+        points[i] - get_hand_pt(us[i], triangles[int(correspondences[i])])
+        for i in range(points.shape[0])
+    ])
 
     # err, _ = th.scan(fn=(lambda u, pt, i_triangle: pt - get_hand_pt(u, triangles[i_triangle])),
     #                 sequences=[us, points, correspondences],
