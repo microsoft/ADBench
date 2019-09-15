@@ -14,6 +14,7 @@ class Vector:
 
         self.__max_capacity = capacity
         self.__data = np.empty(self.__max_capacity, dtype = data_type)
+        self.__n = 0
 
     def __getitem__(self, i):
         return self.__data[i]
@@ -85,9 +86,9 @@ class BASparseMat:
         self.ncols = BA_NCAMPARAMS * self.n + 3 * self.m + self.p
 
         non_zero_number = (BA_NCAMPARAMS + 3 + 1) * 2 * p + p
-        self.rows = Vector(self.nrows + 1, int)
-        self.cols = Vector(non_zero_number, int)
-        self.vals = Vector(non_zero_number, float)
+        self.rows = Vector(self.nrows + 1, np.int32)
+        self.cols = Vector(non_zero_number, np.int32)
+        self.vals = Vector(non_zero_number, np.float64)
 
         self.rows[0] = 0
 
@@ -105,7 +106,7 @@ class BASparseMat:
         self.rows.push_back(self.rows.get_last() + n_new_cols)
         self.rows.push_back(self.rows.get_last() + n_new_cols)
 
-        for i_row in range(BA_NCAMPARAMS):
+        for i_row in range(2):
             for i in range(BA_NCAMPARAMS):
                 self.cols.push_back(BA_NCAMPARAMS * camIdx + i)
                 self.vals.push_back(J[2 * i + i_row])

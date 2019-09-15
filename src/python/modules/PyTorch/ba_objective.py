@@ -50,16 +50,5 @@ def project(cam, X):
 def compute_reproj_err(cam, X, w, feat):
     return w * (project(cam, X) - feat)
 
-
-# Calculates a part of BA function
-def ba_objective_part(cams, X, w, obs, feats, i):
-    reproj_err = compute_reproj_err(
-        cams[obs[i, 0]],
-        X[obs[i, 1]],
-        w[i],
-        feats[i]
-    )
-
-    w_err = 1.0 - w[i] ** 2
-
-    return reproj_err.flatten(), w_err
+def compute_w_err(w):
+    return 1.0 - w ** 2
