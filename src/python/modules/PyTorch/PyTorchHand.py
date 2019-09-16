@@ -24,6 +24,7 @@ from modules.PyTorch.hand_objective import hand_objective, hand_objective_compli
 class PyTorchHand(ITest):
     '''Test class for hand tracking function.'''
 
+    @classmethod
     def prepare(self, input):
         '''Prepares calculating. This function must be run before
         any others.'''
@@ -78,6 +79,7 @@ class PyTorchHand(ITest):
         self.objective = torch.zeros(self.nrows)
         self.jacobian = torch.zeros(self.nrows * self.ncols)
 
+    @classmethod
     def output(self):
         '''Returns calculation result.'''
 
@@ -86,6 +88,7 @@ class PyTorchHand(ITest):
             self.jacobian.detach().numpy()
         )
     
+    @classmethod
     def calculate_objective(self, times):
         '''Calculates objective function many times.'''
 
@@ -95,6 +98,7 @@ class PyTorchHand(ITest):
                 *self.params
             )
 
+    @classmethod
     def calculate_jacobian(self, times):
         '''Calculates objective function jacobian many times.'''
 
