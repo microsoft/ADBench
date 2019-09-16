@@ -78,8 +78,11 @@ def format_tool(tool):
 
 # Get only non-infinite y-data for a pyplot handle
 def get_non_infinite_y(handle):
-        return [y for y in handle.get_ydata() if y != float("inf")]
+        return get_non_infinite_y_list(handle.get_ydata())
 
+# Get only non-infinite y-data for a list
+def get_non_infinite_y_list(l):
+        return [y for y in l if y != float("inf")]
 
 # Extract the test (i.e. type and size) from a filename
 def get_test(fn):
