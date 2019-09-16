@@ -73,8 +73,8 @@ def graph_data(build_type, objective, maybe_test_size):
 has_manual = lambda tool: tool.lower() in ["manual", "manual_eigen"]
 
 def tool_names(graph_files):
-    file_names = list(map(utils.get_fn, graph_files))
-    tool_names_ = list(set(map(utils.get_tool, file_names)))
+    file_names = map(utils.get_fn, graph_files)
+    tool_names_ = set(map(utils.get_tool, file_names))
 
     # Sort "Manual" to the front
     tool_names_ = sorted(tool_names_, key=lambda x: (not has_manual(x), x))
