@@ -26,7 +26,7 @@ figure_size = (9, 6) if do_plotly else (12, 8)
 fig_dpi = 96
 save_dpi = 144
 colors = ["b", "g", "r", "c", "m", "y"]
-markers = ["x", "+", "s", "^"]
+markers = ["*", "+", "s", "^"]
 all_styles = [(c, m) for m in markers for c in colors]
 
 # Folders
