@@ -145,11 +145,11 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
         labels.append(utils.format_tool(tool))
 
     # Sort handles and labels
-    handles, labels = zip(*sorted(zip(handles, labels), key=lambda t: -safe_mean(utils.get_real_y(t[0]))))
+    handles, labels = zip(*sorted(zip(handles, labels), key=lambda t: -safe_mean(utils.get_non_infinite_y(t[0]))))
 
     # Draw black dots
-    max_len = max(map(lambda h: len(utils.get_real_y(h)), handles))
-    failed = filter(lambda h: len(utils.get_real_y(h)) < max_len, handles)
+    max_len = max(map(lambda h: len(utils.get_non_infinite_y(h)), handles))
+    failed = filter(lambda h: len(utils.get_non_infinite_y(h)) < max_len, handles)
     failed_x, failed_y = [], []
     for handle in failed:
         inf_inds = [i for i, y in enumerate(handle.get_ydata()) if y == float("inf")]
