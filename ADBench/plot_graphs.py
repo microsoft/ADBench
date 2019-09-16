@@ -140,7 +140,10 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
 
     handles, labels = [], []
 
-    lines = zip(all_styles, vals_by_tool(objective, graph_files))
+    sorted_vals_by_tool = sorted(vals_by_tool(objective, graph_files),
+                                 key=lambda t: -safe_mean([y for y in t[2] if y != float("inf")]))
+
+    lines = zip(all_styles, sorted_vals_by_tool)
 
     # Loop through tools
     for ((color, marker), (tool, n_vals, t_vals)) in lines:
@@ -148,9 +151,6 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
         handles += pyplot.plot(n_vals, t_vals, 
                                marker=marker, color=color, label=utils.format_tool(tool))
         labels.append(utils.format_tool(tool))
-
-    # Sort handles and labels
-    handles, labels = zip(*sorted(zip(handles, labels), key=lambda t: -safe_mean(utils.get_non_infinite_y(t[0]))))
 
     # Draw black dots
     max_len = max(map(lambda h: len(utils.get_non_infinite_y(h)), handles))
