@@ -14,10 +14,10 @@ sys.path.append(
 import numpy as np
 import torch
 
-from utils import to_torch_tensors, torch_jacobian
-from ITest import ITest
-from LSTMData import LSTMInput, LSTMOutput
-from lstm_objective import lstm_objective
+from modules.PyTorch.utils import to_torch_tensors, torch_jacobian
+from shared.ITest import ITest
+from shared.LSTMData import LSTMInput, LSTMOutput
+from modules.PyTorch.lstm_objective import lstm_objective
 
 
 
