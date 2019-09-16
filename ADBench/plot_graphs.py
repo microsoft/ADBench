@@ -138,13 +138,12 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
     # Extract file details
     graph_files = [path for path in all_files if path[:len(graph)] == graph]
 
-    handles, labels = [], []
-
     sorted_vals_by_tool = sorted(vals_by_tool(objective, graph_files),
                                  key=lambda t: -safe_mean([y for y in t[2] if y != float("inf")]))
 
     lines = zip(all_styles, sorted_vals_by_tool)
 
+    handles, labels = [], []
     for ((color, marker), (tool, n_vals, t_vals)) in lines:
         # Plot results
         handles += pyplot.plot(n_vals, t_vals, 
