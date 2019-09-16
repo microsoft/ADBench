@@ -117,9 +117,7 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
     manual_times = None
 
     # Loop through tools
-    for (color_marker, tool) in zip(all_styles, tool_names(graph_files)):
-        (color, marker) = color_marker
-
+    for ((color, marker), tool) in zip(all_styles, tool_names(graph_files)):
         (n_vals, t_objective_vals, t_jacobian_vals) = read_vals(objective, graph_files)
 
         if manual_times is None and has_manual(tool):
