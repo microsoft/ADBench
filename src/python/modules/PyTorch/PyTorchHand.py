@@ -14,10 +14,10 @@ sys.path.append(
 import numpy as np
 import torch
 
-from utils import to_torch_tensor, torch_jacobian
-from ITest import ITest
-from HandData import HandInput, HandOutput
-from hand_objective import hand_objective, hand_objective_complicated
+from modules.PyTorch.utils import to_torch_tensor, torch_jacobian
+from shared.ITest import ITest
+from shared.HandData import HandInput, HandOutput
+from modules.PyTorch.hand_objective import hand_objective, hand_objective_complicated
 
 
 

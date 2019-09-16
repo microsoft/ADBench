@@ -14,11 +14,11 @@ sys.path.append(
 import numpy as np
 import torch
 
-from utils import to_torch_tensors, to_torch_tensor, torch_jacobian
-from ITest import ITest
-from BAData import BAInput, BAOutput
-from BASparseMat import BASparseMat
-from ba_objective import compute_reproj_err, compute_w_err
+from modules.PyTorch.utils import to_torch_tensors, to_torch_tensor, torch_jacobian
+from shared.ITest import ITest
+from shared.BAData import BAInput, BAOutput
+from shared.BASparseMat import BASparseMat
+from modules.PyTorch.ba_objective import compute_reproj_err, compute_w_err
 
 
 
