@@ -25,6 +25,7 @@ from modules.PyTorch.ba_objective import compute_reproj_err, compute_w_err
 class PyTorchBA(ITest):
     '''Test class for BA diferentiation by PyTorch.'''
 
+    @classmethod
     def prepare(self, input):
         '''Prepares calculating. This function must be run before
         any others.'''
@@ -52,6 +53,7 @@ class PyTorchBA(ITest):
         self.w_err = torch.zeros(len(input.w))
         self.jacobian = BASparseMat(len(input.cams), len(input.x), self.p)
 
+    @classmethod
     def output(self):
         '''Returns calculation result.'''
 
@@ -61,6 +63,7 @@ class PyTorchBA(ITest):
             self.jacobian
         )
 
+    @classmethod
     def calculate_objective(self, times):
         '''Calculates objective function many times.'''
 
@@ -78,6 +81,7 @@ class PyTorchBA(ITest):
 
             self.reproj_error = reproj_error.flatten()
 
+    @classmethod
     def calculate_jacobian(self, times):
         ''' Calculates objective function jacobian many times.'''
 

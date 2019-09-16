@@ -24,6 +24,7 @@ from modules.PyTorch.lstm_objective import lstm_objective
 class PyTorchLSTM(ITest):
     '''Test class for LSTM diferentiation by PyTorch.'''
 
+    @classmethod
     def prepare(self, input):
         '''Prepares calculating. This function must be run before
         any others.'''
@@ -37,17 +38,20 @@ class PyTorchLSTM(ITest):
         self.gradient = torch.empty(0)
         self.objective = torch.zeros(1)
 
+    @classmethod
     def output(self):
         '''Returns calculation result.'''
 
         return LSTMOutput(self.objective.item(), self.gradient.numpy())
 
+    @classmethod
     def calculate_objective(self, times):
         '''Calculates objective function many times.'''
 
         for i in range(times):
             self.objective = lstm_objective(*self.inputs, *self.params)
 
+    @classmethod
     def calculate_jacobian(self, times):
         ''' Calculates objective function jacobian many times.'''
 
