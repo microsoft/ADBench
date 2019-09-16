@@ -99,25 +99,10 @@ def read_vals(objective, graph_files, tool):
 
     return (n_vals, t_objective_vals, t_jacobian_vals)
 
-# Loop through each of graphs to be created
-for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
-    build_type = graph[0]
-    objective = graph[1]
-    maybe_test_size = graph[2:]
-
-    (graph_name, graph_save_location) = graph_data(build_type, objective, maybe_test_size)
-
-    # Create figure
-    figure = pyplot.figure(figure_idx, figsize=figure_size, dpi=fig_dpi)
-
-    # Extract file details
-    graph_files = [path for path in all_files if path[:len(graph)] == graph]
-
-    handles, labels = [], []
+def vals_by_tool(objective, graph_files):
     manual_times = None
 
-    # Loop through tools
-    for ((color, marker), tool) in zip(all_styles, tool_names(graph_files)):
+    for tool in tool_names(graph_files):
         (n_vals, t_objective_vals, t_jacobian_vals) = read_vals(objective, graph_files, tool)
 
         if manual_times is None and has_manual(tool):
@@ -137,6 +122,28 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
         else:
             raise Exception(f"Unknown function type {function_type}")
 
+        yield (tool, n_vals, t_vals)
+
+# Loop through each of graphs to be created
+for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
+    build_type = graph[0]
+    objective = graph[1]
+    maybe_test_size = graph[2:]
+
+    (graph_name, graph_save_location) = graph_data(build_type, objective, maybe_test_size)
+
+    # Create figure
+    figure = pyplot.figure(figure_idx, figsize=figure_size, dpi=fig_dpi)
+
+    # Extract file details
+    graph_files = [path for path in all_files if path[:len(graph)] == graph]
+
+    handles, labels = [], []
+
+    lines = zip(all_styles, vals_by_tool(objective, graph_files))
+
+    # Loop through tools
+    for ((color, marker), (tool, n_vals, t_vals)) in lines:
         # Plot results
         handles += pyplot.plot(n_vals, t_vals, 
                                marker=marker, color=color, label=utils.format_tool(tool))
