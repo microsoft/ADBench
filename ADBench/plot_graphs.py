@@ -83,7 +83,7 @@ def tool_names(graph_files):
 
     return tool_names_
 
-def read_vals(objective, graph_files):
+def read_vals(objective, graph_files, tool):
     tool_files = ["/".join(path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool]
     # Extract times
     name_to_n = utils.key_functions[objective]
@@ -118,7 +118,7 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
 
     # Loop through tools
     for ((color, marker), tool) in zip(all_styles, tool_names(graph_files)):
-        (n_vals, t_objective_vals, t_jacobian_vals) = read_vals(objective, graph_files)
+        (n_vals, t_objective_vals, t_jacobian_vals) = read_vals(objective, graph_files, tool)
 
         if manual_times is None and has_manual(tool):
             manual_times = t_objective_vals
