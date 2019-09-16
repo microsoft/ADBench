@@ -30,6 +30,12 @@ cmake -G "Ninja" "-DCMAKE_TOOLCHAIN_FILE=$Env:BUILD_SOURCESDIRECTORY\toolchain.c
 cmake -G "Ninja" "-DCMAKE_TOOLCHAIN_FILE=$Env:BUILD_SOURCESDIRECTORY\toolchain.cmake" '-DCMAKE_BUILD_TYPE="RelWithDebInfo"' .
 
 ninja
+
+# This may not fail the build on failure by itself.  We could check
+# the error code and abort the script or set up different build steps
+# in the YAML.
+ctest --output-on-failure
+
 powershell .\ADBench\run-all.ps1 -repeat -nruns_J 10 -nruns_f 10 -time_limit 5 -tools Manual,ManualEigen,Finite,PyTorch,Autograd,Julia -gmm_d_vals 2,10 -gmm_k_vals 5,10
 python ADBench/plot_graphs.py --save --plotly
 cp -r "tmp/graphs" "$Env:BUILD_ARTIFACTSTAGINGDIRECTORY"
