@@ -145,7 +145,6 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
 
     lines = zip(all_styles, sorted_vals_by_tool)
 
-    # Loop through tools
     for ((color, marker), (tool, n_vals, t_vals)) in lines:
         # Plot results
         handles += pyplot.plot(n_vals, t_vals, 
