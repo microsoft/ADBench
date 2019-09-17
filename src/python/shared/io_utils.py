@@ -1,11 +1,11 @@
 import os
 import numpy as np
 
-from defs import Wishart
-from HandData import HandData, HandModel, HandInput
-from BAData import BAInput
-from GMMData import GMMInput
-from LSTMData import LSTMInput
+from shared.defs import Wishart
+from shared.HandData import HandData, HandModel, HandInput
+from shared.BAData import BAInput
+from shared.GMMData import GMMInput
+from shared.LSTMData import LSTMInput
 
 DELIM = ':'
 
