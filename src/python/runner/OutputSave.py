@@ -35,3 +35,38 @@ def save_jacobian_to_file(filepath, jacobian, jacobian_ncols, jacobian_nrows):
         out.write('\n')
 
     out.close()
+
+def save_errors_to_file(filepath, reprojection_error, zach_weight_error):
+    out = open(filepath,"w")
+
+    out.write("Reprojection error:\n")
+    for value in reprojection_error:
+        out.write(np.format_float_scientific(value, unique=False, precision=6) + '\n')
+
+    out.write("Zach weight error:\n")
+    for value in zach_weight_error:
+        out.write(np.format_float_scientific(value, unique=False, precision=6) + '\n')
+
+    out.close()
+
+def save_sparse_j_to_file(filepath, J):
+    rows = len(J.rows)
+    cols = len(J.cols)
+
+    out = open(filepath,"w")
+
+    out.write(str(J.nrows) + ' ' + str(J.ncols) + '\n')
+
+    out.write(str(rows) + '\n')
+    for i in range(rows):
+        out.write(str(J.rows[i]) + ' ')
+    out.write('\n')
+    
+    out.write(str(cols) + '\n')
+    for i in range(cols):
+        out.write(str(J.cols[i]) + ' ')
+
+    for i in range(len(J.vals)):
+        out.write(str(J.vals[i]) + ' ')
+
+    out.close()
