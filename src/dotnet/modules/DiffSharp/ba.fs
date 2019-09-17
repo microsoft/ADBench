@@ -149,7 +149,7 @@ type DiffSharpBA() =
             let reproj_err, reproj_err_d = Array.unzip reproj_err_val_J
             let w_err, w_err_d = Array.unzip w_err_val_J
             
-            let J = create_sparse_J m n p obs reproj_err_d w_err_d
+            let J = create_sparse_J n m p obs reproj_err_d w_err_d
 
             output.J <- J
 

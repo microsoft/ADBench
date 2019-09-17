@@ -16,7 +16,8 @@ namespace DotnetRunner.Data
         static readonly int BA_NCAMPARAMS = 11;
 
         int n, m, p; // number of cams, points and observations
-        int nrows, ncols;
+        public int nrows { get; }
+        public int ncols { get; }
         public List<int> rows { get; } = new List<int>();
         public List<int> cols { get; } = new List<int>();
         public List<double> vals { get; } = new List<double>();
