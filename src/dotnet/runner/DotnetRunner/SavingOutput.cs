@@ -38,6 +38,8 @@ namespace DotnetRunner
         {
             using (var file = new StreamWriter(filepath))
             {
+                file.WriteLine(j.nrows + " " + j.ncols);
+
                 file.WriteLine(j.rows.Count);
 
                 foreach (var row in j.rows)
@@ -47,6 +49,7 @@ namespace DotnetRunner
                 file.WriteLine();
 
                 file.WriteLine(j.cols.Count);
+
                 foreach (var col in j.cols)
                 {
                     file.Write(col + " ");
