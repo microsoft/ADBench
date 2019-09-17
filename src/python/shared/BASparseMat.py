@@ -90,7 +90,7 @@ class BASparseMat:
         self.cols = Vector(non_zero_number, np.int32)
         self.vals = Vector(non_zero_number, np.float64)
 
-        self.rows[0] = 0
+        self.rows.push_back(0)
 
     def insert_reproj_err_block(self, obsIdx, camIdx, ptIdx, J):
         '''Inserts a new reprojection error block to the matrix.
