@@ -85,7 +85,9 @@ class PyTorchHand(ITest):
 
         return HandOutput(
             self.objective.detach().flatten().numpy(),
-            self.jacobian.detach().numpy()
+            self.jacobian.detach().numpy(),
+            self.ncols,
+            self.nrows
         )
     
     @classmethod
