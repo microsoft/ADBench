@@ -1,16 +1,3 @@
-import sys
-from os import path
-
-# adding folder with files for importing
-sys.path.append(
-    path.join(
-        path.abspath(path.dirname(__file__)),
-        "..",
-        "..",
-        "shared"
-    )
-)
-
 import numpy as np
 import torch
 
