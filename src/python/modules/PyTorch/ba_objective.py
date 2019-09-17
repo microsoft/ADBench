@@ -1,18 +1,5 @@
-import sys
-from os import path
-
-# adding folder with files for importing
-sys.path.append(
-    path.join(
-        path.abspath(path.dirname(__file__)),
-        "..",
-        "..",
-        "shared"
-    )
-)
-
 import torch
-from defs import BA_NCAMPARAMS, ROT_IDX, C_IDX, F_IDX, X0_IDX, RAD_IDX
+from shared.defs import BA_NCAMPARAMS, ROT_IDX, C_IDX, F_IDX, X0_IDX, RAD_IDX
 
 
 ######### BA objective in Python (torch) #############

@@ -1,23 +1,11 @@
-import sys
-from os import path
-
-# adding folder with files for importing
-sys.path.append(
-    path.join(
-        path.abspath(path.dirname(__file__)),
-        "..",
-        "..",
-        "shared"
-    )
-)
-
 import numpy as np
 import torch
 
 from modules.PyTorch.utils import to_torch_tensor, torch_jacobian
 from shared.ITest import ITest
 from shared.HandData import HandInput, HandOutput
-from modules.PyTorch.hand_objective import hand_objective, hand_objective_complicated
+from modules.PyTorch.hand_objective import hand_objective, \
+                                           hand_objective_complicated
 
 
 
@@ -34,7 +22,7 @@ class PyTorchHand(ITest):
         self.complicated = len(input.us) > 0
 
         if self.complicated:
-            self.inputs =to_torch_tensor(
+            self.inputs = to_torch_tensor(
                 np.append(input.us.flatten(), input.theta),
                 grad_req = True
             )
@@ -48,7 +36,10 @@ class PyTorchHand(ITest):
                 to_torch_tensor(input.data.model.weights),
                 input.data.model.is_mirrored,
                 to_torch_tensor(input.data.points),
-                to_torch_tensor(input.data.correspondences, dtype = torch.int32),
+                to_torch_tensor(
+                    input.data.correspondences,
+                    dtype = torch.int32
+                ),
                 input.data.model.triangles
             )
 

@@ -1,20 +1,8 @@
-import sys
-from os import path
-
-# adding folder with files for importing
-sys.path.append(
-    path.join(
-        path.abspath(path.dirname(__file__)),
-        "..",
-        "..",
-        "shared"
-    )
-)
-
 import numpy as np
 import torch
 
-from modules.PyTorch.utils import to_torch_tensors, to_torch_tensor, torch_jacobian
+from modules.PyTorch.utils import to_torch_tensors, to_torch_tensor, \
+                                  torch_jacobian
 from shared.ITest import ITest
 from shared.BAData import BAInput, BAOutput
 from shared.BASparseMat import BASparseMat
