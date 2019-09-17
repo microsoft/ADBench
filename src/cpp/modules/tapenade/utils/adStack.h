@@ -1,3 +1,10 @@
+// Added from Tapenade AdFirstAidKit (PUSH/POP) (see https://www-sop.inria.fr/tropics/tapenade.html)
+// Some changes in header files are performed to let a compiler to link C code with C++ one.
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef ADSTACK_LOADED
 #define ADSTACK_LOADED 1
 
@@ -74,4 +81,8 @@ extern void resetStackRepeat2() ;
 /** Utility for adBuffer.c */
 extern void endStackRepeat() ;
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif

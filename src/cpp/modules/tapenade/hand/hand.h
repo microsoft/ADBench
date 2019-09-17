@@ -1,7 +1,11 @@
 #pragma once
 
-#include <cstdlib>
-#include <cmath>
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <stdlib.h>
+#include <math.h>
 
 #include "../../../shared/defs.h"
 
@@ -42,7 +46,7 @@ void hand_objective(
 // bone_count, bone_names, parents, base_relatives, inverse_base_absolutes,
 // base_positions, weights, triangles, is_mirrored, corresp_count, correspondencies: data measurements and hand model
 // err: 3*number_of_correspondences
-void hand_objective_us(
+void hand_objective_complicated(
     double const* theta,
     double const* us,
     int bone_count,
@@ -59,3 +63,7 @@ void hand_objective_us(
     Matrix* points,
     double* err
 );
+
+#ifdef __cplusplus
+}
+#endif

@@ -46,7 +46,7 @@ void TapenadeHand::calculate_objective(int times)
     {
         for (int i = 0; i < times; i++)
         {
-            hand_objective_us(
+            hand_objective_complicated(
                 input.theta.data(),
                 input.us.data(),
                 objective_input->bone_count,
@@ -160,7 +160,7 @@ void TapenadeHand::calculate_jacobian_complicated()
         }
 
         theta_d[i] = 1.0;
-        hand_objective_us_d(
+        hand_objective_complicated_d(
             input.theta.data(),
             theta_d.data(),
             input.us.data(),
@@ -193,7 +193,7 @@ void TapenadeHand::calculate_jacobian_complicated()
         }
 
         us_d[i] = 1.0;
-        hand_objective_us_d(
+        hand_objective_complicated_d(
             input.theta.data(),
             theta_d.data(),
             input.us.data(),

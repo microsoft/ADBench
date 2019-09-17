@@ -4,7 +4,7 @@
 #include "../../shared/LSTMData.h"
 
 #include "lstm/lstm.h"
-#include "lstm/lstm_d.h"
+#include "lstm/lstm_b.h"
 
 #include <vector>
 

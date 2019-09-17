@@ -1,7 +1,11 @@
 #pragma once
 
-#include <cstdlib>
-#include <cmath>
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <stdlib.h>
+#include <math.h>
 
 #include "hand.h"
 
@@ -35,7 +39,7 @@ void hand_objective_d(
 
 
 // Hand tracking function with us info differentiated by Tapenade in forward mode.
-void hand_objective_us_d(
+void hand_objective_complicated_d(
     const double* theta,
     const double* thetad,
     const double* us,
@@ -55,3 +59,7 @@ void hand_objective_us_d(
     double* err,
     double* errd
 );
+
+#ifdef __cplusplus
+}
+#endif

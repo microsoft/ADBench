@@ -1,3 +1,10 @@
+// Added from Tapenade AdFirstAidKit (PUSH/POP) (see https://www-sop.inria.fr/tropics/tapenade.html)
+// Some changes in header files are performed to let a compiler to link C code with C++ one.
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef ADBUFFER_LOADED
 #define ADBUFFER_LOADED 1
 
@@ -136,4 +143,8 @@ extern void showStackAndBuffers(char *locationName) ;
  * <#blocks.#bytesInTopBlock> then size of each type buffers */
 extern void showStackAndBuffersSize() ;
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif

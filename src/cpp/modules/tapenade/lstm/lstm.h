@@ -1,7 +1,11 @@
 #pragma once
 
-#include <cstdlib>
-#include <cmath>
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <stdlib.h>
+#include <math.h>
 
 // LSTM objective (loss function)
 // Input variables: main_params (8 * l * b), extra_params (3 * b)
@@ -19,3 +23,7 @@ void lstm_objective(
     double const* sequence,
     double* loss
 );
+
+#ifdef __cplusplus
+}
+#endif

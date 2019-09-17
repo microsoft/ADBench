@@ -547,7 +547,7 @@ void hand_objective(
 
 
 
-void hand_objective_us(
+void hand_objective_complicated(
     double const* theta,
     double const* us,
     int bone_count,

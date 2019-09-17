@@ -1,7 +1,11 @@
 #pragma once
 
-#include <cstdlib>
-#include <cmath>
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <stdlib.h>
+#include <math.h>
 
 #include "../../../shared/defs.h"
 
@@ -31,3 +35,7 @@ void gmm_objective(
     Wishart wishart,
     double* err
 );
+
+#ifdef __cplusplus
+}
+#endif
