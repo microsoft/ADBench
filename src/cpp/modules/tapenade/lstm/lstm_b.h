@@ -1,10 +1,13 @@
 #pragma once
 
-#include <cstdlib>
-#include <cmath>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+#include <stdlib.h>
+#include <math.h>
+    
 #include "../utils/adBuffer.h"
-#include "../utils/helpers.h"
 
 // LSTM function differentiated in reverse mode by Tapenade.
 void lstm_objective_b(
@@ -20,3 +23,7 @@ void lstm_objective_b(
     double* loss,
     double* lossb
 );
+
+#ifdef __cplusplus
+}
+#endif

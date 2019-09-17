@@ -1,6 +1,8 @@
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
+// Added from Tapenade AdFirstAidKit (PUSH/POP) (see https://www-sop.inria.fr/tropics/tapenade.html)
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 /* The size of a BLOCK in characters. Suggested 16384. Should try 2^16=65536 */
 #define ONE_BLOCK_SIZE 65536

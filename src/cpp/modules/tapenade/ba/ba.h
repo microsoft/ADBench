@@ -1,9 +1,13 @@
 #pragma once
 
-#include <cstdlib>
-#include <cmath>
-#include <cfloat>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+#include <stdlib.h>
+#include <math.h>
+#include <float.h>
+    
 #include "../../../shared/defs.h"
 
 // n number of cameras
@@ -32,3 +36,7 @@ void ba_objective(
     double* reproj_err,
     double* w_err
 );
+
+#ifdef __cplusplus
+}
+#endif

@@ -54,7 +54,7 @@ void subtract(
 
 
 
-double logsumexp(int n, double const* x)
+double log_sum_exp(int n, double const* x)
 {
     int i;
     double mx = arr_max(n, x);
@@ -201,10 +201,10 @@ void gmm_objective(
             main_term[ik] = alphas[ik] + sum_qs[ik] - 0.5 * sqnorm(d, &Qxcentered[0]);
         }
 
-        slse = slse + logsumexp(k, &main_term[0]);
+        slse = slse + log_sum_exp(k, &main_term[0]);
     }
 
-    double lse_alphas = logsumexp(k, alphas);
+    double lse_alphas = log_sum_exp(k, alphas);
     *err = CONSTANT + slse - n * lse_alphas + log_wishart_prior(d, k, wishart, &sum_qs[0], &Qdiags[0], icf);
 
     free(Qdiags);

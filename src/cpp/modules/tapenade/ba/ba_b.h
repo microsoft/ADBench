@@ -1,10 +1,13 @@
 #pragma once
 
-#include <cmath>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+#include <math.h>
+    
 #include "../utils/adBuffer.h"
 #include "../../../shared/defs.h"
-#include "../utils/helpers.h"
 
 
 
@@ -30,3 +33,7 @@ void compute_zach_weight_error_b(
     double* err,
     double* errb
 );
+
+#ifdef __cplusplus
+}
+#endif

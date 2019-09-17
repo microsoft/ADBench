@@ -4,7 +4,7 @@
 #include "../../shared/GMMData.h"
 
 #include "gmm/gmm.h"
-#include "gmm/gmm_d.h"
+#include "gmm/gmm_b.h"
 
 #include <vector>
 

@@ -1,7 +1,11 @@
 #pragma once
 
-#include <cstdlib>
-#include <cmath>
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <stdlib.h>
+#include <math.h>
 
 #include "../utils/adBuffer.h"
 #include "../../../shared/defs.h"
@@ -22,3 +26,7 @@ void gmm_objective_b(
     double* err,
     double* errb
 );
+
+#ifdef __cplusplus
+}
+#endif
