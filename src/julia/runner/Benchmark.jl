@@ -36,6 +36,7 @@ function find_repeats_for_minimum_measurable_time!(context::Any, minimum_measura
 end
 
 function measure_shortest_time!(context::Any, minimum_measurable_time::Float64, nruns::Int, time_limit::Float64, func::Function)::Float64
+    precompile(func, (typeof(context), Int))
     repeats, min_sample, total_time = find_repeats_for_minimum_measurable_time!(context, minimum_measurable_time, func)
     if repeats == measurable_time_not_achieved
         throw(ErrorException("It was not possible to reach the number of repeats sufficient to achieve the minimum measurable time."))
