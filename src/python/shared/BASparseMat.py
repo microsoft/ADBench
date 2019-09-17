@@ -1,5 +1,5 @@
 import numpy as np
-from defs import BA_NCAMPARAMS
+from shared.defs import BA_NCAMPARAMS
 
 class Vector:
     '''Dynamic vector of predefined max size.'''
