@@ -54,10 +54,10 @@ let project (cam:DV) (x:DV) =
     let distorted = radial_distort kappa (proj Xcam)
     principal_point + (distorted * focal_length)
 
-let compute_reproj_err (cam:DV) (x:DV) (w:D) (feat:float[]) =
-    ((project cam x) - toDV feat) * w
+let compute_reproj_err (cam:DV) (x:DV) (w:D) (feat:DV) =
+    ((project cam x) - feat) * w
 
-let compute_reproj_err_wrapper (parameters:DV) (feat:float[]) =
+let compute_reproj_err_wrapper (parameters:DV) (feat:DV) =
     let X_off = N_CAM_PARAMS
     let w_off = X_off + 3
     compute_reproj_err parameters.[..(X_off-1)] parameters.[X_off..(X_off+2)] parameters.[w_off] feat
@@ -93,68 +93,88 @@ let create_sparse_J n m p (obs:_[][]) (reproj_err_d:_[,][]) (w_err_d:_[]) =
 
     J
 
+type BADSInput(input:BAInput) =
+    member val n:int = input.N
+    member val m:int = input.M
+    member val p:int = input.P
+
+    member val Cams = Array.map (fun arr -> toDV arr) input.Cams
+    member val X = Array.map (fun arr -> toDV arr) input.X
+    member val W = Array.map (fun v -> D v) input.W
+   
+    member val Feats = Array.map (fun arr -> toDV arr) input.Feats
+
+    member val Obs = input.Obs
+
+type BADSOutput() =
+    [<DefaultValue>] val mutable reproj_err : DV[]
+    [<DefaultValue>] val mutable w_err : D[]
+
+    [<DefaultValue>] val mutable reproj_err_val_J : (DV * DM)[]
+    [<DefaultValue>] val mutable w_err_val_J : (D * D)[]
+
 [<Export(typeof<DotnetRunner.ITest<BAInput, BAOutput>>)>]
 type DiffSharpBA() =
 
-    [<DefaultValue>] val mutable input : BAInput
-    let output = new BAOutput()
+    [<DefaultValue>] val mutable input : BADSInput
+
+    let output = new BADSOutput()
  
     interface DotnetRunner.ITest<BAInput,BAOutput> with
         member this.Prepare(input: BAInput): unit = 
-            this.input <- input
+            this.input <- BADSInput input
 
         member this.CalculateObjective(times: int): unit = 
-            let n = this.input.N
-            let p = this.input.P
+            let p = this.input.p
 
             let obs = this.input.Obs
-            let ds_cams = Array.map toDV this.input.Cams
-            let ds_X = Array.map toDV this.input.X
-            let ds_w = Array.map D this.input.W
+            let ds_cams = this.input.Cams
+            let ds_X = this.input.X
+            let ds_w = this.input.W
+            let feats = this.input.Feats
 
-            let reproj_err = 
-                [|for i = 0 to p-1 do yield (compute_reproj_err ds_cams.[obs.[i].[0]] ds_X.[obs.[i].[1]] ds_w.[i] this.input.Feats.[i])|]
-            let w_err = Array.map compute_zach_weight_error ds_w
-
-            output.ReprojErr <- convert (DV.concat reproj_err)
-            output.WErr <- convert (toDV w_err)
+            output.reproj_err <- 
+                [|for i = 0 to p-1 do yield (compute_reproj_err ds_cams.[obs.[i].[0]] ds_X.[obs.[i].[1]] ds_w.[i] feats.[i])|]
+            output.w_err <- Array.map compute_zach_weight_error ds_w
 
         member this.CalculateJacobian(times: int): unit = 
-            let n = this.input.N
-            let m = this.input.M
-            let p = this.input.P
+            let p = this.input.p
 
             let obs = this.input.Obs
-            let ds_cams = Array.map toDV this.input.Cams
-            let ds_X = Array.map toDV this.input.X
-            let ds_w = Array.map D this.input.W
 
-            let compute_reproj_err_J_block (cam:_[]) (x:_[]) (w:_) (feat:float[]) =
+            let compute_reproj_err_J_block (cam:DV) (x:DV) (w:D) (feat:DV) =
                 let compute_reproj_err_wrapper parameters = 
                     compute_reproj_err_wrapper parameters feat
-                let err_D, J_D = (jacobian' compute_reproj_err_wrapper (vectorize (toDV cam) (toDV x) (D w)))
-                let err = convert err_D
-                let J = convert J_D
-                err, J
+                let err_D, J_D = (jacobian' compute_reproj_err_wrapper (vectorize cam x w))
+                err_D, J_D
 
-            let compute_w_err_d (w:float) = 
-                let e,ed = diff' compute_zach_weight_error (D w)
-                convert e, convert ed
+            let compute_w_err_d (w:D) = 
+                let e,ed = diff' compute_zach_weight_error w
+                e, ed
 
-            let reproj_err_val_J = 
+            output.reproj_err_val_J <- 
                 [|for i=0 to p-1 do 
                     yield compute_reproj_err_J_block this.input.Cams.[obs.[i].[0]] this.input.X.[obs.[i].[1]] this.input.W.[i] this.input.Feats.[i]|]
-            let w_err_val_J = Array.map compute_w_err_d this.input.W
+            output.w_err_val_J <- Array.map compute_w_err_d this.input.W
             
-            let reproj_err, reproj_err_d = Array.unzip reproj_err_val_J
-            let w_err, w_err_d = Array.unzip w_err_val_J
-            
-            let J = create_sparse_J n m p obs reproj_err_d w_err_d
-
-            output.J <- J
-
         member this.Output(): BAOutput = 
-            output
+            let n = this.input.n
+            let m = this.input.m
+            let p = this.input.p
+
+            let obs = this.input.Obs
+
+            let baOutput = new BAOutput()
+            baOutput.ReprojErr <- convert (DV.concat output.reproj_err)
+            baOutput.WErr <- convert (toDV output.w_err)
+
+            let reproj_err, reproj_err_d = Array.unzip output.reproj_err_val_J
+            let w_err, w_err_d = Array.unzip output.w_err_val_J
+            
+            let J = create_sparse_J n m p obs (Array.map convert reproj_err_d) (Array.map convert w_err_d)
+            baOutput.J <- J
+
+            baOutput
 
 
 

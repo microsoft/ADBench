@@ -8,7 +8,7 @@
   
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <AssemblyName>DiffSharpModule</AssemblyName>
-	<DebugSymbols>true</DebugSymbols>
+	  <DebugSymbols>true</DebugSymbols>
     <DebugType>portable</DebugType>
     <Optimize>false</Optimize>
     <Tailcalls>false</Tailcalls>
@@ -17,7 +17,8 @@
   
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <AssemblyName>DiffSharpModule</AssemblyName>
-	<DebugType>pdbonly</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
 	<DefineConstants>TRACE;MODE_AD</DefineConstants>
