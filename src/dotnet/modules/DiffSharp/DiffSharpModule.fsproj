@@ -3,31 +3,9 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-	<DefineConstants>TRACE;MODE_AD</DefineConstants>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-    <AssemblyName>DiffSharpModule</AssemblyName>
-	  <DebugSymbols>true</DebugSymbols>
-    <DebugType>portable</DebugType>
-    <Optimize>false</Optimize>
-    <Tailcalls>false</Tailcalls>
-	<DefineConstants>TRACE;MODE_AD;DEBUG</DefineConstants>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <AssemblyName>DiffSharpModule</AssemblyName>
-    <DebugSymbols>false</DebugSymbols>
-    <DebugType>none</DebugType>
-    <Optimize>true</Optimize>
-    <Tailcalls>true</Tailcalls>
-	<DefineConstants>TRACE;MODE_AD</DefineConstants>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
-
+ 
   <ItemGroup>
 	<Compile Include="ba.fs" />
   </ItemGroup>
