@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\src\dotnet\runner\DotnetRunner\DotnetRunner.csproj" />
+    <ProjectReference Include="..\..\..\..\src\dotnet\runner\DotnetRunner.csproj" />
     <ProjectReference Include="..\MockTest\MockTest.csproj" />
   </ItemGroup>
 
