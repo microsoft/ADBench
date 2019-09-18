@@ -167,6 +167,7 @@ enum ToolType
 {
     bin
     cpp
+    dotnet
     julia
     julia_tool
     matlab
@@ -321,6 +322,10 @@ Class Tool {
             $module_loader = @("$script:dir/src/python/runner/main.py")
             $module_path = @("$script:dir/src/python/modules/$($this.name)/$($this.name)$suffix.py")
             $cmdargs = @("$module_loader $test_type $module_path $dir_in$fn.txt $dir_out $script:minimum_measurable_time $script:nruns_f $script:nruns_J $script:time_limit")
+        } elseif ($this.type -eq [ToolType]::dotnet) {
+            $cmd = "$script:bindir/src/dotnet/runner/DotnetRunner.exe"
+            $module_path = "$script:bindir/src/cpp/modules/$($this.name)/$($this.name).dll"
+            $cmdargs = @("$objective $module_path $dir_in$fn.txt $dir_out $script:minimum_measurable_time $script:nruns_f $script:nruns_J $script:time_limit")
         } elseif ($this.type -eq [ToolType]::py -or $this.type -eq [ToolType]::pybat) {
             $objective = $objective.ToLower().Replace("-", "_")
             if ($this.type -eq "py") { $cmd = "python" }
@@ -460,8 +465,8 @@ $tool_descriptors = @(
     [Tool]::new("Manual", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $false, 0.0)
     [Tool]::new("ManualEigen", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $true, $default_tolerance)
     [Tool]::new("ManualEigenVector", "cpp", [ObjectiveType] "GMM", $true, $default_tolerance)
+    [Tool]::new("DiffSharpModule", "dotnet", [ObjectiveType] "BA", $false, 0.0, $true, $false)
     [Tool]::new("Tapenade", "cpp", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, $default_tolerance)
-    [Tool]::new("DiffSharp", "bin", [ObjectiveType] "BA", $false, 0.0, $true, $false)
     [Tool]::new("PyTorch", "python", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, $default_tolerance)
     [Tool]::new("Tensorflow", "python", [ObjectiveType] "LSTM, GMM, BA", $true, $default_tolerance)
     [Tool]::new("Autograd", "py", [ObjectiveType] "GMM, BA", $false, 0.0, $true, $false)
