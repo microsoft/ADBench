@@ -117,7 +117,7 @@ public:
             tmp_b = originalInput - delta;
             T dx = delta * 2;
             tmp_f = tmp_b + dx;
-            // adjusting dx so that (tmp_b + dx) - tmp_b == delta
+            // adjusting dx so that (tmp_b + dx) - tmp_b == 2 * delta
             dx = tmp_f - tmp_b;
             if (dx < delta * 0.5)
                 std::cerr << "WARNING: Finite difference step " << delta << " seems incompatible with the argument " << originalInput << std::endl;
