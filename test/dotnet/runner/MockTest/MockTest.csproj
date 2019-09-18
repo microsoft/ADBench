@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\src\dotnet\runner\DotnetRunner\DotnetRunner.csproj" />
+    <ProjectReference Include="..\..\..\..\src\dotnet\runner\DotnetRunner.csproj" />
   </ItemGroup>
 
 </Project>
