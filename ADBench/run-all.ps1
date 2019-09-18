@@ -335,6 +335,9 @@ Class Tool {
             $comparison = New-JacobianComparison $this.result_check_tolerance
             $comparison.CompareFiles($current_jacobian_path, $golden_jacobian_path)
             $comparison.ToJsonString() | Out-File "${dir_out}${fn}_correctness_${out_name}.txt"
+            if ($comparison.ViolationsHappened()) {
+                Write-Host "          Discrepancies with the correct jacobian found. See ${dir_out}${fn}_correctness_${out_name}.txt for details."
+            }
         }
     }
 
@@ -417,7 +420,7 @@ Class Tool {
 
 
 [Tool]::golden_tool_name = "Manual"
-$default_tolerance = 1e-6
+$default_tolerance = 1e-8
 # Full list of tool_descriptors
 # Name
 # runtype
@@ -432,7 +435,7 @@ $tool_descriptors = @(
     #[Tool]::new("ADOLCEigen", "bin", [ObjectiveType] "Hand", $false, 0.0, $true, $false)
     #[Tool]::new("Ceres", "bin", [ObjectiveType] "GMM, BA, Hand", $false, 0.0, $false, $true)
     #[Tool]::new("CeresEigen", "bin", [ObjectiveType] "Hand", $false, 0.0, $false, $true)
-    [Tool]::new("Finite", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $true, $default_tolerance)
+    [Tool]::new("Finite", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $true, 1e-5)
     [Tool]::new("FiniteEigen", "cpp", [ObjectiveType] "Hand", $true, $default_tolerance)
     [Tool]::new("Manual", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $false, 0.0)
     [Tool]::new("ManualEigen", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $true, $default_tolerance)
