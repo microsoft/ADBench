@@ -43,9 +43,6 @@ void FiniteHand::calculate_jacobian(int times)
     if (complicated)
     {
         for (int i = 0; i < times; ++i) {
-            // separately computing objective, because central differences won't compute it along the way
-            hand_objective(input.theta.data(), input.us.data(), input.data, result.objective.data());
-
             engine.finite_differences([&](double* theta_in, double* err) {
                 hand_objective(theta_in, input.us.data(), input.data, err);
                 }, input.theta.data(), input.theta.size(), result.objective.size(), &result.jacobian.data()[6 * input.data.correspondences.size()]);
@@ -66,9 +63,6 @@ void FiniteHand::calculate_jacobian(int times)
     else
     {
         for (int i = 0; i < times; ++i) {
-            // separately computing objective, because central differences won't compute it along the way
-            hand_objective(input.theta.data(), input.data, result.objective.data());
-
             engine.finite_differences([&](double* theta_in, double* err) {
                 hand_objective(theta_in, input.data, err);
                 }, input.theta.data(), input.theta.size(), result.objective.size(), result.jacobian.data());

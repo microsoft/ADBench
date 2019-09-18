@@ -30,9 +30,6 @@ void FiniteLSTM::calculate_jacobian(int times)
 {
     for (int i = 0; i < times; ++i) {
         state = input.state;
-        // separately computing objective, because central differences won't compute it along the way
-        lstm_objective(input.l, input.c, input.b, input.main_params.data(), input.extra_params.data(), state, input.sequence.data(), &result.objective);
-
         engine.finite_differences([&](double* main_params_in, double* loss) {
             lstm_objective(input.l, input.c, input.b, main_params_in,
                 input.extra_params.data(), state, input.sequence.data(), loss);
