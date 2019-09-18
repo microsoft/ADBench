@@ -379,7 +379,7 @@ $tool_descriptors = @(
     [Tool]::new("Manual", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $false, $false)
     [Tool]::new("ManualEigen", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $false, $false)
     [Tool]::new("ManualEigenVector", "cpp", [ObjectiveType] "GMM", $false, $false)
-    [Tool]::new("Tapenade", "cpp", [ObjectiveType], "BA, LSTM, GMM, Hand", $false, $false)
+    [Tool]::new("Tapenade", "cpp", [ObjectiveType] "BA, LSTM, GMM, Hand", $false, $false)
     [Tool]::new("DiffSharp", "bin", [ObjectiveType] "BA", $true, $false)
     [Tool]::new("Autograd", "py", [ObjectiveType] "GMM, BA", $true, $false)
     [Tool]::new("PyTorch", "py", [ObjectiveType] "GMM, LSTM", $false, $false)
