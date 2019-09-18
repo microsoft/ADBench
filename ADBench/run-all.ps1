@@ -343,9 +343,9 @@ Class Tool {
             if ($objective.contains("complicated")) { $task = "$task-Complicated" }
             $cmdargs = @("$task $module_path $dir_in$fn.txt $dir_out $script:minimum_measurable_time $script:nruns_f $script:nruns_J $script:time_limit")
         } elseif ($this.type -eq [ToolType]::dotnet) {
-            $cmd = "$script:bindir/src/dotnet/runner/DotnetRunner.exe"
-            $module_path = "$script:bindir/src/cpp/modules/$($this.name)/$($this.name).dll"
-            $cmdargs = @("$objective $module_path $dir_in$fn.txt $dir_out $script:minimum_measurable_time $script:nruns_f $script:nruns_J $script:time_limit")
+            $cmd = "dotnet"
+            $module_path = "$script:bindir/src/dotnet/modules/$($this.name)/$($this.name).dll"
+            $cmdargs = @("$script:bindir/src/dotnet/runner/DotnetRunner.dll $objective $module_path $dir_in$fn.txt $dir_out $script:minimum_measurable_time $script:nruns_f $script:nruns_J $script:time_limit")
         } elseif ($this.type -eq [ToolType]::py -or $this.type -eq [ToolType]::pybat) {
             $objective = $objective.ToLower().Replace("-", "_")
             if ($this.type -eq "py") { $cmd = "python" }
@@ -490,13 +490,13 @@ $tool_descriptors = @(
     #[Tool]::new("CeresEigen", "bin", [ObjectiveType] "Hand", $false, 0.0, $false, $true)
     [Tool]::new("Finite", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $true, 1e-4)
     [Tool]::new("FiniteEigen", "cpp", [ObjectiveType] "Hand", $true, 1e-4)
-    [Tool]::new("Manual", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $false, 0.0)
-    [Tool]::new("ManualEigen", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $true, $default_tolerance)
-    [Tool]::new("ManualEigenVector", "cpp", [ObjectiveType] "GMM", $true, $default_tolerance)
+    #[Tool]::new("Manual", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $false, 0.0)
+    #[Tool]::new("ManualEigen", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $true, $default_tolerance)
+    #[Tool]::new("ManualEigenVector", "cpp", [ObjectiveType] "GMM", $true, $default_tolerance)
     [Tool]::new("Tapenade", "cpp", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, $default_tolerance)
     [Tool]::new("DiffSharpModule", "dotnet", [ObjectiveType] "BA", $false, 0.0, $true, $false)
-    [Tool]::new("Autograd", "py", [ObjectiveType] "GMM, BA", $false, 0.0, $true, $false)
-    [Tool]::new("PyTorch", "py", [ObjectiveType] "GMM, LSTM", $false, 0.0)
+    #[Tool]::new("Autograd", "py", [ObjectiveType] "GMM, BA", $false, 0.0, $true, $false)
+    #[Tool]::new("PyTorch", "py", [ObjectiveType] "GMM, LSTM", $false, 0.0)
     [Tool]::new("Julia", "julia_tool", [ObjectiveType] "GMM, BA", $false, 0.0)
     [Tool]::new("Zygote", "julia", [ObjectiveType] "GMM", $true, $default_tolerance)
     #[Tool]::new("Theano", "pybat", [ObjectiveType] "GMM, BA, Hand", $false, 0.0)

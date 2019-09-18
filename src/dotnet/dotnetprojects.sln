@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotnetRunnerTests", "..\..\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MockTest", "..\..\test\dotnet\runner\MockTest\MockTest.csproj", "{34682A0F-70FF-41C3-BE9C-59D07D27FA66}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "DiffSharpModule", "modules\DiffSharp\DiffSharpModule.fsproj", "{98C95E48-4A6D-45F7-9C69-EE6645E0E55D}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "DiffSharpModule", "modules\DiffSharpModule\DiffSharpModule.fsproj", "{98C95E48-4A6D-45F7-9C69-EE6645E0E55D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
