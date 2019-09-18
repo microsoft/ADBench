@@ -1,20 +1,72 @@
 /*
  *   This file is a repaired version of the file "hand_d_tapenade_generated.c"
+ *   Fixing list (all fixings are marked by the comment TFIX):
+ *   
+ * N    Wrong code                                                            Line      Fixed code                         
+ * -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 1)                                                                       =>(61)      #include "hand_d.h"
+ * -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 2)   typedef struct {		 
+ *          double* data;                                                   =>(62)
+ *      } Matrix_diff;               
+ * -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 3)                                                                       =>(64-133)  ADDITIONAL FUNCTIONS
+ * -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 4)   int i;                                                              =>(639)     int i, j;
+ * -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 5)   *relativesd->data = 0.0;                                            =>(647)
+ * -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 6)   *base_relativesd->data = 0.0;                                       =>(655)     for (j = 0; j < base_relatives->nrows * base_relatives->ncols; j++)
+ *                                                                                          base_relativesd[i].data[j] = 0.0;
+ * -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 7)   int i;                                                              =>(682)     int i, j;
+ * -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 8)   const Matrix_diff *base_relativesd;                                 =>(685)     Matrix_diff* base_relativesd = get_new_zero_matrix_diff_array(bone_count, base_relatives);
+ * -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 9)   *inverse_base_absolutesd->data = 0.0;                               =>(699)     for (j = 0; j < inverse_base_absolutes[i].nrows * inverse_base_absolutes[i].ncols; j++)
+ *                                                                                          inverse_base_absolutesd[i].data[j] = 0.0;
+ * -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 10)  *base_positionsd->data = 0.0;                                       =>(714)     for (i = 0; i < base_positions->nrows * base_positions->ncols; i++)
+ *                                                                                          base_positionsd->data[i] = 0.0;
+ * -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 11)                                                                      =>(743)     delete_matrix_diff_array(bone_count, base_relativesd);
+ * -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 12)  fill_nodiff(pose_params, 0.0);                                      =>(764)     fill_d(pose_params, pose_paramsd, 0.0);
+ *      *pose_paramsd->data = 0.0;
+ * -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 13)  , Matrix_diff *base_positionsd, Matrix *weights, const Triangle *   =>(809)     , Matrix *weights, const Triangle
+ * -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------    
+ * 14)                                                                      =>(812)     Matrix_diff* base_positionsd = get_new_zero_matrix_diff(base_positions);
+ * -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 15)  Matrix_diff *inverse_base_absolutesd;                               =>(815)     Matrix_diff* inverse_base_absolutesd = get_new_zero_matrix_diff_array(bone_count, inverse_base_absolutes);
+ * -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 16)                                                                      =>(840)     delete_matrix_diff(base_positionsd);
+ *                                                                                      delete_matrix_diff_array(bone_count, inverse_base_absolutesd);
+ * -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 17)  inverse_base_absolutes, Matrix *base_positions, Matrix_diff *       =>(856)     inverse_base_absolutes, Matrix *base_positions,
+ *      base_positionsd, Matrix *weights, const Triangle *triangles, int                Matrix *weights, const Triangle *triangles, int
+ * -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 18)                                                                      =>(860)     Matrix_diff* base_positionsd = get_new_zero_matrix_diff(base_positions);
+ * -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 19)  Matrix_diff *inverse_base_absolutesd;		                        =>(863)     Matrix_diff* inverse_base_absolutesd = get_new_zero_matrix_diff_array(bone_count, inverse_base_absolutes);
+ * -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 20)                                                                      =>(900)     delete_matrix_diff(base_positionsd);
+ *                                                                                      delete_matrix_diff_array(bone_count, inverse_base_absolutesd);
+ * -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  */
 
 /*        Generated by TAPENADE     (INRIA, Ecuador team)
     Tapenade 3.14 (r7259) - 18 Jan 2019 09:35
 */
-#include "hand_d.h"     // header file is added
-
-// Matrix_diff declaration is moved to a header file
+#include "hand_d.h" /* TFIX */
+                    /* TFIX */ // Matrix_diff declaration is moved to a header file
 
 /*========================================================================*/
-/*                            ADDITIONAL METHODS                          */
+/*                          ADDITIONAL FUNCTIONS                          */
 /*(added because of Tapenade can't recognize how initialize complex types)*/
 /*========================================================================*/
 // returns diff for the given matrix
-Matrix_diff* get_new_zero_matrix_diff(const Matrix* mat)
+Matrix_diff* get_new_zero_matrix_diff(const Matrix* mat) /* TFIX */
 {
     Matrix_diff* result = (Matrix_diff*)malloc(sizeof(Matrix_diff));
     result->data = (double*)malloc(mat->nrows * mat->ncols * sizeof(double));
@@ -30,7 +82,7 @@ Matrix_diff* get_new_zero_matrix_diff(const Matrix* mat)
 
 
 // removes matrix diff
-void delete_matrix_diff(Matrix_diff* md)
+void delete_matrix_diff(Matrix_diff* md) /* TFIX */
 {
     if (md->data != NULL)
     {
@@ -43,7 +95,7 @@ void delete_matrix_diff(Matrix_diff* md)
 
 
 // creates new matrix diff array initialized by zeros
-Matrix_diff* get_new_zero_matrix_diff_array(int count, const Matrix* m_arr)
+Matrix_diff* get_new_zero_matrix_diff_array(int count, const Matrix* m_arr) /* TFIX */
 {
     Matrix_diff* result = (Matrix_diff*)malloc(count * sizeof(Matrix_diff));
 
@@ -66,7 +118,7 @@ Matrix_diff* get_new_zero_matrix_diff_array(int count, const Matrix* m_arr)
 
 
 // delete matrix diff array
-void delete_matrix_diff_array(int count, Matrix_diff* md_arr)
+void delete_matrix_diff_array(int count, Matrix_diff* md_arr) /* TFIX */
 {
     int i;
     for (i = 0; i < count; i++)
@@ -584,7 +636,7 @@ void get_posed_relatives_d(int bone_count, const Matrix *base_relatives, const
         Matrix_diff *base_relativesd, const Matrix *pose_params, const 
         Matrix_diff *pose_paramsd, Matrix *relatives, Matrix_diff *relativesd)
 {
-    int i, j;       // another one iteration variable is added
+    int i, j; /* TFIX */
     int offset = 3;
     Matrix *tr;
     Matrix_diff *trd;
@@ -592,7 +644,7 @@ void get_posed_relatives_d(int bone_count, const Matrix *base_relatives, const
     Matrix *R;
     Matrix_diff *Rd;
     Rd = get_new_matrix_d(3, 3, &R);
-    // wrong and unnecessary zero initialization that breaks the code is removed
+    /* TFIX */
     for (i = 0; i < bone_count; ++i) {
         set_identity_d(tr, trd);
         euler_angles_to_rotation_matrix_d(pose_params->data + (i+offset)*
@@ -600,8 +652,8 @@ void get_posed_relatives_d(int bone_count, const Matrix *base_relatives, const
                                           data + (i+offset)*pose_params->nrows
                                           , R, Rd);
         set_block_d(tr, trd, 0, 0, R, Rd);
-        for (j = 0; j < base_relatives->nrows * base_relatives->ncols; j++)
-            base_relativesd[i].data[j] = 0.0;       // wrong zero initialization is fixed
+        for (j = 0; j < base_relatives->nrows * base_relatives->ncols; j++) /* TFIX */
+            base_relativesd[i].data[j] = 0.0;
         mat_mult_d(&(base_relatives[i]), &(base_relativesd[i]), tr, trd, &(
                    relatives[i]), &(relativesd[i]));
     }
@@ -627,10 +679,10 @@ void get_skinned_vertex_positions_d(int bone_count, const Matrix *
         const Matrix *weights, int is_mirrored, const Matrix *pose_params, 
         const Matrix_diff *pose_paramsd, Matrix *positions, Matrix_diff *
         positionsd, int apply_global) {
-    int i, j;   // another one iteration variable is added
+    int i, j; /* TFIX */
     Matrix *relatives;
     Matrix_diff *relativesd;
-    Matrix_diff* base_relativesd = get_new_zero_matrix_diff_array(bone_count, base_relatives);  // this variable has to be initialized
+    Matrix_diff* base_relativesd = get_new_zero_matrix_diff_array(bone_count, base_relatives); /* TFIX */
     relativesd = get_matrix_array_d(bone_count, &relatives);
     Matrix *absolutes;
     Matrix_diff *absolutesd;
@@ -644,8 +696,8 @@ void get_skinned_vertex_positions_d(int bone_count, const Matrix *
                              absolutes, absolutesd);
     // Get bone transforms->
     for (i = 0; i < bone_count; ++i) {
-        for (j = 0; j < inverse_base_absolutes[i].nrows * inverse_base_absolutes[i].ncols; j++)
-            inverse_base_absolutesd[i].data[j] = 0.0;   // wrong zero initialization is fixed
+        for (j = 0; j < inverse_base_absolutes[i].nrows * inverse_base_absolutes[i].ncols; j++) /* TFIX */
+            inverse_base_absolutesd[i].data[j] = 0.0;
         mat_mult_d(&(absolutes[i]), &(absolutesd[i]), &(inverse_base_absolutes
                    [i]), &(inverse_base_absolutesd[i]), &(transforms[i]), &(
                    transformsd[i]));
@@ -659,8 +711,8 @@ void get_skinned_vertex_positions_d(int bone_count, const Matrix *
                                        curr_positions);
     int i_bone, i_vert;
     for (i_bone = 0; i_bone < bone_count; ++i_bone) {
-        for (i = 0; i < base_positions->nrows * base_positions->ncols; i++)
-            base_positionsd->data[i] = 0.0;     // wrong zero initialization is fixed
+        for (i = 0; i < base_positions->nrows * base_positions->ncols; i++) /* TFIX */
+            base_positionsd->data[i] = 0.0;
         mat_mult_d(&(transforms[i_bone]), &(transformsd[i_bone]), 
                    base_positions, base_positionsd, curr_positions, 
                    curr_positionsd);
@@ -688,10 +740,7 @@ void get_skinned_vertex_positions_d(int bone_count, const Matrix *
     delete_light_matrix_array_d(relatives, relativesd, bone_count);
     delete_light_matrix_array_d(absolutes, absolutesd, bone_count);
     delete_light_matrix_array_d(transforms, transformsd, bone_count);
-
-    // Added manually for disposing resources taken in code above while fixing
-    // wrong generated source
-    delete_matrix_diff_array(bone_count, base_relativesd);
+    delete_matrix_diff_array(bone_count, base_relativesd); /* TFIX */ // Added to dispose memory allocated in repaired code
 }
 
 /*
@@ -712,7 +761,7 @@ void to_pose_params_d(int count, const double *theta, const double *thetad,
         pose_paramsd) {
     int i;
     resize_d0(pose_params, pose_paramsd, 3, count + 3);
-    fill_d(pose_params, pose_paramsd, 0.0);     // wrong matrix filling is fixed
+    fill_d(pose_params, pose_paramsd, 0.0); /* TFIX */
     for (i = 0; i < pose_params->nrows; ++i) {
         pose_paramsd->data[i] = thetad[i];
         pose_params->data[i] = theta[i];
@@ -757,16 +806,13 @@ void to_pose_params_d(int count, const double *theta, const double *thetad,
 void hand_objective_d(const double *theta, const double *thetad, int 
         bone_count, const char **bone_names, const int *parents, Matrix *
         base_relatives, Matrix *inverse_base_absolutes, Matrix *base_positions
-        , Matrix *weights, const Triangle *         // unnecessary function parameter is removed
+        , Matrix *weights, const Triangle * /* TFIX */
         triangles, int is_mirrored, int corresp_count, const int *
         correspondences, Matrix *points, double *err, double *errd) {
-    // Added manually. Tapenade generated code whith "base_positionsd"
-    // as a function parameter
-    Matrix_diff* base_positionsd = get_new_zero_matrix_diff(base_positions);
+    Matrix_diff* base_positionsd = get_new_zero_matrix_diff(base_positions); /* TFIX */ //  Added instead of function parameter
     Matrix *pose_params;
     Matrix_diff *pose_paramsd;
-    // this variable has to be initialized
-    Matrix_diff* inverse_base_absolutesd = get_new_zero_matrix_diff_array(bone_count, inverse_base_absolutes);
+    Matrix_diff* inverse_base_absolutesd = get_new_zero_matrix_diff_array(bone_count, inverse_base_absolutes); /* TFIX */
     pose_paramsd = get_new_empty_matrix_d(&pose_params);
     to_pose_params_d(bone_count, theta, thetad, bone_names, pose_params, 
                      pose_paramsd);
@@ -791,10 +837,7 @@ void hand_objective_d(const double *theta, const double *thetad, int
         }
     delete_matrix_d0(pose_params, pose_paramsd);
     delete_matrix_d0(vertex_positions, vertex_positionsd);
-
-    // Added manually for disposing resources taken in code above while fixing
-    // wrong generated source
-    delete_matrix_diff(base_positionsd);
+    delete_matrix_diff(base_positionsd); /* TFIX */ // Added to dispose memory allocated in repaired code
     delete_matrix_diff_array(bone_count, inverse_base_absolutesd);
 }
 
@@ -810,17 +853,14 @@ void hand_objective_d(const double *theta, const double *thetad, int
 void hand_objective_complicated_d(const double *theta, const double *thetad, 
         const double *us, const double *usd, int bone_count, const char **
         bone_names, const int *parents, Matrix *base_relatives, Matrix *
-        inverse_base_absolutes, Matrix *base_positions,     // unnecessary function parameter is removed
+        inverse_base_absolutes, Matrix *base_positions, /* TFIX */
         Matrix *weights, const Triangle *triangles, int 
         is_mirrored, int corresp_count, const int *correspondences, Matrix *
         points, double *err, double *errd) {
-    // Added manually. Tapenade generated code whith "base_positionsd"
-    // as a function parameter
-    Matrix_diff* base_positionsd = get_new_zero_matrix_diff(base_positions);
+    Matrix_diff* base_positionsd = get_new_zero_matrix_diff(base_positions); /* TFIX */ // Added instead of function parameter
     Matrix *pose_params;
     Matrix_diff *pose_paramsd;
-    // this varibale has to be initialized
-    Matrix_diff* inverse_base_absolutesd = get_new_zero_matrix_diff_array(bone_count, inverse_base_absolutes);
+    Matrix_diff* inverse_base_absolutesd = get_new_zero_matrix_diff_array(bone_count, inverse_base_absolutes); /* TFIX */
     pose_paramsd = get_new_empty_matrix_d(&pose_params);
     to_pose_params_d(bone_count, theta, thetad, bone_names, pose_params, 
                      pose_paramsd);
@@ -857,8 +897,6 @@ void hand_objective_complicated_d(const double *theta, const double *thetad,
         }
     }
 
-    // Added manually for disposing resources taken in code above while fixing
-    // wrong generated source
-    delete_matrix_diff(base_positionsd);
+    delete_matrix_diff(base_positionsd); /* TFIX */ // Added to dispose memory allocated in repaired code
     delete_matrix_diff_array(bone_count, inverse_base_absolutesd);
 }
