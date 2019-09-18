@@ -323,9 +323,9 @@ Class Tool {
             $module_path = @("$script:dir/src/python/modules/$($this.name)/$($this.name)$suffix.py")
             $cmdargs = @("$module_loader $test_type $module_path $dir_in$fn.txt $dir_out $script:minimum_measurable_time $script:nruns_f $script:nruns_J $script:time_limit")
         } elseif ($this.type -eq [ToolType]::dotnet) {
-            $cmd = "$script:bindir/src/dotnet/runner/DotnetRunner.exe"
-            $module_path = "$script:bindir/src/cpp/modules/$($this.name)/$($this.name).dll"
-            $cmdargs = @("$objective $module_path $dir_in$fn.txt $dir_out $script:minimum_measurable_time $script:nruns_f $script:nruns_J $script:time_limit")
+            $cmd = "dotnet"
+            $module_path = "$script:bindir/src/dotnet/modules/$($this.name)/$($this.name).dll"
+            $cmdargs = @("$script:bindir/src/dotnet/runner/DotnetRunner.dll $objective $module_path $dir_in$fn.txt $dir_out $script:minimum_measurable_time $script:nruns_f $script:nruns_J $script:time_limit")
         } elseif ($this.type -eq [ToolType]::py -or $this.type -eq [ToolType]::pybat) {
             $objective = $objective.ToLower().Replace("-", "_")
             if ($this.type -eq "py") { $cmd = "python" }
