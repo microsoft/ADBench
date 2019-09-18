@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace DotnetRunner.Benchmarks
 {
-    class BABenchmark : Benchmark<BAInput, BAOutput>
+    public class BABenchmark : Benchmark<BAInput, BAOutput>
     {
         private string[][] ReadInElements(string filepath)
         {
