@@ -30,9 +30,6 @@ void FiniteBA::calculate_jacobian(int times)
 {
     for (int i = 0; i < times; ++i) {
         result.J.clear();
-        // separately computing objective, because central differences won't compute it along the way
-        ba_objective(input.n, input.m, input.p, input.cams.data(), input.X.data(), input.w.data(),
-            input.obs.data(), input.feats.data(), result.reproj_err.data(), result.w_err.data());
         for (int j = 0; j < input.p; ++j)
         {
             std::fill(reproj_err_d.begin(), reproj_err_d.end(), (double)0);
