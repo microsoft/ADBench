@@ -50,10 +50,8 @@ end
   
 function log_gamma_distrib(a, p)
     out = 0.25 * p * (p - 1) * 1.1447298858494002 #convert(Float64, log(pi))
-      for j in 1:p
-      out += loggamma(a + 0.5*(1 - j)) #(logabsgamma(a + 0.5*(1 - j)))[1]
-    end
-      out
+    out += sum(j -> loggamma(a + 0.5*(1 - j)), 1:p) 
+    out
 end
 
 @adjoint function loggamma(x)
@@ -88,8 +86,8 @@ end
   
 function expdiags(Qs)
     mapslices(Qs; dims=[1,2]) do slice
-      slice[diagind(slice)] .= exp.(slice[diagind(slice)])
-      slice
+        slice[diagind(slice)] .= exp.(slice[diagind(slice)])
+        slice
     end
 end
   
@@ -117,10 +115,10 @@ end
     ys_and_backs = map((args...) -> Zygote._forward(__context__, f, args...), args...)
     ys, backs = unzip(ys_and_backs)
     ys, function (Δ)
-      Δf_and_args_zipped = map((f, δ) -> f(δ), backs, Δ)
-      Δf_and_args = unzip(Δf_and_args_zipped)
-      Δf = reduce(Zygote.accum, Δf_and_args[1])
-      (Δf, Δf_and_args[2:end]...)
+        Δf_and_args_zipped = map((f, δ) -> f(δ), backs, Δ)
+        Δf_and_args = unzip(Δf_and_args_zipped)
+        Δf = reduce(Zygote.accum, Δf_and_args[1])
+        (Δf, Δf_and_args[2:end]...)
     end
 end
   
@@ -132,7 +130,6 @@ function gmm_objective(alphas,means,Qs,x,wishart::Wishart)
     k = size(means,2)
     CONSTANT = -n*d*0.5*log(2 * pi)
     sum_qs = reshape(diagsums(Qs), 1, size(Qs, 3))
-    #slse = sum(sum_qs)
     Qs = expdiags(Qs)
   
     main_term = zeros(Float64,1,k)
@@ -154,11 +151,11 @@ function zygote_J_to_packed_J(J, k, d)
     alphas = reshape(J[1], :)
     means = reshape(J[2], :)
     icf_unpacked = map(1:k) do Q_idx
-      Q = J[3][:, :, Q_idx]
-      lt_rows = map(2:d) do row
-        Q[row, 1:row-1]
-      end
-      vcat(diag(Q), lt_rows...)
+        Q = J[3][:, :, Q_idx]
+        lt_rows = map(2:d) do row
+            Q[row, 1:row-1]
+        end
+        vcat(diag(Q), lt_rows...)
     end
     icf = collect(Iterators.flatten(icf_unpacked))
     packed_J = vcat(alphas, means, icf)
@@ -173,31 +170,39 @@ mutable struct ZygoteGMMContext
     zygote_J
 end
 
+function zygote_gmm_prepare!(ctx::ZygoteGMMContext, input::GMMInput)
+    ctx.input = input
+    d = size(input.means,1)
+    k = size(input.means,2)
+    ctx.Qs = cat([get_Q_zygote(d, input.icfs[:,ik]) for ik in 1:k]...; dims=[3])
+    ctx.wrapper_gmm_objective = (alphas, means, Qs) -> gmm_objective(alphas,means,Qs,input.x,input.wishart)
+end
+
+function zygote_gmm_calculate_objective!(ctx::ZygoteGMMContext, times)
+    for i in 1:times
+        ctx.objective = gmm_objective(ctx.input.alphas,ctx.input.means,ctx.Qs,ctx.input.x,ctx.input.wishart)
+    end
+end
+
+function zygote_gmm_calculate_jacobian!(ctx::ZygoteGMMContext, times)
+    for i in 1:times
+        ctx.zygote_J = Zygote.gradient(ctx.wrapper_gmm_objective, ctx.input.alphas, ctx.input.means, ctx.Qs)
+    end
+end
+
+function zygote_gmm_output!(out::GMMOutput, ctx::ZygoteGMMContext)
+    out.objective = ctx.objective
+    d = size(ctx.input.means,1)
+    k = size(ctx.input.means,2)
+    out.gradient = ctx.zygote_J === nothing ? [] : zygote_J_to_packed_J(ctx.zygote_J, k, d)
+end
+
 get_gmm_test() = Test{GMMInput, GMMOutput}(
     ZygoteGMMContext(nothing, nothing, nothing, 0.0, nothing),
-    (ctx::ZygoteGMMContext, input::GMMInput) -> begin
-        ctx.input = input
-        d = size(input.means,1)
-        k = size(input.means,2)
-        ctx.Qs = cat([get_Q_zygote(d, input.icfs[:,ik]) for ik in 1:k]...; dims=[3])
-        ctx.wrapper_gmm_objective = (alphas, means, Qs) -> gmm_objective(alphas,means,Qs,input.x,input.wishart)
-    end,
-    (ctx::ZygoteGMMContext, times) -> begin
-        for i in 1:times
-            ctx.objective = gmm_objective(ctx.input.alphas,ctx.input.means,ctx.Qs,ctx.input.x,ctx.input.wishart)
-        end
-    end,
-    (ctx::ZygoteGMMContext, times) -> begin
-        for i in 1:times
-            ctx.zygote_J = Zygote.gradient(ctx.wrapper_gmm_objective, ctx.input.alphas, ctx.input.means, ctx.Qs)
-        end
-    end,
-    (out::GMMOutput, ctx::ZygoteGMMContext) -> begin 
-        out.objective = ctx.objective
-        d = size(ctx.input.means,1)
-        k = size(ctx.input.means,2)
-        out.gradient = ctx.zygote_J === nothing ? [] : zygote_J_to_packed_J(ctx.zygote_J, k, d)
-    end
+    zygote_gmm_prepare!,
+    zygote_gmm_calculate_objective!,
+    zygote_gmm_calculate_jacobian!,
+    zygote_gmm_output!
 )
 
 end
