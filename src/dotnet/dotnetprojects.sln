@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JacobianComparisonLib", "ut
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JacobianComparisonLibTests", "..\..\test\dotnet\utils\JacobianComparisonLibTests\JacobianComparisonLibTests.csproj", "{20EFBCDB-6BED-4959-9D3C-500BBD652521}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotnetRunner", "runner\DotnetRunner\DotnetRunner.csproj", "{13DDCC04-1DFF-4BFB-8CF9-8F5F418C2585}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotnetRunner", "runner\DotnetRunner.csproj", "{13DDCC04-1DFF-4BFB-8CF9-8F5F418C2585}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotnetRunnerTests", "..\..\test\dotnet\runner\DotnetRunnerTests\DotnetRunnerTests.csproj", "{D4EDF021-FEB6-48DB-A0D8-136E9B117791}"
 	ProjectSection(ProjectDependencies) = postProject
