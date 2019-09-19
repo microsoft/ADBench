@@ -326,7 +326,7 @@ Class Tool {
 
         run_command "          " $output_file $script:timeout $cmd @cmdargs
         if (!(test-path $output_file)) {
-            throw "Command ran, but did not produce output file [$output_file]"
+            Write-Warning "Command ran, but did not produce output file [$output_file]"
         }
 
         if ($this.check_results -and (![string]::IsNullOrEmpty([Tool]::golden_tool_name))) {
