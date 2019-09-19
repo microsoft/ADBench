@@ -436,7 +436,7 @@ $tool_descriptors = @(
     #[Tool]::new("Ceres", "bin", [ObjectiveType] "GMM, BA, Hand", $false, 0.0, $false, $true)
     #[Tool]::new("CeresEigen", "bin", [ObjectiveType] "Hand", $false, 0.0, $false, $true)
     [Tool]::new("Finite", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $true, 1e-5)
-    [Tool]::new("FiniteEigen", "cpp", [ObjectiveType] "Hand", $true, $default_tolerance)
+    [Tool]::new("FiniteEigen", "cpp", [ObjectiveType] "Hand", $true, 1e-5)
     [Tool]::new("Manual", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $false, 0.0)
     [Tool]::new("ManualEigen", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $true, $default_tolerance)
     [Tool]::new("ManualEigenVector", "cpp", [ObjectiveType] "GMM", $true, $default_tolerance)
