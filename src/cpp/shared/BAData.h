@@ -6,7 +6,7 @@
 #include "utils.h"
 
 struct BAInput {
-    int n, m, p;
+    int n = 0, m = 0, p = 0;
     std::vector<double> cams, X, w, feats;
     std::vector<int> obs;
 };
