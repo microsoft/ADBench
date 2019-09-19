@@ -80,7 +80,7 @@ void read_ba_instance(const std::string& fn,
 
 struct write_J_stream : public std::ofstream
 {
-    write_J_stream(std::string fn, size_t rows, size_t cols);
+    write_J_stream(std::string fn, size_t rows, size_t cols, std::streamsize precision);
 };
 
 void write_J_sparse(const std::string& fn, const BASparseMat& J);
