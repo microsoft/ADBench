@@ -1,5 +1,5 @@
 import importlib.util
-import gc
+from os.path import split
 
 class ModuleLoader:
     def __init__(self, module_path):
@@ -9,13 +9,9 @@ class ModuleLoader:
 
     # return test specified by module_path
     def get_test(self):
-        if self.test != None:
-            del self.test # DANGER here might be some error after deletion of self.test
-            gc.collect() # force run garbage collector
-
         # Module name should be the same as class name in that module
-        # Get class name from args
-        class_name = self.module_path.rsplit('/')[-1].rsplit('.')[0]
+        # Get class name from args       
+        class_name = split(self.module_path)[1].rsplit('.')[0]
 
         # import module
         spec = importlib.util.spec_from_file_location(class_name, self.module_path)
