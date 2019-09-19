@@ -222,6 +222,7 @@ void read_ba_instance(const string& fn,
 write_J_stream::write_J_stream(std::string fn, size_t rows, size_t cols) :
     std::ofstream(fn)
 {
+    std::cout << std::scientific;
     std::cout << "Writing to " << fn << std::endl;
     if (!good()) {
         std::cerr << "FAILED\n";
