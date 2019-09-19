@@ -17,6 +17,7 @@ std::string jacobian_file_name(const std::string& output_prefix, const std::stri
 void save_time_to_file(const std::string& filepath, const double objective_time, const double derivative_time)
 {
     std::ofstream out(filepath);
+
     out << std::scientific << objective_time << std::endl << derivative_time;
     out.close();
 }
@@ -24,6 +25,9 @@ void save_time_to_file(const std::string& filepath, const double objective_time,
 void save_value_to_file(const std::string& filepath, const double& value)
 {
     std::ofstream out(filepath);
+    auto max_digits = std::numeric_limits<double>::max_digits10;
+    out.precision(max_digits);
+
     out << std::scientific << value;
     out.close();
 }
@@ -31,6 +35,8 @@ void save_value_to_file(const std::string& filepath, const double& value)
 void save_vector_to_file(const std::string& filepath, const std::vector<double>& gradient)
 {
     std::ofstream out(filepath);
+    auto max_digits = std::numeric_limits<double>::max_digits10;
+    out.precision(max_digits);
 
     for (const auto& i : gradient)
     {
@@ -44,6 +50,8 @@ void save_errors_to_file(const std::string& filepath, const std::vector<double>&
                          const std::vector<double>& zach_weight_error)
 {
     std::ofstream out(filepath);
+    auto max_digits = std::numeric_limits<double>::max_digits10;
+    out.precision(max_digits);
 
     out << "Reprojection error:" << std::endl;
     for (const auto& i : reprojection_error)
@@ -70,6 +78,8 @@ void save_jacobian_to_file(const std::string& filepath, int jacobian_ncols, int 
 
     std::ofstream out(filepath);
 
+    auto max_digits = std::numeric_limits<double>::max_digits10;
+    out.precision(max_digits);
     out << std::scientific;
 
     for (auto i = 0; i < jacobian_nrows; i++)

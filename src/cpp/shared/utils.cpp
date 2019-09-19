@@ -219,10 +219,11 @@ void read_ba_instance(const string& fn,
     fclose(fid);
 }
 
-write_J_stream::write_J_stream(std::string fn, size_t rows, size_t cols) :
+write_J_stream::write_J_stream(std::string fn, size_t rows, size_t cols, std::streamsize precision) :
     std::ofstream(fn)
 {
-    std::cout << std::scientific;
+    std::cout.precision(precision);
+    std::cout << std::scientific << std::fixed;
     std::cout << "Writing to " << fn << std::endl;
     if (!good()) {
         std::cerr << "FAILED\n";
@@ -233,7 +234,8 @@ write_J_stream::write_J_stream(std::string fn, size_t rows, size_t cols) :
 
 void write_J_sparse(const string& fn, const BASparseMat& J)
 {
-    write_J_stream out(fn, J.nrows, J.ncols);
+    auto max_digits = std::numeric_limits<decltype(J.vals)::value_type>::max_digits10;
+    write_J_stream out(fn, J.nrows, J.ncols, max_digits);
 
     out << J.rows.size() << endl;
     for (size_t i = 0; i < J.rows.size(); i++)
@@ -256,7 +258,9 @@ void write_J_sparse(const string& fn, const BASparseMat& J)
 
 void write_J(const string& fn, int Jrows, int Jcols, double** J)
 {
-    write_J_stream out(fn, Jrows, Jcols);
+    auto max_digits = std::numeric_limits<decltype(**J)>::max_digits10;
+    write_J_stream out(fn, Jrows, Jcols, max_digits);
+
     for (int i = 0; i < Jrows; i++)
     {
         for (int j = 0; j < Jcols; j++)
@@ -270,7 +274,8 @@ void write_J(const string& fn, int Jrows, int Jcols, double** J)
 
 void write_J(const string& fn, int Jrows, int Jcols, double* J)
 {
-    write_J_stream out(fn, Jrows, Jcols);
+    auto max_digits = std::numeric_limits<decltype(*J)>::max_digits10;
+    write_J_stream out(fn, Jrows, Jcols, max_digits);
 
     for (int i = 0; i < Jrows; i++)
     {
