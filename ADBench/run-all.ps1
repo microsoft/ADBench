@@ -318,9 +318,8 @@ Class Tool {
         } elseif ($this.type -eq [ToolType]::julia) {
             $objective = $objective.ToLower().Replace("-", "_")
             $cmd = "julia"
-            $dir_name = $this.name.ToLowerInvariant()[0] + $this.name.Substring(1)
-            $task = $objective.Split("-")[0]
-            $module_path = "$script:dir/src/julia/modules/$($dir_name)/$($this.name)$($task.ToUpperInvariant()).jl"
+            $task = $objective.Split("_")[0]
+            $module_path = "$script:dir/src/julia/modules/$($this.name)/$($this.name)$($task.ToUpperInvariant()).jl"
             if ($objective.contains("complicated")) { $task = "$task-Complicated" }
             $cmdargs = @("$task $module_path $dir_in$fn.txt $dir_out $script:minimum_measurable_time $script:nruns_f $script:nruns_J $script:time_limit")
             $cmdargs = @("--project=$script:dir", "--optimize=3", "$script:dir/src/julia/runner/Runner.jl") + $cmdargs
