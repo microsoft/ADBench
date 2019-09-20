@@ -4,24 +4,16 @@
 #include "test_utils.h"
 #include "ModuleTest.h"
 
-class LstmModuleTest : public ModuleTest {};
-
-INSTANTIATE_TEST_CASE_P(Lstm, LstmModuleTest,
-    ::testing::Values(
-        std::make_tuple("../../../../src/cpp/modules/manual/Manual.dll", 1e-8),
-        std::make_tuple("../../../../src/cpp/modules/manualEigen/ManualEigen.dll", 1e-8),
-        std::make_tuple("../../../../src/cpp/modules/finite/Finite.dll", 1e-8),
-        std::make_tuple("../../../../src/cpp/modules/tapenade/Tapenade.dll", 1e-8)
-    ),
-    get_module_name<ModuleTest::ParamType>);
-
-TEST_P(LstmModuleTest, Load) {
-    auto test = moduleLoader->get_lstm_test();
-    ASSERT_NE(test, nullptr);
-}
-
-TEST_P(LstmModuleTest, ObjectiveCalculationCorrectness)
+class LstmModuleTest : public ModuleTest
 {
+protected:
+    void objective_calculation_correctness(int n_run_times);
+    void jacobian_calculation_correctness(int n_run_times);
+};
+
+void LstmModuleTest::objective_calculation_correctness(int n_run_times)
+{
+    SCOPED_TRACE("objective_calculation_correctness");
     auto module = moduleLoader->get_lstm_test();
     ASSERT_NE(module, nullptr);
     LSTMInput input;
@@ -30,14 +22,15 @@ TEST_P(LstmModuleTest, ObjectiveCalculationCorrectness)
     read_lstm_instance("lstmtest.txt", &input.l, &input.c, &input.b,
         input.main_params, input.extra_params, input.state, input.sequence);
     module->prepare(std::move(input));
-    module->calculate_objective(1);
+    module->calculate_objective(n_run_times);
 
     auto output = module->output();
     EXPECT_NEAR(0.66666518, output.objective, epsilon);
 }
 
-TEST_P(LstmModuleTest, JacobianCalculationCorrectness)
+void LstmModuleTest::jacobian_calculation_correctness(int n_run_times)
 {
+    SCOPED_TRACE("jacobian_calculation_correctness");
     auto module = moduleLoader->get_lstm_test();
     ASSERT_NE(module, nullptr);
     LSTMInput input;
@@ -46,7 +39,7 @@ TEST_P(LstmModuleTest, JacobianCalculationCorrectness)
     read_lstm_instance("lstmtest.txt", &input.l, &input.c, &input.b,
         input.main_params, input.extra_params, input.state, input.sequence);
     module->prepare(std::move(input));
-    module->calculate_jacobian(1);
+    module->calculate_jacobian(n_run_times);
 
     auto output = module->output();
 
@@ -96,6 +89,42 @@ TEST_P(LstmModuleTest, JacobianCalculationCorrectness)
     ASSERT_EQ(expectedGradient.size(), output.gradient.size());
     for (int i = 0; i < expectedGradient.size(); ++i)
         EXPECT_NEAR(expectedGradient[i], output.gradient[i], epsilon);
+}
+
+
+
+INSTANTIATE_TEST_CASE_P(Lstm, LstmModuleTest,
+    ::testing::Values(
+        std::make_tuple("../../../../src/cpp/modules/manual/Manual.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/manualEigen/ManualEigen.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/finite/Finite.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/tapenade/Tapenade.dll", 1e-8)
+    ),
+    get_module_name<ModuleTest::ParamType>);
+
+TEST_P(LstmModuleTest, Load) {
+    auto test = moduleLoader->get_lstm_test();
+    ASSERT_NE(test, nullptr);
+}
+
+TEST_P(LstmModuleTest, ObjectiveCalculationCorrectness)
+{
+    objective_calculation_correctness(1);
+}
+
+TEST_P(LstmModuleTest, ObjectiveMultipleTimesCalculationCorrectness)
+{
+    objective_calculation_correctness(3);
+}
+
+TEST_P(LstmModuleTest, JacobianCalculationCorrectness)
+{
+    jacobian_calculation_correctness(1);
+}
+
+TEST_P(LstmModuleTest, JacobianMultipleTimesCalculationCorrectness)
+{
+    jacobian_calculation_correctness(3);
 }
 
 TEST_P(LstmModuleTest, ObjectiveRunsMultipleTimes)

@@ -4,26 +4,16 @@
 #include "test_utils.h"
 #include "ModuleTest.h"
 
-class GmmModuleTest : public ModuleTest {};
-
-INSTANTIATE_TEST_CASE_P(Gmm, GmmModuleTest,
-    ::testing::Values(
-        std::make_tuple("../../../../src/cpp/modules/manual/Manual.dll", 1e-8),
-        std::make_tuple("../../../../src/cpp/modules/manualEigen/ManualEigen.dll", 1e-8),
-        std::make_tuple("../../../../src/cpp/modules/finite/Finite.dll", 1e-8),
-        std::make_tuple("../../../../src/cpp/modules/manualEigenVector/ManualEigenVector.dll", 1e-8),
-        std::make_tuple("../../../../src/cpp/modules/tapenade/Tapenade.dll", 1e-8)
-    ),
-    get_module_name<ModuleTest::ParamType>);
-
-TEST_P(GmmModuleTest, Load)
+class GmmModuleTest : public ModuleTest
 {
-    auto module = moduleLoader->get_gmm_test();
-    ASSERT_NE(module, nullptr);
-}
+protected:
+    void objective_calculation_correctness(int n_run_times);
+    void jacobian_calculation_correctness(int n_run_times);
+};
 
-TEST_P(GmmModuleTest, ObjectiveCalculationCorrectness)
+void GmmModuleTest::objective_calculation_correctness(int n_run_times)
 {
+    SCOPED_TRACE("objective_calculation_correctness");
     auto module = moduleLoader->get_gmm_test();
     ASSERT_NE(module, nullptr);
     GMMInput input;
@@ -32,14 +22,15 @@ TEST_P(GmmModuleTest, ObjectiveCalculationCorrectness)
     read_gmm_instance("gmmtest.txt", &input.d, &input.k, &input.n,
         input.alphas, input.means, input.icf, input.x, input.wishart, false);
     module->prepare(std::move(input));
-    module->calculate_objective(1);
+    module->calculate_objective(n_run_times);
 
     auto output = module->output();
     EXPECT_NEAR(8.07380408004975791e+00, output.objective, epsilon);
 }
 
-TEST_P(GmmModuleTest, JacobianCalculationCorrectness)
+void GmmModuleTest::jacobian_calculation_correctness(int n_run_times)
 {
+    SCOPED_TRACE("jacobian_calculation_correctness");
     auto module = moduleLoader->get_gmm_test();
     ASSERT_NE(module, nullptr);
     GMMInput input;
@@ -48,7 +39,7 @@ TEST_P(GmmModuleTest, JacobianCalculationCorrectness)
     read_gmm_instance("gmmtest.txt", &input.d, &input.k, &input.n,
         input.alphas, input.means, input.icf, input.x, input.wishart, false);
     module->prepare(std::move(input));
-    module->calculate_jacobian(1);
+    module->calculate_jacobian(n_run_times);
 
     auto output = module->output();
     EXPECT_EQ(18, output.gradient.size());
@@ -70,6 +61,44 @@ TEST_P(GmmModuleTest, JacobianCalculationCorrectness)
     EXPECT_NEAR(1.71892309775004937e+00, output.gradient[15], epsilon);
     EXPECT_NEAR(8.60091090790866875e-01, output.gradient[16], epsilon);
     EXPECT_NEAR(-9.94640930466322848e-01, output.gradient[17], epsilon);
+}
+
+
+
+INSTANTIATE_TEST_CASE_P(Gmm, GmmModuleTest,
+    ::testing::Values(
+        std::make_tuple("../../../../src/cpp/modules/manual/Manual.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/manualEigen/ManualEigen.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/finite/Finite.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/manualEigenVector/ManualEigenVector.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/tapenade/Tapenade.dll", 1e-8)
+    ),
+    get_module_name<ModuleTest::ParamType>);
+
+TEST_P(GmmModuleTest, Load)
+{
+    auto module = moduleLoader->get_gmm_test();
+    ASSERT_NE(module, nullptr);
+}
+
+TEST_P(GmmModuleTest, ObjectiveCalculationCorrectness)
+{
+    objective_calculation_correctness(1);
+}
+
+TEST_P(GmmModuleTest, ObjectiveMultipleTimesCalculationCorrectness)
+{
+    objective_calculation_correctness(3);
+}
+
+TEST_P(GmmModuleTest, JacobianCalculationCorrectness)
+{
+    jacobian_calculation_correctness(1);
+}
+
+TEST_P(GmmModuleTest, JacobianMultipleTimesCalculationCorrectness)
+{
+    jacobian_calculation_correctness(3);
 }
 
 TEST_P(GmmModuleTest, ObjectiveRunsMultipleTimes)

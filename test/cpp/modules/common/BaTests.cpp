@@ -4,25 +4,16 @@
 #include "test_utils.h"
 #include "ModuleTest.h"
 
-class BaModuleTest : public ModuleTest {};
-
-INSTANTIATE_TEST_CASE_P(Ba, BaModuleTest,
-    ::testing::Values(
-        std::make_tuple("../../../../src/cpp/modules/manual/Manual.dll", 1e-8),
-        std::make_tuple("../../../../src/cpp/modules/manualEigen/ManualEigen.dll", 1e-8),
-        std::make_tuple("../../../../src/cpp/modules/finite/Finite.dll", 1e-6),
-        std::make_tuple("../../../../src/cpp/modules/tapenade/Tapenade.dll", 1e-8)
-    ),
-    get_module_name<ModuleTest::ParamType>);
-
-TEST_P(BaModuleTest, Load)
+class BaModuleTest : public ModuleTest
 {
-    auto test = moduleLoader->get_ba_test();
-    ASSERT_NE(test, nullptr);
-}
+protected:
+    void objective_calculation_correctness(int n_run_times);
+    void jacobian_calculation_correctness(int n_run_times);
+};
 
-TEST_P(BaModuleTest, ObjectiveCalculationCorrectness)
+void BaModuleTest::objective_calculation_correctness(int n_run_times)
 {
+    SCOPED_TRACE("objective_calculation_correctness");
     auto module = moduleLoader->get_ba_test();
     ASSERT_NE(module, nullptr);
     BAInput input;
@@ -31,7 +22,7 @@ TEST_P(BaModuleTest, ObjectiveCalculationCorrectness)
     read_ba_instance("batest.txt", input.n, input.m, input.p,
         input.cams, input.X, input.w, input.obs, input.feats);
     module->prepare(std::move(input));
-    module->calculate_objective(1);
+    module->calculate_objective(n_run_times);
 
     auto output = module->output();
     for (int i = 0; i < 20; i += 2)
@@ -45,8 +36,9 @@ TEST_P(BaModuleTest, ObjectiveCalculationCorrectness)
     }
 }
 
-TEST_P(BaModuleTest, JacobianCalculationCorrectness)
+void BaModuleTest::jacobian_calculation_correctness(int n_run_times)
 {
+    SCOPED_TRACE("jacobian_calculation_correctness");
     auto module = moduleLoader->get_ba_test();
     ASSERT_NE(module, nullptr);
     BAInput input;
@@ -55,7 +47,7 @@ TEST_P(BaModuleTest, JacobianCalculationCorrectness)
     read_ba_instance("batest.txt", input.n, input.m, input.p,
         input.cams, input.X, input.w, input.obs, input.feats);
     module->prepare(std::move(input));
-    module->calculate_jacobian(1);
+    module->calculate_jacobian(n_run_times);
 
     auto output = module->output();
     EXPECT_EQ(30, output.J.nrows);
@@ -79,6 +71,43 @@ TEST_P(BaModuleTest, JacobianCalculationCorrectness)
     EXPECT_NEAR(-8.34044000000000008e-01, output.J.vals[307], epsilon);
     EXPECT_NEAR(-8.34044000000000008e-01, output.J.vals[308], epsilon);
     EXPECT_NEAR(-8.34044000000000008e-01, output.J.vals[309], epsilon);
+}
+
+
+
+INSTANTIATE_TEST_CASE_P(Ba, BaModuleTest,
+    ::testing::Values(
+        std::make_tuple("../../../../src/cpp/modules/manual/Manual.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/manualEigen/ManualEigen.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/finite/Finite.dll", 1e-6),
+        std::make_tuple("../../../../src/cpp/modules/tapenade/Tapenade.dll", 1e-8)
+    ),
+    get_module_name<ModuleTest::ParamType>);
+
+TEST_P(BaModuleTest, Load)
+{
+    auto test = moduleLoader->get_ba_test();
+    ASSERT_NE(test, nullptr);
+}
+
+TEST_P(BaModuleTest, ObjectiveCalculationCorrectness)
+{
+    objective_calculation_correctness(1);
+}
+
+TEST_P(BaModuleTest, ObjectiveMultipleTimesCalculationCorrectness)
+{
+    objective_calculation_correctness(3);
+}
+
+TEST_P(BaModuleTest, JacobianCalculationCorrectness)
+{
+    jacobian_calculation_correctness(1);
+}
+
+TEST_P(BaModuleTest, JacobianMultipleTimesCalculationCorrectness)
+{
+    jacobian_calculation_correctness(3);
 }
 
 TEST_P(BaModuleTest, ObjectiveRunsMultipleTimes)

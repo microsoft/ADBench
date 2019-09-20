@@ -1,3 +1,5 @@
+#pragma once
+
 #include <gtest/gtest.h>
 #include "../../../../src/cpp/runner/ModuleLoader.h"
 
