@@ -8,11 +8,11 @@ class HandModuleTest : public ModuleTest {};
 
 INSTANTIATE_TEST_CASE_P(Hand, HandModuleTest,
     ::testing::Values(
-        "../../../../src/cpp/modules/manual/Manual.dll",
-        "../../../../src/cpp/modules/manualEigen/ManualEigen.dll",
-        "../../../../src/cpp/modules/finite/Finite.dll",
-        "../../../../src/cpp/modules/finiteEigen/FiniteEigen.dll",
-        "../../../../src/cpp/modules/tapenade/Tapenade.dll"
+        std::make_tuple("../../../../src/cpp/modules/manual/Manual.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/manualEigen/ManualEigen.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/finite/Finite.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/finiteEigen/FiniteEigen.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/tapenade/Tapenade.dll", 1e-8)
     ),
     get_module_name<ModuleTest::ParamType>);
 

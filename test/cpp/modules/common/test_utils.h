@@ -32,7 +32,7 @@ bool can_objective_run_multiple_times(ITest<Input, Output>& test, const test_mem
 template<class T>
 std::string get_module_name(const ::testing::TestParamInfo<T>& info)
 {
-    auto name = filepath_to_basename(std::string(info.param));
+    auto name = filepath_to_basename(std::string(std::get<0>(info.param)));
     int n = 0;
     name.erase(
         std::remove_if(name.begin(),
