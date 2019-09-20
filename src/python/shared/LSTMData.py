@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 import numpy as np
 
-from shared.io_utils import save_value_to_file, objective_file_name,\
+from shared.output_utils import save_value_to_file, objective_file_name,\
                             save_vector_to_file, jacobian_file_name
 
 @dataclass
