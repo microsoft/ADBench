@@ -4,26 +4,19 @@
 #include "test_utils.h"
 #include "ModuleTest.h"
 
-class HandModuleTest : public ModuleTest {};
-
-INSTANTIATE_TEST_CASE_P(Hand, HandModuleTest,
-    ::testing::Values(
-        std::make_tuple("../../../../src/cpp/modules/manual/Manual.dll", 1e-8),
-        std::make_tuple("../../../../src/cpp/modules/manualEigen/ManualEigen.dll", 1e-8),
-        std::make_tuple("../../../../src/cpp/modules/finite/Finite.dll", 1e-8),
-        std::make_tuple("../../../../src/cpp/modules/finiteEigen/FiniteEigen.dll", 1e-8),
-        std::make_tuple("../../../../src/cpp/modules/tapenade/Tapenade.dll", 1e-8)
-    ),
-    get_module_name<ModuleTest::ParamType>);
-
-TEST_P(HandModuleTest, Load)
+class HandModuleTest : public ModuleTest
 {
-    auto test = moduleLoader->get_hand_test();
-    ASSERT_NE(test, nullptr);
-}
+protected:
+    void simple_objective_calculation_correctness(int n_run_times);
+    void simple_jacobian_calculation_correctness(int n_run_times);
 
-TEST_P(HandModuleTest, SimpleObjectiveCalculationCorrectness)
+    void complicated_objective_calculation_correctness(int n_run_times);
+    void complicated_jacobian_calculation_correctness(int n_run_times);
+};
+
+void HandModuleTest::simple_objective_calculation_correctness(int n_run_times)
 {
+    SCOPED_TRACE("simple_objective_calculation_correctness");
     auto module = moduleLoader->get_hand_test();
     ASSERT_NE(module, nullptr);
     HandInput input;
@@ -31,7 +24,7 @@ TEST_P(HandModuleTest, SimpleObjectiveCalculationCorrectness)
     // Read instance
     read_hand_instance("model/", "handtestsmall.txt", &input.theta, &input.data);
     module->prepare(std::move(input));
-    module->calculate_objective(1);
+    module->calculate_objective(n_run_times);
 
     auto output = module->output();
 
@@ -43,8 +36,9 @@ TEST_P(HandModuleTest, SimpleObjectiveCalculationCorrectness)
     EXPECT_NEAR(-1.30665781132340175e-01, output.objective[5], epsilon);
 }
 
-TEST_P(HandModuleTest, SimpleJacobianCalculationCorrectness)
+void HandModuleTest::simple_jacobian_calculation_correctness(int n_run_times)
 {
+    SCOPED_TRACE("simple_jacobian_calculation_correctness");
     auto module = moduleLoader->get_hand_test();
     ASSERT_NE(module, nullptr);
     HandInput input;
@@ -52,7 +46,7 @@ TEST_P(HandModuleTest, SimpleJacobianCalculationCorrectness)
     // Read instance
     read_hand_instance("model/", "handtestsmall.txt", &input.theta, &input.data);
     module->prepare(std::move(input));
-    module->calculate_jacobian(1);
+    module->calculate_jacobian(n_run_times);
 
     auto output = module->output();
 
@@ -94,8 +88,9 @@ TEST_P(HandModuleTest, SimpleJacobianCalculationCorrectness)
         EXPECT_NEAR(expectedJ[i], output.jacobian[i], epsilon);
 }
 
-TEST_P(HandModuleTest, ComplicatedObjectiveCalculationCorrectness)
+void HandModuleTest::complicated_objective_calculation_correctness(int n_run_times)
 {
+    SCOPED_TRACE("complicated_objective_calculation_correctness");
     auto module = moduleLoader->get_hand_test();
     ASSERT_NE(module, nullptr);
     HandInput input;
@@ -103,7 +98,7 @@ TEST_P(HandModuleTest, ComplicatedObjectiveCalculationCorrectness)
     // Read instance
     read_hand_instance("model/", "handtestcomplicated.txt", &input.theta, &input.data, &input.us);
     module->prepare(std::move(input));
-    module->calculate_objective(1);
+    module->calculate_objective(n_run_times);
 
     auto output = module->output();
 
@@ -115,8 +110,9 @@ TEST_P(HandModuleTest, ComplicatedObjectiveCalculationCorrectness)
     EXPECT_NEAR(-0.19758676846557965, output.objective[5], epsilon);
 }
 
-TEST_P(HandModuleTest, ComplicatedJacobianCalculationCorrectness)
+void HandModuleTest::complicated_jacobian_calculation_correctness(int n_run_times)
 {
+    SCOPED_TRACE("complicated_jacobian_calculation_correctness");
     auto module = moduleLoader->get_hand_test();
     ASSERT_NE(module, nullptr);
     HandInput input;
@@ -124,7 +120,7 @@ TEST_P(HandModuleTest, ComplicatedJacobianCalculationCorrectness)
     // Read instance
     read_hand_instance("model/", "handtestcomplicated.txt", &input.theta, &input.data, &input.us);
     module->prepare(std::move(input));
-    module->calculate_jacobian(1);
+    module->calculate_jacobian(n_run_times);
 
     auto output = module->output();
 
@@ -166,6 +162,64 @@ TEST_P(HandModuleTest, ComplicatedJacobianCalculationCorrectness)
     EXPECT_EQ(28, output.jacobian_ncols);
     for (int i = 0; i < expectedJ.size(); ++i)
         EXPECT_NEAR(expectedJ[i], output.jacobian[i], epsilon);
+}
+
+
+
+INSTANTIATE_TEST_CASE_P(Hand, HandModuleTest,
+    ::testing::Values(
+        std::make_tuple("../../../../src/cpp/modules/manual/Manual.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/manualEigen/ManualEigen.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/finite/Finite.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/finiteEigen/FiniteEigen.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/tapenade/Tapenade.dll", 1e-8)
+    ),
+    get_module_name<ModuleTest::ParamType>);
+
+TEST_P(HandModuleTest, Load)
+{
+    auto test = moduleLoader->get_hand_test();
+    ASSERT_NE(test, nullptr);
+}
+
+TEST_P(HandModuleTest, SimpleObjectiveCalculationCorrectness)
+{
+    simple_objective_calculation_correctness(1);
+}
+
+TEST_P(HandModuleTest, SimpleObjectiveMultipleTimesCalculationCorrectness)
+{
+    simple_objective_calculation_correctness(3);
+}
+
+TEST_P(HandModuleTest, SimpleJacobianCalculationCorrectness)
+{
+    simple_jacobian_calculation_correctness(1);
+}
+
+TEST_P(HandModuleTest, SimpleJacobianMultipleTimesCalculationCorrectness)
+{
+    simple_jacobian_calculation_correctness(3);
+}
+
+TEST_P(HandModuleTest, ComplicatedObjectiveCalculationCorrectness)
+{
+    complicated_objective_calculation_correctness(1);
+}
+
+TEST_P(HandModuleTest, ComplicatedObjectiveMultipleTimesCalculationCorrectness)
+{
+    complicated_objective_calculation_correctness(3);
+}
+
+TEST_P(HandModuleTest, ComplicatedJacobianCalculationCorrectness)
+{
+    complicated_jacobian_calculation_correctness(1);
+}
+
+TEST_P(HandModuleTest, ComplicatedJacobianMultipleTimesCalculationCorrectness)
+{
+    complicated_jacobian_calculation_correctness(3);
 }
 
 TEST_P(HandModuleTest, SimpleObjectiveRunsMultipleTimes)
