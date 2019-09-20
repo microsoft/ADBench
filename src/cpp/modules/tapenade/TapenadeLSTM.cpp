@@ -40,17 +40,17 @@ void TapenadeLSTM::calculate_objective(int times)
 
 void TapenadeLSTM::calculate_jacobian(int times)
 {
-    double loss = 0.0;      // stores fictive result
-                            // (Tapenade doesn't calculate an original function in reverse mode)
-
-    double lossb = 1.0;     // stores dY
-                            // (equals to 1.0 for gradient calculation)
-
     double* main_params_gradient_part = result.gradient.data();
     double* extra_params_gradient_part = result.gradient.data() + input.main_params.size();
 
     for (int i = 0; i < times; i++)
     {
+        double loss = 0.0;      // stores fictive result
+                                // (Tapenade doesn't calculate an original function in reverse mode)
+
+        double lossb = 1.0;     // stores dY
+                                // (equals to 1.0 for gradient calculation)
+
         state = input.state;
         lstm_objective_b(
             input.l,

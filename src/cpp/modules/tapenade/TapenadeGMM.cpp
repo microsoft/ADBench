@@ -39,12 +39,6 @@ void TapenadeGMM::calculate_objective(int times)
 
 void TapenadeGMM::calculate_jacobian(int times)
 {
-    double tmp = 0.0;       // stores fictive result
-                            // (Tapenade doesn't calculate an original function in reverse mode)
-
-    double errb = 1.0;      // stores dY
-                            // (equals to 1.0 for gradient calculation)
-
     double* alphas_gradient_part = result.gradient.data();
     double* means_gradient_part = result.gradient.data() + input.alphas.size();
     double* icf_gradient_part =
@@ -54,6 +48,12 @@ void TapenadeGMM::calculate_jacobian(int times)
 
     for (int i = 0; i < times; i++)
     {
+        double tmp = 0.0;       // stores fictive result
+                                // (Tapenade doesn't calculate an original function in reverse mode)
+
+        double errb = 1.0;      // stores dY
+                                // (equals to 1.0 for gradient calculation)
+
         gmm_objective_b(
             input.d,
             input.k,
