@@ -4,7 +4,7 @@ from shared import GMMData
 from shared import BAData
 from shared import HandData
 from shared import LSTMData
-from shared import io_utils
+from shared import input_utils
 from runner.Filepaths import filepath_to_dirname
 from runner.Benchmark import run_benchmark
 
@@ -15,7 +15,8 @@ def eprint(*args, **kwargs):
 def main(argv):
     try:
         if (len(argv) < 9):
-            eprint("usage: PythonRunner test_type module_path input_filepath output_dir minimum_measurable_time nruns_F nruns_J time_limit [-rep]\n")
+            eprint("usage: PythonRunner test_type module_path input_filepath " +\
+                "output_dir minimum_measurable_time nruns_F nruns_J time_limit [-rep]\n")
             return 1
 
         test_type = argv[1]
@@ -32,24 +33,25 @@ def main(argv):
 
         if test_type == "GMM":
             # read gmm input
-            _input = io_utils.read_gmm_instance(input_filepath, replicate_point)
+            _input = input_utils.read_gmm_instance(input_filepath, replicate_point)
         elif test_type == "BA":
             # read ba input
-            _input = io_utils.read_ba_instance(input_filepath)
+            _input = input_utils.read_ba_instance(input_filepath)
         elif test_type == "HAND":
             model_dir = filepath_to_dirname(input_filepath) + "model\\"
             # read hand input
-            _input = io_utils.read_hand_instance(model_dir, input_filepath, False)
+            _input = input_utils.read_hand_instance(model_dir, input_filepath, False)
         elif test_type == "HAND-COMPLICATED":
             model_dir = filepath_to_dirname(input_filepath) + "model\\"
             # read hand complicated input
-            _input = io_utils.read_hand_instance(model_dir, input_filepath, True)
+            _input = input_utils.read_hand_instance(model_dir, input_filepath, True)
         elif test_type == "LSTM":
-            _input = io_utils.read_lstm_instance(input_filepath)
+            _input = input_utils.read_lstm_instance(input_filepath)
         else:
             raise RuntimeError("Python runner doesn't support tests of " + test_type + " type")
 
-        run_benchmark(module_path, input_filepath, _input, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit)
+        run_benchmark(module_path, input_filepath, _input, output_prefix,\
+            minimum_measurable_time, nruns_F, nruns_J, time_limit)
 
     except RuntimeError as ex:
         eprint("Runtime exception caught: ", ex)

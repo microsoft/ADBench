@@ -1,12 +1,13 @@
 import time, sys
 from collections import namedtuple
+
 from runner.ModuleLoader import ModuleLoader
 from shared import GMMData
 from shared import BAData
 from shared import HandData
 from shared import LSTMData
 from runner.Filepaths import filepath_to_basename, modulepath_to_basename
-from shared.io_utils import save_time_to_file
+from shared.output_utils import save_time_to_file
 
 measurable_time_not_achieved = -1
 
