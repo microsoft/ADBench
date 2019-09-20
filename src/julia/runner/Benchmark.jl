@@ -2,6 +2,7 @@ module Benchmark
 include("load.jl")
 include("../shared/load.jl")
 using ADPerfTest
+using TestLoader
 using GMMData
 using BAData
 using HandData
@@ -37,6 +38,7 @@ end
 
 function measure_shortest_time!(context::Any, minimum_measurable_time::Float64, nruns::Int, time_limit::Float64, func::Function)::Float64
     precompile(func, (typeof(context), Int))
+    #func(context, 1)
     repeats, min_sample, total_time = find_repeats_for_minimum_measurable_time!(context, minimum_measurable_time, func)
     if repeats == measurable_time_not_achieved
         throw(ErrorException("It was not possible to reach the number of repeats sufficient to achieve the minimum measurable time."))
@@ -51,18 +53,20 @@ function measure_shortest_time!(context::Any, minimum_measurable_time::Float64, 
     min_sample
 end
 
-function run_benchmark(input::Input, input_name::AbstractString, module_name::AbstractString, output_prefix::AbstractString, minimum_measurable_time::Float64, nruns_f::Int, nruns_J::Int, time_limit::Float64) where Input
+function run_benchmark(input::Input, input_name::AbstractString, module_name::AbstractString, output_prefix::AbstractString, module_display_name::AbstractString, minimum_measurable_time::Float64, nruns_f::Int, nruns_J::Int, time_limit::Float64) where Input
     output = create_empty_output_for(input)
     test = get_test_for(input, output, module_name)
-    test.prepare!(test.context, input)
+    Base.invokelatest() do
+        test.prepare!(test.context, input)
 
-    objective_time = measure_shortest_time!(test.context, minimum_measurable_time, nruns_f, time_limit, test.calculate_objective!)
-    derivative_time = measure_shortest_time!(test.context, minimum_measurable_time, nruns_J, time_limit, test.calculate_jacobian!)
+        objective_time = measure_shortest_time!(test.context, minimum_measurable_time, nruns_f, time_limit, test.calculate_objective!)
+        derivative_time = measure_shortest_time!(test.context, minimum_measurable_time, nruns_J, time_limit, test.calculate_jacobian!)
 
-    test.output!(output, test.context)
+        test.output!(output, test.context)
 
-    save_time_to_file(times_file_name(output_prefix, input_name, module_name), objective_time, derivative_time)
-    save_output_to_file(output, output_prefix, input_name, module_name)
+        save_time_to_file(times_file_name(output_prefix, input_name, module_display_name), objective_time, derivative_time)
+        save_output_to_file(output, output_prefix, input_name, module_display_name)
+    end
 end
 
 end

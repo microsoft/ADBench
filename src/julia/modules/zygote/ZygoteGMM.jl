@@ -171,6 +171,7 @@ mutable struct ZygoteGMMContext
 end
 
 function zygote_gmm_prepare!(ctx::ZygoteGMMContext, input::GMMInput)
+    Zygote.gradient(x -> x, 1) # The first call to gradient is very long
     ctx.input = input
     d = size(input.means,1)
     k = size(input.means,2)

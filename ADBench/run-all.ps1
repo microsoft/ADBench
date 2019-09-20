@@ -168,6 +168,7 @@ enum ToolType
     bin
     cpp
     julia
+    julia_tool
     matlab
     py
     pybat
@@ -317,6 +318,15 @@ Class Tool {
         } elseif ($this.type -eq [ToolType]::julia) {
             $objective = $objective.ToLower().Replace("-", "_")
             $cmd = "julia"
+            $dir_name = $this.name.ToLowerInvariant()[0] + $this.name.Substring(1)
+            $task = $objective.Split("-")[0]
+            $module_path = "$script:dir/src/julia/modules/$($dir_name)/$($this.name)$($task.ToUpperInvariant()).jl"
+            if ($objective.contains("complicated")) { $task = "$task-Complicated" }
+            $cmdargs = @("$task $module_path $dir_in$fn.txt $dir_out $script:minimum_measurable_time $script:nruns_f $script:nruns_J $script:time_limit")
+            $cmdargs = @("--project=$script:dir", "--optimize=3", "$script:dir/src/julia/runner/Runner.jl") + $cmdargs
+        } elseif ($this.type -eq [ToolType]::julia_tool) {
+            $objective = $objective.ToLower().Replace("-", "_")
+            $cmd = "julia"
             $cmdargs = @("$script:dir/tools/$($this.name)/${objective}_F.jl") + $cmdargs
         } elseif ($this.type -eq [ToolType]::matlab) {
             $objective = $objective.ToLower().Replace("-", "_")
@@ -440,11 +450,12 @@ $tool_descriptors = @(
     [Tool]::new("Manual", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $false, 0.0)
     [Tool]::new("ManualEigen", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $true, $default_tolerance)
     [Tool]::new("ManualEigenVector", "cpp", [ObjectiveType] "GMM", $true, $default_tolerance)
-    #[Tool]::new("Tapenade", "cpp", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, $default_tolerance)
-    #[Tool]::new("DiffSharp", "bin", [ObjectiveType] "BA", $false, 0.0, $true, $false)
-    #[Tool]::new("Autograd", "py", [ObjectiveType] "GMM, BA", $false, 0.0, $true, $false)
-    #[Tool]::new("PyTorch", "py", [ObjectiveType] "GMM, LSTM", $false, 0.0)
-    #[Tool]::new("Julia", "julia", [ObjectiveType] "GMM, BA", $false, 0.0)
+    [Tool]::new("Tapenade", "cpp", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, $default_tolerance)
+    [Tool]::new("DiffSharp", "bin", [ObjectiveType] "BA", $false, 0.0, $true, $false)
+    [Tool]::new("Autograd", "py", [ObjectiveType] "GMM, BA", $false, 0.0, $true, $false)
+    [Tool]::new("PyTorch", "py", [ObjectiveType] "GMM, LSTM", $false, 0.0)
+    [Tool]::new("Julia", "julia_tool", [ObjectiveType] "GMM, BA", $false, 0.0)
+    [Tool]::new("Zygote", "julia", [ObjectiveType] "GMM", $true, $default_tolerance)
     #[Tool]::new("Theano", "pybat", [ObjectiveType] "GMM, BA, Hand", $false, 0.0)
     #[Tool]::new("MuPad", "matlab", 0, $false, 0.0)
     #[Tool]::new("ADiMat", "matlab", 0, $false, 0.0)
