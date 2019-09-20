@@ -65,12 +65,12 @@ def measure_shortest_time(minimum_measurable_time, nruns, time_limit, func):
         return min_sample
 
 # Performs the entire benchmark process according to the documentation
-def run_benchmark(module_path, input_filepath, input_, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit):
+def run_benchmark(module_path, input_filepath, _input, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit):
 
     module_loader = ModuleLoader(module_path)
     test = module_loader.get_test()
 
-    test.prepare(input_)
+    test.prepare(_input)
 
     objective_time = measure_shortest_time(minimum_measurable_time, nruns_F, time_limit, test.calculate_objective)
 

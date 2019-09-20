@@ -32,24 +32,24 @@ def main(argv):
 
         if test_type == "GMM":
             # read gmm input
-            input_ = io_utils.read_gmm_instance(input_filepath, replicate_point)
+            _input = io_utils.read_gmm_instance(input_filepath, replicate_point)
         elif test_type == "BA":
             # read ba input
-            input_ = io_utils.read_ba_instance(input_filepath)
+            _input = io_utils.read_ba_instance(input_filepath)
         elif test_type == "HAND":
             model_dir = filepath_to_dirname(input_filepath) + "model\\"
             # read hand input
-            input_ = io_utils.read_hand_instance(model_dir, input_filepath, False)
+            _input = io_utils.read_hand_instance(model_dir, input_filepath, False)
         elif test_type == "HAND-COMPLICATED":
             model_dir = filepath_to_dirname(input_filepath) + "model\\"
             # read hand complicated input
-            input_ = io_utils.read_hand_instance(model_dir, input_filepath, True)
+            _input = io_utils.read_hand_instance(model_dir, input_filepath, True)
         elif test_type == "LSTM":
-            input_ = io_utils.read_lstm_instance(input_filepath)
+            _input = io_utils.read_lstm_instance(input_filepath)
         else:
             raise RuntimeError("Python runner doesn't support tests of " + test_type + " type")
 
-        run_benchmark(module_path, input_filepath, input_, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit)
+        run_benchmark(module_path, input_filepath, _input, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit)
 
     except RuntimeError as ex:
         eprint("Runtime exception caught: ", ex)
