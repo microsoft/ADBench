@@ -59,9 +59,6 @@ class HandOutput:
     objective:  np.ndarray = field(default = np.empty(0, dtype = np.float64))
     jacobian:   np.ndarray = field(default = np.empty(0, dtype = np.float64))
 
-    jacobian_ncols: int = field(default = 0)
-    jacobian_nrows: int = field(default = 0)
-
     def save_output_to_file(
         self,
         output_prefix,
@@ -75,9 +72,7 @@ class HandOutput:
 
         save_jacobian_to_file(
             jacobian_file_name(output_prefix, input_basename, module_basename),
-            self.jacobian,
-            self.jacobian_ncols,
-            self.jacobian_nrows
+            self.jacobian
         )
 
 @dataclass

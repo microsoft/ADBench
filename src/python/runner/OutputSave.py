@@ -9,7 +9,8 @@ def jacobian_file_name(output_prefix, input_basename, module_basename):
 def save_time_to_file(filepath, objective_time, derivative_time):
     # open file in write mode or create new one if it does not exist
     out = open(filepath,"w")
-    out.write(np.format_float_scientific(objective_time, unique=False, precision=6) + '\n' + np.format_float_scientific(derivative_time, unique=False, precision=6))
+    out.write(np.format_float_scientific(objective_time, unique=False, precision=6) + \
+        '\n' + np.format_float_scientific(derivative_time, unique=False, precision=6))
     out.close()
 
 def save_value_to_file(filepath, value):
@@ -25,13 +26,17 @@ def save_vector_to_file(filepath, gradient):
 
     out.close()
 
-def save_jacobian_to_file(filepath, jacobian, jacobian_ncols, jacobian_nrows):
+def save_jacobian_to_file(filepath, jacobian):
+    jacobian_nrows = jacobian.shape[0]
+    jacobian_ncols = jacobian.shape[1]
+
     out = open(filepath,"w")
 
+    # output row-major matrix
     for i in range(jacobian_nrows):
-        out.write(np.format_float_scientific(jacobian[i], unique=False, precision=6))
+        out.write(np.format_float_scientific(jacobian[i, 0], unique=False, precision=6))
         for j in range(1, jacobian_ncols):
-            out.write('\t' + np.format_float_scientific(jacobian[jacobian_nrows * j + i], unique=False, precision=6))
+            out.write('\t' + np.format_float_scientific(jacobian[i, j], unique=False, precision=6))
         out.write('\n')
 
     out.close()
