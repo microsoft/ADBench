@@ -110,7 +110,7 @@ type BADSOutput() =
     [<DefaultValue>] val mutable reproj_err : DV[]
     [<DefaultValue>] val mutable w_err : D[]
 
-    [<DefaultValue>] val mutable reproj_err_val_J : (DV * DM)[]
+    [<DefaultValue>] val mutable reproj_err_val_J : (DV * DM)[] 
     [<DefaultValue>] val mutable w_err_val_J : (D * D)[]
 
 [<Export(typeof<DotnetRunner.ITest<BAInput, BAOutput>>)>]
@@ -165,14 +165,24 @@ type DiffSharpBA() =
             let obs = this.input.Obs
 
             let baOutput = new BAOutput()
-            baOutput.ReprojErr <- convert (DV.concat output.reproj_err)
-            baOutput.WErr <- convert (toDV output.w_err)
 
-            let reproj_err, reproj_err_d = Array.unzip output.reproj_err_val_J
-            let w_err, w_err_d = Array.unzip output.w_err_val_J
+            match output.reproj_err, output.w_err with
+            | null, null -> 
+                baOutput.ReprojErr <- null
+                baOutput.WErr <- null
+            | _ ->
+                baOutput.ReprojErr <- convert (DV.concat output.reproj_err)
+                baOutput.WErr <- convert (toDV output.w_err)
             
-            let J = create_sparse_J n m p obs (Array.map convert reproj_err_d) (Array.map convert w_err_d)
-            baOutput.J <- J
+            match output.reproj_err_val_J, output.w_err_val_J with
+            | null, null -> 
+                baOutput.J <- null
+            | _ ->
+                let reproj_err, reproj_err_d = Array.unzip output.reproj_err_val_J
+                let w_err, w_err_d = Array.unzip output.w_err_val_J
+                
+                let J = create_sparse_J n m p obs (Array.map convert reproj_err_d) (Array.map convert w_err_d)
+                baOutput.J <- J
 
             baOutput
 
