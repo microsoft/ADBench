@@ -22,6 +22,8 @@ TEST_P(GmmModuleTest, Load)
     ASSERT_NE(module, nullptr);
 }
 
+const double epsilon = 1e-08;
+
 TEST_P(GmmModuleTest, ObjectiveCalculationCorrectness)
 {
     auto module = moduleLoader->get_gmm_test();
@@ -35,7 +37,7 @@ TEST_P(GmmModuleTest, ObjectiveCalculationCorrectness)
     module->calculate_objective(1);
 
     auto output = module->output();
-    EXPECT_NEAR(8.0738, output.objective, 0.00001);
+    EXPECT_NEAR(8.07380408004975791e+00, output.objective, 0.00001);
 }
 
 TEST_P(GmmModuleTest, JacobianCalculationCorrectness)
@@ -52,24 +54,24 @@ TEST_P(GmmModuleTest, JacobianCalculationCorrectness)
 
     auto output = module->output();
     EXPECT_EQ(18, output.gradient.size());
-    EXPECT_NEAR(0.108663, output.gradient[0], 0.00001);
-    EXPECT_NEAR(-0.74127, output.gradient[1], 0.00001);
-    EXPECT_NEAR(0.632607, output.gradient[2], 0.00001);
-    EXPECT_NEAR(1.116926, output.gradient[3], 0.00001);
-    EXPECT_NEAR(0.163333, output.gradient[4], 0.00001);
-    EXPECT_NEAR(-0.022, output.gradient[5], 0.00001);
-    EXPECT_NEAR(0.227778, output.gradient[6], 0.00001);
-    EXPECT_NEAR(1.20963, output.gradient[7], 0.00001);
-    EXPECT_NEAR(-0.06064, output.gradient[8], 0.00001);
-    EXPECT_NEAR(2.5853, output.gradient[9], 0.00001);
-    EXPECT_NEAR(0.11263, output.gradient[10], 0.00001);
-    EXPECT_NEAR(0.38574, output.gradient[11], 0.00001);
-    EXPECT_NEAR(0.07352, output.gradient[12], 0.00001);
-    EXPECT_NEAR(5.41836, output.gradient[13], 0.00001);
-    EXPECT_NEAR(-0.3215, output.gradient[14], 0.00001);
-    EXPECT_NEAR(1.71892, output.gradient[15], 0.00001);
-    EXPECT_NEAR(0.86009, output.gradient[16], 0.00001);
-    EXPECT_NEAR(-0.99464, output.gradient[17], 0.00001);
+    EXPECT_NEAR(1.08662855508652456e-01, output.gradient[0], epsilon);
+    EXPECT_NEAR(-7.41270039523898472e-01, output.gradient[1], epsilon);
+    EXPECT_NEAR(6.32607184015246071e-01, output.gradient[2], epsilon);
+    EXPECT_NEAR(1.11692576532787013e+00, output.gradient[3], epsilon);
+    EXPECT_NEAR(1.63333013551455269e-01, output.gradient[4], epsilon);
+    EXPECT_NEAR(-2.19989824071193142e-02, output.gradient[5], epsilon);
+    EXPECT_NEAR(2.27778292254236098e-01, output.gradient[6], epsilon);
+    EXPECT_NEAR(1.20963025612832187e+00, output.gradient[7], epsilon);
+    EXPECT_NEAR(-6.06375920733956339e-02, output.gradient[8], epsilon);
+    EXPECT_NEAR(2.58529994051162237e+00, output.gradient[9], epsilon);
+    EXPECT_NEAR(1.12632694524213789e-01, output.gradient[10], epsilon);
+    EXPECT_NEAR(3.85744309849611777e-01, output.gradient[11], epsilon);
+    EXPECT_NEAR(7.35180573182305508e-02, output.gradient[12], epsilon);
+    EXPECT_NEAR(5.41836362715595232e+00, output.gradient[13], epsilon);
+    EXPECT_NEAR(-3.21494409677446469e-01, output.gradient[14], epsilon);
+    EXPECT_NEAR(1.71892309775004937e+00, output.gradient[15], epsilon);
+    EXPECT_NEAR(8.60091090790866875e-01, output.gradient[16], epsilon);
+    EXPECT_NEAR(-9.94640930466322848e-01, output.gradient[17], epsilon);
 }
 
 TEST_P(GmmModuleTest, ObjectiveRunsMultipleTimes)

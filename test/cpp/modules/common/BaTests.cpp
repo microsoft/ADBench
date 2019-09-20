@@ -21,6 +21,8 @@ TEST_P(BaModuleTest, Load)
     ASSERT_NE(test, nullptr);
 }
 
+const double epsilon = 1e-06;
+
 TEST_P(BaModuleTest, ObjectiveCalculationCorrectness)
 {
     auto module = moduleLoader->get_ba_test();
@@ -36,12 +38,12 @@ TEST_P(BaModuleTest, ObjectiveCalculationCorrectness)
     auto output = module->output();
     for (int i = 0; i < 20; i += 2)
     {
-        EXPECT_NEAR(-0.26904884923518940, output.reproj_err[i], 0.0000000001);
-        EXPECT_NEAR(0.25994479267790188, output.reproj_err[i+1], 0.0000000001);
+        EXPECT_NEAR(-2.69048849235189402e-01, output.reproj_err[i], epsilon);
+        EXPECT_NEAR(2.59944792677901881e-01, output.reproj_err[i + 1], epsilon);
     }
     for (int i = 0; i < 10; i++)
     {
-        EXPECT_NEAR(0.82609265151599998, output.w_err[i], 0.0000000001);
+        EXPECT_NEAR(8.26092651515999976e-01, output.w_err[i], epsilon);
     }
 }
 
@@ -63,22 +65,22 @@ TEST_P(BaModuleTest, JacobianCalculationCorrectness)
     EXPECT_EQ(31, output.J.rows.size());
     EXPECT_EQ(310, output.J.cols.size());
     EXPECT_EQ(310, output.J.vals.size());
-    EXPECT_NEAR(228.877, output.J.vals[0], 0.001);
-    EXPECT_NEAR(634.575, output.J.vals[1], 0.001);
-    EXPECT_NEAR(-782.223, output.J.vals[2], 0.001);
-    EXPECT_NEAR(2.42893, output.J.vals[3], 0.00001);
-    EXPECT_NEAR(-11.7828, output.J.vals[4], 0.0001);
-    EXPECT_NEAR(2.54169, output.J.vals[5], 0.00001);
-    EXPECT_NEAR(-1.03657, output.J.vals[6], 0.00001);
-    EXPECT_NEAR(0.417022, output.J.vals[7], 0.000001);
-    EXPECT_NEAR(0., output.J.vals[8], 0.000001);
-    EXPECT_NEAR(-350.74, output.J.vals[9], 0.001);
-    EXPECT_NEAR(-912.108, output.J.vals[10], 0.001);
-    EXPECT_NEAR(-2.42893, output.J.vals[11], 0.00001);
-    EXPECT_NEAR(11.7828, output.J.vals[12], 0.0001);
-    EXPECT_NEAR(-0.834044, output.J.vals[307], 0.000001);
-    EXPECT_NEAR(-0.834044, output.J.vals[308], 0.000001);
-    EXPECT_NEAR(-0.834044, output.J.vals[309], 0.000001);
+    EXPECT_NEAR(2.28877202208246757e+02, output.J.vals[0], epsilon);
+    EXPECT_NEAR(6.34574811495545418e+02, output.J.vals[1], epsilon);
+    EXPECT_NEAR(-7.82222866259340549e+02, output.J.vals[2], epsilon);
+    EXPECT_NEAR(2.42892615607159668e+00, output.J.vals[3], epsilon);
+    EXPECT_NEAR(-1.17828079628011313e+01, output.J.vals[4], epsilon);
+    EXPECT_NEAR(2.54169312487743460e+00, output.J.vals[5], epsilon);
+    EXPECT_NEAR(-1.03657084958518086e+00, output.J.vals[6], epsilon);
+    EXPECT_NEAR(4.17022000000000004e-01, output.J.vals[7], epsilon);
+    EXPECT_NEAR(0., output.J.vals[8], epsilon);
+    EXPECT_NEAR(-3.50739521096005205e+02, output.J.vals[9], epsilon);
+    EXPECT_NEAR(-9.12107773668008576e+02, output.J.vals[10], epsilon);
+    EXPECT_NEAR(-2.42892615607159668e+00, output.J.vals[11], epsilon);
+    EXPECT_NEAR(1.17828079628011313e+01, output.J.vals[12], epsilon);
+    EXPECT_NEAR(-8.34044000000000008e-01, output.J.vals[307], epsilon);
+    EXPECT_NEAR(-8.34044000000000008e-01, output.J.vals[308], epsilon);
+    EXPECT_NEAR(-8.34044000000000008e-01, output.J.vals[309], epsilon);
 }
 
 TEST_P(BaModuleTest, ObjectiveRunsMultipleTimes)
