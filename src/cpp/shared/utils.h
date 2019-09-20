@@ -78,9 +78,31 @@ void read_ba_instance(const std::string& fn,
     std::vector<int>& obs,
     std::vector<double>& feats);
 
-struct write_J_stream : public std::ofstream
+template<class T>
+class precise_ofstream : public std::ofstream
 {
-    write_J_stream(std::string fn, size_t rows, size_t cols, std::streamsize precision);
+public:
+    precise_ofstream(std::string fn):std::ofstream(fn) {
+        auto max_digits = std::numeric_limits<T>::max_digits10;
+        this->precision(max_digits);
+        *this << std::scientific;
+    }
+};
+
+template<class T>
+class write_J_stream : public precise_ofstream<T>
+{
+public:
+    write_J_stream(std::string fn, size_t rows, size_t cols)
+        :precise_ofstream(fn)
+    {
+        std::cout << "Writing to " << fn << std::endl;
+        if (!good()) {
+            std::cerr << "FAILED\n";
+            throw "oik";
+        }
+        *this << rows << " " << cols << std::endl;
+    }
 };
 
 void write_J_sparse(const std::string& fn, const BASparseMat& J);

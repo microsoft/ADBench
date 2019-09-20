@@ -24,9 +24,7 @@ void save_time_to_file(const std::string& filepath, const double objective_time,
 
 void save_value_to_file(const std::string& filepath, const double& value)
 {
-    std::ofstream out(filepath);
-    auto max_digits = std::numeric_limits<double>::max_digits10;
-    out.precision(max_digits);
+    precise_ofstream<std::remove_reference_t<decltype(value)>> out(filepath);
 
     out << std::scientific << value;
     out.close();
@@ -34,9 +32,7 @@ void save_value_to_file(const std::string& filepath, const double& value)
 
 void save_vector_to_file(const std::string& filepath, const std::vector<double>& gradient)
 {
-    std::ofstream out(filepath);
-    auto max_digits = std::numeric_limits<double>::max_digits10;
-    out.precision(max_digits);
+    precise_ofstream<std::remove_reference_t<decltype(gradient)>::value_type> out(filepath);
 
     for (const auto& i : gradient)
     {
@@ -49,9 +45,7 @@ void save_vector_to_file(const std::string& filepath, const std::vector<double>&
 void save_errors_to_file(const std::string& filepath, const std::vector<double>& reprojection_error,
                          const std::vector<double>& zach_weight_error)
 {
-    std::ofstream out(filepath);
-    auto max_digits = std::numeric_limits<double>::max_digits10;
-    out.precision(max_digits);
+    precise_ofstream<std::remove_reference_t<decltype(reprojection_error)>::value_type> out(filepath);
 
     out << "Reprojection error:" << std::endl;
     for (const auto& i : reprojection_error)
