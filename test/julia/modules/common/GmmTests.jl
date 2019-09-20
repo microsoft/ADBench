@@ -2,7 +2,7 @@ module GmmTests
 
 dir = @__DIR__
 gmm_test_implementations = String[
-    "$dir/../../../../src/julia/modules/zygote/ZygoteGMM.jl"
+    "$dir/../../../../src/julia/modules/Zygote/ZygoteGMM.jl"
 ]
 
 map!(abspath, gmm_test_implementations, gmm_test_implementations)
