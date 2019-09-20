@@ -46,10 +46,11 @@ end
 
 if test_type == "gmm"
     input = load_gmm_input(input_filepath, replicate_point)
+    module_display_name = module_name[1:end - 3]
 else
     throw(ArgumentError("Julia runner doesn't support tests of $test_type type."))
 end
 
-run_benchmark(input, input_name, module_name, output_prefix, minimum_measurable_time, nruns_f, nruns_J, time_limit)
+run_benchmark(input, input_name, module_name, output_prefix, module_display_name, minimum_measurable_time, nruns_f, nruns_J, time_limit)
 
 end

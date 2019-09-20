@@ -1,6 +1,8 @@
 module SaveUtils
 using Printf
 
+export objective_file_name, jacobian_file_name, times_file_name, save_time_to_file, save_value_to_file, save_vector_to_file, save_matrix_to_file
+
 format(x::Float64) = @sprintf "%.6g" x
 format(x::Int) = @sprintf "%d" x
 
