@@ -1,8 +1,9 @@
 from dataclasses import dataclass, field
 from typing import Tuple
 import numpy as np
-from runner.OutputSave import save_vector_to_file, objective_file_name
-from runner.OutputSave import save_jacobian_to_file, jacobian_file_name
+
+from shared.io_utils import save_vector_to_file, objective_file_name,\
+                            save_jacobian_to_file, jacobian_file_name
 
 @dataclass
 class HandModel:
