@@ -10,7 +10,7 @@ class ModuleLoader:
     # return test specified by module_path
     def get_test(self):
         # Module name should be the same as class name in that module
-        # Get class name from args       
+        # Get class name from args
         class_name = split(self.module_path)[1].rsplit('.')[0]
 
         # import module
@@ -21,6 +21,6 @@ class ModuleLoader:
 
             # get class from module
             self._class = getattr(self.test, class_name)
-            return self._class
+            return self._class()
         else:
             raise RuntimeError("Can't load module with path: " + self.module_path)
