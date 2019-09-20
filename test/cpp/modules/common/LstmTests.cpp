@@ -8,10 +8,10 @@ class LstmModuleTest : public ModuleTest {};
 
 INSTANTIATE_TEST_CASE_P(Lstm, LstmModuleTest,
     ::testing::Values(
-        "../../../../src/cpp/modules/manual/Manual.dll",
-        "../../../../src/cpp/modules/manualEigen/ManualEigen.dll",
-        "../../../../src/cpp/modules/finite/Finite.dll",
-        "../../../../src/cpp/modules/tapenade/Tapenade.dll"
+        std::make_tuple("../../../../src/cpp/modules/manual/Manual.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/manualEigen/ManualEigen.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/finite/Finite.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/tapenade/Tapenade.dll", 1e-8)
     ),
     get_module_name<ModuleTest::ParamType>);
 
@@ -82,7 +82,7 @@ TEST_P(LstmModuleTest, JacobianCalculationCorrectness)
         0.000921, 0.000184, 0.000585, -0.000912, -0.003719, 0.000524, -0.000009,
         -0.000009, -0.000062, -0.000260, 0.002886, 0.001569, 0.001929, 0.000516,
         0.002204, 0.001783, 0.000347, -0.003243, -0.010870, 0.000814, -0.000509,
-        -0.000250, -0.000274, -0.000716, 0.002362, 0.000682, 0.002212, 0.005815, 
+        -0.000250, -0.000274, -0.000716, 0.002362, 0.000682, 0.002212, 0.005815,
         0.001197, 0.000226, 0.011221, -0.002159, -0.015211, 0.002407, -0.000016,
         -0.000016, -0.000099, -0.000323, 0.000009, 0.000000, 0.000000, 0.000000,
         0.000000, 0.000000, 0.000000, -0.000174, -0.000322, 0.000008, -0.000030,

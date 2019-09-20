@@ -8,10 +8,10 @@ class BaModuleTest : public ModuleTest {};
 
 INSTANTIATE_TEST_CASE_P(Ba, BaModuleTest,
     ::testing::Values(
-        "../../../../src/cpp/modules/manual/Manual.dll",
-        "../../../../src/cpp/modules/manualEigen/ManualEigen.dll",
-        "../../../../src/cpp/modules/finite/Finite.dll",
-        "../../../../src/cpp/modules/tapenade/Tapenade.dll"
+        std::make_tuple("../../../../src/cpp/modules/manual/Manual.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/manualEigen/ManualEigen.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/finite/Finite.dll", 1e-6),
+        std::make_tuple("../../../../src/cpp/modules/tapenade/Tapenade.dll", 1e-8)
     ),
     get_module_name<ModuleTest::ParamType>);
 
@@ -20,8 +20,6 @@ TEST_P(BaModuleTest, Load)
     auto test = moduleLoader->get_ba_test();
     ASSERT_NE(test, nullptr);
 }
-
-const double epsilon = 1e-06;
 
 TEST_P(BaModuleTest, ObjectiveCalculationCorrectness)
 {

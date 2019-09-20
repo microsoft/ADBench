@@ -4,7 +4,9 @@ ModuleTest::~ModuleTest() { delete moduleLoader; }
 
 void ModuleTest::SetUp()
 {
-    moduleLoader = new ModuleLoader(GetParam());
+    const char* modulePath;
+    std::tie(modulePath, this->epsilon) = GetParam();
+    moduleLoader = new ModuleLoader(modulePath);
 }
 
 void ModuleTest::TearDown()
