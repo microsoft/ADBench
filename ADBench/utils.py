@@ -38,10 +38,13 @@ def _set_rec(obj, keys, value, append=False):
 #   ["b1", "file2"]
 #   ["b3", "c", "file3"]
 def _scandir_rec(folder):
-    folder = folder.rstrip("/") + "/"
+    folder = os.path.normpath(folder)
     for fn in os.listdir(folder):
-        if os.path.isdir(folder + fn):
-            yield from ([fn] + file_name for file_name in _scandir_rec(folder + fn))
+        if os.path.isdir(os.path.join(folder, fn)):
+            yield from (
+                [fn] + file_name
+                for file_name in _scandir_rec(os.path.join(folder,fn))
+            )
         else:
             yield [fn]
 
@@ -59,10 +62,13 @@ def _mkdir_if_none(path):
 def cap_str(s):
     return s[0].upper() + (s[1:] if len(s) > 1 else "")
 
+# Remove extension from the file name
+def get_no_ext(file_name):
+    return file_name.split(".")[-2]
 
 # Extract filename (no ext) from path
 def get_fn(path):
-    return path[-1].split(".")[0]
+    return get_no_ext(path[-1])
 
 
 # Extract tool name from filename
@@ -78,11 +84,11 @@ def format_tool(tool):
 
 # Get only non-infinite y-data for a pyplot handle
 def get_non_infinite_y(handle):
-        return get_non_infinite_y_list(handle.get_ydata())
+    return get_non_infinite_y_list(handle.get_ydata())
 
 # Get only non-infinite y-data for a list
 def get_non_infinite_y_list(l):
-        return [y for y in l if y != float("inf")]
+    return  [ y for y in l if y != float("inf") ]
 
 # Extract the test (i.e. type and size) from a filename
 def get_test(fn):

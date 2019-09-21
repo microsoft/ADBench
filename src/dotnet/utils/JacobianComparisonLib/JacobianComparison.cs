@@ -63,7 +63,7 @@ namespace JacobianComparisonLib
             if (!File.Exists(path1))
             {
                 this.ParseError = true;
-                this.Error = $"File {path1} doesn't exist.";
+                this.Error = $"File {path1.Replace("\\", "/")} doesn't exist.";
                 return;
             }
             foreach (var path2 in paths2)
@@ -71,7 +71,7 @@ namespace JacobianComparisonLib
                 if (!File.Exists(path2))
                 {
                     this.ParseError = true;
-                    this.Error = $"File {path2} doesn't exist.";
+                    this.Error = $"File {path2.Replace("\\", "/")} doesn't exist.";
                     return;
                 }
             }
@@ -109,14 +109,14 @@ namespace JacobianComparisonLib
             if (!File.Exists(path1))
             {
                 this.ParseError = true;
-                this.Error = $"File {path1} doesn't exist.";
+                this.Error = $"File {path1.Replace("\\", "/")} doesn't exist.";
                 return;
             }
 
             if (!File.Exists(path2))
             {
                 this.ParseError = true;
-                this.Error = $"File {path2} doesn't exist.";
+                this.Error = $"File {path2.Replace("\\", "/")} doesn't exist.";
                 return;
             }
 
@@ -236,7 +236,7 @@ namespace JacobianComparisonLib
                             else
                             {
                                 this.ParseError = true;
-                                this.Error = $"Failed to parse file {path} - line {curLine} position {lastNumStartPos}.";
+                                this.Error = $"Failed to parse file {path.Replace("\\", "/")} - line {curLine} position {lastNumStartPos}.";
                                 yield return Token.CreateError();
                                 yield break;
                             }
@@ -277,7 +277,7 @@ namespace JacobianComparisonLib
                     else
                     {
                         this.ParseError = true;
-                        this.Error = $"Failed to parse file {path} - line {curLine} position {lastNumStartPos}.";
+                        this.Error = $"Failed to parse file {path.Replace("\\", "/")} - line {curLine} position {lastNumStartPos}.";
                         yield return Token.CreateError();
                     }
                 }
@@ -297,7 +297,7 @@ namespace JacobianComparisonLib
                 else
                 {
                     this.ParseError = true;
-                    this.Error = $"Failed to parse file {path} - line {line} index {curLine}.";
+                    this.Error = $"Failed to parse file {path.Replace("\\", "/")} - line {line} index {curLine}.";
                     result = null;
                     return false;
                 }
@@ -320,7 +320,7 @@ namespace JacobianComparisonLib
                 else
                 {
                     this.ParseError = true;
-                    this.Error = $"Failed to parse file {path} - line {line} index {curLine}.";
+                    this.Error = $"Failed to parse file {path.Replace("\\", "/")} - line {line} index {curLine}.";
                     result = null;
                     return false;
                 }

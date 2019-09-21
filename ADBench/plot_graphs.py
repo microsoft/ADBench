@@ -11,6 +11,8 @@ import plotly
 
 import utils
 
+
+
 rcParams.update({"figure.max_open_warning": 0})
 
 # Script arguments
@@ -18,10 +20,16 @@ do_save = "--save" in sys.argv
 do_plotly = "--plotly" in sys.argv
 do_show = "--show" in sys.argv or not (do_save or do_plotly)
 
-if do_show:
-    print("WARNING: `--show` enabled. This script can produce a lot of graphs and you may not wish to display all of them.\n")
+
 
 # Script constants
+TIMES_SUBSTRING = "times"
+CORRECTNESS_SUBSTRING = "correctness"
+
+VIOLATION_LABEL = "Wrong calculation result"
+TERMINATED_LABEL = "Crashed/Terminated"
+ALL_TERMINATED_SUFFIX = " (all crashed/terminated)"
+
 figure_size = (9, 6) if do_plotly else (12, 8)
 fig_dpi = 96
 save_dpi = 144
@@ -29,50 +37,63 @@ colors = ["b", "g", "r", "c", "m", "y"]
 markers = ["*", "+", "s", "^"]
 all_styles = [(c, m) for m in markers for c in colors]
 
+
+
 # Folders
 adbench_dir = os.path.dirname(os.path.realpath(__file__))
 ad_root_dir = os.path.dirname(adbench_dir)
-in_dir = f"{ad_root_dir}/tmp"
-out_dir = f"{ad_root_dir}/tmp/graphs"
-static_out_dir_rel = "/static"
-plotly_out_dir_rel = "/plotly"
-static_out_dir = f"{out_dir}/{static_out_dir_rel}"
-plotly_out_dir = f"{out_dir}/{plotly_out_dir_rel}"
-
-print(f"Output directory is: {out_dir}\n")
+in_dir = os.path.join(ad_root_dir, "tmp")
+out_dir = os.path.join(ad_root_dir, "tmp", "graphs")
+static_out_dir_rel = "static"
+plotly_out_dir_rel = "plotly"
+static_out_dir = os.path.join(out_dir, static_out_dir_rel)
+plotly_out_dir = os.path.join(out_dir, plotly_out_dir_rel)
 
 
-# Scan folder for all files, and determine which graphs to create
-all_files = [path for path in utils._scandir_rec(in_dir) if "times" in path[-1]]
-all_graphs = [path.split("/") for path in set(["/".join(path[:-2]) for path in all_files])]
-function_types = ["objective ÷ Manual", "objective", "jacobian", "jacobian ÷ objective"]
-all_graphs = [(path, function_type) for function_type in function_types for path in all_graphs]
-all_graph_dict = {}
 
-def safe_mean(v): 
-    if len(v) > 0: 
-        return sum(v)/len(v)
-    else:
-        return 1e9
+def has_manual(tool):
+    '''Checks if tool is a manual differentiation.'''
 
-def div_lists(alist,blist):
-    return [a/b for a,b in zip(alist,blist)]
+    return tool.lower() in [ "manual", "manual_eigen" ]
+
+
 
 def graph_data(build_type, objective, maybe_test_size):
-    test_size = ", ".join([utils.cap_str(s) for s in maybe_test_size[0].split("_")]) if len(maybe_test_size) == 1 else None
+    '''Creates graph name and graph saving location.'''
+
+    test_size = ", ".join([
+        utils.cap_str(s)
+        for s in maybe_test_size[0].split("_")
+    ]) if len(maybe_test_size) == 1 else None
+
     has_ts = test_size is not None
-    graph_name = (f"{objective.upper()}" +
-                  (f" ({test_size})" if has_ts else "") +
-                  f" [{function_type.capitalize()}] - {build_type}")
-    graph_save_location = f"{build_type}/{function_type}/{graph_name} Graph"
-    utils._set_rec(all_graph_dict, [build_type, function_type, objective.upper()], test_size if has_ts else "", True)
+    graph_name = \
+        f"{objective.upper()}" + \
+        (f" ({test_size})" if has_ts else "") + \
+        f" [{function_type.capitalize()}] - {build_type}"
+
+    graph_save_location = os.path.join(
+        build_type,
+        function_type,
+        f"{graph_name} Graph"
+    )
+
+    utils._set_rec(
+        all_graph_dict,
+        [ build_type, function_type, objective.upper() ],
+        test_size if has_ts else "",
+        True
+    )
+
     print(f"\n  {graph_name}")
 
     return (graph_name, graph_save_location)
 
-has_manual = lambda tool: tool.lower() in ["manual", "manual_eigen"]
+
 
 def tool_names(graph_files):
+    '''Returns a set of tool names from all calculated files.'''
+
     file_names = map(utils.get_fn, graph_files)
     tool_names_ = set(map(utils.get_tool, file_names))
 
@@ -83,13 +104,66 @@ def tool_names(graph_files):
 
     return tool_names_
 
+
+
 def read_vals(objective, graph_files, tool):
-    tool_files = ["/".join(path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool]
+    '''Extracts data for files of the specified tool.'''
+
+    def get_correctness(file_name):
+        '''Extracts jacobian calculation correctness.'''
+
+        folder, fn = os.path.split(file_name)
+        correctness_file_name = os.path.join(
+            in_dir,
+            folder,
+            fn.replace(TIMES_SUBSTRING, CORRECTNESS_SUBSTRING)
+        )
+
+        if not os.path.isfile(correctness_file_name):
+            msg = (
+                f"WARNING: correctness file {correctness_file_name} "
+                "doesn't exist\n"
+            )
+
+            print(msg)
+            return False
+
+        try:
+            with open(correctness_file_name, "r", encoding="utf-16") as cf:
+                correctness_data = json.load(cf)
+                return correctness_data["ViolationsHappened"]
+        except Exception as e:
+            msg = (
+                f"WARNING: correctness file {correctness_file_name} parsing "
+                f"failed.\nError message:{e.args}\n"
+            )
+
+            print(msg)
+            return False
+
+
+    tool_files = [
+        os.path.join(*path)
+        for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool
+    ]
+
+    if has_manual(tool):
+        violation_info = [ False ] * len(graph_files)
+    else:
+        violation_info = [
+            get_correctness(file)
+            for file in tool_files
+        ]
+
     # Extract times
     name_to_n = utils.key_functions[objective]
-    time_pairs = [(name_to_n(utils.get_test(utils.get_fn(path.split("/")))),
-                   utils.read_times(in_dir + "/" + path))
-                  for path in tool_files]
+    time_pairs = [
+        (
+            name_to_n(utils.get_test(utils.get_no_ext(os.path.split(path)[1]))),
+            utils.read_times(os.path.join(in_dir, path))
+        )
+        for path in tool_files
+    ]
 
     # Sort values
     times_sorted = sorted(time_pairs, key=lambda pair: pair[0])
@@ -97,13 +171,29 @@ def read_vals(objective, graph_files, tool):
     t_objective_vals = list(map(lambda pair: pair[1][0], times_sorted))
     t_jacobian_vals = list(map(lambda pair: pair[1][1], times_sorted))
 
-    return (n_vals, t_objective_vals, t_jacobian_vals)
+    return (n_vals, t_objective_vals, t_jacobian_vals, violation_info)
+
+
 
 def vals_by_tool(objective, graph_files):
+    '''Classifies file values by tools'''
+
+    def div_lists(alist, blist):
+        return [
+            a / b
+            if a != float("inf") and b != float("inf")
+            else float("inf")
+            for a,b in zip(alist,blist)
+        ]
+
     manual_times = None
 
     for tool in tool_names(graph_files):
-        (n_vals, t_objective_vals, t_jacobian_vals) = read_vals(objective, graph_files, tool)
+        (n_vals, t_objective_vals, t_jacobian_vals, violation) = read_vals(
+            objective,
+            graph_files,
+            tool
+        )
 
         if manual_times is None and has_manual(tool):
             manual_times = t_objective_vals
@@ -122,7 +212,71 @@ def vals_by_tool(objective, graph_files):
         else:
             raise Exception(f"Unknown function type {function_type}")
 
-        yield (tool, n_vals, t_vals)
+        yield (tool, n_vals, t_vals, violation)
+
+
+
+if "--help" in sys.argv or "-h" in sys.argv or "-?" in sys.argv:
+    ref_msg = f'''
+This script produces graphs that visualize benchmark.
+CMD arguments:
+    --save
+            if specified then script saves produced graphs to
+            {static_out_dir}
+
+    --plotly
+            if specified then script saves graphs in plotly format to
+            {plotly_out_dir}
+
+    --show
+            if specified then script shows produced graphs on the
+            screen. Note, that this is default option if --save or
+            --plotly are not defined.
+
+    --help, -h, -?
+            show this message
+'''
+    print(ref_msg)
+    sys.exit(0)
+
+if do_show:
+    print((
+        "WARNING: `--show` enabled. "
+        "This script can produce a lot of graphs and you may not wish "
+        "to display all of them.\n"
+    ))
+
+print(f"Output directory is: {out_dir}\n")
+
+# Scan folder for all files, and determine which graphs to create
+all_files = [
+    path
+    for path in utils._scandir_rec(in_dir)
+    if TIMES_SUBSTRING in path[-1]
+]
+
+all_graphs = [
+    path.split("/")
+    for path in set([
+        "/".join(path[:-2])
+        for path in all_files
+    ])
+]
+
+function_types = [
+    "objective ÷ Manual",
+    "objective",
+    "jacobian",
+    "jacobian ÷ objective"
+]
+
+all_graphs = [
+    (path, function_type)
+    for function_type in function_types
+    for path in all_graphs
+]
+
+all_graph_dict = {}
 
 # Loop through each of graphs to be created
 for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
@@ -130,39 +284,136 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
     objective = graph[1]
     maybe_test_size = graph[2:]
 
-    (graph_name, graph_save_location) = graph_data(build_type, objective, maybe_test_size)
+    (graph_name, graph_save_location) = graph_data(
+        build_type,
+        objective,
+        maybe_test_size
+    )
 
     # Create figure
     figure = pyplot.figure(figure_idx, figsize=figure_size, dpi=fig_dpi)
 
     # Extract file details
-    graph_files = [path for path in all_files if path[:len(graph)] == graph]
+    graph_files = [ path for path in all_files if path[:len(graph)] == graph ]
 
-    sorted_vals_by_tool = sorted(vals_by_tool(objective, graph_files),
-                                 key=lambda t: -safe_mean(utils.get_non_infinite_y_list(t[2])))
+    def sorting_key_fun(v):
+        y_list = utils.get_non_infinite_y_list(v[2])
+        if len(y_list) > 0:
+            return sum(y_list) / len(y_list)
+        else:
+            return 1e9
+    sorted_vals_by_tool = sorted(
+        vals_by_tool(objective, graph_files),
+        key=sorting_key_fun,
+        reverse=True
+    )
 
     lines = zip(all_styles, sorted_vals_by_tool)
-
     handles, labels = [], []
-    for ((color, marker), (tool, n_vals, t_vals)) in lines:
-        # Plot results
-        handles += pyplot.plot(n_vals, t_vals, 
-                               marker=marker, color=color, label=utils.format_tool(tool))
-        labels.append(utils.format_tool(tool))
-
-    # Draw black dots
-    max_len = max(map(lambda h: len(utils.get_non_infinite_y(h)), handles))
-    failed = filter(lambda h: len(utils.get_non_infinite_y(h)) < max_len, handles)
     failed_x, failed_y = [], []
-    for handle in failed:
-        inf_inds = [i for i, y in enumerate(handle.get_ydata()) if y == float("inf")]
-        last_ind = inf_inds[0] - 1 if len(inf_inds) > 0 else -1
-        failed_x.append(handle.get_xdata()[last_ind])
-        failed_y.append(handle.get_ydata()[last_ind])
-        #handles += pyplot.plot(handle.get_xdata()[last_ind], handle.get_ydata()[last_ind], marker="o", color=(0, 0, 0), linestyle="None", label="Crashed/Terminated")
+    violation_handle = None
+
+    # Plot results
+    for ((color, marker), (tool, n_vals, t_vals, violations)) in lines:
+        label = utils.format_tool(tool)
+
+        # Check which point values are infinite
+        inf_inds, fin_inds = [], []
+        for i in range(len(t_vals)):
+            if t_vals[i] == float("inf"):
+                inf_inds.append(i)
+            else:
+                fin_inds.append(i)
+
+        # Append label in legend if all point values are infinite
+        if not fin_inds:
+            label += ALL_TERMINATED_SUFFIX
+
+        labels.append(label)
+
+        if any(violations):
+            # Set markers for correct and incorrect points
+            corr_mark_list, incorr_mark_list = [], []
+            for i in range(len(n_vals)):
+                if violations[i]:
+                    incorr_mark_list.append(i)
+                else:
+                    corr_mark_list.append(i)
+
+            handles += pyplot.plot(
+                n_vals,
+                t_vals,
+                marker=marker,
+                color=color,
+                label=utils.format_tool(tool),
+                markevery=corr_mark_list
+            )
+
+            # Remove violation mark from black dot place
+            if inf_inds:
+                remove_ind = inf_inds[0] - 1
+                if remove_ind in incorr_mark_list:
+                    incorr_mark_list.remove(remove_ind)
+            
+            if incorr_mark_list:
+                violation_handle = pyplot.plot(
+                    n_vals,
+                    t_vals,
+                    marker="v",
+                    mec="k",
+                    mfc="r",
+                    ms=8,
+                    linestyle="None",
+                    label=VIOLATION_LABEL,
+                    markevery=incorr_mark_list
+                )
+        else:
+            handles += pyplot.plot(
+                n_vals,
+                t_vals,
+                marker=marker,
+                color=color,
+                label=utils.format_tool(tool)
+            )
+
+        # Set place for a black dot if it necessary
+        if len(inf_inds) > 0:
+            last_ind = inf_inds[0] - 1
+            if last_ind > -1:
+                failed_x.append(handles[-1].get_xdata()[last_ind])
+                failed_y.append(handles[-1].get_ydata()[last_ind])
+
+                # Draw small line if the last finite point is the first point
+                # (it is done for distinguish a line of a black dot)
+                if last_ind == 0:
+                    pyplot.plot(
+                        [ n_vals[0] ],
+                        [ t_vals[0] ],
+                        marker=0,
+                        ms=15,
+                        mew=1,
+                        color=color
+                    )
+
+    # Add handle for black dots if it necessary
     if len(failed_x) > 0:
-        handles += tuple(pyplot.plot(failed_x, failed_y, marker="o", color="k", linestyle="None", label="Crashed/Terminated"))
-        labels += ("Crashed/Terminated",)
+        handles += tuple(
+            pyplot.plot(
+                failed_x,
+                failed_y,
+                marker="o",
+                color="k",
+                linestyle="None",
+                label=TERMINATED_LABEL
+            )
+        )
+
+        labels += (TERMINATED_LABEL,)
+
+    # Add handle for violation if it necessary
+    if violation_handle != None:
+        handles += violation_handle
+        labels.append(VIOLATION_LABEL)
 
     # Setup graph attributes
     pyplot.title(graph_name)
@@ -176,18 +427,40 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
         plotly_fig = plotly.tools.mpl_to_plotly(copy.copy(figure))
         plotly_fig["layout"]["showlegend"] = True
 
-        print(f"    Saving plotly: {plotly_out_dir_rel}/{graph_save_location}.html")
-        plotly_save_location = f"{plotly_out_dir}/{graph_save_location}.html"
+        plotly_save_location_view = os.path.join(
+            plotly_out_dir_rel,
+            f"{graph_save_location}.html"
+        )
+
+        plotly_save_location = os.path.join(
+            plotly_out_dir,
+            f"{graph_save_location}.html"
+        )
+
+        print(f"    Saving plotly: {plotly_save_location_view}")
         utils._mkdir_if_none(plotly_save_location)
-        plotly.offline.plot(plotly_fig, filename=plotly_save_location, auto_open=False)
+        plotly.offline.plot(
+            plotly_fig,
+            filename=plotly_save_location,
+            auto_open=False
+        )
 
     # Add legend (after plotly to avoid error)
     pyplot.legend(handles, labels, loc=4, bbox_to_anchor=(1, 0))
 
     # Save graph (if selected)
     if do_save:
-        print(f"    Saving static: {static_out_dir_rel}/{graph_save_location}.png")
-        static_save_location = f"{static_out_dir}/{graph_save_location}.png"
+        static_save_location_view = os.path.join(
+            static_out_dir_rel,
+            f"{graph_save_location}.png"
+        )
+
+        static_save_location = os.path.join(
+            static_out_dir,
+            f"{graph_save_location}.png"
+        )
+
+        print(f"    Saving static: {static_save_location_view}")
         utils._mkdir_if_none(static_save_location)
         pyplot.savefig(static_save_location, dpi=save_dpi)
 
@@ -197,7 +470,7 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
 print(f"\nPlotted {figure_idx} graphs")
 
 print("\nWriting graphs index...")
-index_file = open(f"{out_dir}/graphs_index.json", "w")
+index_file = open(os.path.join(out_dir, "graphs_index.json"), "w")
 index_file.write(json.dumps(all_graph_dict))
 index_file.close()
 
