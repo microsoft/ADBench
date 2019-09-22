@@ -49,12 +49,6 @@ function_types = ["objective ÷ Manual", "objective", "jacobian", "jacobian ÷ o
 all_graphs = [(path, function_type) for function_type in function_types for path in all_graphs]
 all_graph_dict = {}
 
-def safe_mean(v): 
-    if len(v) > 0: 
-        return sum(v)/len(v)
-    else:
-        return 1e9
-
 def div_lists(alist,blist):
     return [a/b for a,b in zip(alist,blist)]
 
@@ -139,7 +133,11 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
     graph_files = [path for path in all_files if path[:len(graph)] == graph]
 
     def sorting_key_fun(v):
-        return safe_mean(utils.get_non_infinite_y_list(v[2]))
+        y_list = utils.get_non_infinite_y_list(v[2])
+        if len(y_list) > 0:
+            return sum(y_list) / len(y_list)
+        else:
+            return 1e9
     sorted_vals_by_tool = sorted(vals_by_tool(objective, graph_files),
                                  key=sorting_key_fun,
                                  reverse=True)
