@@ -138,8 +138,10 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
     # Extract file details
     graph_files = [path for path in all_files if path[:len(graph)] == graph]
 
+    def sorting_key_fun(v):
+        return -safe_mean(utils.get_non_infinite_y_list(v[2]))
     sorted_vals_by_tool = sorted(vals_by_tool(objective, graph_files),
-                                 key=lambda t: -safe_mean(utils.get_non_infinite_y_list(t[2])))
+                                 key=sorting_key_fun)
 
     lines = zip(all_styles, sorted_vals_by_tool)
 
