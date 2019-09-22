@@ -22,12 +22,18 @@ if do_show:
     print("WARNING: `--show` enabled. This script can produce a lot of graphs and you may not wish to display all of them.\n")
 
 # Script constants
+CORRECTNESS_SUBSTRING = "correctness"
+
+VIOLATION_LABEL = "Wrong calculation result"
+ALL_TERMINATED_SUFFIX = " (all crashed/terminated)"
+
 figure_size = (9, 6) if do_plotly else (12, 8)
 fig_dpi = 96
 save_dpi = 144
 colors = ["b", "g", "r", "c", "m", "y"]
 markers = ["*", "+", "s", "^"]
 all_styles = [(c, m) for m in markers for c in colors]
+
 
 # Folders
 adbench_dir = os.path.dirname(os.path.realpath(__file__))
@@ -82,10 +88,54 @@ def tool_names(graph_files):
 def read_vals(objective, graph_files, tool):
     '''Extracts data for files of the specified tool.'''
 
+    def get_correctness(file_name):
+        '''Extracts jacobian calculation correctness.'''
+
+        folder, fn = os.path.split(file_name)
+        correctness_file_name = os.path.join(
+            in_dir,
+            folder,
+            fn.replace("times", CORRECTNESS_SUBSTRING)
+        )
+
+        if not os.path.isfile(correctness_file_name):
+            msg = (
+                f"WARNING: correctness file {correctness_file_name} "
+                "doesn't exist\n"
+            )
+
+            print(msg)
+            return False
+
+        try:
+            with open(correctness_file_name, "r", encoding="utf-16") as cf:
+                correctness_data = json.load(cf)
+                return correctness_data["ViolationsHappened"]
+        except Exception as e:
+            msg = (
+                f"WARNING: correctness file {correctness_file_name} parsing "
+                f"failed.\nError message:{e.args}\n"
+            )
+
+            print(msg)
+            return False
+
     tool_files = [os.path.join(*path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool]
+
+    if has_manual(tool):
+        violation_info = [
+            False
+            for file in tool_files
+        ]
+    else:
+        violation_info = [
+            get_correctness(file)
+            for file in tool_files
+        ]
+
     # Extract times
     name_to_n = utils.key_functions[objective]
-    time_pairs = [(name_to_n(utils.get_test(utils.get_fn(path.split("/")))),
+    time_pairs = [(name_to_n(utils.get_test(utils.get_no_ext(os.path.split(path)[1]))),
                    utils.read_times(os.path.join(in_dir, path)))
                   for path in tool_files]
 
@@ -95,7 +145,7 @@ def read_vals(objective, graph_files, tool):
     t_objective_vals = list(map(lambda pair: pair[1][0], times_sorted))
     t_jacobian_vals = list(map(lambda pair: pair[1][1], times_sorted))
 
-    return (n_vals, t_objective_vals, t_jacobian_vals)
+    return (n_vals, t_objective_vals, t_jacobian_vals, violation_info)
 
 def vals_by_tool(objective, graph_files):
     '''Classifies file values by tools'''
@@ -111,7 +161,7 @@ def vals_by_tool(objective, graph_files):
     manual_times = None
 
     for tool in tool_names(graph_files):
-        (n_vals, t_objective_vals, t_jacobian_vals) = read_vals(objective, graph_files, tool)
+        (n_vals, t_objective_vals, t_jacobian_vals, violation) = read_vals(objective, graph_files, tool)
 
         if manual_times is None and has_manual(tool):
             manual_times = t_objective_vals
@@ -130,7 +180,32 @@ def vals_by_tool(objective, graph_files):
         else:
             raise Exception(f"Unknown function type {function_type}")
 
-        yield (tool, n_vals, t_vals)
+        yield (tool, n_vals, t_vals, violation)
+
+
+
+if "--help" in sys.argv or "-h" in sys.argv or "-?" in sys.argv:
+    ref_msg = f'''
+This script produces graphs that visualize benchmark.
+CMD arguments:
+    --save
+            if specified then script saves produced graphs to
+            {static_out_dir}
+
+    --plotly
+            if specified then script saves graphs in plotly format to
+            {plotly_out_dir}
+
+    --show
+            if specified then script shows produced graphs on the
+            screen. Note, that this is default option if --save or
+            --plotly are not defined.
+
+    --help, -h, -?
+            show this message
+'''
+    print(ref_msg)
+    sys.exit(0)
 
 # Loop through each of graphs to be created
 for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
@@ -159,25 +234,100 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
     lines = zip(all_styles, sorted_vals_by_tool)
 
     handles, labels = [], []
-    for ((color, marker), (tool, n_vals, t_vals)) in lines:
-        # Plot results
-        handles += pyplot.plot(n_vals, t_vals, 
-                               marker=marker, color=color, label=utils.format_tool(tool))
-        labels.append(utils.format_tool(tool))
-
-    # Draw black dots
-    max_len = max(map(lambda h: len(utils.get_non_infinite_y(h)), handles))
-    failed = filter(lambda h: len(utils.get_non_infinite_y(h)) < max_len, handles)
     failed_x, failed_y = [], []
-    for handle in failed:
-        inf_inds = [i for i, y in enumerate(handle.get_ydata()) if y == float("inf")]
-        last_ind = inf_inds[0] - 1 if len(inf_inds) > 0 else -1
-        failed_x.append(handle.get_xdata()[last_ind])
-        failed_y.append(handle.get_ydata()[last_ind])
-        #handles += pyplot.plot(handle.get_xdata()[last_ind], handle.get_ydata()[last_ind], marker="o", color=(0, 0, 0), linestyle="None", label="Crashed/Terminated")
+    violation_handle = None
+
+    # Plot results
+    for ((color, marker), (tool, n_vals, t_vals, violations)) in lines:
+        label = utils.format_tool(tool)
+
+        # Check which point values are infinite
+        inf_inds, fin_inds = [], []
+        for i in range(len(t_vals)):
+            if t_vals[i] == float("inf"):
+                inf_inds.append(i)
+            else:
+                fin_inds.append(i)
+
+        # Append label in legend if all point values are infinite
+        if not fin_inds:
+            label += ALL_TERMINATED_SUFFIX
+
+        labels.append(label)
+
+        if any(violations):
+            # Set markers for correct and incorrect points
+            corr_mark_list, incorr_mark_list = [], []
+            for i in range(len(n_vals)):
+                if violations[i]:
+                    incorr_mark_list.append(i)
+                else:
+                    corr_mark_list.append(i)
+
+            handles += pyplot.plot(
+                n_vals,
+                t_vals,
+                marker=marker,
+                color=color,
+                label=utils.format_tool(tool),
+                markevery=corr_mark_list
+            )
+
+            # Remove violation mark from black dot place
+            if inf_inds:
+                remove_ind = inf_inds[0] - 1
+                if remove_ind in incorr_mark_list:
+                    incorr_mark_list.remove(remove_ind)
+            
+            if incorr_mark_list:
+                violation_handle = pyplot.plot(
+                    n_vals,
+                    t_vals,
+                    marker="v",
+                    mec="k",
+                    mfc="r",
+                    ms=8,
+                    linestyle="None",
+                    label=VIOLATION_LABEL,
+                    markevery=incorr_mark_list
+                )
+        else:
+            handles += pyplot.plot(
+                n_vals,
+                t_vals,
+                marker=marker,
+                color=color,
+                label=utils.format_tool(tool)
+            )
+
+        # Set place for a black dot if it necessary
+        if len(inf_inds) > 0:
+            last_ind = inf_inds[0] - 1
+            if last_ind > -1:
+                failed_x.append(handles[-1].get_xdata()[last_ind])
+                failed_y.append(handles[-1].get_ydata()[last_ind])
+
+                # Draw small line if the last finite point is the first point
+                # (it is done for distinguish a line of a black dot)
+                if last_ind == 0:
+                    pyplot.plot(
+                        [ n_vals[0] ],
+                        [ t_vals[0] ],
+                        marker=0,
+                        ms=15,
+                        mew=1,
+                        color=color
+                    )
+
+    # Add handle for black dots if it necessary
     if len(failed_x) > 0:
         handles += tuple(pyplot.plot(failed_x, failed_y, marker="o", color="k", linestyle="None", label="Crashed/Terminated"))
         labels += ("Crashed/Terminated",)
+
+    # Add handle for violation if it necessary
+    if violation_handle != None:
+        handles += violation_handle
+        labels.append(VIOLATION_LABEL)
 
     # Setup graph attributes
     pyplot.title(graph_name)

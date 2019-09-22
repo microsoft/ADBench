@@ -59,10 +59,13 @@ def _mkdir_if_none(path):
 def cap_str(s):
     return s[0].upper() + (s[1:] if len(s) > 1 else "")
 
+# Remove extension from the file name
+def get_no_ext(file_name):
+    return file_name.split(".")[-2]
 
 # Extract filename (no ext) from path
 def get_fn(path):
-    return path[-1].split(".")[0]
+    return get_no_ext(path[-1])
 
 
 # Extract tool name from filename
@@ -82,7 +85,7 @@ def get_non_infinite_y(handle):
 
 # Get only non-infinite y-data for a list
 def get_non_infinite_y_list(l):
-    return [y for y in l if y != float("inf")]
+    return  [ y for y in l if y != float("inf") ]
 
 # Extract the test (i.e. type and size) from a filename
 def get_test(fn):
