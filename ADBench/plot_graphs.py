@@ -51,6 +51,8 @@ all_graph_dict = {}
 
 
 def graph_data(build_type, objective, maybe_test_size):
+    '''Creates graph name and graph saving location.'''
+
     test_size = ", ".join([utils.cap_str(s) for s in maybe_test_size[0].split("_")]) if len(maybe_test_size) == 1 else None
     has_ts = test_size is not None
     graph_name = (f"{objective.upper()}" +
@@ -65,6 +67,8 @@ def graph_data(build_type, objective, maybe_test_size):
 has_manual = lambda tool: tool.lower() in ["manual", "manual_eigen"]
 
 def tool_names(graph_files):
+    '''Returns a set of tool names from all calculated files.'''
+
     file_names = map(utils.get_fn, graph_files)
     tool_names_ = set(map(utils.get_tool, file_names))
 
@@ -76,6 +80,8 @@ def tool_names(graph_files):
     return tool_names_
 
 def read_vals(objective, graph_files, tool):
+    '''Extracts data for files of the specified tool.'''
+
     tool_files = [os.path.join(*path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool]
     # Extract times
     name_to_n = utils.key_functions[objective]
@@ -92,6 +98,8 @@ def read_vals(objective, graph_files, tool):
     return (n_vals, t_objective_vals, t_jacobian_vals)
 
 def vals_by_tool(objective, graph_files):
+    '''Classifies file values by tools'''
+
     def div_lists(alist, blist):
         return [
             a / b
