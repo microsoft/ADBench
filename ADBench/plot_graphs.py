@@ -26,6 +26,7 @@ TIMES_SUBSTRING = "times"
 CORRECTNESS_SUBSTRING = "correctness"
 
 VIOLATION_LABEL = "Wrong calculation result"
+TERMINATED_LABEL = "Crashed/Terminated"
 ALL_TERMINATED_SUFFIX = " (all crashed/terminated)"
 
 figure_size = (9, 6) if do_plotly else (12, 8)
@@ -322,8 +323,8 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
 
     # Add handle for black dots if it necessary
     if len(failed_x) > 0:
-        handles += tuple(pyplot.plot(failed_x, failed_y, marker="o", color="k", linestyle="None", label="Crashed/Terminated"))
-        labels += ("Crashed/Terminated",)
+        handles += tuple(pyplot.plot(failed_x, failed_y, marker="o", color="k", linestyle="None", label=TERMINATED_LABEL))
+        labels += (TERMINATED_LABEL,)
 
     # Add handle for violation if it necessary
     if violation_handle != None:
