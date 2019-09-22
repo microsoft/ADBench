@@ -32,12 +32,12 @@ all_styles = [(c, m) for m in markers for c in colors]
 # Folders
 adbench_dir = os.path.dirname(os.path.realpath(__file__))
 ad_root_dir = os.path.dirname(adbench_dir)
-in_dir = f"{ad_root_dir}/tmp"
-out_dir = f"{ad_root_dir}/tmp/graphs"
-static_out_dir_rel = "/static"
-plotly_out_dir_rel = "/plotly"
-static_out_dir = f"{out_dir}/{static_out_dir_rel}"
-plotly_out_dir = f"{out_dir}/{plotly_out_dir_rel}"
+in_dir = os.path.join(ad_root_dir, "tmp")
+out_dir = os.path.join(ad_root_dir, "tmp", "graphs")
+static_out_dir_rel = "static"
+plotly_out_dir_rel = "plotly"
+static_out_dir = os.path.join(out_dir, static_out_dir_rel)
+plotly_out_dir = os.path.join(out_dir, plotly_out_dir_rel)
 
 print(f"Output directory is: {out_dir}\n")
 
@@ -64,7 +64,7 @@ def graph_data(build_type, objective, maybe_test_size):
     graph_name = (f"{objective.upper()}" +
                   (f" ({test_size})" if has_ts else "") +
                   f" [{function_type.capitalize()}] - {build_type}")
-    graph_save_location = f"{build_type}/{function_type}/{graph_name} Graph"
+    graph_save_location = os.path.join(build_type, function_type, f"{graph_name} Graph")
     utils._set_rec(all_graph_dict, [build_type, function_type, objective.upper()], test_size if has_ts else "", True)
     print(f"\n  {graph_name}")
 
@@ -84,11 +84,11 @@ def tool_names(graph_files):
     return tool_names_
 
 def read_vals(objective, graph_files, tool):
-    tool_files = ["/".join(path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool]
+    tool_files = [os.path.join(*path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool]
     # Extract times
     name_to_n = utils.key_functions[objective]
     time_pairs = [(name_to_n(utils.get_test(utils.get_fn(path.split("/")))),
-                   utils.read_times(in_dir + "/" + path))
+                   utils.read_times(os.path.join(in_dir, path)))
                   for path in tool_files]
 
     # Sort values
@@ -176,8 +176,10 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
         plotly_fig = plotly.tools.mpl_to_plotly(copy.copy(figure))
         plotly_fig["layout"]["showlegend"] = True
 
-        print(f"    Saving plotly: {plotly_out_dir_rel}/{graph_save_location}.html")
-        plotly_save_location = f"{plotly_out_dir}/{graph_save_location}.html"
+        plotly_save_location_view = os.path.join(plotly_out_dir_rel, f"{graph_save_location}.html")
+        plotly_save_location = os.path.join(plotly_out_dir, f"{graph_save_location}.html")
+
+        print(f"    Saving plotly: {plotly_save_location_view}")
         utils._mkdir_if_none(plotly_save_location)
         plotly.offline.plot(plotly_fig, filename=plotly_save_location, auto_open=False)
 
@@ -186,8 +188,14 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
 
     # Save graph (if selected)
     if do_save:
-        print(f"    Saving static: {static_out_dir_rel}/{graph_save_location}.png")
-        static_save_location = f"{static_out_dir}/{graph_save_location}.png"
+        static_save_location_view = os.path.join(
+            static_out_dir_rel,
+            f"{graph_save_location}.png"
+        )
+
+        static_save_location = os.path.join(static_out_dir, f"{graph_save_location}.png")
+
+        print(f"    Saving static: {static_save_location_view}")
         utils._mkdir_if_none(static_save_location)
         pyplot.savefig(static_save_location, dpi=save_dpi)
 
@@ -197,7 +205,7 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
 print(f"\nPlotted {figure_idx} graphs")
 
 print("\nWriting graphs index...")
-index_file = open(f"{out_dir}/graphs_index.json", "w")
+index_file = open(os.path.join(out_dir, "graphs_index.json"), "w")
 index_file.write(json.dumps(all_graph_dict))
 index_file.close()
 

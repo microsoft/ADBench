@@ -38,10 +38,10 @@ def _set_rec(obj, keys, value, append=False):
 #   ["b1", "file2"]
 #   ["b3", "c", "file3"]
 def _scandir_rec(folder):
-    folder = folder.rstrip("/") + "/"
+    folder = os.path.normpath(folder)
     for fn in os.listdir(folder):
-        if os.path.isdir(folder + fn):
-            yield from ([fn] + file_name for file_name in _scandir_rec(folder + fn))
+        if os.path.isdir(os.path.join(folder, fn)):
+            yield from ([fn] + file_name for file_name in _scandir_rec(os.path.join(folder, fn)))
         else:
             yield [fn]
 
