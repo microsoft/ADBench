@@ -49,8 +49,6 @@ function_types = ["objective ÷ Manual", "objective", "jacobian", "jacobian ÷ o
 all_graphs = [(path, function_type) for function_type in function_types for path in all_graphs]
 all_graph_dict = {}
 
-def div_lists(alist,blist):
-    return [a/b for a,b in zip(alist,blist)]
 
 def graph_data(build_type, objective, maybe_test_size):
     test_size = ", ".join([utils.cap_str(s) for s in maybe_test_size[0].split("_")]) if len(maybe_test_size) == 1 else None
@@ -94,6 +92,14 @@ def read_vals(objective, graph_files, tool):
     return (n_vals, t_objective_vals, t_jacobian_vals)
 
 def vals_by_tool(objective, graph_files):
+    def div_lists(alist, blist):
+        return [
+            a / b
+            if a != float("inf") and b != float("inf")
+            else float("inf")
+            for a,b in zip(alist,blist)
+        ]
+
     manual_times = None
 
     for tool in tool_names(graph_files):
