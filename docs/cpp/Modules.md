@@ -70,7 +70,7 @@ Follow these steps for every objective you want to test:
     ),
     get_module_name<ModuleTest::ParamType>);
     ```
-2. Add a tuple containing the module's path and an `absolute_error` for test results to the list of test parameters:
+2. Add a tuple containing the module's path and a `tolerance` for test results to the list of test parameters:
     ```cpp
     INSTANTIATE_TEST_CASE_P(T, TModuleTest,
     ::testing::Values(
@@ -82,7 +82,7 @@ Follow these steps for every objective you want to test:
     get_module_name<ModuleTest::ParamType>);
     ```
 
-    `absolute_error` is a number used to compare results of current module execution with "golden" results. If absolute difference between at least one of them exceeds this value then the test is failed.
+    `tolerance` is a number used to compare results of the current module execution with the "golden" results. If an absolute difference between at least one of them exceeds this value then the test is failed.
 
 
 ### Adding a new test case
