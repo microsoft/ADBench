@@ -22,8 +22,6 @@ TEST_P(HandModuleTest, Load)
     ASSERT_NE(test, nullptr);
 }
 
-const double epsilon = 1e-08;
-
 TEST_P(HandModuleTest, SimpleObjectiveCalculationCorrectness)
 {
     auto module = moduleLoader->get_hand_test();
