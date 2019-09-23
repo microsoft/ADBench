@@ -91,7 +91,7 @@ TEST_P(HandModuleTest, SimpleJacobianCalculationCorrectness)
     EXPECT_EQ(6, output.jacobian_nrows);
     EXPECT_EQ(26, output.jacobian_ncols);
     for (int i = 0; i < expectedJ.size(); ++i)
-        EXPECT_NEAR(expectedJ[i], output.jacobian[i], 0.000001);
+        EXPECT_NEAR(expectedJ[i], output.jacobian[i], epsilon);
 }
 
 TEST_P(HandModuleTest, ComplicatedObjectiveCalculationCorrectness)
@@ -107,12 +107,12 @@ TEST_P(HandModuleTest, ComplicatedObjectiveCalculationCorrectness)
 
     auto output = module->output();
 
-    EXPECT_NEAR(0.15618766169646370, output.objective[0], 0.0000000001);
-    EXPECT_NEAR(-0.14930052600332222, output.objective[1], 0.0000000001);
-    EXPECT_NEAR(0.17223808982645483, output.objective[2], 0.0000000001);
-    EXPECT_NEAR(-0.098877045184959655, output.objective[3], 0.0000000001);
-    EXPECT_NEAR(-0.016123803546210125, output.objective[4], 0.0000000001);
-    EXPECT_NEAR(-0.19758676846557965, output.objective[5], 0.0000000001);
+    EXPECT_NEAR(0.15618766169646370, output.objective[0], epsilon);
+    EXPECT_NEAR(-0.14930052600332222, output.objective[1], epsilon);
+    EXPECT_NEAR(0.17223808982645483, output.objective[2], epsilon);
+    EXPECT_NEAR(-0.098877045184959655, output.objective[3], epsilon);
+    EXPECT_NEAR(-0.016123803546210125, output.objective[4], epsilon);
+    EXPECT_NEAR(-0.19758676846557965, output.objective[5], epsilon);
 }
 
 TEST_P(HandModuleTest, ComplicatedJacobianCalculationCorrectness)
@@ -165,7 +165,7 @@ TEST_P(HandModuleTest, ComplicatedJacobianCalculationCorrectness)
     EXPECT_EQ(6, output.jacobian_nrows);
     EXPECT_EQ(28, output.jacobian_ncols);
     for (int i = 0; i < expectedJ.size(); ++i)
-        EXPECT_NEAR(expectedJ[i], output.jacobian[i], 0.000001);
+        EXPECT_NEAR(expectedJ[i], output.jacobian[i], epsilon);
 }
 
 TEST_P(HandModuleTest, SimpleObjectiveRunsMultipleTimes)

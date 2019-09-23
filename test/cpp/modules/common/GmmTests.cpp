@@ -35,7 +35,7 @@ TEST_P(GmmModuleTest, ObjectiveCalculationCorrectness)
     module->calculate_objective(1);
 
     auto output = module->output();
-    EXPECT_NEAR(8.07380408004975791e+00, output.objective, 0.00001);
+    EXPECT_NEAR(8.07380408004975791e+00, output.objective, epsilon);
 }
 
 TEST_P(GmmModuleTest, JacobianCalculationCorrectness)
