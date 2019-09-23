@@ -26,7 +26,7 @@ void save_value_to_file(const std::string& filepath, const double& value)
 {
     precise_ofstream<std::remove_reference_t<decltype(value)>> out(filepath);
 
-    out << std::scientific << value;
+    out << value;
     out.close();
 }
 
@@ -36,7 +36,7 @@ void save_vector_to_file(const std::string& filepath, const std::vector<double>&
 
     for (const auto& i : gradient)
     {
-        out << std::scientific << i << std::endl;
+        out << i << std::endl;
     }
 
     out.close();
@@ -50,13 +50,13 @@ void save_errors_to_file(const std::string& filepath, const std::vector<double>&
     out << "Reprojection error:" << std::endl;
     for (const auto& i : reprojection_error)
     {
-        out << std::scientific << i << std::endl;
+        out << i << std::endl;
     }
 
     out << "Zach weight error:" << std::endl;
     for (const auto& i : zach_weight_error)
     {
-        out << std::scientific << i << std::endl;
+        out << i << std::endl;
     }
 
     out.close();
