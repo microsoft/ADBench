@@ -64,23 +64,26 @@ Follow these steps for every objective you want to test:
     ```cpp
     INSTANTIATE_TEST_CASE_P(T, TModuleTest,
     ::testing::Values(
-        "../../../../src/cpp/modules/manual/Manual.dll",
-        "../../../../src/cpp/modules/manualEigen/ManualEigen.dll",
+        std::make_tuple("../../../../src/cpp/modules/manual/Manual.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/manualEigen/ManualEigen.dll", 1e-8),
             ...
     ),
     get_module_name<ModuleTest::ParamType>);
     ```
-2. Add the module's path to the list of testing modules like this:
+2. Add a tuple containing the module's path and an `absolute_error` for test results to the list of test parameters:
     ```cpp
     INSTANTIATE_TEST_CASE_P(T, TModuleTest,
     ::testing::Values(
-        "../../../../src/cpp/modules/manual/Manual.dll",
-        "../../../../src/cpp/modules/manualEigen/ManualEigen.dll",
+        std::make_tuple("../../../../src/cpp/modules/manual/Manual.dll", 1e-8),
+        std::make_tuple("../../../../src/cpp/modules/manualEigen/ManualEigen.dll", 1e-8),
             ...
-        your_path
+        std::make_tuple(your_path, absolute_error),      
     ),
     get_module_name<ModuleTest::ParamType>);
     ```
+
+    `absolute_error` - a number meaning maximum allowed absolute difference between each of current module and "golden" results, if exceeded, leads to test fail.
+
 
 ### Adding a new test case
 
