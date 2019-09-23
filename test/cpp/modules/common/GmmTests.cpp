@@ -22,8 +22,6 @@ TEST_P(GmmModuleTest, Load)
     ASSERT_NE(module, nullptr);
 }
 
-const double epsilon = 1e-08;
-
 TEST_P(GmmModuleTest, ObjectiveCalculationCorrectness)
 {
     auto module = moduleLoader->get_gmm_test();
