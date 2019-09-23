@@ -33,7 +33,7 @@ TEST_P(LstmModuleTest, ObjectiveCalculationCorrectness)
     module->calculate_objective(1);
 
     auto output = module->output();
-    EXPECT_NEAR(0.66666518, output.objective, 0.000001);
+    EXPECT_NEAR(0.66666518, output.objective, epsilon);
 }
 
 TEST_P(LstmModuleTest, JacobianCalculationCorrectness)
@@ -95,7 +95,7 @@ TEST_P(LstmModuleTest, JacobianCalculationCorrectness)
 
     ASSERT_EQ(expectedGradient.size(), output.gradient.size());
     for (int i = 0; i < expectedGradient.size(); ++i)
-        EXPECT_NEAR(expectedGradient[i], output.gradient[i], 0.000001);
+        EXPECT_NEAR(expectedGradient[i], output.gradient[i], epsilon);
 }
 
 TEST_P(LstmModuleTest, ObjectiveRunsMultipleTimes)
