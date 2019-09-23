@@ -82,7 +82,7 @@ Follow these steps for every objective you want to test:
     get_module_name<ModuleTest::ParamType>);
     ```
 
-    `absolute_error` - a number meaning maximum allowed absolute difference between each of current module and "golden" results, if exceeded, leads to test fail.
+    `absolute_error` is a number used to compare results of current module execution with "golden" results. If absolute difference between at least one of them exceeds this value then the test is failed.
 
 
 ### Adding a new test case
