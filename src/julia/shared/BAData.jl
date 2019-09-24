@@ -1,6 +1,6 @@
 module BAData
 
-export BAInput, BASparseMatrix, BAOutput, insert_reproj_err_block!, insert_w_err_block!, empty_ba_output
+export BAInput, BASparseMatrix, BAOutput, insert_reproj_err_block!, insert_w_err_block!, empty_ba_output, load_ba_input
 
 const N_CAM_PARAMS = 11
 const ROT_IDX = 1
@@ -13,11 +13,11 @@ struct BAInput
     n::Int
     m::Int
     p::Int
-    cams::Vector{Float64}
-    X::Vector{Float64}
+    cams::Matrix{Float64}
+    X::Matrix{Float64}
     w::Vector{Float64}
-    obs::Vector{Float64}
-    feats::Vector{Int}
+    feats::Matrix{Float64}
+    obs::Matrix{Int}
 end
 
 
@@ -39,7 +39,7 @@ struct BASparseMatrix
     "Column index in the matrix of each element of vals. Has the same size"
     cols::Vector{Int}
     "All the nonzero entries of the matrix in the left-to-right top-to-bottom order"
-    vals::Vector{Int}
+    vals::Vector{Float64}
     BASparseMatrix(n::Int, m::Int, p::Int) = new(n, m, p, 2 * p + p, N_CAM_PARAMS * n + 3 * m + p, [], [], [])
 end
 
@@ -77,6 +77,56 @@ function insert_w_err_block!(matrix::BASparseMatrix, wIdx::Int, w_d::Int)
     push!(matrix.rows, matrix.rows[end] + 1)
     push!(matrix.cols, N_CAM_PARAMS * matrix.n + 3 * matrix.m + wIdx)
     push!(matrix.vals, w_d)
+end
+
+function load_ba_input(fn::AbstractString)::BAInput
+    fid = open(fn)
+    lines = readlines(fid)
+    close(fid)
+    line=split(lines[1]," ")
+    n = parse(Int,line[1])
+    m = parse(Int,line[2])
+    p = parse(Int,line[3])
+    off = 2
+  
+    one_cam = zeros(Float64,N_CAM_PARAMS,1)
+    line=split(lines[off]," ")
+    for i in 1:N_CAM_PARAMS
+        one_cam[i] = parse(Float64,line[i])
+    end
+    cams = repeat(one_cam,1,n)
+    off += 1
+  
+    one_X = zeros(Float64,3,1)
+    line=split(lines[off]," ")
+    for i in 1:3
+        one_X[i] = parse(Float64,line[i])
+    end
+    X = repeat(one_X,1,m)
+    off += 1
+  
+    one_w = parse(Float64,lines[off])
+    w = repeat([one_w],1,p)
+    off += 1
+  
+    one_feat = zeros(Float64,2,1)
+    line=split(lines[off]," ")
+    for i in 1:2
+        one_feat[i] = parse(Float64,line[i])
+    end
+    feats = repeat(one_feat,1,p)
+  
+    camIdx = 1
+    ptIdx = 1
+    obs = zeros(Int,2,p)
+    for i in 1:p
+        obs[1,i] = camIdx
+        obs[2,i] = ptIdx
+        camIdx = (camIdx%n) + 1
+        ptIdx = (ptIdx%m) + 1
+    end
+
+    BAInput(n, m, p, cams, X, w, feats, obs)
 end
 
 end
