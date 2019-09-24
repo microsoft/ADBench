@@ -13,16 +13,71 @@ end
 
 loaded_modules = []
 
+"""
+    get_gmm_test(module_name)
+
+Loads a `Test{GMMInput, GMMOutput}` object from the module `module_name`.
+
+Callbacks of this object will be created in a world newer than the current one and as such will have to be
+invoked via `Base.invokelatest`.
+"""
 get_gmm_test(module_name::AbstractString)::Test{GMMInput, GMMOutput} = get_test("gmm", module_name)
+
+"""
+    get_ba_test(module_name)
+
+Loads a `Test{BAInput, BAOutput}` object from the module `module_name`.
+
+Callbacks of this object will be created in a world newer than the current one and as such will have to be
+invoked via `Base.invokelatest`.
+"""
 get_ba_test(module_name::AbstractString)::Test{BAInput, BAOutput} = get_test("ba", module_name)
+
+"""
+    get_hand_test(module_name)
+
+Loads a `Test{HandInput, HandOutput}` object from the module `module_name`.
+
+Callbacks of this object will be created in a world newer than the current one and as such will have to be
+invoked via `Base.invokelatest`.
+"""
 get_hand_test(module_name::AbstractString)::Test{HandInput, HandOutput} = get_test("hand", module_name)
+
+"""
+    get_lstm_test(module_name)
+
+Loads a `Test{LSTMInput, LSTMOutput}` object from the module `module_name`.
+
+Callbacks of this object will be created in a world newer than the current one and as such will have to be
+invoked via `Base.invokelatest`.
+"""
 get_lstm_test(module_name::AbstractString)::Test{LSTMInput, LSTMOutput} = get_test("lstm", module_name)
 
+"""
+    get_test_for(input, output, module_name)
+
+Loads a `Test{Input, Output}` object appropriate for provided `input` and `output` from the module `module_name`.
+
+Callbacks of this object will be created in a world newer than the current one and as such will have to be
+invoked via `Base.invokelatest`.
+"""
+function get_test_for end
 get_test_for(input::GMMInput, output::GMMOutput, module_name::AbstractString)::Test{GMMInput, GMMOutput} = get_gmm_test(module_name)
 get_test_for(input::BAInput, output::BAOutput, module_name::AbstractString)::Test{BAInput, BAOutput} = get_ba_test(module_name)
 get_test_for(input::HandInput, output::HandOutput, module_name::AbstractString)::Test{HandInput, HandOutput} = get_hand_test(module_name)
 get_test_for(input::LSTMInput, output::LSTMOutput, module_name::AbstractString)::Test{LSTMInput, LSTMOutput} = get_lstm_test(module_name)
 
+"""
+    get_test(test_name, module_name)
+
+Loads a `Test{Input, Output}` object appropriate for `test_name` objective from the module `module_name`.
+
+Callbacks of this object will be created in a world newer than the current one and as such will have to be
+invoked via `Base.invokelatest`.
+
+Dynamically loads module `module_name` into an isolated environment if necessary and calls
+`get_\$(test_name)_test()::Test{Input, Output}` that it is expected to export.
+"""
 function get_test(test_name::AbstractString, module_name::AbstractString)
     box_module_name = module_name * "Box"
     if !(module_name ∈ loaded_modules)

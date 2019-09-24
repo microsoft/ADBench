@@ -20,14 +20,25 @@ struct BAInput
     feats::Vector{Int}
 end
 
+
 struct BASparseMatrix
+    "Number of cams"
     n::Int
+    "Number of points"
     m::Int
+    "Number of observations"
     p::Int
     nrows::Int
     ncols::Int
+    """
+    Int[nrows + 1]. Defined recursively as follows:
+    rows[0] = 0
+    rows[i] = rows[i-1] + the number of nonzero elements on the i-1 row of the matrix
+    """
     rows::Vector{Int}
+    "Column index in the matrix of each element of vals. Has the same size"
     cols::Vector{Int}
+    "All the nonzero entries of the matrix in the left-to-right top-to-bottom order"
     vals::Vector{Int}
     BASparseMatrix(n::Int, m::Int, p::Int) = new(n, m, p, 2 * p + p, N_CAM_PARAMS * n + 3 * m + p, [], [], [])
 end

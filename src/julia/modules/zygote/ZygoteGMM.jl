@@ -9,14 +9,14 @@ using LinearAlgebra
 
 export get_gmm_test
 
-# input should be 1 dimensional
+"Computes logsumexp. Input should be 1 dimensional"
 function logsumexp(x)
     mx = maximum(x)
     log(sum(exp.(x .- mx))) + mx
 end
 
 sumsq(v) = sum(abs2, v)
-  
+
 function ltri_unpack(D, LT)
     d=length(D)
     make_row(r::Int, L) = hcat(reshape([ L[i] for i=1:r-1 ],1,r-1), D[r], zeros(1,d-r))
