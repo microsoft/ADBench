@@ -1,0 +1,2 @@
+class MockModule(object):
+    pass
