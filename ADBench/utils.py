@@ -61,7 +61,7 @@ def cap_str(s):
 
 # Remove extension from the file name
 def get_no_ext(file_name):
-    return file_name.split(".")[-2]
+    return os.path.splitext(file_name)[0]
 
 # Extract filename (no ext) from path
 def get_fn(path):
