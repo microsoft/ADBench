@@ -77,7 +77,7 @@ has_manual = lambda tool: tool.lower() in ["manual", "manual_eigen"]
 def tool_names(graph_files):
     '''Returns a set of tool names from all calculated files.'''
 
-    file_names = map(utils.get_fn, graph_files)
+    file_names = map(lambda path: os.path.splitext(path[-1])[0], graph_files)
     tool_names_ = set(map(utils.get_tool, file_names))
 
     # Sort "Manual" to the front
@@ -122,7 +122,7 @@ def read_vals(objective, graph_files, tool):
             print(msg)
             return False
 
-    tool_files = [os.path.join(*path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool]
+    tool_files = [os.path.join(*path) for path in graph_files if utils.get_tool(os.path.splitext(path[-1])[0]) == tool]
 
     if has_manual(tool):
         violation_info = [
@@ -137,7 +137,7 @@ def read_vals(objective, graph_files, tool):
 
     # Extract times
     name_to_n = utils.key_functions[objective]
-    time_pairs = [(name_to_n(utils.get_test(utils.get_no_ext(os.path.split(path)[1]))),
+    time_pairs = [(name_to_n(utils.get_test(os.path.splitext(os.path.split(path)[1])[0])),
                    utils.read_times(os.path.join(in_dir, path)))
                   for path in tool_files]
 

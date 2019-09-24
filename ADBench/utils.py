@@ -59,14 +59,6 @@ def _mkdir_if_none(path):
 def cap_str(s):
     return s[0].upper() + (s[1:] if len(s) > 1 else "")
 
-# Remove extension from the file name
-def get_no_ext(file_name):
-    return os.path.splitext(file_name)[0]
-
-# Extract filename (no ext) from path
-def get_fn(path):
-    return get_no_ext(path[-1])
-
 
 # Extract tool name from filename
 def get_tool(fn):
