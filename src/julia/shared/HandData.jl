@@ -26,6 +26,6 @@ mutable struct HandOutput
     jacobian::Matrix{Float64}
 end
 
-empty_hand_output() = HandOutput(0.0, [])
+empty_hand_output() = HandOutput([], [])
 
 end
