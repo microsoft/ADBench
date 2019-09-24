@@ -17,6 +17,7 @@ struct HandInput
     correspondences::Vector{Int}
     points::Matrix{Float64}
     theta::Vector{Float64}
+    "Is present only for 'complicated' kind of problems."
     us::Vector{Float64}
 end
 

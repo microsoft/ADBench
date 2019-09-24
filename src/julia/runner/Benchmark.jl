@@ -13,6 +13,20 @@ export run_benchmark
 
 const measurable_time_not_achieved = -1
 
+"""
+    find_repeats_for_minimum_measurable_time!(context, minimum_measurable_time, func)
+
+Finds the number of repeats that `func` needs to be asked to compute its objective
+in order to to run for at least `minimum_measurable_time` seconds.
+`func` must have a method `func(::typeof(context), repeats::Int)`. That is the method
+that will be tested.
+
+Returns a tuple `(repeats, min_sample, total_time)`, where
+`repeats` is the found necessary number of repeats,
+`min_sample` is the minimal encountered value of
+`@elapsed func(context, repeats) / repeats`
+`total_time` is the total time spent on running `func` in seconds.
+"""
 function find_repeats_for_minimum_measurable_time!(context::Any, minimum_measurable_time::Float64, func::Function)
     total_time = 0.0
     min_sample = floatmax(Float64)
@@ -36,6 +50,7 @@ function find_repeats_for_minimum_measurable_time!(context::Any, minimum_measura
     repeats, min_sample, total_time
 end
 
+"Benchmarks func according to the methodology described in docs/Methodology.md"
 function measure_shortest_time!(context::Any, minimum_measurable_time::Float64, nruns::Int, time_limit::Float64, func::Function)::Float64
     precompile(func, (typeof(context), Int))
     repeats, min_sample, total_time = find_repeats_for_minimum_measurable_time!(context, minimum_measurable_time, func)
@@ -52,9 +67,21 @@ function measure_shortest_time!(context::Any, minimum_measurable_time::Float64, 
     min_sample
 end
 
-function run_benchmark(input::Input, input_name::AbstractString, module_name::AbstractString, output_prefix::AbstractString, module_display_name::AbstractString, minimum_measurable_time::Float64, nruns_f::Int, nruns_J::Int, time_limit::Float64) where Input
+"Performs the entire benchmark process according to the methodology described in docs/Methodology.md"
+function run_benchmark(
+    input::Input,
+    input_name::AbstractString,
+    module_name::AbstractString,
+    output_prefix::AbstractString,
+    module_display_name::AbstractString,
+    minimum_measurable_time::Float64,
+    nruns_f::Int,
+    nruns_J::Int,
+    time_limit::Float64
+) where Input
     output = create_empty_output_for(input)
     test = get_test_for(input, output, module_name)
+    # Callbacks defined in test exist only in the latest world
     Base.invokelatest() do
         test.prepare!(test.context, input)
 
