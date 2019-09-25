@@ -262,7 +262,7 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
             t_vals,
             marker=marker,
             color=color,
-            label=utils.format_tool(tool)
+            label=label
         )
 
         # if there was calculating violations
