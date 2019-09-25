@@ -257,14 +257,17 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
 
         labels.append(label)
 
-        if any(violations):
+        # if there was calculating violations
+        # or crash/timeout
+        if any(violations) or inf_inds:
             # Set markers for correct and incorrect points
             corr_mark_list, incorr_mark_list = [], []
             for i in range(len(n_vals)):
-                if violations[i]:
-                    incorr_mark_list.append(i)
-                else:
-                    corr_mark_list.append(i)
+                if i not in inf_inds:
+                    if violations[i]:
+                        incorr_mark_list.append(i)
+                    else:
+                        corr_mark_list.append(i)
 
             handles += pyplot.plot(
                 n_vals,
@@ -275,13 +278,44 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
                 markevery=corr_mark_list
             )
 
-            # Remove violation mark from black dot place
-            if inf_inds:
-                remove_ind = inf_inds[0] - 1
-                if remove_ind in incorr_mark_list:
-                    incorr_mark_list.remove(remove_ind)
-            
             if incorr_mark_list:
+                # handle cases when there is a single point with violation
+                # between timeout gaps
+                # (then writing additional line marker to distinguish a line)
+                additional_mark_idx = []
+                for i in range(len(incorr_mark_list)):
+                    idx = incorr_mark_list[i]
+                    is_single = (
+                        ( # check left
+                            idx == 0 or
+                            idx - 1 not in incorr_mark_list and
+                            idx - 1 in inf_inds
+                        )
+                        and
+                        ( # check right
+                            idx == len(n_vals) - 1 or
+                            idx + 1 not in incorr_mark_list and
+                            idx + 1 in inf_inds
+                        )
+                    )
+
+                    if is_single:
+                        additional_mark_idx.append(idx)
+
+                if additional_mark_idx:
+                    x_vals = [ n_vals[idx] for idx in additional_mark_idx ]
+                    y_vals = [ t_vals[idx] for idx in additional_mark_idx ]
+                    pyplot.plot(
+                        x_vals,
+                        y_vals,
+                        linestyle="None",
+                        marker="_",
+                        ms=17,
+                        mew=2,
+                        color=color
+                    )
+                
+                # drawing violation markers
                 violation_handle = pyplot.plot(
                     n_vals,
                     t_vals,
@@ -301,30 +335,6 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
                 color=color,
                 label=utils.format_tool(tool)
             )
-
-        # Set place for a black dot if it necessary
-        if len(inf_inds) > 0:
-            last_ind = inf_inds[0] - 1
-            if last_ind > -1:
-                failed_x.append(handles[-1].get_xdata()[last_ind])
-                failed_y.append(handles[-1].get_ydata()[last_ind])
-
-                # Draw small line if the last finite point is the first point
-                # (it is done for distinguish a line of a black dot)
-                if last_ind == 0:
-                    pyplot.plot(
-                        [ n_vals[0] ],
-                        [ t_vals[0] ],
-                        marker=0,
-                        ms=15,
-                        mew=1,
-                        color=color
-                    )
-
-    # Add handle for black dots if it necessary
-    if len(failed_x) > 0:
-        handles += tuple(pyplot.plot(failed_x, failed_y, marker="o", color="k", linestyle="None", label=TERMINATED_LABEL))
-        labels += (TERMINATED_LABEL,)
 
     # Add handle for violation if it necessary
     if violation_handle != None:
