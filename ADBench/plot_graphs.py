@@ -266,8 +266,7 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
         )
 
         # if there was calculating violations
-        # or crash/timeout
-        if any(violations) or inf_inds:
+        if any(violations):
             # Set markers for correct and incorrect points
             incorr_mark_list = []
             for i in range(len(n_vals)):
