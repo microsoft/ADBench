@@ -237,6 +237,7 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
 
     handles, labels = [], []
     violation_x, violation_y = [], []
+    additional_x, additional_y, additional_colors = [], [], []
     violation_handle = None
 
     # Plot results
@@ -275,7 +276,7 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
             )
 
             if incorr_mark_list:
-                if not do_plotly:
+                if do_save or do_show:
                     # handle cases when there is a single point with violation
                     # between timeout gaps
                     # (then write additional line marker to distinguish a line.
@@ -302,18 +303,19 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
                         if is_single:
                             additional_mark_idx.append(idx)
 
+                    # addint coordinates of additional markers
                     if additional_mark_idx:
-                        x_vals = [ n_vals[idx] for idx in additional_mark_idx ]
-                        y_vals = [ t_vals[idx] for idx in additional_mark_idx ]
-                        pyplot.plot(
-                            x_vals,
-                            y_vals,
-                            linestyle="None",
-                            marker="_",
-                            ms=17,
-                            mew=2,
-                            color=color
-                        )
+                        additional_x.append([
+                            n_vals[idx]
+                            for idx in additional_mark_idx
+                        ])
+                        
+                        additional_y.append([
+                            t_vals[idx]
+                            for idx in additional_mark_idx
+                        ])
+
+                        additional_colors.append(color)
                 
                 # adding violation point coordinates
                 for idx in incorr_mark_list:
@@ -365,6 +367,21 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
 
     # Add legend (after plotly to avoid error)
     pyplot.legend(handles, labels, loc=4, bbox_to_anchor=(1, 0))
+
+    # draw additional markers
+    # Note: we do this later than plotly converting because plotly doesn't
+    #       need additional markers
+    for x, y, color in zip(additional_x, additional_y, additional_colors):
+        pyplot.plot(
+            x,
+            y,
+            linestyle="None",
+            marker="_",
+            ms=17,
+            mew=2,
+            color=color,
+            zorder=0
+        )
 
     # Save graph (if selected)
     if do_save:
