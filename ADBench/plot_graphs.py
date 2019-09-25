@@ -257,6 +257,13 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
             label += ALL_TERMINATED_SUFFIX
 
         labels.append(label)
+        handles += pyplot.plot(
+            n_vals,
+            t_vals,
+            marker=marker,
+            color=color,
+            label=utils.format_tool(tool)
+        )
 
         # if there was calculating violations
         # or crash/timeout
@@ -266,14 +273,6 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
             for i in range(len(n_vals)):
                 if i not in inf_inds and violations[i]:
                     incorr_mark_list.append(i)
-
-            handles += pyplot.plot(
-                n_vals,
-                t_vals,
-                marker=marker,
-                color=color,
-                label=utils.format_tool(tool)
-            )
 
             if incorr_mark_list:
                 if do_save or do_show:
@@ -321,15 +320,6 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
                 for idx in incorr_mark_list:
                     violation_x.append(n_vals[idx])
                     violation_y.append(t_vals[idx])
-                
-        else:
-            handles += pyplot.plot(
-                n_vals,
-                t_vals,
-                marker=marker,
-                color=color,
-                label=utils.format_tool(tool)
-            )
 
     # if there was calculating violation add violation markers
     if violation_x:
