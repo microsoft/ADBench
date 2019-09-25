@@ -236,7 +236,7 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
     lines = zip(all_styles, sorted_vals_by_tool)
 
     handles, labels = [], []
-    failed_x, failed_y = [], []
+    violation_x, violation_y = [], []
     violation_handle = None
 
     # Plot results
@@ -315,18 +315,11 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
                             color=color
                         )
                 
-                # drawing violation markers
-                violation_handle = pyplot.plot(
-                    n_vals,
-                    t_vals,
-                    marker="v",
-                    mec="k",
-                    mfc="r",
-                    ms=8,
-                    linestyle="None",
-                    label=VIOLATION_LABEL,
-                    markevery=incorr_mark_list
-                )
+                # adding violation point coordinates
+                for idx in incorr_mark_list:
+                    violation_x.append(n_vals[idx])
+                    violation_y.append(t_vals[idx])
+                
         else:
             handles += pyplot.plot(
                 n_vals,
@@ -336,9 +329,19 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
                 label=utils.format_tool(tool)
             )
 
-    # Add handle for violation if it necessary
-    if violation_handle != None:
-        handles += violation_handle
+    # if there was calculating violation add violation markers
+    if violation_x:
+        handles += pyplot.plot(
+            violation_x,
+            violation_y,
+            marker="v",
+            mec="k",
+            mfc="r",
+            ms=8,
+            linestyle="None",
+            label=VIOLATION_LABEL
+        )
+
         labels.append(VIOLATION_LABEL)
 
     # Setup graph attributes
