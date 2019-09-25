@@ -261,59 +261,59 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
         # or crash/timeout
         if any(violations) or inf_inds:
             # Set markers for correct and incorrect points
-            corr_mark_list, incorr_mark_list = [], []
+            incorr_mark_list = []
             for i in range(len(n_vals)):
-                if i not in inf_inds:
-                    if violations[i]:
-                        incorr_mark_list.append(i)
-                    else:
-                        corr_mark_list.append(i)
+                if i not in inf_inds and violations[i]:
+                    incorr_mark_list.append(i)
 
             handles += pyplot.plot(
                 n_vals,
                 t_vals,
                 marker=marker,
                 color=color,
-                label=utils.format_tool(tool),
-                markevery=corr_mark_list
+                label=utils.format_tool(tool)
             )
 
             if incorr_mark_list:
-                # handle cases when there is a single point with violation
-                # between timeout gaps
-                # (then writing additional line marker to distinguish a line)
-                additional_mark_idx = []
-                for i in range(len(incorr_mark_list)):
-                    idx = incorr_mark_list[i]
-                    is_single = (
-                        ( # check left
-                            idx == 0 or
-                            idx - 1 not in incorr_mark_list and
-                            idx - 1 in inf_inds
+                if not do_plotly:
+                    # handle cases when there is a single point with violation
+                    # between timeout gaps
+                    # (then write additional line marker to distinguish a line.
+                    # In plotly scenario it is not necessary because user
+                    # can turn violation marker off and see the marker of the
+                    # line)
+                    additional_mark_idx = []
+                    for i in range(len(incorr_mark_list)):
+                        idx = incorr_mark_list[i]
+                        is_single = (
+                            ( # check left
+                                idx == 0 or
+                                idx - 1 not in incorr_mark_list and
+                                idx - 1 in inf_inds
+                            )
+                            and
+                            ( # check right
+                                idx == len(n_vals) - 1 or
+                                idx + 1 not in incorr_mark_list and
+                                idx + 1 in inf_inds
+                            )
                         )
-                        and
-                        ( # check right
-                            idx == len(n_vals) - 1 or
-                            idx + 1 not in incorr_mark_list and
-                            idx + 1 in inf_inds
+
+                        if is_single:
+                            additional_mark_idx.append(idx)
+
+                    if additional_mark_idx:
+                        x_vals = [ n_vals[idx] for idx in additional_mark_idx ]
+                        y_vals = [ t_vals[idx] for idx in additional_mark_idx ]
+                        pyplot.plot(
+                            x_vals,
+                            y_vals,
+                            linestyle="None",
+                            marker="_",
+                            ms=17,
+                            mew=2,
+                            color=color
                         )
-                    )
-
-                    if is_single:
-                        additional_mark_idx.append(idx)
-
-                if additional_mark_idx:
-                    x_vals = [ n_vals[idx] for idx in additional_mark_idx ]
-                    y_vals = [ t_vals[idx] for idx in additional_mark_idx ]
-                    pyplot.plot(
-                        x_vals,
-                        y_vals,
-                        linestyle="None",
-                        marker="_",
-                        ms=17,
-                        mew=2,
-                        color=color
-                    )
                 
                 # drawing violation markers
                 violation_handle = pyplot.plot(
