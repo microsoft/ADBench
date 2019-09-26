@@ -2,11 +2,11 @@ include(GoogleTest)
 
 project("ManualTests" CXX)
 add_executable(manualTests "${CMAKE_SOURCE_DIR}/src/cpp/runner/ModuleLoader.cpp" "${CMAKE_SOURCE_DIR}/src/cpp/runner/Filepaths.cpp" "${CMAKE_SOURCE_DIR}/src/cpp/shared/utils.cpp")
-target_sources("manualTests" PUBLIC "ModuleTest.cpp")
-target_sources("manualTests" PUBLIC "GmmTests.cpp")
-target_sources("manualTests" PUBLIC "BaTests.cpp")
-target_sources("manualTests" PUBLIC "HandTests.cpp")
-target_sources("manualTests" PUBLIC "LstmTests.cpp")
+target_sources("manualTests" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/ModuleTest.cpp")
+target_sources("manualTests" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/GmmTests.cpp")
+target_sources("manualTests" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/BaTests.cpp")
+target_sources("manualTests" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/HandTests.cpp")
+target_sources("manualTests" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/LstmTests.cpp")
 
 if (UNIX)
 	#link library to work with shared libraries
