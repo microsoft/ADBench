@@ -1,6 +1,7 @@
 module BAData
 
-export BAInput, BASparseMatrix, BAOutput, insert_reproj_err_block!, insert_w_err_block!, empty_ba_output, load_ba_input
+export BAInput, BASparseMatrix, BAOutput, insert_reproj_err_block!, insert_w_err_block!, empty_ba_output, load_ba_input,
+    N_CAM_PARAMS, ROT_IDX, C_IDX, F_IDX, X0_IDX, RAD_IDX
 
 const N_CAM_PARAMS = 11
 const ROT_IDX = 1
@@ -44,12 +45,12 @@ struct BASparseMatrix
 end
 
 mutable struct BAOutput
-    reproj_err::Vector{Float64}
+    reproj_err::Matrix{Float64}
     w_err::Vector{Float64}
     jacobian::BASparseMatrix
 end
 
-empty_ba_output() = BAOutput([], [], BASparseMatrix(0, 0, 0))
+empty_ba_output() = BAOutput(Array{Float64}(undef, 0, 0), [], BASparseMatrix(0, 0, 0))
 
 function insert_reproj_err_block!(matrix::BASparseMatrix, obsIdx::Int, camIdx::Int, ptIdx::Int, J::Vector{Float64})
     n_new_cols = N_CAM_PARAMS + 3 + 1
