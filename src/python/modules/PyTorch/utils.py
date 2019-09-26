@@ -57,33 +57,43 @@ def torch_jacobian(func, inputs, params = None, flatten = True):
             differentiated.
         params (tuple of torch tensors, optional): function inputs by which it
             is doesn't differentiated. Defaults to None.
+        flatten (bool, optional): if True then jacobian will be written in
+            1D array row-major. Defaults to True.
 
     Returns:
         torch tensor, torch tensor: function result and function jacobian.
-            Note that jacobian is stored in a 1D tensor column-major.
     '''
 
-    def recurse_backwards(output, inputs, J):
+    def recurse_backwards(output, inputs, J, flatten):
         '''Recursively calls .backward on multi-dimensional output.'''
 
-        def get_flatten(tensor):
+        def get_grad(tensor, flatten):
             '''Returns tensor gradient flatten representation. Added for
             performing concatenation of scalar tensors gradients.'''
 
             if tensor.dim() > 0:
-                return tensor.grad.flatten()
+                if flatten:
+                    return tensor.grad.flatten()
+                else:
+                    return tensor.grad
             else:
                 return tensor.grad.view(1)
 
 
         if output.dim() > 0:
             for item in output:
-                recurse_backwards(item, inputs, J)
+                recurse_backwards(item, inputs, J, flatten)
         else:
             for inp in inputs:
                 inp.grad = None
             output.backward(retain_graph = True)
-            J.append(torch.cat(list(get_flatten(inp) for inp in inputs)))
+
+            if True:
+                J.append(torch.cat(
+                    list(get_grad(inp, True) for inp in inputs)
+                ))
+            else:
+                J.append(list(get_grad(inp, False) for inp in inputs))
 
 
     if params != None:
@@ -92,7 +102,10 @@ def torch_jacobian(func, inputs, params = None, flatten = True):
         res = func(*inputs)
 
     J = []
-    recurse_backwards(res, inputs, J)
-    J = torch.stack(J).t().flatten()
+    recurse_backwards(res, inputs, J, flatten)
+
+    J = torch.stack(J)
+    if flatten:
+        J = J.t().flatten()
 
     return res, J
