@@ -17,7 +17,7 @@ class PyTorchHand(ITest):
         any others.'''
 
         self.bone_count = input.data.model.bone_count
-        self.nrows = 3 * len(input.data.correspondences)
+        nrows = 3 * len(input.data.correspondences)
         self.complicated = len(input.us) > 0
 
         if self.complicated:
@@ -25,7 +25,6 @@ class PyTorchHand(ITest):
                 np.append(input.us.flatten(), input.theta),
                 grad_req = True
             )
-
             self.params = (
                 self.bone_count,
                 to_torch_tensor(input.data.model.parents, dtype = torch.int32),
@@ -43,8 +42,7 @@ class PyTorchHand(ITest):
             )
 
             self.objective_function = hand_objective_complicated
-            self.ncols = len(input.theta) + 2
-            self.us_count = len(input.us)
+            ncols = len(input.theta) + 2
         else:
             self.inputs = to_torch_tensor(
                 input.theta,
@@ -64,19 +62,17 @@ class PyTorchHand(ITest):
             )
 
             self.objective_function = hand_objective
-            self.ncols = len(input.theta)
+            ncols = len(input.theta)
 
-        self.objective = torch.zeros(self.nrows)
-        self.jacobian = torch.zeros(self.nrows * self.ncols)
+        self.objective = torch.zeros(nrows)
+        self.jacobian = torch.zeros([ nrows, ncols ])
 
     def output(self):
         '''Returns calculation result.'''
 
         return HandOutput(
             self.objective.detach().flatten().numpy(),
-            self.jacobian.detach().numpy(),
-            self.ncols,
-            self.nrows
+            self.jacobian.detach().numpy()
         )
     
     def calculate_objective(self, times):
@@ -95,26 +91,30 @@ class PyTorchHand(ITest):
             self.objective, J = torch_jacobian(
                 self.objective_function,
                 ( self.inputs, ),
-                self.params
+                self.params,
+                False
             )
 
             if self.complicated:
-                start = (self.ncols - 2) * self.nrows
-                finish = self.nrows * (2 * self.us_count + self.ncols - 2)
-                step = 2 * self.nrows + 3
+                # getting us part of jacobian
+                # Note: jacobian has the next structure:
+                #
+                #   [us_part theta_part]
+                #
+                # where in us part is a block diagonal matrix with blocks of
+                # size [3, 2]
+                n_rows, n_cols = J.shape
+                us_J = torch.empty([ n_rows, 2 ])
+                for i in range(n_rows // 3):
+                    for k in range(3):
+                        us_J[3 * i + k] = J[3 * i + k][2 * i: 2 * i + 2]
 
-                us_J = [
-                    torch.cat((
-                        J[i:i + 3],
-                        J[i + self.nrows:i + self.nrows + 3]
-                    ))
-                    for i in range(start, finish, step)
-                ]
+                us_count = 2 * n_rows // 3
+                theta_count = n_cols - us_count
+                theta_J = torch.empty([ n_rows, theta_count ])
+                for i in range(n_rows):
+                    theta_J[i] = J[i][us_count:]
 
-                us_J = torch.cat(us_J)
-                self.jacobian = torch.cat((
-                    J[:self.nrows * (self.ncols - 2)],
-                    us_J
-                ))
+                self.jacobian = torch.cat(( us_J, theta_J), 1)
             else:
                 self.jacobian = J
