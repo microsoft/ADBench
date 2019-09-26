@@ -151,7 +151,7 @@ function zygote_J_to_packed_J(J, k, d)
     icf_unpacked = map(1:k) do Q_idx
         Q = J[3][:, :, Q_idx]
         lt_cols = map(1:d-1) do col
-            Q[col + 1, col+1:d]
+            Q[col+1:d, col]
         end
         vcat(diag(Q), lt_cols...)
     end
