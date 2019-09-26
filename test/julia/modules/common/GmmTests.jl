@@ -34,11 +34,15 @@ using TestUtils
             # Module loads
             @test isa(test, ADPerfTest.Test{GMMInput,GMMOutput})
             input = load_gmm_input("$dir/../../../../data/gmm/test.txt", false)
+            output = empty_gmm_output()
             test.prepare!(test.context, input)
             test.calculate_objective!(test.context, 1)
-            output = empty_gmm_output()
             test.output!(output, test.context)
             # Objective is calculated correctly
+            @test 8.07380408004975791e+00 ≈ output.objective atol=tolerance
+            test.calculate_objective!(test.context, 3)
+            test.output!(output, test.context)
+            # Objective is calculated correctly for times = 3
             @test 8.07380408004975791e+00 ≈ output.objective atol=tolerance
             test.calculate_jacobian!(test.context, 1)
             test.output!(output, test.context)

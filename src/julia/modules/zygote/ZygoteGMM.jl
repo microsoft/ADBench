@@ -19,25 +19,25 @@ sumsq(v) = sum(abs2, v)
 
 function ltri_unpack(D, LT)
     d = length(D)
-    make_row(r::Int, L) = hcat(reshape([L[i] for i=1:r-1], 1, r - 1), D[r], zeros(1, d - r))
-    row_start(r::Int) = (r - 1) * (r - 2) ÷ 2
-    inds(r) = row_start(r) .+ (1:r-1)
-    vcat([make_row(r, LT[inds(r)]) for r=1:d]...)
+    make_col(r::Int, L) = vcat(zeros(r - 1), D[r], reshape([L[i] for i=1:d-r], d - r))
+    col_start(r::Int) = (r - 1) * (2d - r) ÷ 2
+    inds(r) = col_start(r) .+ (1:d-r)
+    hcat([make_col(r, LT[inds(r)]) for r=1:d]...)
 end
-  
+
 function get_Q(d, icf)
     ltri_unpack(exp.(icf[1:d]), icf[d+1:end])
 end
-  
+
 function get_Q_zygote(d, icf)
     ltri_unpack((icf[1:d]), icf[d+1:end])
 end
-  
+
 # Gradient helpers
 function pack(alphas, means, icf)
     [alphas[:]; means[:]; icf[:]]
 end
-  
+
 function unpack(d, k, packed)
     alphas = reshape(packed[1:k], 1, k)
     off = k
@@ -47,22 +47,22 @@ function unpack(d, k, packed)
     icf = reshape(packed[off+1:end], icf_sz, k)
     (alphas, means, icf)
 end
-  
+
 function log_gamma_distrib(a, p)
     out = 0.25 * p * (p - 1) * 1.1447298858494002 #convert(Float64, log(pi))
-    out += sum(j -> loggamma(a + 0.5 * (1 - j)), 1:p) 
+    out += sum(j -> loggamma(a + 0.5 * (1 - j)), 1:p)
     out
 end
 
 @adjoint function loggamma(x)
     loggamma(x), Δ -> (Δ * digamma(x),)
 end
-  
+
 function log_wishart_prior_zygote(wishart::Wishart, sum_qs, Qs, k)
     p = size(Qs, 1)
     n = p + wishart.m + 1
     C = n * p * (log(wishart.gamma) - 0.5 * log(2)) - log_gamma_distrib(0.5 * n, p)
-  
+
     frobenius = sum(abs2, Qs)
 	0.5 * wishart.gamma^2 * frobenius - wishart.m * sum(sum_qs) - k * C
 end
@@ -70,7 +70,7 @@ end
 function diagsums(Qs)
     mapslices(slice -> sum(diag(slice)), Qs; dims=[1, 2])
 end
-  
+
 @adjoint function diagsums(Qs)
     diagsums(Qs),
     function (Δ)
@@ -83,14 +83,14 @@ end
         (Δ′,)
     end
 end
-  
+
 function expdiags(Qs)
     mapslices(Qs; dims=[1, 2]) do slice
         slice[diagind(slice)] .= exp.(slice[diagind(slice)])
         slice
     end
 end
-  
+
 @adjoint function expdiags(Qs)
     expdiags(Qs),
     function (Δ)
@@ -104,7 +104,7 @@ end
         (Δ′,)
     end
 end
-  
+
 function unzip(tuples)
     map(1:length(first(tuples))) do i
         map(tuple -> tuple[i], tuples)
@@ -121,9 +121,9 @@ end
         (Δf, Δf_and_args[2:end]...)
     end
 end
-  
+
 Base.:*(::Float64, ::Nothing) = nothing
-  
+
 function gmm_objective(alphas, means, Qs, x, wishart::Wishart)
     d = size(x, 1)
     n = size(x, 2)
@@ -131,9 +131,7 @@ function gmm_objective(alphas, means, Qs, x, wishart::Wishart)
     CONSTANT = -n * d * 0.5 * log(2 * pi)
     sum_qs = reshape(diagsums(Qs), 1, size(Qs, 3))
     Qs = expdiags(Qs)
-  
-    main_term = zeros(Float64, 1, k)
-  
+
     slse = 0.
     for ix=1:n
         formula(ik) = -0.5 * sum(abs2, Qs[:, :, ik] * (x[:,ix] .- means[:, ik]))
@@ -143,7 +141,7 @@ function gmm_objective(alphas, means, Qs, x, wishart::Wishart)
         end
         slse += log(sumexp)
     end
-  
+
     CONSTANT + slse - n * logsumexp(alphas) + log_wishart_prior_zygote(wishart, sum_qs, Qs, k)
 end
 
@@ -152,10 +150,10 @@ function zygote_J_to_packed_J(J, k, d)
     means = reshape(J[2], :)
     icf_unpacked = map(1:k) do Q_idx
         Q = J[3][:, :, Q_idx]
-        lt_rows = map(2:d) do row
-            Q[row, 1:row-1]
+        lt_cols = map(1:d-1) do col
+            Q[col + 1, col+1:d]
         end
-        vcat(diag(Q), lt_rows...)
+        vcat(diag(Q), lt_cols...)
     end
     icf = collect(Iterators.flatten(icf_unpacked))
     packed_J = vcat(alphas, means, icf)
@@ -175,13 +173,13 @@ function zygote_gmm_prepare!(ctx::ZygoteGMMContext, input::GMMInput)
     # of gradient on a given function is very long.
     # Using test input ensures that all computations related to the actual input
     # are done in calculate_jacobian!
-    testinput = load_gmm_input("$(@__DIR__)/../../../../data/gmm/test.txt", false)
-    testd = size(testinput.x, 1)
-    testk = size(testinput.means, 2)
-    testQs = cat([get_Q_zygote(testd, testinput.icfs[:, ik]) for ik in 1:testk]...; dims=[3])
-    test_wrapper_gmm_objective = (alphas, means, Qs) -> gmm_objective(alphas, means, Qs, testinput.x, testinput.wishart)
-    Zygote.gradient(test_wrapper_gmm_objective, testinput.alphas, testinput.means, testQs)
-    
+    #testinput = load_gmm_input("$(@__DIR__)/../../../../data/gmm/test.txt", false)
+    #testd = size(testinput.x, 1)
+    #testk = size(testinput.means, 2)
+    #testQs = cat([get_Q_zygote(testd, testinput.icfs[:, ik]) for ik in 1:testk]...; dims=[3])
+    #test_wrapper_gmm_objective = (alphas, means, Qs) -> gmm_objective(alphas, means, Qs, testinput.x, testinput.wishart)
+    #Zygote.gradient(test_wrapper_gmm_objective, testinput.alphas, testinput.means, testQs)
+
     ctx.input = input
     d = size(input.x, 1)
     k = size(input.means, 2)
