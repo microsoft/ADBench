@@ -132,6 +132,31 @@ def vals_by_tool(objective, graph_files):
 
         yield (tool, n_vals, t_vals)
 
+
+
+if "--help" in sys.argv or "-h" in sys.argv or "-?" in sys.argv:
+    ref_msg = f'''
+This script produces graphs that visualize benchmark.
+CMD arguments:
+    --save
+            if specified then script saves produced graphs to
+            {static_out_dir}
+
+    --plotly
+            if specified then script saves graphs in plotly format to
+            {plotly_out_dir}
+
+    --show
+            if specified then script shows produced graphs on the
+            screen. Note, that this is default option if --save or
+            --plotly are not defined.
+
+    --help, -h, -?
+            show this message
+'''
+    print(ref_msg)
+    sys.exit(0)
+
 # Loop through each of graphs to be created
 for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
     build_type = graph[0]
