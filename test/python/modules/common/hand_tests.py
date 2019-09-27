@@ -3,34 +3,29 @@ import numpy as np
 import sys
 import os
 
-# adding folder with files for importing
-sys.path.append(
-    os.path.abspath(os.path.join(
-        os.path.abspath(os.path.dirname(__file__)),
-        "..",
-        "..",
-        "..",
-        "..",
-        "src",
-        "python"
-    ))
-)
+# root directory of the whole project
+ROOT = os.path.abspath(os.path.join(
+    os.path.abspath(os.path.dirname(__file__)),
+    "..",
+    "..",
+    "..",
+    ".."
+))
+
+# root directory of the python source
+PYTHON_ROOT = os.path.join(ROOT, "src", "python")
+
+# adding python src root directory for importing
+sys.path.append(PYTHON_ROOT)
 
 from runner.ModuleLoader import module_load
 from shared.input_utils import read_hand_instance
 import utils
 
+
+
 # root directory of python modules
-MODULES_DIR = os.path.abspath(os.path.join(
-    os.path.abspath(os.path.dirname(__file__)),
-    "..",
-    "..",
-    "..",
-    "..",
-    "src",
-    "python",
-    "modules"
-))
+MODULES_ROOT = os.path.join(PYTHON_ROOT, "modules")
 
 
 
@@ -490,7 +485,7 @@ class PythonModuleCommonHandTests(utils.BaseTestClass):
 
     # main test functions
     def setUp(self):
-        module_path = os.path.join(MODULES_DIR, self.params["path"])
+        module_path = os.path.join(MODULES_ROOT, self.params["path"])
         self.test = module_load(module_path)
         self.assertIsNotNone(self.test)
 
