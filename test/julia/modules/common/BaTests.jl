@@ -65,7 +65,7 @@ using TestUtils
             # Objective runs multiple times
             @test can_objective_run_multiple_times!(test.context, test.calculate_objective!)
             # Jacobian runs multiple times
-            #@test can_objective_run_multiple_times!(test.context, test.calculate_jacobian!)
+            @test can_objective_run_multiple_times!(test.context, test.calculate_jacobian!)
         finally
             pop!(LOAD_PATH)
         end
