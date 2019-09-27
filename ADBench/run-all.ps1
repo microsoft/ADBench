@@ -326,7 +326,7 @@ Class Tool {
         } elseif ($this.type -eq [ToolType]::julia_tool) {
             $objective = $objective.ToLower().Replace("-", "_")
             $cmd = "julia"
-            $cmdargs = @("$script:dir/tools/$($this.name)/${objective}_F.jl") + $cmdargs
+            $cmdargs = @("--project=$script:dir", "$script:dir/tools/$($this.name)/${objective}_F.jl") + $cmdargs
         } elseif ($this.type -eq [ToolType]::matlab) {
             $objective = $objective.ToLower().Replace("-", "_")
             $cmd = "matlab"
