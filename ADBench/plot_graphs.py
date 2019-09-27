@@ -22,8 +22,8 @@ if do_show:
     print("WARNING: `--show` enabled. This script can produce a lot of graphs and you may not wish to display all of them.\n")
 
 # Script constants
-TIMES_SUBSTRING = "times"
-CORRECTNESS_SUBSTRING = "correctness"
+TIMES_SUBSTRING = "_times_"
+CORRECTNESS_SUBSTRING = "_correctness_"
 
 VIOLATION_LABEL = "Wrong calculation result"
 TERMINATED_LABEL = "Crashed/Terminated"
