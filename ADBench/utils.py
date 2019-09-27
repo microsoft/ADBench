@@ -62,7 +62,7 @@ def cap_str(s):
 
 # Extract filename (no ext) from path
 def get_fn(path):
-    return path[-1].split(".")[0]
+    return os.path.splitext(path[-1])[0]
 
 
 # Extract tool name from filename
