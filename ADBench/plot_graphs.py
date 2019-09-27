@@ -22,7 +22,7 @@ if do_show:
     print("WARNING: `--show` enabled. This script can produce a lot of graphs and you may not wish to display all of them.\n")
 
 # Script constants
-TIMES_SUBSTRING = "times"
+TIMES_SUBSTRING = "_times_"
 
 figure_size = (9, 6) if do_plotly else (12, 8)
 fig_dpi = 96
