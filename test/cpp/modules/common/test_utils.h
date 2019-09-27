@@ -25,7 +25,7 @@ bool can_objective_run_multiple_times(ITest<Input, Output>& test, const test_mem
         minimum_measurable_time = std::max(minimum_measurable_time * 2, result.total_time * 2);
         result = find_repeats_for_minimum_measurable_time(minimum_measurable_time, test, func);
     }
-    std::cout << result.repeats << std::endl;
+
     return result.repeats != measurable_time_not_achieved;
 }
 
