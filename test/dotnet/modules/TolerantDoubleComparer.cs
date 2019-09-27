@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace DotnetTests
+namespace DotnetModulesTests
 {
     class TolerantDoubleComparer : IEqualityComparer<double>
     {
