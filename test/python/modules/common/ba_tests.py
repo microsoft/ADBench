@@ -147,7 +147,7 @@ class PythonModuleCommonBATests(utils.BaseTestClass):
         self.jacobian_calculation_correctness(3)
 
     def test_objective_runs_multiple_times(self):
-        '''Checks if objective can be calculated nultiple times.'''
+        '''Checks if objective can be calculated multiple times.'''
 
         input = read_ba_instance("batest.txt")
         self.test.prepare(input)
@@ -156,7 +156,7 @@ class PythonModuleCommonBATests(utils.BaseTestClass):
         self.assertTrue(utils.can_objective_run_multiple_times(func))
 
     def test_jacobian_runs_multiple_times(self):
-        '''Checks if jacobian can be calculated nultiple times.'''
+        '''Checks if jacobian can be calculated multiple times.'''
 
         input = read_ba_instance("batest.txt")
         self.test.prepare(input)
