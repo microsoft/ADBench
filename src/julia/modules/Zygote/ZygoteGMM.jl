@@ -3,7 +3,6 @@ include("../../shared/load.jl")
 using ADPerfTest
 using GMMData
 using Zygote
-using Zygote: @adjoint
 using SpecialFunctions
 using LinearAlgebra
 
@@ -33,7 +32,7 @@ function log_gamma_distrib(a, p)
     out
 end
 
-@adjoint function loggamma(x)
+Zygote.@adjoint function loggamma(x)
     loggamma(x), Δ -> (Δ * digamma(x),)
 end
 
@@ -50,7 +49,7 @@ function diagsums(Qs)
     mapslices(slice -> sum(diag(slice)), Qs; dims=[1, 2])
 end
 
-@adjoint function diagsums(Qs)
+Zygote.@adjoint function diagsums(Qs)
     diagsums(Qs),
     function (Δ)
         Δ′ = zero(Qs)
@@ -70,7 +69,7 @@ function expdiags(Qs)
     end
 end
 
-@adjoint function expdiags(Qs)
+Zygote.@adjoint function expdiags(Qs)
     expdiags(Qs),
     function (Δ)
         Δ′ = zero(Qs)
@@ -90,7 +89,7 @@ function unzip(tuples)
     end
 end
 
-@adjoint function map(f, args...)
+Zygote.@adjoint function map(f, args...)
     ys_and_backs = map((args...) -> Zygote._forward(__context__, f, args...), args...)
     ys, backs = unzip(ys_and_backs)
     ys, function (Δ)
