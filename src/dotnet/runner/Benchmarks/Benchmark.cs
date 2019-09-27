@@ -7,64 +7,9 @@ namespace DotnetRunner.Benchmarks
 {
     public struct DefaultParameters { };
 
-    public abstract class Benchmark<Input, Output, Parameters>
+    public abstract class Benchmark
     {
         public static readonly int MeasurableTimeNotAchieved = -1;
-
-        public void Run(string modulePath, string inputFilePath, string outputPrefix, TimeSpan minimumMeasurableTime, int nrunsF, int nrunsJ,
-                   TimeSpan timeLimit, Parameters parameters)
-        {
-            var moduleLoader = new ModuleLoader(modulePath);
-            var test = GetTest(moduleLoader);
-            var inputs = ReadInputData(inputFilePath, parameters);
-
-            test.Prepare(inputs);
-
-            var objectiveTime =
-                MeasureShortestTime(minimumMeasurableTime, nrunsF, timeLimit, test.CalculateObjective);
-
-            var derivativeTime =
-                MeasureShortestTime(minimumMeasurableTime, nrunsF, timeLimit, test.CalculateJacobian);
-
-            var output = test.Output();
-
-            var inputBasename = Path.GetFileNameWithoutExtension(inputFilePath);
-            var moduleBasename = Path.GetFileNameWithoutExtension(modulePath);
-
-            SavingOutput.SaveTimeToFile(outputPrefix + inputBasename + "_times_" + moduleBasename + ".txt", objectiveTime, derivativeTime);
-            SaveOutputToFile(output, outputPrefix, inputBasename, moduleBasename);
-        }
-
-        protected abstract void SaveOutputToFile(Output output, string outputPrefix, string input_basename, string module_basename);
-
-        public static TimeSpan MeasureShortestTime(TimeSpan minimumMeasurableTime, int nruns, TimeSpan timeLimit, Action<int> func)
-        {
-            var findRepeatsResult = FindRepeatsForMinimumMeasurableTime(minimumMeasurableTime, func);
-
-            if (findRepeatsResult.Repeats == MeasurableTimeNotAchieved)
-            {
-                throw new Exception("It was not possible to reach the number of repeats sufficient to achieve the minimum measurable time.");
-            }
-
-            var repeats = findRepeatsResult.Repeats;
-            var minSample = findRepeatsResult.Sample;
-            var totalTime = findRepeatsResult.TotalTime;
-
-            var sw = new System.Diagnostics.Stopwatch();
-            // "run" begins from 1 because a first run already done by "findRepeatsForMinimumMeasurableTime" function
-            for (var run = 1; (run < nruns) && (totalTime < timeLimit); run++)
-            {
-                sw.Start();
-                func(repeats);
-                sw.Stop();
-                //Time in seconds
-                var currentRunTime = sw.Elapsed;
-                minSample = new TimeSpan(Math.Min(minSample.Ticks, currentRunTime.Ticks / repeats));
-                totalTime += currentRunTime;
-            }
-
-            return minSample;
-        }
 
         private const int maxPossiblePowerOfTwo = (int.MaxValue >> 1) + 1;
         public static (int Repeats, TimeSpan Sample, TimeSpan TotalTime) FindRepeatsForMinimumMeasurableTime(TimeSpan minimumMeasurableTime, Action<int> func)
@@ -101,7 +46,65 @@ namespace DotnetRunner.Benchmarks
             return (repeats, minSample, totalTime);
         }
 
+        public static TimeSpan MeasureShortestTime(TimeSpan minimumMeasurableTime, int nruns, TimeSpan timeLimit, Action<int> func)
+        {
+            var findRepeatsResult = FindRepeatsForMinimumMeasurableTime(minimumMeasurableTime, func);
+
+            if (findRepeatsResult.Repeats == MeasurableTimeNotAchieved)
+            {
+                throw new Exception("It was not possible to reach the number of repeats sufficient to achieve the minimum measurable time.");
+            }
+
+            var repeats = findRepeatsResult.Repeats;
+            var minSample = findRepeatsResult.Sample;
+            var totalTime = findRepeatsResult.TotalTime;
+
+            var sw = new System.Diagnostics.Stopwatch();
+            // "run" begins from 1 because a first run already done by "findRepeatsForMinimumMeasurableTime" function
+            for (var run = 1; (run < nruns) && (totalTime < timeLimit); run++)
+            {
+                sw.Start();
+                func(repeats);
+                sw.Stop();
+                //Time in seconds
+                var currentRunTime = sw.Elapsed;
+                minSample = new TimeSpan(Math.Min(minSample.Ticks, currentRunTime.Ticks / repeats));
+                totalTime += currentRunTime;
+            }
+
+            return minSample;
+        }
+    }
+
+    public abstract class Benchmark<Input, Output, Parameters>:Benchmark
+    {
         protected abstract Input ReadInputData(string inputFilePath, Parameters parameters);
+
+        public void Run(string modulePath, string inputFilePath, string outputPrefix, TimeSpan minimumMeasurableTime, int nrunsF, int nrunsJ,
+                   TimeSpan timeLimit, Parameters parameters)
+        {
+            var moduleLoader = new ModuleLoader(modulePath);
+            var test = GetTest(moduleLoader);
+            var inputs = ReadInputData(inputFilePath, parameters);
+
+            test.Prepare(inputs);
+
+            var objectiveTime =
+                MeasureShortestTime(minimumMeasurableTime, nrunsF, timeLimit, test.CalculateObjective);
+
+            var derivativeTime =
+                MeasureShortestTime(minimumMeasurableTime, nrunsF, timeLimit, test.CalculateJacobian);
+
+            var output = test.Output();
+
+            var inputBasename = Path.GetFileNameWithoutExtension(inputFilePath);
+            var moduleBasename = Path.GetFileNameWithoutExtension(modulePath);
+
+            SavingOutput.SaveTimeToFile(outputPrefix + inputBasename + "_times_" + moduleBasename + ".txt", objectiveTime, derivativeTime);
+            SaveOutputToFile(output, outputPrefix, inputBasename, moduleBasename);
+        }
+
+        protected abstract void SaveOutputToFile(Output output, string outputPrefix, string input_basename, string module_basename);
 
         protected abstract ITest<Input, Output> GetTest(ModuleLoader moduleLoader);
     }
