@@ -18,7 +18,7 @@ from unittest.mock import Mock
 from time import sleep
 from math import ceil
 
-from runner.ModuleLoader import ModuleLoader
+from runner.ModuleLoader import module_load
 from runner.Benchmark import    measure_shortest_time,\
                                 find_repeats_for_minimum_measurable_time,\
                                 measurable_time_not_achieved
@@ -28,8 +28,7 @@ class PythonRunnerTests(unittest.TestCase):
     def test_ModuleLoad(self):
         module_path = path.join(
         path.abspath(path.dirname(__file__)), "MockModule.py")
-        module_loader = ModuleLoader(module_path)
-        test = module_loader.get_test()
+        test = module_load(module_path)
         self.assertIsNotNone(test)
 
     def test_TimeLimit(self):
