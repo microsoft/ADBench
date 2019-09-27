@@ -410,4 +410,8 @@ if __name__ == "__main__":
             params = param_set
         ))
 
-    unittest.TextTestRunner(verbosity = 2).run(suite)
+    res = unittest.TextTestRunner(verbosity = 2).run(suite)
+    if res.wasSuccessful():
+        sys.exit(0)
+    else:
+        sys.exit(1)
