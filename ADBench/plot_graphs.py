@@ -24,6 +24,8 @@ if do_show:
 # Script constants
 TIMES_SUBSTRING = "_times_"
 
+TERMINATED_LABEL = "Crashed/Terminated"
+
 figure_size = (9, 6) if do_plotly else (12, 8)
 fig_dpi = 96
 save_dpi = 144
@@ -178,8 +180,8 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
         failed_y.append(handle.get_ydata()[last_ind])
         #handles += pyplot.plot(handle.get_xdata()[last_ind], handle.get_ydata()[last_ind], marker="o", color=(0, 0, 0), linestyle="None", label="Crashed/Terminated")
     if len(failed_x) > 0:
-        handles += tuple(pyplot.plot(failed_x, failed_y, marker="o", color="k", linestyle="None", label="Crashed/Terminated"))
-        labels += ("Crashed/Terminated",)
+        handles += tuple(pyplot.plot(failed_x, failed_y, marker="o", color="k", linestyle="None", label=TERMINATED_LABEL))
+        labels += (TERMINATED_LABEL,)
 
     # Setup graph attributes
     pyplot.title(graph_name)
