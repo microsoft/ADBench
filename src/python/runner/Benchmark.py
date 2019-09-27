@@ -1,7 +1,7 @@
 import time, sys
 from collections import namedtuple
 
-from runner.ModuleLoader import ModuleLoader
+from runner.ModuleLoader import module_load
 from shared import GMMData
 from shared import BAData
 from shared import HandData
@@ -68,8 +68,7 @@ def measure_shortest_time(minimum_measurable_time, nruns, time_limit, func):
 # Performs the entire benchmark process according to the documentation
 def run_benchmark(module_path, input_filepath, _input, output_prefix, minimum_measurable_time, nruns_F, nruns_J, time_limit):
 
-    module_loader = ModuleLoader(module_path)
-    test = module_loader.get_test()
+    test = module_load(module_path)
 
     test.prepare(_input)
 
