@@ -107,7 +107,7 @@ function load_ba_input(fn::AbstractString)::BAInput
     off += 1
   
     one_w = parse(Float64,lines[off])
-    w = repeat([one_w],1,p)
+    w = repeat([one_w],p)
     off += 1
   
     one_feat = zeros(Float64,2,1)
