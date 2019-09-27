@@ -27,7 +27,8 @@ class PythonRunnerTests(unittest.TestCase):
 
     def test_ModuleLoad(self):
         module_path = path.join(
-        path.abspath(path.dirname(__file__)), "MockModule.py")
+            path.abspath(path.dirname(__file__)),
+            "MockModule.py")
         test = module_load(module_path)
         self.assertIsNotNone(test)
 
