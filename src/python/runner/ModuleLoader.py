@@ -3,6 +3,10 @@ from os.path import split
 
 class ModuleLoader:
     def __init__(self, module_path):
+        '''
+        Args:
+            module_path (str): absolute path to the module.
+        '''
         self.test = None
         self._class = None
         self.module_path = module_path
