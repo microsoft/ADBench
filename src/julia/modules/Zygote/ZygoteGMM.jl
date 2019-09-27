@@ -15,8 +15,6 @@ function logsumexp(x)
     log(sum(exp.(x .- mx))) + mx
 end
 
-sumsq(v) = sum(abs2, v)
-
 function ltri_unpack(D, LT)
     d = length(D)
     make_col(r::Int, L) = vcat(zeros(r - 1), D[r], reshape([L[i] for i=1:d-r], d - r))
@@ -26,26 +24,7 @@ function ltri_unpack(D, LT)
 end
 
 function get_Q(d, icf)
-    ltri_unpack(exp.(icf[1:d]), icf[d+1:end])
-end
-
-function get_Q_zygote(d, icf)
     ltri_unpack((icf[1:d]), icf[d+1:end])
-end
-
-# Gradient helpers
-function pack(alphas, means, icf)
-    [alphas[:]; means[:]; icf[:]]
-end
-
-function unpack(d, k, packed)
-    alphas = reshape(packed[1:k], 1, k)
-    off = k
-    means = reshape(packed[(1:d*k) .+ off], d, k)
-    icf_sz = d * (d + 1) ÷ 2
-    off += d * k
-    icf = reshape(packed[off+1:end], icf_sz, k)
-    (alphas, means, icf)
 end
 
 function log_gamma_distrib(a, p)
@@ -58,7 +37,7 @@ end
     loggamma(x), Δ -> (Δ * digamma(x),)
 end
 
-function log_wishart_prior_zygote(wishart::Wishart, sum_qs, Qs, k)
+function log_wishart_prior(wishart::Wishart, sum_qs, Qs, k)
     p = size(Qs, 1)
     n = p + wishart.m + 1
     C = n * p * (log(wishart.gamma) - 0.5 * log(2)) - log_gamma_distrib(0.5 * n, p)
@@ -142,7 +121,7 @@ function gmm_objective(alphas, means, Qs, x, wishart::Wishart)
         slse += log(sumexp)
     end
 
-    CONSTANT + slse - n * logsumexp(alphas) + log_wishart_prior_zygote(wishart, sum_qs, Qs, k)
+    CONSTANT + slse - n * logsumexp(alphas) + log_wishart_prior(wishart, sum_qs, Qs, k)
 end
 
 function zygote_J_to_packed_J(J, k, d)
@@ -176,14 +155,14 @@ function zygote_gmm_prepare!(ctx::ZygoteGMMContext, input::GMMInput)
     testinput = load_gmm_input("$(@__DIR__)/../../../../data/gmm/test.txt", false)
     testd = size(testinput.x, 1)
     testk = size(testinput.means, 2)
-    testQs = cat([get_Q_zygote(testd, testinput.icfs[:, ik]) for ik in 1:testk]...; dims=[3])
+    testQs = cat([get_Q(testd, testinput.icfs[:, ik]) for ik in 1:testk]...; dims=[3])
     test_wrapper_gmm_objective = (alphas, means, Qs) -> gmm_objective(alphas, means, Qs, testinput.x, testinput.wishart)
     Zygote.gradient(test_wrapper_gmm_objective, testinput.alphas, testinput.means, testQs)
 
     ctx.input = input
     d = size(input.x, 1)
     k = size(input.means, 2)
-    ctx.Qs = cat([get_Q_zygote(d, input.icfs[:, ik]) for ik in 1:k]...; dims=[3])
+    ctx.Qs = cat([get_Q(d, input.icfs[:, ik]) for ik in 1:k]...; dims=[3])
     ctx.wrapper_gmm_objective = (alphas, means, Qs) -> gmm_objective(alphas, means, Qs, input.x, input.wishart)
 end
 
