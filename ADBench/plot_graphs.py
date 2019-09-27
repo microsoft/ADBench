@@ -94,10 +94,10 @@ def read_vals(objective, graph_files, tool):
             for path in tool_files]
 
     # Sort values
-    times_sorted = sorted(info, key=lambda t: t[0])
-    n_vals = list(map(lambda t: t[0], times_sorted))
-    t_objective_vals = list(map(lambda t: t[1][0], times_sorted))
-    t_jacobian_vals = list(map(lambda t: t[1][1], times_sorted))
+    info_sorted = sorted(info, key=lambda t: t[0])
+    n_vals = list(map(lambda t: t[0], info_sorted))
+    t_objective_vals = list(map(lambda t: t[1][0], info_sorted))
+    t_jacobian_vals = list(map(lambda t: t[1][1], info_sorted))
 
     return (n_vals, t_objective_vals, t_jacobian_vals)
 
