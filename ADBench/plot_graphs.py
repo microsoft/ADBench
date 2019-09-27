@@ -137,17 +137,23 @@ def read_vals(objective, graph_files, tool):
 
     # Extract times
     name_to_n = utils.key_functions[objective]
-    time_pairs = [(name_to_n(utils.get_test(os.path.splitext(os.path.split(path)[1])[0])),
-                   utils.read_times(os.path.join(in_dir, path)))
-                  for path in tool_files]
+    info = [
+        (
+            name_to_n(utils.get_test(os.path.splitext(os.path.split(tool_files[i])[1])[0])),
+            utils.read_times(os.path.join(in_dir, tool_files[i])),
+            violation_info[i]
+        )
+        for i in range(len(tool_files))
+    ]
 
     # Sort values
-    times_sorted = sorted(time_pairs, key=lambda pair: pair[0])
-    n_vals = list(map(lambda pair: pair[0], times_sorted))
-    t_objective_vals = list(map(lambda pair: pair[1][0], times_sorted))
-    t_jacobian_vals = list(map(lambda pair: pair[1][1], times_sorted))
+    info_sorted = sorted(info, key=lambda triple: triple[0])
+    n_vals = list(map(lambda triple: triple[0], info_sorted))
+    t_objective_vals = list(map(lambda triple: triple[1][0], info_sorted))
+    t_jacobian_vals = list(map(lambda triple: triple[1][1], info_sorted))
+    violation_vals = list(map(lambda triple: triple[2], info_sorted))
 
-    return (n_vals, t_objective_vals, t_jacobian_vals, violation_info)
+    return (n_vals, t_objective_vals, t_jacobian_vals, violation_vals)
 
 def vals_by_tool(objective, graph_files):
     '''Classifies file values by tools'''
