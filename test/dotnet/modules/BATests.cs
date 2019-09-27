@@ -78,7 +78,7 @@ namespace DotnetModulesTests
             Assert.Equal(-8.34044000000000008e-01, output.J.vals[308], comparer);
             Assert.Equal(-8.34044000000000008e-01, output.J.vals[309], comparer);
         }
-/*
+
         [Fact]
         public void ObjectiveRunsMultipleTimes()
         {
@@ -90,23 +90,22 @@ namespace DotnetModulesTests
 
             module.Prepare(input);
 
-            EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<BAInput, BAOutput>::calculate_objective));
+            Assert.True(Utils.CanObjectiveRunMultipleTimes(module.CalculateObjective));
         }
-     
-    /*
-        TEST_P(BaModuleTest, JacobianRunsMultipleTimes)
+
+        [Fact]
+        public void JacobianRunsMultipleTimes()
         {
-            auto module = moduleLoader->get_ba_test();
-            ASSERT_NE(module, nullptr);
-            BAInput input;
+            var module = moduleLoader.GetBATest();
+            Assert.NotNull(module);
 
             // Read instance
-            read_ba_instance("batest.txt", input.n, input.m, input.p,
-                input.cams, input.X, input.w, input.obs, input.feats);
-            module->prepare(std::move(input));
+            var input = DataLoader.ReadBAInstance("batest.txt");
 
-            EXPECT_TRUE(can_objective_run_multiple_times(*module, &ITest<BAInput, BAOutput>::calculate_jacobian));
+            module.Prepare(input);
+
+            Assert.True(Utils.CanObjectiveRunMultipleTimes(module.CalculateJacobian));
         }
-                 */
+                 
     }
 }
