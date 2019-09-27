@@ -89,12 +89,12 @@ def read_vals(objective, graph_files, tool):
     tool_files = [os.path.join(*path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool]
     # Extract times
     name_to_n = utils.key_functions[objective]
-    time_pairs = [(name_to_n(utils.get_test(utils.get_fn(path.split("/")))),
-                   utils.read_times(os.path.join(in_dir, path)))
-                  for path in tool_files]
+    info = [(name_to_n(utils.get_test(utils.get_fn(path.split("/")))),
+             utils.read_times(os.path.join(in_dir, path)))
+            for path in tool_files]
 
     # Sort values
-    times_sorted = sorted(time_pairs, key=lambda pair: pair[0])
+    times_sorted = sorted(info, key=lambda pair: pair[0])
     n_vals = list(map(lambda pair: pair[0], times_sorted))
     t_objective_vals = list(map(lambda pair: pair[1][0], times_sorted))
     t_jacobian_vals = list(map(lambda pair: pair[1][1], times_sorted))
