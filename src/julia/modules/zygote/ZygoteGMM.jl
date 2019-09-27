@@ -173,12 +173,12 @@ function zygote_gmm_prepare!(ctx::ZygoteGMMContext, input::GMMInput)
     # of gradient on a given function is very long.
     # Using test input ensures that all computations related to the actual input
     # are done in calculate_jacobian!
-    #testinput = load_gmm_input("$(@__DIR__)/../../../../data/gmm/test.txt", false)
-    #testd = size(testinput.x, 1)
-    #testk = size(testinput.means, 2)
-    #testQs = cat([get_Q_zygote(testd, testinput.icfs[:, ik]) for ik in 1:testk]...; dims=[3])
-    #test_wrapper_gmm_objective = (alphas, means, Qs) -> gmm_objective(alphas, means, Qs, testinput.x, testinput.wishart)
-    #Zygote.gradient(test_wrapper_gmm_objective, testinput.alphas, testinput.means, testQs)
+    testinput = load_gmm_input("$(@__DIR__)/../../../../data/gmm/test.txt", false)
+    testd = size(testinput.x, 1)
+    testk = size(testinput.means, 2)
+    testQs = cat([get_Q_zygote(testd, testinput.icfs[:, ik]) for ik in 1:testk]...; dims=[3])
+    test_wrapper_gmm_objective = (alphas, means, Qs) -> gmm_objective(alphas, means, Qs, testinput.x, testinput.wishart)
+    Zygote.gradient(test_wrapper_gmm_objective, testinput.alphas, testinput.means, testQs)
 
     ctx.input = input
     d = size(input.x, 1)
