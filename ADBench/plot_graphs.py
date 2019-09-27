@@ -22,6 +22,8 @@ if do_show:
     print("WARNING: `--show` enabled. This script can produce a lot of graphs and you may not wish to display all of them.\n")
 
 # Script constants
+TIMES_SUBSTRING = "times"
+
 figure_size = (9, 6) if do_plotly else (12, 8)
 fig_dpi = 96
 save_dpi = 144
@@ -43,7 +45,7 @@ print(f"Output directory is: {out_dir}\n")
 
 
 # Scan folder for all files, and determine which graphs to create
-all_files = [path for path in utils._scandir_rec(in_dir) if "times" in path[-1]]
+all_files = [path for path in utils._scandir_rec(in_dir) if TIMES_SUBSTRING in path[-1]]
 all_graphs = [path.split("/") for path in set(["/".join(path[:-2]) for path in all_files])]
 function_types = ["objective ÷ Manual", "objective", "jacobian", "jacobian ÷ objective"]
 all_graphs = [(path, function_type) for function_type in function_types for path in all_graphs]
