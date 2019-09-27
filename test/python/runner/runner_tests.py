@@ -4,14 +4,14 @@ from os import path
 
 # adding folder with files for importing
 sys.path.append(
-    path.join(
+    path.abspath(path.join(
         path.abspath(path.dirname(__file__)),
         "..",
         "..",
         "..",
         "src",
         "python"
-    )
+    ))
 )
 
 from unittest.mock import Mock
