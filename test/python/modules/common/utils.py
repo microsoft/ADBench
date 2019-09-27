@@ -48,10 +48,47 @@ class TestClassWithAdditionalAsserts(unittest.TestCase):
             self.assertTrue(
                 abs(expected[i] - given[i]) < precision,
                 msg = (
-                    f"{i}th elements differ: "
+                    f"{i}-th elements differ: "
                     f"{expected[i]} != {given[i]} with precision {precision}"
                 )
             )
+
+    def assertFloatMatrixEqual(self, expected, given, precision = 1e-7):
+        '''Asserts two double matrix componentwise equality with the given
+        precision. Matricies are arrays of rows.'''
+
+        n_exp = len(expected)
+        n_given = len(given)
+        self.assertEqual(
+            n_exp,
+            n_given,
+            msg = f"Matricies have different row count ({n_exp} != {n_given})"
+        )
+
+        for i in range(n_exp):
+            exp_row = expected[i]
+            given_row = given[i]
+
+            len_exp = len(exp_row)
+            len_given = len(given_row)
+            self.assertEqual(
+                len_exp,
+                len_given,
+                msg = (
+                    f"Matrix {i}-th rows have different length "
+                    f"({n_exp} != {n_given})"
+                )
+            )
+
+            for j in range(len_exp):
+                self.assertTrue(
+                    abs(exp_row[j] - given_row[j]) < precision,
+                    msg = (
+                        f"Matrix ({i}, {j}) elements differ: "
+                        f"{exp_row[j]} != {given_row[j]} "
+                        f"with precision {precision}"
+                    )
+                )
 
 
 
