@@ -27,6 +27,9 @@ import utils
 # root directory of python modules
 MODULES_ROOT = os.path.join(PYTHON_ROOT, "modules")
 
+# path to the file with test data input
+TEST_INPUT_FILE_NAME = os.path.join(ROOT, "data", "gmm", "test.txt")
+
 
 
 # Parameters for different modules. They have the next form:
@@ -51,7 +54,7 @@ class PythonModuleCommonGMMTests(utils.BaseTestClass):
         '''Checks objective calculation correctness running calculation
         several times.'''
 
-        input = read_gmm_instance("gmmtest.txt", False)
+        input = read_gmm_instance(TEST_INPUT_FILE_NAME, False)
         self.test.prepare(input)
         self.test.calculate_objective(times)
         output = self.test.output()
@@ -66,7 +69,7 @@ class PythonModuleCommonGMMTests(utils.BaseTestClass):
         '''Checks jacobian calculation correctness running calculation
         several times.'''
 
-        input = read_gmm_instance("gmmtest.txt", False)
+        input = read_gmm_instance(TEST_INPUT_FILE_NAME, False)
         self.test.prepare(input)
         self.test.calculate_jacobian(times)
         output = self.test.output()
@@ -134,7 +137,7 @@ class PythonModuleCommonGMMTests(utils.BaseTestClass):
     def test_objective_runs_multiple_times(self):
         '''Checks if objective can be calculated multiple times.'''
 
-        input = read_gmm_instance("gmmtest.txt", False)
+        input = read_gmm_instance(TEST_INPUT_FILE_NAME, False)
         self.test.prepare(input)
 
         func = self.test.calculate_objective
@@ -143,7 +146,7 @@ class PythonModuleCommonGMMTests(utils.BaseTestClass):
     def test_jacobian_runs_multiple_times(self):
         '''Checks if jacobian can be calculated multiple times.'''
 
-        input = read_gmm_instance("gmmtest.txt", False)
+        input = read_gmm_instance(TEST_INPUT_FILE_NAME, False)
         self.test.prepare(input)
 
         func = self.test.calculate_jacobian

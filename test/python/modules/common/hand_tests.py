@@ -27,6 +27,16 @@ import utils
 # root directory of python modules
 MODULES_ROOT = os.path.join(PYTHON_ROOT, "modules")
 
+# paths to the test data input
+MODEL_PATH = os.path.join(ROOT, "data", "hand", "model")
+SIMPLE_FILE_NAME = os.path.join(ROOT, "data", "hand", "test.txt")
+COMPLICATED_FILE_NAME = os.path.join(
+    ROOT,
+    "data",
+    "hand",
+    "hand_complicated.txt"
+)
+
 
 
 # Parameters for different modules. They have the next form:
@@ -51,7 +61,7 @@ class PythonModuleCommonHandTests(utils.BaseTestClass):
         '''Checks objective calculation correctness running calculation
         several times when case is simple (without us).'''
 
-        input = read_hand_instance("model", "handtestsmall.txt", False)
+        input = read_hand_instance(MODEL_PATH, SIMPLE_FILE_NAME, False)
         self.test.prepare(input)
         self.test.calculate_objective(times)
         output = self.test.output()
@@ -75,7 +85,7 @@ class PythonModuleCommonHandTests(utils.BaseTestClass):
         '''Checks objective calculation correctness running calculation
         several times when case is complicated (with us).'''
 
-        input = read_hand_instance("model", "handtestcomplicated.txt", True)
+        input = read_hand_instance(MODEL_PATH, COMPLICATED_FILE_NAME, True)
         self.test.prepare(input)
         self.test.calculate_objective(times)
         output = self.test.output()
@@ -99,7 +109,7 @@ class PythonModuleCommonHandTests(utils.BaseTestClass):
         '''Checks jacobian calculation correctness running calculation
         several times when case is simple (without us).'''
 
-        input = read_hand_instance("model", "handtestsmall.txt", False)
+        input = read_hand_instance(MODEL_PATH, SIMPLE_FILE_NAME, False)
         self.test.prepare(input)
         self.test.calculate_jacobian(times)
         output = self.test.output()
@@ -286,7 +296,7 @@ class PythonModuleCommonHandTests(utils.BaseTestClass):
         '''Checks jacobian calculation correctness running calculation
         several times when case is complicated (with us).'''
 
-        input = read_hand_instance("model", "handtestcomplicated.txt", True)
+        input = read_hand_instance(MODEL_PATH, COMPLICATED_FILE_NAME, True)
         self.test.prepare(input)
         self.test.calculate_jacobian(times)
         output = self.test.output()
@@ -546,7 +556,7 @@ class PythonModuleCommonHandTests(utils.BaseTestClass):
         '''Checks if objective can be calculated multiple times
         for simple case (without us).'''
 
-        input = read_hand_instance("model", "handtestsmall.txt", False)
+        input = read_hand_instance(MODEL_PATH, SIMPLE_FILE_NAME, False)
         self.test.prepare(input)
 
         func = self.test.calculate_objective
@@ -556,7 +566,7 @@ class PythonModuleCommonHandTests(utils.BaseTestClass):
         '''Checks if objective can be calculated multiple times
         for complicated case (with us).'''
 
-        input = read_hand_instance("model", "handtestcomplicated.txt", True)
+        input = read_hand_instance(MODEL_PATH, COMPLICATED_FILE_NAME, True)
         self.test.prepare(input)
 
         func = self.test.calculate_objective
@@ -566,7 +576,7 @@ class PythonModuleCommonHandTests(utils.BaseTestClass):
         '''Checks if jacobian can be calculated multiple times
         for simple case (without us).'''
 
-        input = read_hand_instance("model", "handtestsmall.txt", False)
+        input = read_hand_instance(MODEL_PATH, SIMPLE_FILE_NAME, False)
         self.test.prepare(input)
 
         func = self.test.calculate_jacobian
@@ -576,7 +586,7 @@ class PythonModuleCommonHandTests(utils.BaseTestClass):
         '''Checks if jacobian can be calculated multiple times
         for complicated case (with us).'''
 
-        input = read_hand_instance("model", "handtestcomplicated.txt", True)
+        input = read_hand_instance(MODEL_PATH, COMPLICATED_FILE_NAME, True)
         self.test.prepare(input)
 
         func = self.test.calculate_jacobian
