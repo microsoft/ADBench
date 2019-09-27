@@ -76,26 +76,32 @@ function compute_reproj_err_d(params, feat)
 end
 
 function compute_ba_J(cams, X, w, obs, feats)
+    n = size(cams, 2)
+    m = size(X, 2)
     p = size(obs, 2)
+    jacobian = BASparseMatrix(n, m, p)
     reproj_err_d = zeros(2 * p, N_CAM_PARAMS + 3 + 1)
     for i in 1:p
         compute_reproj_err_d_i = x -> compute_reproj_err_d(x, feats[:, i])
         idx = (2 * (i - 1)) + 1
         _, J = Zygote.forward_jacobian(compute_reproj_err_d_i, pack(cams[:, obs[1, i]], X[:, obs[2, i]], w[i]))
-        reproj_err_d[idx:idx+1, :] = J'
+        insert_reproj_err_block!(jacobian, i, idx, idx + 1, J')
+        #reproj_err_d[idx:idx+1, :] = J'
     end
-    w_err_d = zeros(1, p)
+    #w_err_d = zeros(1, p)
     for i in 1:p
-        w_err_d[i] = compute_w_err_d(w[i])
+        w_err_d_i = compute_w_err_d(w[i])
+        insert_w_err_block!(jacobian, i, w_err_d_i)
     end
-    (reproj_err_d, w_err_d)
+    jacobian
+    #(reproj_err_d, w_err_d)
 end
 
 mutable struct ZygoteBAContext
     input::Union{BAInput, Nothing}
     reproj_err::Matrix{Float64}
     w_err::Vector{Float64}
-    zygote_J
+    jacobian::BASparseMatrix
 end
 
 function zygote_ba_prepare!(ctx::ZygoteBAContext, input::BAInput)
@@ -119,17 +125,18 @@ end
 
 function zygote_ba_calculate_jacobian!(ctx::ZygoteBAContext, times)
     for i in 1:times
-        ctx.zygote_J = compute_ba_J(ctx.input.cams, ctx.input.X, ctx.input.w, ctx.input.obs, ctx.input.feats)
+        ctx.jacobian = compute_ba_J(ctx.input.cams, ctx.input.X, ctx.input.w, ctx.input.obs, ctx.input.feats)
     end
 end
 
 function zygote_ba_output!(out::BAOutput, ctx::ZygoteBAContext)
     out.reproj_err = ctx.reproj_err
     out.w_err = ctx.w_err
+    out.jacobian = ctx.jacobian
 end
 
 get_ba_test() = Test{BAInput, BAOutput}(
-    ZygoteBAContext(nothing, Array{Float64}(undef, 0, 0), [], nothing),
+    ZygoteBAContext(nothing, Array{Float64}(undef, 0, 0), [], BASparseMatrix(0, 0, 0)),
     zygote_ba_prepare!,
     zygote_ba_calculate_objective!,
     zygote_ba_calculate_jacobian!,
