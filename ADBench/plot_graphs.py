@@ -101,10 +101,8 @@ def read_vals(objective, graph_files, tool):
         )
 
         if not os.path.isfile(correctness_file_name):
-            msg = (f"WARNING: correctness file {correctness_file_name} "
-                   "doesn't exist\n")
-
-            print(msg)
+            print(f"WARNING: correctness file {correctness_file_name} "
+                  "doesn't exist\n")
             return False
 
         try:
@@ -112,10 +110,8 @@ def read_vals(objective, graph_files, tool):
                 correctness_data = json.load(cf)
                 return correctness_data["ViolationsHappened"]
         except Exception as e:
-            msg = (f"WARNING: correctness file {correctness_file_name} parsing "
-                   f"failed.\nError message:{e.args}\n")
-
-            print(msg)
+            print(f"WARNING: correctness file {correctness_file_name} parsing "
+                  f"failed.\nError message:{e.args}\n")
             return False
 
     tool_files = [os.path.join(*path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool]
