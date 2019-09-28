@@ -281,16 +281,8 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
                                    if is_single(idx)]
 
             # addint coordinates of additional markers
-            additional_x.append([
-                n_vals[idx]
-                for idx in additional_mark_idx
-            ])
-                        
-            additional_y.append([
-                t_vals[idx]
-                for idx in additional_mark_idx
-            ])
-
+            additional_x.append([n_vals[idx] for idx in additional_mark_idx])
+            additional_y.append([t_vals[idx] for idx in additional_mark_idx])
             additional_colors.append(color)
                 
         # adding violation point coordinates
