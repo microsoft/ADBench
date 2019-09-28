@@ -224,7 +224,6 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
     violation_x, violation_y = [], []
     was_violation = False
     additional = []
-    violation_handle = None
 
     # Plot results
     for ((color, marker), (tool, n_vals, t_vals, violations)) in lines:
