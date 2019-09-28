@@ -267,9 +267,8 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
             # In plotly scenario it is not necessary because user
             # can turn violation marker off and see the marker of the
             # line)
-            additional_mark_idx = []
-            for idx in incorr_mark_list:
-                is_single = (
+            def is_single(idx):
+                return (
                     ( # check left
                         idx == 0 or
                         idx - 1 not in incorr_mark_list and
@@ -283,8 +282,8 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
                     )
                 )
 
-                if is_single:
-                    additional_mark_idx.append(idx)
+            additional_mark_idx = [idx for idx in incorr_mark_list
+                                   if is_single(idx)]
 
             # addint coordinates of additional markers
             if additional_mark_idx:
