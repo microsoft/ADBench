@@ -256,35 +256,28 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
                             if i not in inf_inds
                                and violation]
 
-        if do_save or do_show:
-            # handle cases when there is a single point with violation
-            # between timeout gaps
-            # (then write additional line marker to distinguish a line.
-            # In plotly scenario it is not necessary because user
-            # can turn violation marker off and see the marker of the
-            # line)
-            def is_single(idx):
-                return (
-                    ( # check left
-                        idx == 0 or
-                        idx - 1 not in incorr_mark_list and
-                        idx - 1 in inf_inds
-                    )
-                    and
-                    ( # check right
-                        idx == len(n_vals) - 1 or
-                        idx + 1 not in incorr_mark_list and
-                        idx + 1 in inf_inds
-                    )
+        def is_single(idx):
+            return (
+                ( # check left
+                    idx == 0 or
+                    idx - 1 not in incorr_mark_list and
+                    idx - 1 in inf_inds
                 )
+                and
+                ( # check right
+                    idx == len(n_vals) - 1 or
+                    idx + 1 not in incorr_mark_list and
+                    idx + 1 in inf_inds
+                )
+            )
 
-            additional_mark_idx = [idx for idx in incorr_mark_list
-                                   if is_single(idx)]
+        additional_mark_idx = [idx for idx in incorr_mark_list
+                               if is_single(idx)]
 
-            # addint coordinates of additional markers
-            additional.append(([n_vals[idx] for idx in additional_mark_idx],
-                               [t_vals[idx] for idx in additional_mark_idx],
-                               color))
+        # addint coordinates of additional markers
+        additional.append(([n_vals[idx] for idx in additional_mark_idx],
+                           [t_vals[idx] for idx in additional_mark_idx],
+                           color))
                 
         # adding violation point coordinates
         for idx in incorr_mark_list:
