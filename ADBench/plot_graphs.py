@@ -76,8 +76,7 @@ has_manual = lambda tool: tool.lower() in ["manual", "manual_eigen"]
 def tool_names(graph_files):
     '''Returns a set of tool names from all calculated files.'''
 
-    file_names = map(utils.get_fn, graph_files)
-    tool_names_ = set(map(utils.get_tool, file_names))
+    tool_names_ = set(map(utils.get_tool_from_path, graph_files))
 
     # Sort "Manual" to the front
     tool_names_ = sorted(tool_names_, key=lambda x: (not has_manual(x), x))
@@ -113,7 +112,7 @@ def read_vals(objective, graph_files, tool):
                   f"failed.\nError message:{e.args}\n")
             return False
 
-    tool_files = [os.path.join(*path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool]
+    tool_files = [os.path.join(*path) for path in graph_files if utils.get_tool_from_path(path) == tool]
 
     if has_manual(tool):
         violation_vals = [False for file in tool_files]
