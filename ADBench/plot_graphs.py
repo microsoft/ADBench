@@ -27,7 +27,6 @@ TIMES_SUBSTRING = "_times_"
 CORRECTNESS_SUBSTRING = "_correctness_"
 
 VIOLATION_LABEL = "Wrong calculation result"
-TERMINATED_LABEL = "Crashed/Terminated"
 ALL_TERMINATED_SUFFIX = " (all crashed/terminated)"
 
 figure_size = (9, 6) if do_plotly else (12, 8)
