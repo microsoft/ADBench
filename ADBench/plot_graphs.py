@@ -279,19 +279,23 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
             or any(violation for (_, _, _, _, violation) in together)
 
 
-    handles += pyplot.plot(
-        violation_x,
-        violation_y,
-        marker="v",
-        mec="k",
-        mfc="r",
-        ms=8,
-        linestyle="None",
-        label=VIOLATION_LABEL
-    )
-
-    # if there was calculating violation add violation markers to legend
+    # if there was calculating violation add violation markers
+    #
+    # We must create the plot only if there was a violation because
+    # plotly will add the violation marker to its legend even if
+    # violation_x/y are empty.
     if was_violation:
+        handles += pyplot.plot(
+            violation_x,
+            violation_y,
+            marker="v",
+            mec="k",
+            mfc="r",
+            ms=8,
+            linestyle="None",
+            label=VIOLATION_LABEL
+        )
+
         labels.append(VIOLATION_LABEL)
 
     # Setup graph attributes
