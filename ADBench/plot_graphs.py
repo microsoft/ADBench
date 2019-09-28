@@ -138,7 +138,7 @@ def vals_by_tool(objective, graph_files):
 
 
 
-if "--help" in sys.argv or "-h" in sys.argv or "-?" in sys.argv:
+if any(help in sys.argv for help in ["--help", "-h", "-?"]):
     ref_msg = f'''
 This script produces graphs that visualize benchmark.
 CMD arguments:
