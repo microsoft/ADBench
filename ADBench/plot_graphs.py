@@ -236,10 +236,6 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
             [t_val == float("inf") for t_val in t_vals[1:]] + [True],
             violations))
 
-        # Check which point values are infinite
-        inf_inds = [i for (i, t_val) in enumerate(t_vals)
-                    if t_val == float("inf")]
-
         all_terminated = all(t_val == float("inf")
                              for t_val in t_vals)
 
@@ -257,12 +253,6 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
             label=label
         )
 
-        # Set markers for correct and incorrect points
-        incorr_mark_list = [i for (i, violation)
-                            in enumerate(violations)
-                            if i not in inf_inds
-                               and violation]
-
         additionals = [(n_val, t_val)
                        for (n_val, t_val, missing_left, missing_right, violation)
                        in together
@@ -276,10 +266,10 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
                            [t_val for (_, t_val) in additionals],
                            color))
                 
-        # adding violation point coordinates
-        for idx in incorr_mark_list:
-            violation_x.append(n_vals[idx])
-            violation_y.append(t_vals[idx])
+        violation_x += [n_val for (n_val, _, _, _, violation)
+                        in together if violation]
+        violation_y += [t_val for (_, t_val, _, _, violation)
+                        in together if violation]
 
     # if there was calculating violation add violation markers
     if violation_x:
