@@ -226,8 +226,6 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
 
     # Plot results
     for ((color, marker), (tool, n_vals, t_vals, violations)) in lines:
-        label = utils.format_tool(tool)
-
         # Check which point values are infinite
         inf_inds = [i for (i, t_val) in enumerate(t_vals)
                     if t_val == float("inf")]
@@ -235,6 +233,7 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
         all_terminated = all(t_val == float("inf")
                              for t_val in t_vals)
 
+        label = utils.format_tool(tool)
         # Append label in legend if all point values are infinite
         if all_terminated:
             label += ALL_TERMINATED_SUFFIX
