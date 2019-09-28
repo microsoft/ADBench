@@ -24,8 +24,11 @@ if do_show:
 
 # Script constants
 TIMES_SUBSTRING = "_times_"
+CORRECTNESS_SUBSTRING = "_correctness_"
 
+VIOLATION_LABEL = "Wrong calculation result"
 TERMINATED_LABEL = "Crashed/Terminated"
+ALL_TERMINATED_SUFFIX = " (all crashed/terminated)"
 
 figure_size = (9, 6) if do_plotly else (12, 8)
 fig_dpi = 96
@@ -87,7 +90,41 @@ def tool_names(graph_files):
 def read_vals(objective, graph_files, tool):
     '''Extracts data for files of the specified tool.'''
 
+    def get_correctness(file_name):
+        '''Extracts jacobian calculation correctness.'''
+
+        folder, fn = os.path.split(file_name)
+        correctness_file_name = os.path.join(
+            in_dir,
+            folder,
+            fn.replace(TIMES_SUBSTRING, CORRECTNESS_SUBSTRING)
+        )
+
+        if not os.path.isfile(correctness_file_name):
+            msg = (f"WARNING: correctness file {correctness_file_name} "
+                   "doesn't exist\n")
+
+            print(msg)
+            return False
+
+        try:
+            with open(correctness_file_name, "r", encoding="utf-16") as cf:
+                correctness_data = json.load(cf)
+                return correctness_data["ViolationsHappened"]
+        except Exception as e:
+            msg = (f"WARNING: correctness file {correctness_file_name} parsing "
+                   f"failed.\nError message:{e.args}\n")
+
+            print(msg)
+            return False
+
     tool_files = [os.path.join(*path) for path in graph_files if utils.get_tool(utils.get_fn(path)) == tool]
+
+    if has_manual(tool):
+        violation_vals = [False for file in tool_files]
+    else:
+        violation_vals = [get_correctness(file) for file in tool_files]
+
     # Extract times
     name_to_n = utils.key_functions[objective]
     info = [(name_to_n(utils.get_test(utils.get_fn(path.split("/")))),
@@ -100,7 +137,7 @@ def read_vals(objective, graph_files, tool):
     t_objective_vals = list(map(lambda t: t[1][0], info_sorted))
     t_jacobian_vals = list(map(lambda t: t[1][1], info_sorted))
 
-    return (n_vals, t_objective_vals, t_jacobian_vals)
+    return (n_vals, t_objective_vals, t_jacobian_vals, violation_vals)
 
 def vals_by_tool(objective, graph_files):
     '''Classifies file values by tools'''
@@ -116,7 +153,7 @@ def vals_by_tool(objective, graph_files):
     manual_times = None
 
     for tool in tool_names(graph_files):
-        (n_vals, t_objective_vals, t_jacobian_vals) = read_vals(objective, graph_files, tool)
+        (n_vals, t_objective_vals, t_jacobian_vals, violation) = read_vals(objective, graph_files, tool)
 
         if manual_times is None and has_manual(tool):
             manual_times = t_objective_vals
@@ -135,7 +172,7 @@ def vals_by_tool(objective, graph_files):
         else:
             raise Exception(f"Unknown function type {function_type}")
 
-        yield (tool, n_vals, t_vals)
+        yield (tool, n_vals, t_vals, violation)
 
 
 
@@ -189,25 +226,104 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
     lines = zip(all_styles, sorted_vals_by_tool)
 
     handles, labels = [], []
-    for ((color, marker), (tool, n_vals, t_vals)) in lines:
-        # Plot results
-        handles += pyplot.plot(n_vals, t_vals, 
-                               marker=marker, color=color, label=utils.format_tool(tool))
-        labels.append(utils.format_tool(tool))
+    violation_x, violation_y = [], []
+    additional_x, additional_y, additional_colors = [], [], []
+    violation_handle = None
 
-    # Draw black dots
-    max_len = max(map(lambda h: len(utils.get_non_infinite_y(h)), handles))
-    failed = filter(lambda h: len(utils.get_non_infinite_y(h)) < max_len, handles)
-    failed_x, failed_y = [], []
-    for handle in failed:
-        inf_inds = [i for i, y in enumerate(handle.get_ydata()) if y == float("inf")]
-        last_ind = inf_inds[0] - 1 if len(inf_inds) > 0 else -1
-        failed_x.append(handle.get_xdata()[last_ind])
-        failed_y.append(handle.get_ydata()[last_ind])
-        #handles += pyplot.plot(handle.get_xdata()[last_ind], handle.get_ydata()[last_ind], marker="o", color=(0, 0, 0), linestyle="None", label="Crashed/Terminated")
-    if len(failed_x) > 0:
-        handles += tuple(pyplot.plot(failed_x, failed_y, marker="o", color="k", linestyle="None", label=TERMINATED_LABEL))
-        labels += (TERMINATED_LABEL,)
+    # Plot results
+    for ((color, marker), (tool, n_vals, t_vals, violations)) in lines:
+        label = utils.format_tool(tool)
+
+        # Check which point values are infinite
+        inf_inds, fin_inds = [], []
+        for i in range(len(t_vals)):
+            if t_vals[i] == float("inf"):
+                inf_inds.append(i)
+            else:
+                fin_inds.append(i)
+
+        # Append label in legend if all point values are infinite
+        if not fin_inds:
+            label += ALL_TERMINATED_SUFFIX
+
+        labels.append(label)
+        handles += pyplot.plot(
+            n_vals,
+            t_vals,
+            marker=marker,
+            color=color,
+            label=label
+        )
+
+        # if there was calculating violations
+        if any(violations):
+            # Set markers for correct and incorrect points
+            incorr_mark_list = []
+            for i in range(len(n_vals)):
+                if i not in inf_inds and violations[i]:
+                    incorr_mark_list.append(i)
+
+            if incorr_mark_list:
+                if do_save or do_show:
+                    # handle cases when there is a single point with violation
+                    # between timeout gaps
+                    # (then write additional line marker to distinguish a line.
+                    # In plotly scenario it is not necessary because user
+                    # can turn violation marker off and see the marker of the
+                    # line)
+                    additional_mark_idx = []
+                    for i in range(len(incorr_mark_list)):
+                        idx = incorr_mark_list[i]
+                        is_single = (
+                            ( # check left
+                                idx == 0 or
+                                idx - 1 not in incorr_mark_list and
+                                idx - 1 in inf_inds
+                            )
+                            and
+                            ( # check right
+                                idx == len(n_vals) - 1 or
+                                idx + 1 not in incorr_mark_list and
+                                idx + 1 in inf_inds
+                            )
+                        )
+
+                        if is_single:
+                            additional_mark_idx.append(idx)
+
+                    # addint coordinates of additional markers
+                    if additional_mark_idx:
+                        additional_x.append([
+                            n_vals[idx]
+                            for idx in additional_mark_idx
+                        ])
+                        
+                        additional_y.append([
+                            t_vals[idx]
+                            for idx in additional_mark_idx
+                        ])
+
+                        additional_colors.append(color)
+                
+                # adding violation point coordinates
+                for idx in incorr_mark_list:
+                    violation_x.append(n_vals[idx])
+                    violation_y.append(t_vals[idx])
+
+    # if there was calculating violation add violation markers
+    if violation_x:
+        handles += pyplot.plot(
+            violation_x,
+            violation_y,
+            marker="v",
+            mec="k",
+            mfc="r",
+            ms=8,
+            linestyle="None",
+            label=VIOLATION_LABEL
+        )
+
+        labels.append(VIOLATION_LABEL)
 
     # Setup graph attributes
     pyplot.title(graph_name)
@@ -230,6 +346,21 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
 
     # Add legend (after plotly to avoid error)
     pyplot.legend(handles, labels, loc=4, bbox_to_anchor=(1, 0))
+
+    # draw additional markers
+    # Note: we do this later than plotly converting because plotly doesn't
+    #       need additional markers
+    for x, y, color in zip(additional_x, additional_y, additional_colors):
+        pyplot.plot(
+            x,
+            y,
+            linestyle="None",
+            marker="_",
+            ms=17,
+            mew=2,
+            color=color,
+            zorder=0
+        )
 
     # Save graph (if selected)
     if do_save:
