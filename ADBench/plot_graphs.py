@@ -277,19 +277,19 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
             or any(violation for (_, _, _, _, violation) in together)
 
 
-    # if there was calculating violation add violation markers
-    if was_violation:
-        handles += pyplot.plot(
-            violation_x,
-            violation_y,
-            marker="v",
-            mec="k",
-            mfc="r",
-            ms=8,
-            linestyle="None",
-            label=VIOLATION_LABEL
-        )
+    handles += pyplot.plot(
+        violation_x,
+        violation_y,
+        marker="v",
+        mec="k",
+        mfc="r",
+        ms=8,
+        linestyle="None",
+        label=VIOLATION_LABEL
+    )
 
+    # if there was calculating violation add violation markers to legend
+    if was_violation:
         labels.append(VIOLATION_LABEL)
 
     # Setup graph attributes
