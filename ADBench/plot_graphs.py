@@ -226,15 +226,18 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
 
     # Plot results
     for ((color, marker), (tool, n_vals, t_vals, violations)) in lines:
-        # Checking neighbours by shifting t_vals requires that
-        # it is in the order of monotonic n_vals
-        assert n_vals == sorted(n_vals)
-        together = list(zip(
-            n_vals,
-            t_vals,
-            [True] + [t_val == float("inf") for t_val in t_vals],
-            [t_val == float("inf") for t_val in t_vals[1:]] + [True],
-            violations))
+        def vals_with_neighbours_and_violation():
+            # Checking neighbours by shifting t_vals requires that
+            # it is in the order of monotonic n_vals
+            assert n_vals == sorted(n_vals)
+            return zip(
+                n_vals,
+                t_vals,
+                [True] + [t_val == float("inf") for t_val in t_vals],
+                [t_val == float("inf") for t_val in t_vals[1:]] + [True],
+                violations)
+
+        together = list(vals_with_neighbours_and_violation())
 
         all_terminated = all(t_val == float("inf") for t_val in t_vals)
 
