@@ -268,8 +268,7 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
             # can turn violation marker off and see the marker of the
             # line)
             additional_mark_idx = []
-            for i in range(len(incorr_mark_list)):
-                idx = incorr_mark_list[i]
+            for idx in incorr_mark_list:
                 is_single = (
                     ( # check left
                         idx == 0 or
