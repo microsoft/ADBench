@@ -70,6 +70,10 @@ def get_tool(fn):
     return "_".join(fn.split("_")[fn.split("_").index("times") + 1:])
 
 
+# Extract tool name from path
+def get_tool_from_path(path):
+    return get_tool(get_fn(path))
+
 # Format a tool name for display
 def format_tool(tool):
     t_split = list(map(cap_str, tool.split("_")))
