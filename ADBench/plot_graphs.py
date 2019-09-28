@@ -114,21 +114,23 @@ def read_vals(objective, graph_files, tool):
     tool_files = [os.path.join(*path) for path in graph_files if utils.get_tool_from_path(path) == tool]
 
     if has_manual(tool):
-        violation_vals = [False for file in tool_files]
+        violation_info = [False for file in tool_files]
     else:
-        violation_vals = [get_violations(file) for file in tool_files]
+        violation_info = [get_violations(file) for file in tool_files]
 
     # Extract times
     name_to_n = utils.key_functions[objective]
     info = [(name_to_n(utils.get_test(utils.get_fn(path.split("/")))),
-             utils.read_times(os.path.join(in_dir, path)))
-            for path in tool_files]
+             utils.read_times(os.path.join(in_dir, path)),
+             violation)
+            for (path, violation) in zip(tool_files, violation_info)]
 
     # Sort values
     info_sorted = sorted(info, key=lambda t: t[0])
     n_vals = list(map(lambda t: t[0], info_sorted))
     t_objective_vals = list(map(lambda t: t[1][0], info_sorted))
     t_jacobian_vals = list(map(lambda t: t[1][1], info_sorted))
+    violation_vals = list(map(lambda t: t[2], info_sorted))
 
     return (n_vals, t_objective_vals, t_jacobian_vals, violation_vals)
 
