@@ -16,6 +16,7 @@ rcParams.update({"figure.max_open_warning": 0})
 # Script arguments
 do_save = "--save" in sys.argv
 do_plotly = "--plotly" in sys.argv
+do_help = any(help in sys.argv for help in ["--help", "-h", "-?"])
 do_show = "--show" in sys.argv or not (do_save or do_plotly)
 
 if do_show:
@@ -138,7 +139,7 @@ def vals_by_tool(objective, graph_files):
 
 
 
-if any(help in sys.argv for help in ["--help", "-h", "-?"]):
+if do_help:
     ref_msg = f'''
 This script produces graphs that visualize benchmark.
 CMD arguments:
