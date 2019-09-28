@@ -172,6 +172,7 @@ enum ToolType
     matlab
     py
     pybat
+    python
 }
 
 [flags()] enum ObjectiveType
@@ -310,6 +311,12 @@ Class Tool {
             $task = $objective.Split("-")[0]
             if ($objective.contains("complicated")) { $task = "$task-Complicated" }
             $cmdargs = @("$task $module_path $dir_in$fn.txt $dir_out $script:minimum_measurable_time $script:nruns_f $script:nruns_J $script:time_limit")
+        } elseif ($this.type -eq [ToolType]::python) {
+            $objective = $objective.ToUpper().Replace("-", "_").Split("_")[0]
+            $cmd = "python"
+            $module_loader = @("$script:dir/src/python/runner/main.py")
+            $module_path = @("$script:dir/src/python/modules/$($this.name)/$($this.name)$objective.py")
+            $cmdargs = @("$module_loader $objective $module_path $dir_in$fn.txt $dir_out $script:minimum_measurable_time $script:nruns_f $script:nruns_J $script:time_limit")
         } elseif ($this.type -eq [ToolType]::py -or $this.type -eq [ToolType]::pybat) {
             $objective = $objective.ToLower().Replace("-", "_")
             if ($this.type -eq "py") { $cmd = "python" }
@@ -451,8 +458,9 @@ $tool_descriptors = @(
     [Tool]::new("ManualEigenVector", "cpp", [ObjectiveType] "GMM", $true, $default_tolerance)
     [Tool]::new("Tapenade", "cpp", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, $default_tolerance)
     [Tool]::new("DiffSharp", "bin", [ObjectiveType] "BA", $false, 0.0, $true, $false)
+    [Tool]::new("PyTorch", "python", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, $default_tolerance)
     [Tool]::new("Autograd", "py", [ObjectiveType] "GMM, BA", $false, 0.0, $true, $false)
-    [Tool]::new("PyTorch", "py", [ObjectiveType] "GMM, LSTM", $false, 0.0)
+    #[Tool]::new("PyTorch", "py", [ObjectiveType] "GMM, LSTM", $false, 0.0)
     [Tool]::new("Julia", "julia_tool", [ObjectiveType] "GMM, BA", $false, 0.0)
     [Tool]::new("Zygote", "julia", [ObjectiveType] "GMM", $true, $default_tolerance)
     #[Tool]::new("Theano", "pybat", [ObjectiveType] "GMM, BA, Hand", $false, 0.0)
