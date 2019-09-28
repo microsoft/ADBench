@@ -226,6 +226,16 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
 
     # Plot results
     for ((color, marker), (tool, n_vals, t_vals, violations)) in lines:
+        # Checking neighbours by shifting t_vals requires that
+        # it is in the order of monotonic n_vals
+        assert n_vals == sorted(n_vals)
+        together = list(zip(
+            n_vals,
+            t_vals,
+            [True] + [t_val == float("inf") for t_val in t_vals],
+            [t_val == float("inf") for t_val in t_vals[1:]] + [True],
+            violations))
+
         # Check which point values are infinite
         inf_inds = [i for (i, t_val) in enumerate(t_vals)
                     if t_val == float("inf")]
@@ -253,27 +263,17 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
                             if i not in inf_inds
                                and violation]
 
-        def is_single(idx):
-            return (
-                ( # check left
-                    idx == 0 or
-                    idx - 1 not in incorr_mark_list and
-                    idx - 1 in inf_inds
-                )
-                and
-                ( # check right
-                    idx == len(n_vals) - 1 or
-                    idx + 1 not in incorr_mark_list and
-                    idx + 1 in inf_inds
-                )
-            )
-
-        additional_mark_idx = [idx for idx in incorr_mark_list
-                               if is_single(idx)]
+        additionals = [(n_val, t_val)
+                       for (n_val, t_val, missing_left, missing_right, violation)
+                       in together
+                       if t_val != float("inf")
+                       and missing_left
+                       and missing_right
+                       and violation]
 
         # addint coordinates of additional markers
-        additional.append(([n_vals[idx] for idx in additional_mark_idx],
-                           [t_vals[idx] for idx in additional_mark_idx],
+        additional.append(([n_val for (n_val, _) in additionals],
+                           [t_val for (_, t_val) in additionals],
                            color))
                 
         # adding violation point coordinates
