@@ -261,52 +261,51 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
                                 if i not in inf_inds
                                    and violation]
 
-            if incorr_mark_list:
-                if do_save or do_show:
-                    # handle cases when there is a single point with violation
-                    # between timeout gaps
-                    # (then write additional line marker to distinguish a line.
-                    # In plotly scenario it is not necessary because user
-                    # can turn violation marker off and see the marker of the
-                    # line)
-                    additional_mark_idx = []
-                    for i in range(len(incorr_mark_list)):
-                        idx = incorr_mark_list[i]
-                        is_single = (
-                            ( # check left
-                                idx == 0 or
-                                idx - 1 not in incorr_mark_list and
-                                idx - 1 in inf_inds
-                            )
-                            and
-                            ( # check right
-                                idx == len(n_vals) - 1 or
-                                idx + 1 not in incorr_mark_list and
-                                idx + 1 in inf_inds
-                            )
+            if do_save or do_show:
+                # handle cases when there is a single point with violation
+                # between timeout gaps
+                # (then write additional line marker to distinguish a line.
+                # In plotly scenario it is not necessary because user
+                # can turn violation marker off and see the marker of the
+                # line)
+                additional_mark_idx = []
+                for i in range(len(incorr_mark_list)):
+                    idx = incorr_mark_list[i]
+                    is_single = (
+                        ( # check left
+                            idx == 0 or
+                            idx - 1 not in incorr_mark_list and
+                            idx - 1 in inf_inds
                         )
+                        and
+                        ( # check right
+                            idx == len(n_vals) - 1 or
+                            idx + 1 not in incorr_mark_list and
+                            idx + 1 in inf_inds
+                        )
+                    )
 
-                        if is_single:
-                            additional_mark_idx.append(idx)
+                    if is_single:
+                        additional_mark_idx.append(idx)
 
-                    # addint coordinates of additional markers
-                    if additional_mark_idx:
-                        additional_x.append([
-                            n_vals[idx]
-                            for idx in additional_mark_idx
-                        ])
+                # addint coordinates of additional markers
+                if additional_mark_idx:
+                    additional_x.append([
+                        n_vals[idx]
+                        for idx in additional_mark_idx
+                    ])
                         
-                        additional_y.append([
-                            t_vals[idx]
-                            for idx in additional_mark_idx
-                        ])
+                    additional_y.append([
+                        t_vals[idx]
+                        for idx in additional_mark_idx
+                    ])
 
-                        additional_colors.append(color)
+                    additional_colors.append(color)
                 
-                # adding violation point coordinates
-                for idx in incorr_mark_list:
-                    violation_x.append(n_vals[idx])
-                    violation_y.append(t_vals[idx])
+            # adding violation point coordinates
+            for idx in incorr_mark_list:
+                violation_x.append(n_vals[idx])
+                violation_y.append(t_vals[idx])
 
     # if there was calculating violation add violation markers
     if violation_x:
