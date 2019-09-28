@@ -234,7 +234,9 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
             return zip(
                 n_vals,
                 t_vals,
+                # Whether the left neighbour is missing
                 [True] + [t_val == float("inf") for t_val in t_vals],
+                # Whether the right neighbour is missing
                 [t_val == float("inf") for t_val in t_vals[1:]] + [True],
                 violations)
 
