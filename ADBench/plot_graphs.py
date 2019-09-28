@@ -264,7 +264,7 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
                        and missing_right
                        and violation]
 
-        # addint coordinates of additional markers
+        # adding coordinates of additional markers
         additional.append(([n_val for (n_val, _) in additionals],
                            [t_val for (_, t_val) in additionals],
                            color))
