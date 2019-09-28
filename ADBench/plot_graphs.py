@@ -257,10 +257,10 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
         # if there was calculating violations
         if any(violations):
             # Set markers for correct and incorrect points
-            incorr_mark_list = []
-            for i in range(len(n_vals)):
-                if i not in inf_inds and violations[i]:
-                    incorr_mark_list.append(i)
+            incorr_mark_list = [i for (i, violation)
+                                in enumerate(violations)
+                                if i not in inf_inds
+                                   and violation]
 
             if incorr_mark_list:
                 if do_save or do_show:
