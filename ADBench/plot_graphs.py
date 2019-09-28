@@ -222,6 +222,7 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
 
     handles, labels = [], []
     violation_x, violation_y = [], []
+    was_violation = False
     additional = []
     violation_handle = None
 
@@ -271,9 +272,13 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
                         in together if violation]
         violation_y += [t_val for (_, t_val, _, _, violation)
                         in together if violation]
+        was_violation = \
+            was_violation \
+            or any(violation for (_, _, _, _, violation) in together)
+
 
     # if there was calculating violation add violation markers
-    if violation_x:
+    if was_violation:
         handles += pyplot.plot(
             violation_x,
             violation_y,
