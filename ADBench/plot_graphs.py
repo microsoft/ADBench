@@ -89,7 +89,7 @@ def tool_names(graph_files):
 def read_vals(objective, graph_files, tool):
     '''Extracts data for files of the specified tool.'''
 
-    def get_correctness(file_name):
+    def get_violations(file_name):
         '''Extracts jacobian calculation correctness.'''
 
         folder, fn = os.path.split(file_name)
@@ -122,7 +122,7 @@ def read_vals(objective, graph_files, tool):
     if has_manual(tool):
         violation_vals = [False for file in tool_files]
     else:
-        violation_vals = [get_correctness(file) for file in tool_files]
+        violation_vals = [get_violations(file) for file in tool_files]
 
     # Extract times
     name_to_n = utils.key_functions[objective]
