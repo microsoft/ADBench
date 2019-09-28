@@ -222,7 +222,7 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
 
     handles, labels = [], []
     violation_x, violation_y = [], []
-    additional_x, additional_y, additional_colors = [], [], []
+    additional = []
     violation_handle = None
 
     # Plot results
@@ -281,9 +281,9 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
                                    if is_single(idx)]
 
             # addint coordinates of additional markers
-            additional_x.append([n_vals[idx] for idx in additional_mark_idx])
-            additional_y.append([t_vals[idx] for idx in additional_mark_idx])
-            additional_colors.append(color)
+            additional.append(([n_vals[idx] for idx in additional_mark_idx],
+                               [t_vals[idx] for idx in additional_mark_idx],
+                               color))
                 
         # adding violation point coordinates
         for idx in incorr_mark_list:
@@ -330,7 +330,7 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
     # draw additional markers
     # Note: we do this later than plotly converting because plotly doesn't
     #       need additional markers
-    for x, y, color in zip(additional_x, additional_y, additional_colors):
+    for x, y, color in additional:
         pyplot.plot(
             x,
             y,
