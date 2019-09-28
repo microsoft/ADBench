@@ -1,23 +1,26 @@
+import os
+
 def filepath_to_basename(filepath):
-    last_slash_position = filepath.rfind("/")
-    filename = filepath if last_slash_position == -1 else filepath[last_slash_position + 1:]
-
-    dot = filename.rfind('.')
-    basename = filename if dot == -1 else filename[0:dot]
-
-    return basename
+    filename = os.path.basename(filepath)
+    return os.path.splitext(filename)[0]
 
 def modulepath_to_basename(filepath):
-    last_slash_position = filepath.rfind("/")
-    filename = filepath if last_slash_position == -1 else filepath[last_slash_position + 1:]
+    filename = os.path.basename(filepath)
 
     # python module name should contain "GMM", "BA", "Hand" or "LSTM" at the end
-    basename = filename[: max(filename.rfind("GMM"), filename.rfind("BA"), filename.rfind("Hand"), filename.rfind("LSTM"))]
+    pos = max(
+        filename.rfind("GMM"),
+        filename.rfind("BA"),
+        filename.rfind("Hand"),
+        filename.rfind("LSTM")
+    )
 
+    basename = filename[: pos]
     return basename
 
 def filepath_to_dirname(filepath):
-    last_slash_position = filepath.rfind("/")
-    dirname = "./" if last_slash_position == -1 else filepath[:last_slash_position + 1]
+    dirname = os.path.dirname(filepath)
+    if not dirname:
+        dirname = "."
 
     return dirname

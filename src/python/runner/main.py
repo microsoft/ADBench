@@ -1,3 +1,4 @@
+import os
 import sys
 sys.path.append(sys.path[0] + ("/" if sys.path[0] else None) + "..")
 from shared import GMMData
@@ -20,8 +21,8 @@ def main(argv):
             return 1
 
         test_type = argv[1]
-        module_path = argv[2]
-        input_filepath = argv[3]
+        module_path = os.path.normpath(argv[2])
+        input_filepath = os.path.normpath(argv[3])
         output_prefix = argv[4]
         minimum_measurable_time = float(argv[5])
         nruns_F = int(argv[6])
@@ -38,11 +39,11 @@ def main(argv):
             # read ba input
             _input = input_utils.read_ba_instance(input_filepath)
         elif test_type == "HAND":
-            model_dir = filepath_to_dirname(input_filepath) + "model\\"
+            model_dir = os.path.join(filepath_to_dirname(input_filepath), "model")
             # read hand input
             _input = input_utils.read_hand_instance(model_dir, input_filepath, False)
         elif test_type == "HAND-COMPLICATED":
-            model_dir = filepath_to_dirname(input_filepath) + "model\\"
+            model_dir = os.path.join(filepath_to_dirname(input_filepath), "model")
             # read hand complicated input
             _input = input_utils.read_hand_instance(model_dir, input_filepath, True)
         elif test_type == "LSTM":
@@ -50,8 +51,16 @@ def main(argv):
         else:
             raise RuntimeError("Python runner doesn't support tests of " + test_type + " type")
 
-        run_benchmark(module_path, input_filepath, _input, output_prefix,\
-            minimum_measurable_time, nruns_F, nruns_J, time_limit)
+        run_benchmark(
+            module_path,
+            input_filepath,
+            _input,
+            output_prefix,
+            minimum_measurable_time,
+            nruns_F,
+            nruns_J,
+            time_limit
+        )
 
     except RuntimeError as ex:
         eprint("Runtime exception caught: ", ex)
