@@ -235,15 +235,14 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
         label = utils.format_tool(tool)
 
         # Check which point values are infinite
-        inf_inds, fin_inds = [], []
-        for i in range(len(t_vals)):
-            if t_vals[i] == float("inf"):
-                inf_inds.append(i)
-            else:
-                fin_inds.append(i)
+        inf_inds = [i for (i, t_val) in enumerate(t_vals)
+                    if t_val == float("inf")]
+
+        all_terminated = all(t_val == float("inf")
+                             for t_val in t_vals)
 
         # Append label in legend if all point values are infinite
-        if not fin_inds:
+        if all_terminated:
             label += ALL_TERMINATED_SUFFIX
 
         labels.append(label)
