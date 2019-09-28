@@ -312,11 +312,15 @@ Class Tool {
             if ($objective.contains("complicated")) { $task = "$task-Complicated" }
             $cmdargs = @("$task $module_path $dir_in$fn.txt $dir_out $script:minimum_measurable_time $script:nruns_f $script:nruns_J $script:time_limit")
         } elseif ($this.type -eq [ToolType]::python) {
-            $objective = $objective.ToUpper().Replace("-", "_").Split("_")[0]
+            $objective = $objective.ToUpper()
+            $test_type = $objective.Split("-")[0]
+            if ($objective.contains("COMPLICATED")) { $test_type = "$($test_type)-COMPLICATED" }
+            $suffix = $test_type
+            if ($test_type.contains("HAND")) { $suffix = "Hand" }
             $cmd = "python"
             $module_loader = @("$script:dir/src/python/runner/main.py")
-            $module_path = @("$script:dir/src/python/modules/$($this.name)/$($this.name)$objective.py")
-            $cmdargs = @("$module_loader $objective $module_path $dir_in$fn.txt $dir_out $script:minimum_measurable_time $script:nruns_f $script:nruns_J $script:time_limit")
+            $module_path = @("$script:dir/src/python/modules/$($this.name)/$($this.name)$suffix.py")
+            $cmdargs = @("$module_loader $test_type $module_path $dir_in$fn.txt $dir_out $script:minimum_measurable_time $script:nruns_f $script:nruns_J $script:time_limit")
         } elseif ($this.type -eq [ToolType]::py -or $this.type -eq [ToolType]::pybat) {
             $objective = $objective.ToLower().Replace("-", "_")
             if ($this.type -eq "py") { $cmd = "python" }
