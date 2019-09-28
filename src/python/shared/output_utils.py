@@ -70,6 +70,7 @@ def save_sparse_j_to_file(filepath, J):
     out.write(str(cols) + '\n')
     for i in range(cols):
         out.write(str(J.cols[i]) + ' ')
+    out.write('\n')
 
     for i in range(len(J.vals)):
         out.write(np.format_float_scientific(J.vals[i], unique=False, precision=8) + ' ')
