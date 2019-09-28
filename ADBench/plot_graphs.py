@@ -266,7 +266,7 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
         additional.append(([n_val for (n_val, _) in additionals],
                            [t_val for (_, t_val) in additionals],
                            color))
-                
+
         violation_x += [n_val for (n_val, _, _, _, violation)
                         in together if violation]
         violation_y += [t_val for (_, t_val, _, _, violation)
