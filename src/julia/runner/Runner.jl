@@ -47,6 +47,9 @@ end
 if test_type == "gmm"
     input = load_gmm_input(input_filepath, replicate_point)
     module_display_name = module_name[1:end - 3]
+elseif test_type == "ba"
+    input = load_ba_input(input_filepath)
+    module_display_name = module_name[1:end - 2]
 else
     throw(ArgumentError("Julia runner doesn't support tests of $test_type type."))
 end

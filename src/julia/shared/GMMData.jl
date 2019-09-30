@@ -1,8 +1,7 @@
 module GMMData
 include("load.jl")
-using SaveUtils
 
-export Wishart, GMMInput, GMMOutput, empty_gmm_output, load_gmm_input, save_gmm_output_to_file
+export Wishart, GMMInput, GMMOutput, empty_gmm_output, load_gmm_input
 
 struct Wishart
     gamma::Float64
@@ -80,11 +79,6 @@ function load_gmm_input(fn::AbstractString, replicate_point::Bool)::GMMInput
     line = split(lines[1 + off]," ")
     wishart = Wishart(parse(Float64, line[1]), parse(Int, line[2]))
     GMMInput(alphas, means, icf, x, wishart)
-end
-
-function save_gmm_output_to_file(output::GMMOutput, output_prefix::AbstractString, input_name::AbstractString, module_name::AbstractString)
-    save_value_to_file(objective_file_name(output_prefix, input_name, module_name), output.objective);
-    save_vector_to_file(jacobian_file_name(output_prefix, input_name, module_name), output.gradient);
 end
 
 end
