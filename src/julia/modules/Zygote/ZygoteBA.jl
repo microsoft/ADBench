@@ -83,18 +83,16 @@ function compute_ba_J(cams, X, w, obs, feats)
     reproj_err_d = zeros(2 * p, N_CAM_PARAMS + 3 + 1)
     for i in 1:p
         compute_reproj_err_d_i = x -> compute_reproj_err_d(x, feats[:, i])
-        idx = (2 * (i - 1)) + 1
-        _, J = Zygote.forward_jacobian(compute_reproj_err_d_i, pack(cams[:, obs[1, i]], X[:, obs[2, i]], w[i]))
-        insert_reproj_err_block!(jacobian, i, idx, idx + 1, J')
-        #reproj_err_d[idx:idx+1, :] = J'
+        camIdx =  obs[1, i]
+        ptIdx = obs[2, i]
+        _, J = Zygote.forward_jacobian(compute_reproj_err_d_i, pack(cams[:, camIdx], X[:, ptIdx], w[i]))
+        insert_reproj_err_block!(jacobian, i, camIdx, ptIdx, J')
     end
-    #w_err_d = zeros(1, p)
     for i in 1:p
         w_err_d_i = compute_w_err_d(w[i])
         insert_w_err_block!(jacobian, i, w_err_d_i)
     end
     jacobian
-    #(reproj_err_d, w_err_d)
 end
 
 mutable struct ZygoteBAContext
