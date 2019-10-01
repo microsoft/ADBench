@@ -47,15 +47,15 @@ def read_gmm_instance(fn, replicate_point):
     k = int(line[1])
     n = int(line[2])
 
-    alphas = np.array([ float(fid.readline()) for i in range(k) ])
-    means = np.array([ parse_floats(fid.readline().split()) for i in range(k) ])
-    icf = np.array([ parse_floats(fid.readline().split()) for i in range(k) ])
+    alphas = np.array([ float(fid.readline()) for _ in range(k) ])
+    means = np.array([ parse_floats(fid.readline().split()) for _ in range(k) ])
+    icf = np.array([ parse_floats(fid.readline().split()) for _ in range(k) ])
 
     if replicate_point:
         x_ = parse_floats(fid.readline().split())
-        x = np.array([ x_ for i in range(n) ])
+        x = np.array([ x_ ] * n)
     else:
-        x = np.array([ parse_floats(fid.readline().split()) for i in range(n) ])
+        x = np.array([ parse_floats(fid.readline().split()) for _ in range(n) ])
 
     line = fid.readline().split()
     wishart_gamma = float(line[0])
@@ -223,20 +223,20 @@ def read_hand_instance(model_dir, fn, read_us):
     npts = int(line[0])
     ntheta = int(line[1])
 
-    lines = [ fid.readline().split() for i in range(npts) ]
+    lines = [ fid.readline().split() for _ in range(npts) ]
     correspondences = np.array([ int(line[0]) for line in lines ])
     points = np.array([
-        [ float(line[i]) for i in range(1, len(line)) ]
+        parse_floats(line[1:])
         for line in lines
     ])
 
     if read_us:
         us = np.array([
-            [ float(elem) for elem in fid.readline().split() ]
-            for i_pt in range(npts)
+            parse_floats(fid.readline().split())
+            for _ in range(npts)
         ])
 
-    params = np.array([ float(fid.readline()) for i in range(ntheta) ])
+    params = np.array([ float(fid.readline()) for _ in range(ntheta) ])
     fid.close()
 
     data = HandData(model, correspondences, points)
@@ -268,25 +268,25 @@ def read_lstm_instance(fn):
     fid.readline()
     main_params = np.array([
         parse_floats(fid.readline().split())
-        for i in range(2 * layer_count)
+        for _ in range(2 * layer_count)
     ])
 
     fid.readline()
     extra_params = np.array([
         parse_floats(fid.readline().split())
-        for i in range(3)
+        for _ in range(3)
     ])
 
     fid.readline()
     state = np.array([
         parse_floats(fid.readline().split())
-        for i in range(2 * layer_count)
+        for _ in range(2 * layer_count)
     ])
 
     fid.readline()
     text_mat = np.array([
         parse_floats(fid.readline().split())
-        for i in range(char_count)
+        for _ in range(char_count)
     ])
 
     fid.close()
