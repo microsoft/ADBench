@@ -37,3 +37,9 @@ Here, 'tool' refers to an Automatic Differentiation tool to be benchmarked, and 
         - Append a `1` for any tools for which the test is implemented
         - Append a `0` where the test is not yet implemented
 3. Run your test and generate graphs for it
+
+# Code of Conduct
+
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
+For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/)
+or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
