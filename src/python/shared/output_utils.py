@@ -50,16 +50,13 @@ def save_vector_to_file(filepath, gradient):
     out.close()
 
 def save_jacobian_to_file(filepath, jacobian):
-    jacobian_nrows = jacobian.shape[0]
-    jacobian_ncols = jacobian.shape[1]
-
     out = open(filepath,"w")
 
     # output row-major matrix
-    for i in range(jacobian_nrows):
-        out.write(value_to_string(jacobian[i, 0]))
-        for j in range(1, jacobian_ncols):
-            out.write('\t' + value_to_string(jacobian[i, j]))
+    for row in jacobian:
+        out.write(value_to_string(row[0]))
+        for value in row[1:]:
+            out.write('\t' + value_to_string(value))
         out.write('\n')
 
     out.close()
