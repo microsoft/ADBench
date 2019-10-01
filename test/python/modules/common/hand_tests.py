@@ -508,49 +508,49 @@ class PythonModuleCommonHandTests(utils.BaseTestClass):
         '''Checks correctness of objective calculation over the single run
         for simple case (without us).'''
 
-        self.simple_objective_calculation_correctness(1)
+        self.simple_objective_calculation_correctness(times = 1)
 
     def test_simple_objective_multiple_times_calculation_correctness(self):
         '''Checks correctness of objective calculation over several runs
         for simple case (without us).'''
 
-        self.simple_objective_calculation_correctness(3)
+        self.simple_objective_calculation_correctness(times = 3)
 
     def test_complicated_objective_calculation_correctness(self):
         '''Checks correctness of objective calculation over the single run
         for complicated case (with us).'''
 
-        self.complicated_objective_calculation_correctness(1)
+        self.complicated_objective_calculation_correctness(times = 1)
 
     def test_complicated_objective_multiple_times_calculation_correctness(self):
         '''Checks correctness of objective calculation over several runs
         for complicated case (with us).'''
 
-        self.complicated_objective_calculation_correctness(3)
+        self.complicated_objective_calculation_correctness(times = 3)
 
     def test_simple_jacobian_calculation_correctness(self):
         '''Checks correctness of jacobian calculation over the single run
         for simple case (without us).'''
 
-        self.simple_jacobian_calculation_correctness(1)
+        self.simple_jacobian_calculation_correctness(times = 1)
 
     def test_simple_jacobian_multiple_times_calculation_correctness(self):
         '''Checks correctness of jacobian calculation over several runs
         for simple case (without us).'''
 
-        self.simple_jacobian_calculation_correctness(3)
+        self.simple_jacobian_calculation_correctness(times = 3)
 
     def test_complicated_jacobian_calculation_correctness(self):
         '''Checks correctness of jacobian calculation over the single run
         for complicated case (with us).'''
 
-        self.complicated_jacobian_calculation_correctness(1)
+        self.complicated_jacobian_calculation_correctness(times = 1)
 
     def test_complicated_jacobian_multiple_times_calculation_correctness(self):
         '''Checks correctness of jacobian calculation over several runs
         for complicated case (with us).'''
 
-        self.complicated_jacobian_calculation_correctness(3)
+        self.complicated_jacobian_calculation_correctness(times = 3)
 
     def test_simple_objective_runs_multiple_times(self):
         '''Checks if objective can be calculated multiple times

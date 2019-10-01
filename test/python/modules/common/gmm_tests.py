@@ -117,22 +117,22 @@ class PythonModuleCommonGMMTests(utils.BaseTestClass):
     def test_objective_calculation_correctness(self):
         '''Checks correctness of objective calculation over the single run.'''
 
-        self.objective_calculation_correctness(1)
+        self.objective_calculation_correctness(times = 1)
 
     def test_objective_multiple_times_calculation_correctness(self):
         '''Checks correctness of objective calculation over several runs.'''
 
-        self.objective_calculation_correctness(3)
+        self.objective_calculation_correctness(times = 3)
 
     def test_jacobian_calculation_correctness(self):
         '''Checks correctness of jacobian calculation over the single run.'''
 
-        self.jacobian_calculation_correctness(1)
+        self.jacobian_calculation_correctness(times = 1)
 
     def test_jacobian_multiple_times_calculation_correctness(self):
         '''Checks correctness of jacobian calculation over the single run.'''
 
-        self.jacobian_calculation_correctness(3)
+        self.jacobian_calculation_correctness(times = 3)
 
     def test_objective_runs_multiple_times(self):
         '''Checks if objective can be calculated multiple times.'''
