@@ -32,7 +32,7 @@ TEST_INPUT_FILE_NAME = os.path.join(ROOT, "data", "gmm", "test.txt")
 
 
 
-# Parameters for different modules. They have the next form:
+# Parameters for different modules. They have the following form:
 # {
 #   "path": <module path relative to src/python/modules directory>,
 #   "tolerance": <tolerance for module res results>
