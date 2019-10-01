@@ -50,6 +50,9 @@ if test_type == "gmm"
 elseif test_type == "ba"
     input = load_ba_input(input_filepath)
     module_display_name = module_name[1:end - 2]
+elseif test_type == "lstm"
+    input = load_lstm_input(input_filepath)
+    module_display_name = module_name[1:end - 4]
 else
     throw(ArgumentError("Julia runner doesn't support tests of $test_type type."))
 end
