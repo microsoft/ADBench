@@ -1,4 +1,6 @@
-import time, sys
+import time
+import sys
+import struct
 from collections import namedtuple
 
 from runner.ModuleLoader import module_load
@@ -16,7 +18,8 @@ def find_repeats_for_minimum_measurable_time(minimum_measurable_time, func):
     min_sample = sys.float_info.max
 
     repeats = 1
-    max_possible_power_of_two = (sys.maxsize >> 1) + 1
+    # get platform C maxint & (maxint >> 1) + 1
+    max_reasonable_number_of_repetitions = 2 ** (struct.Struct('i').size * 8 - 2)
     while True:
         t1 = time.time()
         func(repeats)
@@ -28,13 +31,11 @@ def find_repeats_for_minimum_measurable_time(minimum_measurable_time, func):
             min_sample = min(min_sample, current_sample)
             total_time += current_run_time
             break
-        # The next iteration will overflow a loop counter that's why we recognize that we cannot reach the minimum measurable time.
-        if repeats == max_possible_power_of_two:
-            repeats = measurable_time_not_achieved
-            break
         repeats *= 2
         # loop exit condition
-        if repeats > max_possible_power_of_two:
+        if repeats > max_reasonable_number_of_repetitions:
+            # we recognize that we cannot reach the minimum measurable time.
+            repeats = measurable_time_not_achieved
             break
 
     result = namedtuple('result', 'repeats, sample, total_time')
