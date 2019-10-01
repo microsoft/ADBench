@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DotnetRunner.Data;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -12,13 +13,15 @@ namespace DotnetRunner.Benchmarks
         public static readonly int MeasurableTimeNotAchieved = -1;
 
         private const int maxPossiblePowerOfTwo = (int.MaxValue >> 1) + 1;
+
         public static (int Repeats, TimeSpan Sample, TimeSpan TotalTime) FindRepeatsForMinimumMeasurableTime(TimeSpan minimumMeasurableTime, Action<int> func)
         {
             var totalTime = TimeSpan.Zero;
             var minSample = TimeSpan.MaxValue;
 
+            //Ensure that func is already compiled by JIT compiler
+            System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(func.Method.MethodHandle);
             var repeats = 1;
-
             var sw = new System.Diagnostics.Stopwatch();
             do
             {
@@ -74,10 +77,13 @@ namespace DotnetRunner.Benchmarks
 
             return minSample;
         }
+
+
     }
 
     public abstract class Benchmark<Input, Output, Parameters>:Benchmark
     {
+
         protected abstract Input ReadInputData(string inputFilePath, Parameters parameters);
 
         public void Run(string modulePath, string inputFilePath, string outputPrefix, TimeSpan minimumMeasurableTime, int nrunsF, int nrunsJ,

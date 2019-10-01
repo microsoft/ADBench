@@ -38,7 +38,7 @@ namespace DotnetRunnerTests
             baTestMock.Setup(test => test.CalculateObjective(It.IsAny<int>()))
                        .Callback((int _) => System.Threading.Thread.Sleep(executionTime));
 
-            BABenchmark.MeasureShortestTime(minimumMeasurableTime, runCount, timeLimit, baTest.CalculateObjective);
+            Benchmark.MeasureShortestTime(minimumMeasurableTime, runCount, timeLimit, baTest.CalculateObjective);
 
             //Number of runs should be less then runCount variable because totalTime will be reached. 
             baTestMock.Verify(test => test.CalculateObjective(It.IsAny<int>()), Times.Between(1, (int)Math.Ceiling(timeLimit / executionTime), Range.Exclusive));
@@ -58,7 +58,7 @@ namespace DotnetRunnerTests
             baTestMock.Setup(test => test.CalculateObjective(It.IsAny<int>()))
                        .Callback((int _) => System.Threading.Thread.Sleep(executionTime));
 
-            BABenchmark.MeasureShortestTime(minimumMeasurableTime, runCount, timeLimit, baTest.CalculateObjective);
+            Benchmark.MeasureShortestTime(minimumMeasurableTime, runCount, timeLimit, baTest.CalculateObjective);
 
             //Number of runs should be equal to runCount limit.
             baTestMock.Verify(test => test.CalculateObjective(It.IsAny<int>()), Times.Exactly(runCount));
@@ -78,7 +78,7 @@ namespace DotnetRunnerTests
             baTestMock.Setup(test => test.CalculateObjective(It.IsAny<int>()))
                        .Callback((int _) => System.Threading.Thread.Sleep(executionTime));
 
-            var shortestTime = BABenchmark.MeasureShortestTime(minimumMeasurableTime, runCount, timeLimit, baTest.CalculateObjective);
+            var shortestTime = Benchmark.MeasureShortestTime(minimumMeasurableTime, runCount, timeLimit, baTest.CalculateObjective);
 
             baTestMock.Verify(test => test.CalculateObjective(It.IsAny<int>()), Times.Exactly(runCount));
 
@@ -98,9 +98,9 @@ namespace DotnetRunnerTests
             baTestMock.Setup(test => test.CalculateObjective(It.IsAny<int>()))
                        .Callback((int repeats) => System.Threading.Thread.Sleep(repeats * executionTime));
 
-            var result = BABenchmark.FindRepeatsForMinimumMeasurableTime(minimumMeasurableTime, baTest.CalculateObjective);
+            var result = Benchmark.FindRepeatsForMinimumMeasurableTime(minimumMeasurableTime, baTest.CalculateObjective);
 
-            Assert.NotEqual(result.Repeats, BABenchmark.MeasurableTimeNotAchieved);
+            Assert.NotEqual(result.Repeats, Benchmark.MeasurableTimeNotAchieved);
             Assert.True(result.Repeats <= assumedRepeats);
         }
 
@@ -112,9 +112,9 @@ namespace DotnetRunnerTests
 
             var minimumMeasurableTime = TimeSpan.FromSeconds(1000);
 
-            var result = BABenchmark.FindRepeatsForMinimumMeasurableTime(minimumMeasurableTime, baTest.CalculateObjective);
+            var result = Benchmark.FindRepeatsForMinimumMeasurableTime(minimumMeasurableTime, baTest.CalculateObjective);
 
-            Assert.Equal(result.Repeats, BABenchmark.MeasurableTimeNotAchieved);
+            Assert.Equal(result.Repeats, Benchmark.MeasurableTimeNotAchieved);
         }
     }
 }
