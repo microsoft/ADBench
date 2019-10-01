@@ -7,6 +7,7 @@ open System.IO
 open DiffSharp.AD.Float64
 open DotnetRunner.Data
 open System.Composition
+open DotnetRunner
 
 let N_CAM_PARAMS = 11
 let ROT_IDX = 0
@@ -99,7 +100,7 @@ type BADSInput(input:BAInput) =
     member val p:int = input.P
 
     member val Cams = Array.map (fun arr -> toDV arr) input.Cams
-    member val X = Array.map (fun arr -> toDV arr) input.X
+    member val X = Array.map (fun arr -> toDV arr) input.X with get, set
     member val W = Array.map (fun v -> D v) input.W
    
     member val Feats = Array.map (fun arr -> toDV arr) input.Feats
@@ -113,6 +114,7 @@ type BADSOutput() =
     [<DefaultValue>] val mutable reproj_err_val_J : (DV * DM)[] 
     [<DefaultValue>] val mutable w_err_val_J : (D * D)[]
 
+
 [<Export(typeof<DotnetRunner.ITest<BAInput, BAOutput>>)>]
 type DiffSharpBA() =
 
@@ -123,19 +125,31 @@ type DiffSharpBA() =
     interface DotnetRunner.ITest<BAInput,BAOutput> with
         member this.Prepare(input: BAInput): unit = 
             this.input <- BADSInput input
+            //Let's build DiffSharp internal Reverse AD Trace
+            //To do it just calculate the function in the another point
+            //Moreover, it forces JIT-compiler to compile the function
+            let oldX = this.input.X
+            let newX = Array.map (fun x -> x + 1) this.input.X
+            this.input.X <- newX
+            (this :> ITest<BAInput,BAOutput>).CalculateObjective(1)
+            (this :> ITest<BAInput,BAOutput>).CalculateJacobian(1)
+            // Turn the old point back 
+            this.input.X <- oldX
 
         member this.CalculateObjective(times: int): unit = 
             let p = this.input.p
-
+            
             let obs = this.input.Obs
             let ds_cams = this.input.Cams
             let ds_X = this.input.X
             let ds_w = this.input.W
             let feats = this.input.Feats
 
-            output.reproj_err <- 
-                [|for i = 0 to p-1 do yield (compute_reproj_err ds_cams.[obs.[i].[0]] ds_X.[obs.[i].[1]] ds_w.[i] feats.[i])|]
-            output.w_err <- Array.map compute_zach_weight_error ds_w
+            [1..times] |> List.iter (fun _ ->
+                output.reproj_err <- 
+                    [|for i = 0 to p-1 do yield (compute_reproj_err ds_cams.[obs.[i].[0]] ds_X.[obs.[i].[1]] ds_w.[i] feats.[i])|]
+                output.w_err <- Array.map compute_zach_weight_error ds_w
+             )
 
         member this.CalculateJacobian(times: int): unit = 
             let p = this.input.p
@@ -152,10 +166,12 @@ type DiffSharpBA() =
                 let e,ed = diff' compute_zach_weight_error w
                 e, ed
 
-            output.reproj_err_val_J <- 
-                [|for i=0 to p-1 do 
-                    yield compute_reproj_err_J_block this.input.Cams.[obs.[i].[0]] this.input.X.[obs.[i].[1]] this.input.W.[i] this.input.Feats.[i]|]
-            output.w_err_val_J <- Array.map compute_w_err_d this.input.W
+            [1..times] |> List.iter (fun _ ->
+                output.reproj_err_val_J <- 
+                    [|for i=0 to p-1 do 
+                        yield compute_reproj_err_J_block this.input.Cams.[obs.[i].[0]] this.input.X.[obs.[i].[1]] this.input.W.[i] this.input.Feats.[i]|]
+                output.w_err_val_J <- Array.map compute_w_err_d this.input.W
+            )
             
         member this.Output(): BAOutput = 
             let n = this.input.n

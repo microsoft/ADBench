@@ -106,6 +106,6 @@ namespace DotnetModulesTests
 
             Assert.True(Utils.CanObjectiveRunMultipleTimes(module.CalculateJacobian));
         }
-                 
+
     }
 }

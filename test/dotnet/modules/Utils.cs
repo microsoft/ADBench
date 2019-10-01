@@ -1,4 +1,6 @@
-﻿using DotnetRunner.Benchmarks;
+﻿using DotnetRunner;
+using DotnetRunner.Benchmarks;
+using DotnetRunner.Data;
 using System;
 using System.Collections.Generic;
 using System.Text;
