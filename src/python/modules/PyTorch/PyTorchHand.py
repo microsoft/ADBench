@@ -97,7 +97,7 @@ class PyTorchHand(ITest):
 
             if self.complicated:
                 # getting us part of jacobian
-                # Note: jacobian has the next structure:
+                # Note: jacobian has the following structure:
                 #
                 #   [us_part theta_part]
                 #
