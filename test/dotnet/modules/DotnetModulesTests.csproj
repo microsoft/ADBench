@@ -24,10 +24,7 @@
   </ItemGroup>
 
   <Target Name="CopyTestInputs" AfterTargets="Build">
-    <Copy
-      SourceFiles="..\..\..\data\ba\test.txt"
-      DestinationFiles="$(OutDir)batest.txt"
-    />
+    <Copy SourceFiles="..\..\..\data\ba\test.txt" DestinationFiles="$(OutDir)batest.txt" />
   </Target>
   
 </Project>
