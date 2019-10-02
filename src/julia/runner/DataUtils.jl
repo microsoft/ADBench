@@ -29,6 +29,7 @@ Saves provided output to a correctly named file.
 function save_output_to_file end
 save_output_to_file(output::GMMOutput, output_prefix::AbstractString, input_name::AbstractString, module_name::AbstractString) = save_gmm_output_to_file(output, output_prefix, input_name, module_name)
 save_output_to_file(output::BAOutput, output_prefix::AbstractString, input_name::AbstractString, module_name::AbstractString) = save_ba_output_to_file(output, output_prefix, input_name, module_name)
+save_output_to_file(output::HandOutput, output_prefix::AbstractString, input_name::AbstractString, module_name::AbstractString) = save_hand_output_to_file(output, output_prefix, input_name, module_name)
 save_output_to_file(output::LSTMOutput, output_prefix::AbstractString, input_name::AbstractString, module_name::AbstractString) = save_lstm_output_to_file(output, output_prefix, input_name, module_name)
 
 
@@ -103,6 +104,11 @@ end
 function save_ba_output_to_file(output::BAOutput, output_prefix::AbstractString, input_name::AbstractString, module_name::AbstractString)
     save_errors_to_file(objective_file_name(output_prefix, input_name, module_name), output.reproj_err, output.w_err)
     save_sparse_j_to_file(jacobian_file_name(output_prefix, input_name, module_name), output.jacobian)
+end
+
+function save_hand_output_to_file(output::HandOutput, output_prefix::AbstractString, input_name::AbstractString, module_name::AbstractString)
+    save_vector_to_file(objective_file_name(output_prefix, input_name, module_name), output.objective)
+    save_matrix_to_file(jacobian_file_name(output_prefix, input_name, module_name), output.jacobian)
 end
 
 function save_lstm_output_to_file(output::LSTMOutput, output_prefix::AbstractString, input_name::AbstractString, module_name::AbstractString)
