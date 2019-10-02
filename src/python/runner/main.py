@@ -23,7 +23,7 @@ def main(argv):
         test_type = argv[1]
         module_path = os.path.normpath(argv[2])
         input_filepath = os.path.normpath(argv[3])
-        output_prefix = argv[4]
+        output_prefix = os.path.normpath(argv[4])
         minimum_measurable_time = float(argv[5])
         nruns_F = int(argv[6])
         nruns_J = int(argv[7])
@@ -31,6 +31,11 @@ def main(argv):
 
         # read only 1 point and replicate it?
         replicate_point = (len(argv) > 9 and str(argv[9]) == "-rep")
+
+        # If the given prefix is a directory then add a separator to its end
+        # thus we can just use concatenation further
+        if os.path.isdir(output_prefix):
+            output_prefix += os.path.sep
 
         if test_type == "GMM":
             # read gmm input
