@@ -25,6 +25,9 @@ class Vector:
     def __len__(self):
         return self.__n
 
+    def __iter__(self):
+        return np.nditer(self.__data[:self.__n])
+
     def get_last(self):
         '''Returns the last item of the data.'''
 
