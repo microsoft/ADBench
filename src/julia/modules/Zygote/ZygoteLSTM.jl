@@ -31,7 +31,9 @@ function lstmpredict(main_params::Matrix{Float64}, extra_params::Matrix{Float64}
     for i ∈ 1:2:lenstate
         h, c = lstmmodel(view(main_params, :, i), view(main_params, :, i + 1), view(state, :, i), view(state, :, i + 1), x)
         x = h
-        # Zygote does not support mutating arrays, hence this abomination
+        # Zygote does not support mutating arrays
+        # and I didn't manage to rewrite this into an array comprehension
+        # differentiable by Zygote, hence this abomination
         s2 = hcat(s2, h, c)
     end
     (x .* view(extra_params, :, 2) .+ view(extra_params, :, 3), s2)
