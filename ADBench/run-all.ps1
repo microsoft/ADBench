@@ -464,7 +464,6 @@ $tool_descriptors = @(
     [Tool]::new("DiffSharp", "bin", [ObjectiveType] "BA", $false, 0.0, $true, $false)
     [Tool]::new("PyTorch", "python", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, $default_tolerance)
     [Tool]::new("Autograd", "py", [ObjectiveType] "GMM, BA", $false, 0.0, $true, $false)
-    #[Tool]::new("PyTorch", "py", [ObjectiveType] "GMM, LSTM", $false, 0.0)
     [Tool]::new("Julia", "julia_tool", [ObjectiveType] "GMM, BA", $false, 0.0)
     [Tool]::new("Zygote", "julia", [ObjectiveType] "GMM", $true, $default_tolerance)
     #[Tool]::new("Theano", "pybat", [ObjectiveType] "GMM, BA, Hand", $false, 0.0)
