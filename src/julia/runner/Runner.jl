@@ -50,6 +50,12 @@ if test_type == "gmm"
 elseif test_type == "ba"
     input = load_ba_input(input_filepath)
     module_display_name = module_name[1:end - 2]
+elseif test_type == "hand"
+    input = load_hand_input(input_filepath, false)
+    module_display_name = module_name[1:end - 4]
+elseif test_type == "hand-complicated"
+    input = load_hand_input(input_filepath, true)
+    module_display_name = module_name[1:end - 4]
 elseif test_type == "lstm"
     input = load_lstm_input(input_filepath)
     module_display_name = module_name[1:end - 4]
