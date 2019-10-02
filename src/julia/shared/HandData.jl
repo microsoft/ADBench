@@ -27,7 +27,7 @@ mutable struct HandOutput
     jacobian::Matrix{Float64}
 end
 
-empty_hand_output() = HandOutput([], [])
+empty_hand_output() = HandOutput([], Matrix{Float64}(undef, 0, 0))
 
 function load_hand_model(model_dir::AbstractString)::HandModel
     delimeter = ':'
