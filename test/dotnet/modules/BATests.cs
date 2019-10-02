@@ -11,15 +11,8 @@ namespace DotnetModulesTests
 
         ModuleLoader moduleLoader = new ModuleLoader("./DiffSharpModule.dll");
 
-        [Fact]
-        public void Load()
-        {
-            var test = moduleLoader.GetBATest();
-            Assert.NotNull(test);
-        }
-
-        [Fact]
-        public void ObjectiveCalculationCorrectness()
+        // helper methods
+        public void CheckObjectiveCalculation(int times)
         {
             var module = moduleLoader.GetBATest();
             Assert.NotNull(module);
@@ -28,7 +21,7 @@ namespace DotnetModulesTests
             var input = DataLoader.ReadBAInstance("batest.txt");
 
             module.Prepare(input);
-            module.CalculateObjective(1);
+            module.CalculateObjective(times);
 
             var output = module.Output();
 
@@ -43,8 +36,7 @@ namespace DotnetModulesTests
             }
         }
 
-        [Fact]
-        public void JacobianCalculationCorrectness()
+        void CheckJacobianCalculation(int times)
         {
             var module = moduleLoader.GetBATest();
             Assert.NotNull(module);
@@ -53,7 +45,7 @@ namespace DotnetModulesTests
             var input = DataLoader.ReadBAInstance("batest.txt");
 
             module.Prepare(input);
-            module.CalculateJacobian(1);
+            module.CalculateJacobian(times);
 
             var output = module.Output();
             Assert.Equal(30, output.J.nrows);
@@ -77,6 +69,37 @@ namespace DotnetModulesTests
             Assert.Equal(-8.34044000000000008e-01, output.J.vals[307], comparer);
             Assert.Equal(-8.34044000000000008e-01, output.J.vals[308], comparer);
             Assert.Equal(-8.34044000000000008e-01, output.J.vals[309], comparer);
+        }
+
+        [Fact]
+        public void Load()
+        {
+            var test = moduleLoader.GetBATest();
+            Assert.NotNull(test);
+        }
+
+        [Fact]
+        public void ObjectiveCalculationCorrectness()
+        {
+            CheckObjectiveCalculation(times: 1);
+        }
+
+        [Fact]
+        public void ObjectiveMultipleTimesCalculationCorrectness()
+        {
+            CheckObjectiveCalculation(times: 3);
+        }
+
+        [Fact]
+        public void JacobianCalculationCorrectness()
+        {
+            CheckJacobianCalculation(times: 1);
+        }
+
+        [Fact]
+        public void JacobianMultipleTimesCalculationCorrectness()
+        {
+            CheckJacobianCalculation(times: 3);
         }
 
         [Fact]
