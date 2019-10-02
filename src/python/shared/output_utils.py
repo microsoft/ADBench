@@ -75,24 +75,21 @@ def save_errors_to_file(filepath, reprojection_error, zach_weight_error):
     out.close()
 
 def save_sparse_j_to_file(filepath, J):
-    rows = len(J.rows)
-    cols = len(J.cols)
-
     out = open(filepath,"w")
 
-    out.write(str(J.nrows) + ' ' + str(J.ncols) + '\n')
+    out.write(f"{J.nrows} {J.ncols}\n")
 
-    out.write(str(rows) + '\n')
-    for i in range(rows):
-        out.write(str(J.rows[i]) + ' ')
+    out.write(f"{len(J.rows)}\n")
+    for row in J.rows:
+        out.write(f"{row} ")
     out.write('\n')
     
-    out.write(str(cols) + '\n')
-    for i in range(cols):
-        out.write(str(J.cols[i]) + ' ')
+    out.write(f"{len(J.cols)}\n")
+    for column in J.cols:
+        out.write(f"{column} ")
     out.write('\n')
 
-    for i in range(len(J.vals)):
-        out.write(value_to_string(J.vals[i]) + ' ')
+    for value in J.vals:
+        out.write(value_to_string(value) + ' ')
 
     out.close()
