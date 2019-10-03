@@ -6,7 +6,9 @@ export HandModel, HandInput, HandOutput, empty_hand_output, load_hand_input
 struct HandModel
     bone_names::Vector{String}
     parents::Vector{Int}
+    "Stacked along the 3rd dimension"
     base_relatives::Array{Float64,3}
+    "Stacked along the 3rd dimension"
     inverse_base_absolutes::Array{Float64,3}
     base_positions::Matrix{Float64}
     weights::Matrix{Float64}
@@ -39,10 +41,10 @@ function load_hand_model(model_dir::AbstractString)::HandModel
     parents = A[:, 2] .+ 1 #julia indexing
 
     transforms = A[:, 3:18]
-    transforms = permutedims(reshape(transforms, (n_bones, 4, 4)), (1, 3, 2))
+    transforms = permutedims(reshape(transforms, (n_bones, 4, 4)), (3, 2, 1))
 
     inverse_absolute_transforms  = A[:, 19:34]
-    inverse_absolute_transforms = permutedims(reshape(inverse_absolute_transforms, (n_bones, 4, 4)), (1, 3, 2));
+    inverse_absolute_transforms = permutedims(reshape(inverse_absolute_transforms, (n_bones, 4, 4)), (3, 2, 1));
 
     vertices_fn = joinpath(model_dir, "vertices.txt")
     A = readdlm(vertices_fn, delimeter);
