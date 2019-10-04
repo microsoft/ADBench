@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, \
                        
 import tensorflow as tf
 
-from modules.Tensorflow.utils import to_tf_tensor
+from modules.Tensorflow.utils import to_tf_tensor, flatten
 from shared.ITest import ITest
 from shared.GMMData import GMMInput, GMMOutput
 from modules.Tensorflow.gmm_objective import gmm_objective
@@ -69,7 +69,7 @@ class TensorflowGMM(ITest):
             dmeans = t.gradient(self.objective, self.means)
             dicf = t.gradient(self.objective, self.icf)
             self.gradient = tf.concat((
-                tf.reshape(dalphas, [-1]),
-                tf.reshape(dmeans, [-1]),
-                tf.reshape(dicf, [-1])
+                flatten(dalphas),
+                flatten(dmeans),
+                flatten(dicf)
             ), 0)

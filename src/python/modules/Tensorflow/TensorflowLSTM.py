@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, \
 
 import tensorflow as tf
 
-from modules.Tensorflow.utils import to_tf_tensor
+from modules.Tensorflow.utils import to_tf_tensor, flatten
 from shared.ITest import ITest
 from shared.LSTMData import LSTMInput, LSTMOutput
 from modules.Tensorflow.lstm_objective import lstm_objective
@@ -58,6 +58,6 @@ class TensorflowLSTM(ITest):
             dmain_params = t.gradient(self.objective, self.main_params),
             dextra_params = t.gradient(self.objective, self.extra_params)
             self.gradient = tf.concat((
-                tf.reshape(dmain_params, [-1]),
-                tf.reshape(dextra_params, [-1])
+                flatten(dmain_params),
+                flatten(dextra_params)
             ), 0)

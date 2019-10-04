@@ -22,3 +22,10 @@ def shape(tf_tensor):
     '''Returns shape of a tensorflow tensor like a list if integers.'''
 
     return tf_tensor.get_shape().as_list()
+
+
+
+def flatten(tf_tensor):
+    '''Returns the flaten tensor.'''
+
+    return tf.reshape(tf_tensor, [-1])
