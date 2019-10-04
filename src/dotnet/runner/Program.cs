@@ -61,6 +61,7 @@ namespace DotnetRunner
             catch (Exception ex)
             {
                 Console.Error.WriteLine("An exception caught: " + ex.ToString());
+                return 1;
             }
             return 0;
         }
