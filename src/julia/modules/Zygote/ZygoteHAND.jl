@@ -28,20 +28,20 @@ function angle_axis_to_rotation_matrix(angle_axis::Vector{Float64})::Matrix{Floa
     ]
 end
 
-function apply_global_transform(pose_params::Matrix{Float64}, positions::Matrix{Float64})::Matrix{Float64}
-    # println(size((angle_axis_to_rotation_matrix(pose_params[:, 1]) .* pose_params[:, 2]') * positions))
-    # println(size(pose_params[:, 3]))
-    (angle_axis_to_rotation_matrix(pose_params[:, 1]) .* pose_params[:, 2]') * positions .+ pose_params[:, 3]
+function apply_global_transform(pose_params::Vector{Vector{Float64}}, positions::Matrix{Float64})::Matrix{Float64}
+    (angle_axis_to_rotation_matrix(pose_params[1]) .* pose_params[2]') * positions .+ pose_params[3]
 end
 
-function relatives_to_absolutes(relatives::Array{Float64, 3}, parents::Vector{Int})::Array{Float64, 3}
-    #cat([ parents[i] == 0 ? relatives[:, :, i] : [i] for i ∈ 1:length(parents) ]..., dims = 3)
-    absolutes = Array{Float64, 3}(undef, size(relatives, 1), size(relatives, 2), 0)# zeros(eltype(relatives), size(relatives));
+function relatives_to_absolutes(relatives::Vector{Matrix{Float64}}, parents::Vector{Int})::Vector{Matrix{Float64}}
+    # Zygote does not support array mutation and on every iteration we may need to access
+    # random element created on one of the previous iterations, so, no way to rewrite this
+    # as a comprehension. Hence looped vcat.
+    absolutes = Vector{Matrix{Float64}}(undef, 0)
     for i=1:length(parents)
         if parents[i] == 0
-            absolutes = cat(absolutes, relatives[:, :, i], dims = 3)
+            absolutes = vcat(absolutes, [ relatives[i] ])
         else
-            absolutes = cat(absolutes, absolutes[:, :, parents[i]] * relatives[:, :, i], dims = 3)
+            absolutes = vcat(absolutes, [ absolutes[parents[i]] * relatives[i] ])
         end
     end
     absolutes
@@ -57,48 +57,37 @@ function euler_angles_to_rotation_matrix(xyz::Vector{Float64})::Matrix{Float64}
     sinty = sin(ty)
     costz = cos(tz)
     sintz = sin(tz)
-    Rx = [1. 0. 0.; 0. costx -sintx; 0. sintx costx]
-    Ry = [costy 0. sinty; 0. 1. 0.; -sinty 0. costy]
-    Rz = [costz -sintz 0.; sintz costz 0.; 0. 0. 1.]
+    # We could define this as a 3x3 matrix and then build a block-diagonal
+    # 4x4 matrix with 1. at (4, 4), but Zygote couldn't differentiate
+    # any way of building that I could come up with.
+    Rx = [ 1. 0. 0. 0.; 0. costx -sintx 0.; 0. sintx costx 0.; 0. 0. 0. 1. ]
+    Ry = [ costy 0. sinty 0.; 0. 1. 0. 0.; -sinty 0. costy 0.; 0. 0. 0. 1. ]
+    Rz = [ costz -sintz 0. 0.; sintz costz 0. 0.; 0. 0. 1. 0.; 0. 0. 0. 1. ]
     Rz * Ry * Rx
 end
 
-function get_posed_relatives(model::HandModel, pose_params::Matrix{Float64})::Array{Float64, 3}
+function get_posed_relatives(model::HandModel, pose_params::Vector{Vector{Float64}})::Vector{Matrix{Float64}}
     # default parametrization xzy # Flexion, Abduction, Twist
     order = [1, 3, 2]
     offset = 3
     n_bones = size(model.bone_names, 1)
-    relatives = Array{Float64, 3}(undef, 4, 4, 0)
-    
-    for i_bone = 1:n_bones
-        r = euler_angles_to_rotation_matrix(pose_params[order, i_bone + offset])
-        T = [ r zeros(size(r, 1)); zeros(size(r, 2))' 1. ]
-        #T = cat(euler_angles_to_rotation_matrix(pose_params[order, i_bone + offset]), [1], dims = (1, 2))
-        relatives = cat(relatives, model.base_relatives[:, :, i_bone] * T, dims = 3)
-    end
-    relatives
+    [
+        model.base_relatives[i_bone] * euler_angles_to_rotation_matrix(pose_params[i_bone + offset][order])
+            for i_bone ∈ 1:n_bones
+    ]
 end
 
-function get_skinned_vertex_positions(model::HandModel, pose_params::Matrix{Float64}, apply_global::Bool = true)::Matrix{Float64}
+function get_skinned_vertex_positions(model::HandModel, pose_params::Vector{Vector{Float64}}, apply_global::Bool = true)::Matrix{Float64}
     relatives = get_posed_relatives(model, pose_params)
-
     absolutes = relatives_to_absolutes(relatives, model.parents)
 
-    transforms = cat([ absolutes[:, :, i] * model.inverse_base_absolutes[:, :, i] for i ∈ 1:size(absolutes, 3) ]..., dims = 3)
+    transforms = [ absolutes[i] * model.inverse_base_absolutes[i] for i ∈ 1:size(absolutes, 1) ]
 
     n_verts = size(model.base_positions, 2)
     positions = zeros(Float64, 3, n_verts)
-    # println("Positions:")
-    # println(size(positions))
-    # println("Base positions:")
-    # println(size(model.base_positions))
-    # println("trans * bp:")
-    # println(size(transforms[1:3, :, 1] * model.base_positions))
-    # println("Weights:")
-    # println(size(model.weights[1, :]))
-    for i=1:size(transforms, 3)
+    for i=1:size(transforms, 1)
         positions = positions +
-            (transforms[1:3, :, i] * model.base_positions) .* model.weights[i, :]'
+            (transforms[i][1:3, :] * model.base_positions) .* model.weights[i, :]'
     end
 
     if model.is_mirrored
@@ -111,7 +100,7 @@ function get_skinned_vertex_positions(model::HandModel, pose_params::Matrix{Floa
     positions
 end
 
-function to_pose_params(theta::Vector{Float64}, n_bones::Int)::Matrix{Float64}
+function to_pose_params(theta::Vector{Float64}, n_bones::Int)::Vector{Vector{Float64}}
     # to_pose_params !!!!!!!!!!!!!!! fixed order pose_params !!!!!
     #       1) global_rotation 2) scale 3) global_translation
     #       4) wrist
@@ -121,59 +110,32 @@ function to_pose_params(theta::Vector{Float64}, n_bones::Int)::Matrix{Float64}
     
     n = 3 + n_bones
     n_fingers = 5
-    i_theta = 7
-    hcat(
-        theta[1:3], [1., 1., 1.], theta[4:6], [0. 0.; 0. 0.; 0. 0.;],
-        [ 
-            if i == 2
-                (i_theta = i_theta + 2; [theta[i_theta - 2], theta[i_theta - 1], 0.])
-            elseif i == 5
-                [0., 0., 0.]
-            else
-                (i_theta = i_theta + 1; [theta[i_theta - 1], 0., 0.])
-            end
-                for finger = 1:n_fingers for i=2:5
-        ]...#,
-        #[ [0., 0., 0.] for i ∈ 21:n ]...
-    )
-    # pose_params = zeros(Float64, 3, n)
-    
-    # pose_params[:,1] = theta[1:3]
-    # pose_params[:,2] = 1
-    # pose_params[:,3] = theta[4:6]
-    
-    # i_theta = 7
-    # i_pose_params = 6
-    # n_fingers = 5
-    # for finger = 1:n_fingers
-    #     for i=2:4
-    #         pose_params[1,i_pose_params] = theta[i_theta]
-    #         i_theta = i_theta + 1
-    #         if i==2
-    #             pose_params[2,i_pose_params] = theta[i_theta]
-    #             i_theta = i_theta + 1
-    #         end
-    #         i_pose_params = i_pose_params+1
-    #     end
-    #     i_pose_params = i_pose_params+1
-    # end
-    # pose_params
+    cols = 5 + n_fingers * 4
+    [
+        if i == 1
+            theta[1:3]
+        elseif i == 2
+            [1., 1., 1.]
+        elseif i == 3
+            theta[4:6]
+        elseif i > cols || i == 4 || i % 4 == 1
+            [0., 0., 0.]
+        elseif i % 4 == 2
+            [theta[i + 1], theta[i + 2], 0.]
+        else
+            [theta[i + 2], 0., 0.]
+        end
+            for i ∈ 1:n
+    ]
 end
 
 function hand_objective_simple(model::HandModel, correspondences::Vector{Int}, points::Matrix{Float64}, theta::Vector{Float64})::Vector{Float64}
     pose_params = to_pose_params(theta, length(model.bone_names))
-    # Base.print_matrix(IOContext(stdout, :limit => false), pose_params)
-    # println()
   
     vertex_positions = get_skinned_vertex_positions(model, pose_params)
   
     n_corr = length(correspondences)
     vcat([ points[:, i] - vertex_positions[:,correspondences[i]] for i ∈ 1:n_corr ]...)
-    # err = zeros(eltype(theta),3, n_corr)
-    # for i=1:n_corr
-    #     err[:,i] = points[:,i] - vertex_positions[:,correspondences[i]]
-    # end
-    # err
 end
 
 mutable struct ZygoteHandContext
@@ -181,7 +143,7 @@ mutable struct ZygoteHandContext
     iscomplicated::Bool
     wrapper_hand_objective::Union{Function, Nothing}
     zygote_objective::Vector{Float64}
-    zygote_jacobian
+    zygote_jacobian_transposed::Matrix{Float64}
 end
 
 function zygote_hand_prepare!(ctx::ZygoteHandContext, input::HandInput)
@@ -204,13 +166,13 @@ function zygote_hand_calculate_jacobian!(ctx::ZygoteHandContext, times)
     for i in 1:times
         y, back = Zygote.forward(ctx.wrapper_hand_objective, ctx.input.theta)
         ylen = size(y, 1)
-        ctx.zygote_jacobian = hcat([ back(1:ylen .== i) for i ∈ 1:ylen ]...)
+        ctx.zygote_jacobian_transposed = hcat([ back(1:ylen .== i)[1] for i ∈ 1:ylen ]...)
     end
 end
 
 function zygote_hand_output!(out::HandOutput, ctx::ZygoteHandContext)
     out.objective = ctx.zygote_objective
-    out.jacobian = ctx.zygote_jacobian
+    out.jacobian = ctx.zygote_jacobian_transposed'
 end
 
 get_hand_test() = Test{HandInput, HandOutput}(
