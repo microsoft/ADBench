@@ -20,7 +20,7 @@ struct HandInput
     points::Matrix{Float64}
     theta::Vector{Float64}
     "Is present only for 'complicated' kind of problems."
-    us::Union{Matrix{Float64}, Nothing}
+    us::Union{Vector{Vector{Float64}}, Nothing}
 end
 
 mutable struct HandOutput
@@ -96,7 +96,7 @@ function load_hand_input(fn::AbstractString, iscomplicated::Bool)::HandInput
         end
 
         if iscomplicated
-            us = hcat([parse.(Float64, split(readline(io), " ")) for i=1:n_pts]...)
+            us = [parse.(Float64, split(readline(io), " ")) for i=1:n_pts]
         else
             us = nothing
         end

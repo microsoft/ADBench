@@ -138,7 +138,7 @@ function hand_objective_simple(model::HandModel, correspondences::Vector{Int}, p
     vcat([ points[:, i] - vertex_positions[:, correspondences[i]] for i ∈ 1:n_corr ]...)
 end
 
-function hand_objective_complicated(model::HandModel, correspondences::Vector{Int}, points::Matrix{Float64}, theta::Vector{Float64}, us::Matrix{Float64})::Vector{Float64}
+function hand_objective_complicated(model::HandModel, correspondences::Vector{Int}, points::Matrix{Float64}, theta::Vector{Float64}, us::Vector{Vector{Float64}})::Vector{Float64}
     pose_params = to_pose_params(theta, length(model.bone_names))
 
     vertex_positions = get_skinned_vertex_positions(model, pose_params)
@@ -147,10 +147,9 @@ function hand_objective_complicated(model::HandModel, correspondences::Vector{In
     vcat([ 
         begin
             verts = model.triangles[correspondences[i]]
-            u1= us[1, i]
-            u2= us[2, i]
-            hand_point = u1 * vertex_positions[:, verts[1]] + u2 * vertex_positions[:, verts[2]] +
-                (1. - u1 - u2) * vertex_positions[:, verts[3]]
+            u = us[i]
+            hand_point = u[1] * vertex_positions[:, verts[1]] + u[2] * vertex_positions[:, verts[2]] +
+                (1. - u[1] - u[2]) * vertex_positions[:, verts[3]]
             points[:, i] - hand_point
         end
             for i ∈ 1:n_corr
@@ -160,7 +159,9 @@ end
 mutable struct ZygoteHandContext
     input::Union{HandInput, Nothing}
     iscomplicated::Bool
-    wrapper_hand_objective::Union{Function, Nothing}
+    wrapper_hand_objective_simple::Union{Function, Nothing}
+    wrapper_hand_objective_complicated_theta::Union{Function, Nothing}
+    wrappers_hand_objective_complicated_us::Vector{Function}
     zygote_objective::Vector{Float64}
     zygote_jacobian_transposed::Matrix{Float64}
 end
@@ -173,7 +174,13 @@ function zygote_hand_prepare!(ctx::ZygoteHandContext, input::HandInput)
 
     ctx.input = input
     ctx.iscomplicated = input.us !== nothing
-    ctx.wrapper_hand_objective = theta -> hand_objective_simple(input.model, input.correspondences, input.points, theta)
+    if ctx.iscomplicated
+        ctx.wrapper_hand_objective_complicated_theta = theta -> hand_objective_complicated(input.model, input.correspondences, input.points, theta, input.us)
+        ctx.wrappers_hand_objective_complicated_us =
+            [ u::Vector{Float64} -> hand_objective_complicated(input.model, input.correspondences, input.points, input.theta, vcat(input.us[1:i-1], [u], input.us[i+1:end])) for i ∈ 1:size(input.us, 1) ]
+    else
+        ctx.wrapper_hand_objective_simple = theta -> hand_objective_simple(input.model, input.correspondences, input.points, theta)
+    end
 end
 
 function zygote_hand_calculate_objective!(ctx::ZygoteHandContext, times)
@@ -189,10 +196,24 @@ function zygote_hand_calculate_objective!(ctx::ZygoteHandContext, times)
 end
 
 function zygote_hand_calculate_jacobian!(ctx::ZygoteHandContext, times)
-    for i in 1:times
-        y, back = Zygote.forward(ctx.wrapper_hand_objective, ctx.input.theta)
+    if ctx.iscomplicated
+        y, back = Zygote.forward(ctx.wrapper_hand_objective_complicated_theta, ctx.input.theta)
         ylen = size(y, 1)
-        ctx.zygote_jacobian_transposed = hcat([ back(1:ylen .== i)[1] for i ∈ 1:ylen ]...)
+        jacobian_theta = hcat([ back(1:ylen .== i)[1] for i ∈ 1:ylen ]...)
+        jacobian_us = hcat([
+            begin
+                yu, backu = Zygote.forward(ctx.wrappers_hand_objective_complicated_us[i], ctx.input.us[i])
+                hcat([ backu(1:ylen .== j)[1] for j ∈ 3i-2:3i ]...)
+            end
+                for i ∈ 1:size(ctx.input.us, 1)
+        ]...)
+        ctx.zygote_jacobian_transposed = vcat(jacobian_us, jacobian_theta)
+    else
+        for i in 1:times
+            y, back = Zygote.forward(ctx.wrapper_hand_objective_simple, ctx.input.theta)
+            ylen = size(y, 1)
+            ctx.zygote_jacobian_transposed = hcat([ back(1:ylen .== i)[1] for i ∈ 1:ylen ]...)
+        end
     end
 end
 
@@ -202,7 +223,7 @@ function zygote_hand_output!(out::HandOutput, ctx::ZygoteHandContext)
 end
 
 get_hand_test() = Test{HandInput, HandOutput}(
-    ZygoteHandContext(nothing, false, nothing, [], Matrix{Float64}(undef, 0, 0)),
+    ZygoteHandContext(nothing, false, nothing, nothing, [], [], Matrix{Float64}(undef, 0, 0)),
     zygote_hand_prepare!,
     zygote_hand_calculate_objective!,
     zygote_hand_calculate_jacobian!,
