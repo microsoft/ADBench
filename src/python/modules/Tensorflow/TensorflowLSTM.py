@@ -2,7 +2,6 @@ from __future__ import absolute_import, division, print_function, \
                        unicode_literals
 
 import tensorflow as tf
-import numpy as np
 
 from modules.Tensorflow.utils import to_tf_tensor
 from shared.ITest import ITest
