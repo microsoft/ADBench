@@ -41,6 +41,10 @@ test_params = [
     {
         "path": os.path.join("PyTorch", "PyTorchGMM.py"),
         "tolerance": 1e-8
+    },
+    {
+        "path": os.path.join("Tensorflow", "TensorflowGMM.py"),
+        "tolerance": 1e-8
     }
 ]
 
