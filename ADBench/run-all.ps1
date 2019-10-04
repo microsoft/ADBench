@@ -465,7 +465,7 @@ $tool_descriptors = @(
     [Tool]::new("Manual", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $false, 0.0)
     [Tool]::new("ManualEigen", "cpp", [ObjectiveType] "GMM, BA, Hand, LSTM", $true, $default_tolerance)
     [Tool]::new("ManualEigenVector", "cpp", [ObjectiveType] "GMM", $true, $default_tolerance)
-    [Tool]::new("DiffSharpModule", "dotnet", [ObjectiveType] "BA", $false, 0.0, $true, $false)
+    [Tool]::new("DiffSharpModule", "dotnet", [ObjectiveType] "BA", $true, $default_tolerance)
     [Tool]::new("Tapenade", "cpp", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, $default_tolerance)
     [Tool]::new("PyTorch", "python", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, $default_tolerance)
     [Tool]::new("Tensorflow", "python", [ObjectiveType] "LSTM, GMM, BA", $true, $default_tolerance)
