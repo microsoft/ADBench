@@ -131,11 +131,30 @@ end
 
 function hand_objective_simple(model::HandModel, correspondences::Vector{Int}, points::Matrix{Float64}, theta::Vector{Float64})::Vector{Float64}
     pose_params = to_pose_params(theta, length(model.bone_names))
-  
+
     vertex_positions = get_skinned_vertex_positions(model, pose_params)
-  
+
     n_corr = length(correspondences)
-    vcat([ points[:, i] - vertex_positions[:,correspondences[i]] for i ∈ 1:n_corr ]...)
+    vcat([ points[:, i] - vertex_positions[:, correspondences[i]] for i ∈ 1:n_corr ]...)
+end
+
+function hand_objective_complicated(model::HandModel, correspondences::Vector{Int}, points::Matrix{Float64}, theta::Vector{Float64}, us::Matrix{Float64})::Vector{Float64}
+    pose_params = to_pose_params(theta, length(model.bone_names))
+
+    vertex_positions = get_skinned_vertex_positions(model, pose_params)
+
+    n_corr = length(correspondences)
+    vcat([ 
+        begin
+            verts = model.triangles[correspondences[i]]
+            u1= us[1, i]
+            u2= us[2, i]
+            hand_point = u1 * vertex_positions[:, verts[1]] + u2 * vertex_positions[:, verts[2]] +
+                (1. - u1 - u2) * vertex_positions[:, verts[3]]
+            points[:, i] - hand_point
+        end
+            for i ∈ 1:n_corr
+    ]...)
 end
 
 mutable struct ZygoteHandContext
@@ -153,12 +172,19 @@ function zygote_hand_prepare!(ctx::ZygoteHandContext, input::HandInput)
     # are done in calculate_jacobian!
 
     ctx.input = input
+    ctx.iscomplicated = input.us !== nothing
     ctx.wrapper_hand_objective = theta -> hand_objective_simple(input.model, input.correspondences, input.points, theta)
 end
 
 function zygote_hand_calculate_objective!(ctx::ZygoteHandContext, times)
-    for i in 1:times
-        ctx.zygote_objective = hand_objective_simple(ctx.input.model, ctx.input.correspondences, ctx.input.points, ctx.input.theta)
+    if ctx.iscomplicated
+        for i in 1:times
+            ctx.zygote_objective = hand_objective_complicated(ctx.input.model, ctx.input.correspondences, ctx.input.points, ctx.input.theta, ctx.input.us)
+        end
+    else
+        for i in 1:times
+            ctx.zygote_objective = hand_objective_simple(ctx.input.model, ctx.input.correspondences, ctx.input.points, ctx.input.theta)
+        end
     end
 end
 
