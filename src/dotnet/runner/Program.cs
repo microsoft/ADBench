@@ -55,7 +55,7 @@ namespace DotnetRunner
                 }
                 else
                 {
-                    throw new Exception("C++ runner doesn't support tests of " + testType + " type");
+                    throw new Exception("Dotnet runner doesn't support tests of " + testType + " type");
                 }
             }
             catch (Exception ex)
