@@ -10,6 +10,7 @@ struct HandModel
     inverse_base_absolutes::Vector{Matrix{Float64}}
     base_positions::Matrix{Float64}
     weights::Matrix{Float64}
+    triangles::Vector{Vector{Int}}
     is_mirrored::Bool
 end
 
@@ -60,6 +61,10 @@ function load_hand_model(model_dir::AbstractString)::HandModel
         end
     end
 
+    triangles_fn = joinpath(model_dir, "triangles.txt")
+    T = readdlm(triangles_fn, delimeter, Int)
+    triangles = [ T[i, :] .+ 1 for i ∈ 1:size(T, 1) ] #julia indexing
+
     HandModel(
         bone_names,
         parents,
@@ -67,6 +72,7 @@ function load_hand_model(model_dir::AbstractString)::HandModel
         inverse_base_absolutes,
         [base_positions; ones(Float64, 1, size(base_positions, 2))],
         weights,
+        triangles,
         false
     )
 end
