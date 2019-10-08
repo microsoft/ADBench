@@ -108,8 +108,6 @@ function zygote_ba_prepare!(ctx::ZygoteBAContext, input::BAInput)
     # Using test input ensures that all computations related to the actual input
     # are done in calculate_jacobian!
     testinput = load_ba_input("$(@__DIR__)/../../../../data/ba/test.txt")
-    compute_reproj_err_d_1 = x -> compute_reproj_err_d(x, testinput.feats[:, 1])
-    Zygote.forward_jacobian(compute_reproj_err_d_1, pack(testinput.cams[:, testinput.obs[1, 1]], testinput.X[:, testinput.obs[2, 1]], testinput.w[1]))
     Zygote.gradient(compute_w_err, 1.0)
     
     ctx.input = input
