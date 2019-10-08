@@ -25,7 +25,10 @@ def shape(tf_tensor):
 
 
 
-def flatten(tf_tensor):
+def flatten(tf_tensor, column_major = False):
     '''Returns the flaten tensor.'''
 
+    if column_major:
+        tf_tensor = tf.transpose(tf_tensor)
+        
     return tf.reshape(tf_tensor, [-1])
