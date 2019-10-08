@@ -167,33 +167,15 @@ mutable struct ZygoteHandContext
 end
 
 function zygote_hand_prepare!(ctx::ZygoteHandContext, input::HandInput)
-    # Running Zygote.forward with test input, because the first invocation
-    # of forward on a given function is very long.
-    # Using test input ensures that all computations related to the actual input
-    # are done in calculate_jacobian!
-
     ctx.input = input
     ctx.iscomplicated = input.us !== nothing
     if ctx.iscomplicated
-        testinput = load_hand_input("$(@__DIR__)/../../../../data/hand/hand_complicated.txt", true)
-        Zygote.forward_jacobian(
-            theta -> hand_objective_complicated(testinput.model, testinput.correspondences, testinput.points, theta, testinput.us),
-            testinput.theta
-        )
-        Zygote.forward_jacobian(
-            u -> hand_objective_complicated(testinput.model, testinput.correspondences, testinput.points, testinput.theta, vcat(testinput.us[1:0], [u], testinput.us[2:end])),
-            testinput.us[1]
-        )
-
         ctx.wrapper_hand_objective_complicated_theta = theta -> hand_objective_complicated(input.model, input.correspondences, input.points, theta, input.us)
         ctx.wrappers_hand_objective_complicated_us = [
             u -> hand_objective_complicated(input.model, input.correspondences, input.points, input.theta, vcat(input.us[1:i-1], [u], input.us[i+1:end]))
                 for i ∈ 1:size(input.us, 1)
         ]
     else
-        testinput = load_hand_input("$(@__DIR__)/../../../../data/hand/test.txt", false)
-        Zygote.forward_jacobian(theta -> hand_objective_simple(testinput.model, testinput.correspondences, testinput.points, theta), testinput.theta)
-
         ctx.wrapper_hand_objective_simple = theta -> hand_objective_simple(input.model, input.correspondences, input.points, theta)
     end
 end
@@ -213,7 +195,7 @@ end
 function zygote_hand_calculate_jacobian!(ctx::ZygoteHandContext, times)
     if ctx.iscomplicated
         for i ∈ 1:times
-            y, jacobian_theta = Zygote.forward_jacobian(ctx.wrapper_hand_objective_complicated_theta, ctx.input.theta) # hcat([ back(1:ylen .== j)[1] for j ∈ 1:ylen ]...)
+            y, jacobian_theta = Zygote.forward_jacobian(ctx.wrapper_hand_objective_complicated_theta, ctx.input.theta)
             ylen = size(y, 1)
             jacobian_us = hcat([
                 begin
