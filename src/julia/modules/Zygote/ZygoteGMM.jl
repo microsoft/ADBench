@@ -151,7 +151,8 @@ function zygote_gmm_prepare!(ctx::ZygoteGMMContext, input::GMMInput)
     # of gradient on a given function is very long.
     # Using test input ensures that all computations related to the actual input
     # are done in calculate_jacobian!
-    testinput = load_gmm_input("$(@__DIR__)/../../../../data/gmm/test.txt", false)
+    # Test input taken from ../../../../data/gmm/test.txt
+    testinput = GMMInput([-0.649014 1.181166 -0.758453], [0.092339 0.345561 0.538817; 0.18626 0.396767 0.419195], [0.586443 -1.509405 0.166813; -0.851887 0.875874 -1.965419; 0.800321 -0.24279 -1.270071], [1.175171 2.02916]', Wishart(1.0, 0))
     testd = size(testinput.x, 1)
     testk = size(testinput.means, 2)
     testQs = cat([get_Q(testd, testinput.icfs[:, ik]) for ik in 1:testk]...; dims=[3])
