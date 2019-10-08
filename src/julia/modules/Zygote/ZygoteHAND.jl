@@ -101,7 +101,7 @@ function get_skinned_vertex_positions(model::HandModel, pose_params::Vector{Vect
 end
 
 function to_pose_params(theta::Vector{T1}, n_bones::Int)::Vector{Vector{T1}} where {T1}
-    # to_pose_params !!!!!!!!!!!!!!! fixed order pose_params !!!!!
+    # fixed order pose_params
     #       1) global_rotation 2) scale 3) global_translation
     #       4) wrist
     #       5) thumb1, 6)thumb2, 7) thumb3, 8) thumb4
