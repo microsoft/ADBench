@@ -8,10 +8,10 @@ using LinearAlgebra
 export get_hand_test
 
 # objective
-function angle_axis_to_rotation_matrix(angle_axis::Vector{Float64})::Matrix{Float64}
+function angle_axis_to_rotation_matrix(angle_axis::Vector{T1})::Matrix{T1} where{T1}
     n = sqrt(sum(abs2, angle_axis));
     if n < .0001
-        return Matrix{Float64}(I, 3, 3)
+        return Matrix{T1}(I, 3, 3)
     end
   
     x = angle_axis[1] / n
@@ -28,15 +28,15 @@ function angle_axis_to_rotation_matrix(angle_axis::Vector{Float64})::Matrix{Floa
     ]
 end
 
-function apply_global_transform(pose_params::Vector{Vector{Float64}}, positions::Matrix{Float64})::Matrix{Float64}
+function apply_global_transform(pose_params::Vector{Vector{T1}}, positions::Matrix{T2})::Matrix{T2} where {T1, T2}
     (angle_axis_to_rotation_matrix(pose_params[1]) .* pose_params[2]') * positions .+ pose_params[3]
 end
 
-function relatives_to_absolutes(relatives::Vector{Matrix{Float64}}, parents::Vector{Int})::Vector{Matrix{Float64}}
+function relatives_to_absolutes(relatives::Vector{Matrix{T1}}, parents::Vector{Int})::Vector{Matrix{T1}} where {T1}
     # Zygote does not support array mutation and on every iteration we may need to access
     # random element created on one of the previous iterations, so, no way to rewrite this
     # as a comprehension. Hence looped vcat.
-    absolutes = Vector{Matrix{Float64}}(undef, 0)
+    absolutes = Vector{Matrix{T1}}(undef, 0)
     for i=1:length(parents)
         if parents[i] == 0
             absolutes = vcat(absolutes, [ relatives[i] ])
@@ -47,7 +47,7 @@ function relatives_to_absolutes(relatives::Vector{Matrix{Float64}}, parents::Vec
     absolutes
 end
 
-function euler_angles_to_rotation_matrix(xyz::Vector{Float64})::Matrix{Float64}
+function euler_angles_to_rotation_matrix(xyz::Vector{T1})::Matrix{T1} where {T1}
     tx = xyz[1]
     ty = xyz[2]
     tz = xyz[3]
@@ -66,7 +66,7 @@ function euler_angles_to_rotation_matrix(xyz::Vector{Float64})::Matrix{Float64}
     Rz * Ry * Rx
 end
 
-function get_posed_relatives(model::HandModel, pose_params::Vector{Vector{Float64}})::Vector{Matrix{Float64}}
+function get_posed_relatives(model::HandModel, pose_params::Vector{Vector{T1}})::Vector{Matrix{T1}} where {T1}
     # default parametrization xzy # Flexion, Abduction, Twist
     order = [1, 3, 2]
     offset = 3
@@ -77,7 +77,7 @@ function get_posed_relatives(model::HandModel, pose_params::Vector{Vector{Float6
     ]
 end
 
-function get_skinned_vertex_positions(model::HandModel, pose_params::Vector{Vector{Float64}}, apply_global::Bool = true)::Matrix{Float64}
+function get_skinned_vertex_positions(model::HandModel, pose_params::Vector{Vector{T1}}, apply_global::Bool = true)::Matrix{T1} where {T1}
     relatives = get_posed_relatives(model, pose_params)
     absolutes = relatives_to_absolutes(relatives, model.parents)
 
@@ -100,7 +100,7 @@ function get_skinned_vertex_positions(model::HandModel, pose_params::Vector{Vect
     positions
 end
 
-function to_pose_params(theta::Vector{Float64}, n_bones::Int)::Vector{Vector{Float64}}
+function to_pose_params(theta::Vector{T1}, n_bones::Int)::Vector{Vector{T1}} where {T1}
     # to_pose_params !!!!!!!!!!!!!!! fixed order pose_params !!!!!
     #       1) global_rotation 2) scale 3) global_translation
     #       4) wrist
@@ -129,7 +129,7 @@ function to_pose_params(theta::Vector{Float64}, n_bones::Int)::Vector{Vector{Flo
     ]
 end
 
-function hand_objective_simple(model::HandModel, correspondences::Vector{Int}, points::Matrix{Float64}, theta::Vector{Float64})::Vector{Float64}
+function hand_objective_simple(model::HandModel, correspondences::Vector{Int}, points::Matrix{T1}, theta::Vector{T2}) where {T1, T2}
     pose_params = to_pose_params(theta, length(model.bone_names))
 
     vertex_positions = get_skinned_vertex_positions(model, pose_params)
@@ -138,7 +138,7 @@ function hand_objective_simple(model::HandModel, correspondences::Vector{Int}, p
     vcat([ points[:, i] - vertex_positions[:, correspondences[i]] for i ∈ 1:n_corr ]...)
 end
 
-function hand_objective_complicated(model::HandModel, correspondences::Vector{Int}, points::Matrix{Float64}, theta::Vector{Float64}, us::Vector{Vector{Float64}})::Vector{Float64}
+function hand_objective_complicated(model::HandModel, correspondences::Vector{Int}, points::Matrix{T1}, theta::Vector{T2}, us::Vector{Vector{T3}}) where {T1, T2, T3}
     pose_params = to_pose_params(theta, length(model.bone_names))
 
     vertex_positions = get_skinned_vertex_positions(model, pose_params)
@@ -176,16 +176,14 @@ function zygote_hand_prepare!(ctx::ZygoteHandContext, input::HandInput)
     ctx.iscomplicated = input.us !== nothing
     if ctx.iscomplicated
         testinput = load_hand_input("$(@__DIR__)/../../../../data/hand/hand_complicated.txt", true)
-        y, back = Zygote.forward(
+        Zygote.forward_jacobian(
             theta -> hand_objective_complicated(testinput.model, testinput.correspondences, testinput.points, theta, testinput.us),
             testinput.theta
         )
-        back(1:size(y, 1) .== 1)
-        y, back = Zygote.forward(
+        Zygote.forward_jacobian(
             u -> hand_objective_complicated(testinput.model, testinput.correspondences, testinput.points, testinput.theta, vcat(testinput.us[1:0], [u], testinput.us[2:end])),
             testinput.us[1]
         )
-        back(1:size(y, 1) .== 1)
 
         ctx.wrapper_hand_objective_complicated_theta = theta -> hand_objective_complicated(input.model, input.correspondences, input.points, theta, input.us)
         ctx.wrappers_hand_objective_complicated_us = [
@@ -194,8 +192,7 @@ function zygote_hand_prepare!(ctx::ZygoteHandContext, input::HandInput)
         ]
     else
         testinput = load_hand_input("$(@__DIR__)/../../../../data/hand/test.txt", false)
-        y, back = Zygote.forward(theta -> hand_objective_simple(testinput.model, testinput.correspondences, testinput.points, theta), testinput.theta)
-        back(1:size(y, 1) .== 1)
+        Zygote.forward_jacobian(theta -> hand_objective_simple(testinput.model, testinput.correspondences, testinput.points, theta), testinput.theta)
 
         ctx.wrapper_hand_objective_simple = theta -> hand_objective_simple(input.model, input.correspondences, input.points, theta)
     end
@@ -216,13 +213,12 @@ end
 function zygote_hand_calculate_jacobian!(ctx::ZygoteHandContext, times)
     if ctx.iscomplicated
         for i ∈ 1:times
-            y, back = Zygote.forward(ctx.wrapper_hand_objective_complicated_theta, ctx.input.theta)
+            y, jacobian_theta = Zygote.forward_jacobian(ctx.wrapper_hand_objective_complicated_theta, ctx.input.theta) # hcat([ back(1:ylen .== j)[1] for j ∈ 1:ylen ]...)
             ylen = size(y, 1)
-            jacobian_theta = hcat([ back(1:ylen .== j)[1] for j ∈ 1:ylen ]...)
             jacobian_us = hcat([
                 begin
-                    yu, backu = Zygote.forward(ctx.wrappers_hand_objective_complicated_us[j], ctx.input.us[j])
-                    hcat([ backu(1:ylen .== k)[1] for k ∈ 3j-2:3j ]...)
+                    _, ju = Zygote.forward_jacobian(ctx.wrappers_hand_objective_complicated_us[j], ctx.input.us[j])
+                    ju[:, 3j-2:3j]
                 end
                     for j ∈ 1:size(ctx.input.us, 1)
             ]...)
@@ -230,9 +226,7 @@ function zygote_hand_calculate_jacobian!(ctx::ZygoteHandContext, times)
         end
     else
         for i in 1:times
-            y, back = Zygote.forward(ctx.wrapper_hand_objective_simple, ctx.input.theta)
-            ylen = size(y, 1)
-            ctx.zygote_jacobian_transposed = hcat([ back(1:ylen .== j)[1] for j ∈ 1:ylen ]...)
+            ctx.zygote_jacobian_transposed = Zygote.forward_jacobian(ctx.wrapper_hand_objective_simple, ctx.input.theta)[2]
         end
     end
 end
