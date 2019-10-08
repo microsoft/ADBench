@@ -107,7 +107,6 @@ function zygote_ba_prepare!(ctx::ZygoteBAContext, input::BAInput)
     # of gradient on a given function is very long.
     # Using test input ensures that all computations related to the actual input
     # are done in calculate_jacobian!
-    testinput = load_ba_input("$(@__DIR__)/../../../../data/ba/test.txt")
     Zygote.gradient(compute_w_err, 1.0)
     
     ctx.input = input
