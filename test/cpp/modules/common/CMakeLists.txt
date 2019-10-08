@@ -1,6 +1,6 @@
 include(GoogleTest)
 
-project("ManualTests" CXX)
+project("CommonTests" CXX)
 add_executable(commonTests "${CMAKE_SOURCE_DIR}/src/cpp/runner/ModuleLoader.cpp" "${CMAKE_SOURCE_DIR}/src/cpp/runner/Filepaths.cpp" "${CMAKE_SOURCE_DIR}/src/cpp/shared/utils.cpp")
 target_sources("commonTests" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/ModuleTest.cpp")
 target_sources("commonTests" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/GmmTests.cpp")
