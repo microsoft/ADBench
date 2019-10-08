@@ -41,6 +41,10 @@ test_params = [
     {
         "path": os.path.join("PyTorch", "PyTorchBA.py"),
         "tolerance": 1e-8
+    },
+    {
+        "path": os.path.join("Tensorflow", "TensorflowBA.py"),
+        "tolerance": 1e-8
     }
 ]
 
@@ -140,7 +144,7 @@ class PythonModuleCommonBATests(utils.BaseTestClass):
         self.jacobian_calculation_correctness(times = 1)
 
     def test_jacobian_multiple_times_calculation_correctness(self):
-        '''Checks correctness of jacobian calculation over the single run.'''
+        '''Checks correctness of jacobian calculation over several runs.'''
 
         self.jacobian_calculation_correctness(times = 3)
 
