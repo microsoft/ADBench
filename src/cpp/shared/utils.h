@@ -5,6 +5,7 @@
 #include <vector>
 #include <fstream>
 #include <functional>
+#include <limits>
 
 #include "light_matrix.h"
 
@@ -94,10 +95,10 @@ class write_J_stream : public precise_ofstream<T>
 {
 public:
     write_J_stream(std::string fn, size_t rows, size_t cols)
-        :precise_ofstream(fn)
+        :precise_ofstream<T>(fn)
     {
         std::cout << "Writing to " << fn << std::endl;
-        if (!good()) {
+        if (!this->good()) {
             std::cerr << "FAILED\n";
             throw "oik";
         }
