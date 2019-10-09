@@ -55,9 +55,5 @@ class TensorflowLSTM(ITest):
                     self.sequence
                 )
 
-            dmain_params = t.gradient(self.objective, self.main_params),
-            dextra_params = t.gradient(self.objective, self.extra_params)
-            self.gradient = tf.concat((
-                flatten(dmain_params),
-                flatten(dextra_params)
-            ), 0)
+            J = t.gradient(self.objective, (self.main_params, self.extra_params))
+            self.gradient = tf.concat([ flatten(d) for d in J ], 0)
