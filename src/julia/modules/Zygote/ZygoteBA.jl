@@ -85,7 +85,9 @@ function compute_ba_J(cams, X, w, obs, feats)
         compute_reproj_err_d_i = x -> compute_reproj_err_d(x, feats[:, i])
         camIdx =  obs[1, i]
         ptIdx = obs[2, i]
-        _, J = Zygote.forward_jacobian(compute_reproj_err_d_i, pack(cams[:, camIdx], X[:, ptIdx], w[i]))
+        y, back = Zygote.forward(compute_reproj_err_d_i, pack(cams[:, camIdx], X[:, ptIdx], w[i]))
+        ylen = size(y, 1)
+        J = hcat([ back(1:ylen .== j)[1] for j ∈ 1:ylen ]...)
         insert_reproj_err_block!(jacobian, i, camIdx, ptIdx, J')
     end
     for i in 1:p
@@ -108,6 +110,18 @@ function zygote_ba_prepare!(ctx::ZygoteBAContext, input::BAInput)
     # Using test input ensures that all computations related to the actual input
     # are done in calculate_jacobian!
     Zygote.gradient(compute_w_err, 1.0)
+    # from ../../../../data/ba/test.txt
+    testinput = BAInput(2, 10, 10,
+        repeat([ 1.797201, 0.590697, -0.635786, 90.85955, 29.361415, 28.777534, 211.628116, -0.284531, -14.762924, 0.058931, 0.069976 ], 1, 2),
+        repeat([ 4.173048, 5.586898, 1.403869 ], 1, 10),
+        repeat([ 0.417022 ], 10),
+        repeat([ -525.672849, 161.811929 ], 1, 10),
+        [1 2 1 2 1 2 1 2 1 2; 1 2 3 4 5 6 7 8 9 10])
+    y, back = Zygote.forward(x -> compute_reproj_err_d(x, testinput.feats[:, 1]), pack(testinput.cams[:, testinput.obs[1, 1]], testinput.X[:, testinput.obs[2, 1]], testinput.w[1]))
+    ylen = size(y, 1)
+    for j ∈ 1:ylen
+        back(1:ylen .== j)
+    end
     
     ctx.input = input
 end
