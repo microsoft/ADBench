@@ -57,19 +57,13 @@ class TensorflowGMM(ITest):
                 t.watch(self.icf)
 
                 self.objective = gmm_objective(
-                self.alphas,
-                self.means,
-                self.icf,
-                self.x,
-                self.wishart_gamma,
-                self.wishart_m
-            )
+                    self.alphas,
+                    self.means,
+                    self.icf,
+                    self.x,
+                    self.wishart_gamma,
+                    self.wishart_m
+                )
 
-            dalphas = t.gradient(self.objective, self.alphas)
-            dmeans = t.gradient(self.objective, self.means)
-            dicf = t.gradient(self.objective, self.icf)
-            self.gradient = tf.concat((
-                flatten(dalphas),
-                flatten(dmeans),
-                flatten(dicf)
-            ), 0)
+            J = t.gradient(self.objective, (self.alphas, self.means, self.icf))
+            self.gradient = tf.concat([ flatten(d) for d in J ], 0)
