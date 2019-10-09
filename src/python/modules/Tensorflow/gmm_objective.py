@@ -8,8 +8,7 @@ from modules.Tensorflow.utils import shape
 
 def logsumexp(x):
     mx = tf.reduce_max(x)
-    emx = tf.exp(x - mx)
-    return tf.math.log(tf.reduce_sum(emx)) + mx
+    return tf.reduce_logsumexp(x - mx) + mx
 
 
 
@@ -26,13 +25,17 @@ def sqsum(x):
 def log_wishart_prior(p, wishart_gamma, wishart_m, sum_qs, Qdiags, icf):
     n = p + wishart_m + 1
     k = shape(icf)[0]
-    out = 0
-    for ik in range(k):
-        frobenius = sqsum(Qdiags[ik, :]) + sqsum(icf[ik, p:])
-        out += 0.5 * wishart_gamma * wishart_gamma * frobenius - \
-               wishart_m * sum_qs[ik]
 
     log2 = tf.math.log(tf.constant(2.0, dtype = tf.float64))
+    
+    out = tf.reduce_sum([
+        0.5 * wishart_gamma * wishart_gamma *
+            (sqsum(Qdiags[ik, :]) + sqsum(icf[ik, p:])) -
+            wishart_m * sum_qs[ik]
+
+        for ik in range(k)
+    ])
+    
     C = n * p * (tf.math.log(wishart_gamma) - 0.5 * log2) - \
         log_gamma_distrib(0.5 * n, p)
 
@@ -59,12 +62,7 @@ def constructL(d, icf):
 
 
 def Qtimesx(Qdiag, L, x):
-    res = Qdiag * x
-
-    for i in range(shape(L)[0]):
-        res += L[:, i] * x[i]
-
-    return res
+    return Qdiag * x + tf.linalg.matvec(L, x)
 
 
 
@@ -83,11 +81,13 @@ def gmm_objective(alphas, means, icf, x, wishart_gamma, wishart_m):
     sum_qs = tf.stack([ (tf.reduce_sum(icf[ik, :d])) for ik in range(k) ])
 
     Ls = tf.stack([ constructL(d, curr_icf) for curr_icf in icf ])
-    slse = 0
-
-    for ix in range(n):
-        lse = tf.stack([ inner_term(ix, ik) for ik in range(k) ])
-        slse += logsumexp(lse)
+    slse = tf.reduce_sum([
+        logsumexp(lse)
+        for lse in [
+            tf.stack([ inner_term(ix, ik) for ik in range(k) ])
+            for ix in range(n)
+        ]
+    ])
 
     const = tf.constant(
         -n * d * 0.5 * math.log(2 * math.pi),
