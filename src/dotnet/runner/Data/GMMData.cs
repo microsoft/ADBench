@@ -6,21 +6,21 @@ namespace DotnetRunner.Data
 {
     public struct Wishart
     {
-        double gamma { get; set; }
-        int m { get; set; }
+        double Gamma { get; set; }
+        int M { get; set; }
     }
 
 
     public struct GMMInput
     {
-        int d { get; set; }
-        int k { get; set; }
-        int n { get; set; }
+        int D { get; set; }
+        int K { get; set; }
+        int N { get; set; }
 
-        double[] alphas { get; set; }
-        double[] means { get; set; }
-        double[] icf { get; set; }
-        double[] x { get; set; }
+        double[] Alphas { get; set; }
+        double[] Means { get; set; }
+        double[] Icf { get; set; }
+        double[] X { get; set; }
 
         Wishart Wishart { get; set; }
     }
