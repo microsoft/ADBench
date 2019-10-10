@@ -5,80 +5,97 @@ using System.Text;
 
 namespace DotnetRunner.Data
 {
-
-    // rows is nrows+1 vector containing
-    // indices to cols and vals. 
-    // rows[i] ... rows[i+1]-1 are elements of i-th row
-    // i.e. cols[row[i]] is the column of the first
-    // element in the row. Similarly for values.
     public class BASparseMatrix
     {
         static readonly int BA_NCAMPARAMS = 11;
 
-        int n, m, p; // number of cams, points and observations
-        public int nrows { get; }
-        public int ncols { get; }
-        public List<int> rows { get; } = new List<int>();
-        public List<int> cols { get; } = new List<int>();
-        public List<double> vals { get; } = new List<double>();
+        // number of cams, points and observations
+        /// <summary>
+        /// Number of cams
+        /// </summary>
+        public int N { get; private set; }
+        /// <summary>
+        /// Number of points
+        /// </summary>
+        public int M { get; private set; }
+        /// <summary>
+        /// Number of observations
+        /// </summary>
+        public int P { get; private set; }
+        public int NRows { get; }
+        public int NCols { get; }
+        /// <summary>
+        /// int[nrows + 1]. Defined recursively as follows:
+        /// rows[0] = 0
+        /// rows[i] = rows[i - 1] + the number of nonzero elements on the i-1 row of the matrix
+        /// </summary>
+        public List<int> Rows { get; } = new List<int>();
+        /// <summary>
+        /// Column index in the matrix of each element of vals. Has the same size
+        /// </summary>
+        public List<int> Cols { get; } = new List<int>();
+        /// <summary>
+        /// All the nonzero entries of the matrix in the left-to-right top-to-bottom order
+        /// </summary>
+        public List<double> Vals { get; } = new List<double>();
 
-        public BASparseMatrix() {
-            rows.Add(0);
-        }
         public BASparseMatrix(int n, int m, int p)
         {
-            this.n = n;
-            this.m = m;
-            this.p = p;
+            this.N = n;
+            this.M = m;
+            this.P = p;
 
-            nrows = 2 * p + p;
-            ncols = BA_NCAMPARAMS * n + 3 * m + p;
-            rows = new List<int>(nrows + 1);
+            NRows = 2 * p + p;
+            NCols = BA_NCAMPARAMS * n + 3 * m + p;
+            Rows = new List<int>(NRows + 1);
             int nnonzero = (BA_NCAMPARAMS + 3 + 1) * 2 * p + p;
-            cols = new List<int>(nnonzero);
-            vals = new List<double>(nnonzero);
-            rows.Add(0);
+            Cols = new List<int>(nnonzero);
+            Vals = new List<double>(nnonzero);
+            Rows.Add(0);
         }
 
         public void InsertReprojErrBlock(int obsIdx,
-            int camIdx, int ptIdx, double[] J) {
+            int camIdx, int ptIdx, double[] J)
+        {
 
             int n_new_cols = BA_NCAMPARAMS + 3 + 1;
-            rows.Add(rows.Last() + n_new_cols);
-            rows.Add(rows.Last() + n_new_cols);
+            Rows.Add(Rows.Last() + n_new_cols);
+            Rows.Add(Rows.Last() + n_new_cols);
 
             for (int i_row = 0; i_row < 2; i_row++)
             {
                 for (int i = 0; i < BA_NCAMPARAMS; i++)
                 {
-                    cols.Add(BA_NCAMPARAMS * camIdx + i);
-                    vals.Add(J[2 * i + i_row]);
+                    Cols.Add(BA_NCAMPARAMS * camIdx + i);
+                    Vals.Add(J[2 * i + i_row]);
                 }
-                int col_offset = BA_NCAMPARAMS * n;
+                int col_offset = BA_NCAMPARAMS * N;
                 int val_offset = BA_NCAMPARAMS * 2;
                 for (int i = 0; i < 3; i++)
                 {
-                    cols.Add(col_offset + 3 * ptIdx + i);
-                    vals.Add(J[val_offset + 2 * i + i_row]);
+                    Cols.Add(col_offset + 3 * ptIdx + i);
+                    Vals.Add(J[val_offset + 2 * i + i_row]);
                 }
-                col_offset += 3 * m;
+                col_offset += 3 * M;
                 val_offset += 3 * 2;
-                cols.Add(col_offset + obsIdx);
-                vals.Add(J[val_offset + i_row]);
+                Cols.Add(col_offset + obsIdx);
+                Vals.Add(J[val_offset + i_row]);
             }
         }
 
-        public void InsertWErrBlock(int wIdx, double w_d) {
-            rows.Add(rows.Last() + 1);
-            cols.Add(BA_NCAMPARAMS * n + 3 * m + wIdx);
-            vals.Add(w_d);
+        public void InsertWErrBlock(int wIdx, double w_d)
+        {
+            Rows.Add(Rows.Last() + 1);
+            Cols.Add(BA_NCAMPARAMS * N + 3 * M + wIdx);
+            Vals.Add(w_d);
         }
 
-        void clear() {
-            rows.Clear();
-            cols.Clear();
-            vals.Clear();
-            rows.Add(0);
+        void Clear()
+        {
+            Rows.Clear();
+            Cols.Clear();
+            Vals.Clear();
+            Rows.Add(0);
         }
     };
 
