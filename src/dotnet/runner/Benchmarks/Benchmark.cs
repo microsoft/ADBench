@@ -81,33 +81,34 @@ namespace DotnetRunner.Benchmarks
 
     }
 
-    public abstract class Benchmark<Input, Output, Parameters>:Benchmark
+    public abstract class Benchmark<Input, Output, Parameters> : Benchmark
     {
-
         protected abstract Input ReadInputData(string inputFilePath, Parameters parameters);
 
         public void Run(string modulePath, string inputFilePath, string outputPrefix, TimeSpan minimumMeasurableTime, int nrunsF, int nrunsJ,
                    TimeSpan timeLimit, Parameters parameters)
         {
-            var moduleLoader = new ModuleLoader(modulePath);
-            var test = GetTest(moduleLoader);
-            var inputs = ReadInputData(inputFilePath, parameters);
+            using (var moduleLoader = new ModuleLoader(modulePath))
+            {
+                var test = GetTest(moduleLoader);
+                var inputs = ReadInputData(inputFilePath, parameters);
 
-            test.Prepare(inputs);
+                test.Prepare(inputs);
 
-            var objectiveTime =
-                MeasureShortestTime(minimumMeasurableTime, nrunsF, timeLimit, test.CalculateObjective);
+                var objectiveTime =
+                    MeasureShortestTime(minimumMeasurableTime, nrunsF, timeLimit, test.CalculateObjective);
 
-            var derivativeTime =
-                MeasureShortestTime(minimumMeasurableTime, nrunsF, timeLimit, test.CalculateJacobian);
+                var derivativeTime =
+                    MeasureShortestTime(minimumMeasurableTime, nrunsF, timeLimit, test.CalculateJacobian);
 
-            var output = test.Output();
+                var output = test.Output();
 
-            var inputBasename = Path.GetFileNameWithoutExtension(inputFilePath);
-            var moduleBasename = Path.GetFileNameWithoutExtension(modulePath);
+                var inputBasename = Path.GetFileNameWithoutExtension(inputFilePath);
+                var moduleBasename = Path.GetFileNameWithoutExtension(modulePath);
 
-            SavingOutput.SaveTimeToFile(outputPrefix + inputBasename + "_times_" + moduleBasename + ".txt", objectiveTime, derivativeTime);
-            SaveOutputToFile(output, outputPrefix, inputBasename, moduleBasename);
+                SavingOutput.SaveTimeToFile(outputPrefix + inputBasename + "_times_" + moduleBasename + ".txt", objectiveTime, derivativeTime);
+                SaveOutputToFile(output, outputPrefix, inputBasename, moduleBasename);
+            }
         }
 
         protected abstract void SaveOutputToFile(Output output, string outputPrefix, string input_basename, string module_basename);
