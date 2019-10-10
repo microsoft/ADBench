@@ -354,7 +354,7 @@ Class Tool {
             $golden_jacobian_path = "${dir_out}../$([Tool]::golden_tool_name)/${fn}_J_$([Tool]::golden_tool_name).txt"
             $comparison = New-JacobianComparison $this.result_check_tolerance
             $comparison.CompareFiles($current_jacobian_path, $golden_jacobian_path)
-            $comparison.ToJsonString() | Out-File "${dir_out}${fn}_correctness_${out_name}.txt"
+            $comparison.ToJsonString() | Out-File "${dir_out}${fn}_correctness_${out_name}.txt" -encoding ASCII
             if ($comparison.ViolationsHappened()) {
                 Write-Host "          Discrepancies with the correct jacobian found. See ${dir_out}${fn}_correctness_${out_name}.txt for details."
             }

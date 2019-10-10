@@ -104,7 +104,7 @@ def read_vals(objective, graph_files, tool):
             return False
 
         try:
-            with open(correctness_file_name, "r", encoding="utf-16") as cf:
+            with open(correctness_file_name, "r", encoding="ascii") as cf:
                 correctness_data = json.load(cf)
                 return correctness_data["ViolationsHappened"]
         except Exception as e:
