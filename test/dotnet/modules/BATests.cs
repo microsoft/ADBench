@@ -1,133 +1,153 @@
 using DotnetRunner;
 using DotnetRunner.Data;
+using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace DotnetModulesTests
 {
     public class BATests
     {
-        const double Epsilon = 1e-10;
-        TolerantDoubleComparer comparer = TolerantDoubleComparer.FromTolerance(Epsilon);
+        public static ModuleTestParameters[] TestedModules { get; } = new[]
+        {
+            new ModuleTestParameters("./DiffSharpModule.dll", 1e-10 )
+        };
 
-        ModuleLoader moduleLoader = new ModuleLoader("./DiffSharpModule.dll");
+        public static IEnumerable<object[]> TestParameterSet => TestedModules.Select(m => new object[] { m });
 
         // helper methods
-        public void CheckObjectiveCalculation(int times)
+        void CheckObjectiveCalculation(string moduleName, double tolerance, int times)
         {
-            var module = moduleLoader.GetBATest();
-            Assert.NotNull(module);
-
-            // Read instance
-            var input = DataLoader.ReadBAInstance("batest.txt");
-
-            module.Prepare(input);
-            module.CalculateObjective(times);
-
-            var output = module.Output();
-
-            for (int i = 0; i < 20; i += 2)
+            using (var moduleLoader = new ModuleLoader(moduleName))
             {
-                Assert.Equal(-2.69048849235189402e-01, output.ReprojErr[i], comparer);
-                Assert.Equal(2.59944792677901881e-01, output.ReprojErr[i + 1], comparer);
+                var module = moduleLoader.GetBATest();
+                Assert.NotNull(module);
+                var comparer = new TolerantDoubleComparer(tolerance);
+
+                // Read instance
+                var input = DataLoader.ReadBAInstance("batest.txt");
+
+                module.Prepare(input);
+                module.CalculateObjective(times);
+
+                var output = module.Output();
+
+                for (int i = 0; i < 20; i += 2)
+                {
+                    Assert.Equal(-2.69048849235189402e-01, output.ReprojErr[i], comparer);
+                    Assert.Equal(2.59944792677901881e-01, output.ReprojErr[i + 1], comparer);
+                }
+                for (int i = 0; i < 10; i++)
+                {
+                    Assert.Equal(8.26092651515999976e-01, output.WErr[i], comparer);
+                }
             }
-            for (int i = 0; i < 10; i++)
+        }
+
+        void CheckJacobianCalculation(string moduleName, double tolerance, int times)
+        {
+            using (var moduleLoader = new ModuleLoader(moduleName))
             {
-                Assert.Equal(8.26092651515999976e-01, output.WErr[i], comparer);
+                var module = moduleLoader.GetBATest();
+                Assert.NotNull(module);
+                var comparer = new TolerantDoubleComparer(tolerance);
+
+                // Read instance
+                var input = DataLoader.ReadBAInstance("batest.txt");
+
+                module.Prepare(input);
+                module.CalculateJacobian(times);
+
+                var output = module.Output();
+
+
+                var correct_jacobian_nrows = 30;
+                var correct_jacobian_ncols = 62;
+                var correct_jacobian_rows = new[] { 0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180, 195, 210, 225, 240, 255, 270, 285, 300, 301, 302, 303, 304, 305, 306, 307, 308, 309, 310 };
+                var correct_jacobian_cols = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 22, 23, 24, 52, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 22, 23, 24, 52, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 25, 26, 27, 53, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 25, 26, 27, 53, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 28, 29, 30, 54, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 28, 29, 30, 54, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 31, 32, 33, 55, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 31, 32, 33, 55, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 34, 35, 36, 56, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 34, 35, 36, 56, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 37, 38, 39, 57, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 37, 38, 39, 57, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 40, 41, 42, 58, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 40, 41, 42, 58, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 43, 44, 45, 59, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 43, 44, 45, 59, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 46, 47, 48, 60, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 46, 47, 48, 60, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 49, 50, 51, 61, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 49, 50, 51, 61, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61 };
+                var correct_jacobian_vals = new[] { 2.28877202208246757e+02, 6.34574811495545418e+02, -7.82222866259340549e+02, 2.42892615607159668e+00, -1.17828079628011313e+01, 2.54169312487743460e+00, -1.03657084958518086e+00, 4.17022000000000004e-01, 0.00000000000000000e+00, -3.50739521096005205e+02, -9.12107773668008576e+02, -2.42892615607159668e+00, 1.17828079628011313e+01, -2.54169312487743460e+00, -6.45167039712987389e-01, -1.20542435994996879e+02, -3.85673240766460424e+02, 9.75476291403326456e+01, -1.78372108529576567e+00, 4.15466799433126077e+00, 2.04025718029898906e+00, 3.49176397433145880e-01, 0.00000000000000000e+00, 4.17022000000000004e-01, 1.18149147704414503e+02, 3.07250108960343255e+02, 1.78372108529576567e+00, -4.15466799433126077e+00, -2.04025718029898906e+00, 6.23335921553064054e-01, 2.28877202208246757e+02, 6.34574811495545418e+02, -7.82222866259340549e+02, 2.42892615607159668e+00, -1.17828079628011313e+01, 2.54169312487743460e+00, -1.03657084958518086e+00, 4.17022000000000004e-01, 0.00000000000000000e+00, -3.50739521096005205e+02, -9.12107773668008576e+02, -2.42892615607159668e+00, 1.17828079628011313e+01, -2.54169312487743460e+00, -6.45167039712987389e-01, -1.20542435994996879e+02, -3.85673240766460424e+02, 9.75476291403326456e+01, -1.78372108529576567e+00, 4.15466799433126077e+00, 2.04025718029898906e+00, 3.49176397433145880e-01, 0.00000000000000000e+00, 4.17022000000000004e-01, 1.18149147704414503e+02, 3.07250108960343255e+02, 1.78372108529576567e+00, -4.15466799433126077e+00, -2.04025718029898906e+00, 6.23335921553064054e-01, 2.28877202208246757e+02, 6.34574811495545418e+02, -7.82222866259340549e+02, 2.42892615607159668e+00, -1.17828079628011313e+01, 2.54169312487743460e+00, -1.03657084958518086e+00, 4.17022000000000004e-01, 0.00000000000000000e+00, -3.50739521096005205e+02, -9.12107773668008576e+02, -2.42892615607159668e+00, 1.17828079628011313e+01, -2.54169312487743460e+00, -6.45167039712987389e-01, -1.20542435994996879e+02, -3.85673240766460424e+02, 9.75476291403326456e+01, -1.78372108529576567e+00, 4.15466799433126077e+00, 2.04025718029898906e+00, 3.49176397433145880e-01, 0.00000000000000000e+00, 4.17022000000000004e-01, 1.18149147704414503e+02, 3.07250108960343255e+02, 1.78372108529576567e+00, -4.15466799433126077e+00, -2.04025718029898906e+00, 6.23335921553064054e-01, 2.28877202208246757e+02, 6.34574811495545418e+02, -7.82222866259340549e+02, 2.42892615607159668e+00, -1.17828079628011313e+01, 2.54169312487743460e+00, -1.03657084958518086e+00, 4.17022000000000004e-01, 0.00000000000000000e+00, -3.50739521096005205e+02, -9.12107773668008576e+02, -2.42892615607159668e+00, 1.17828079628011313e+01, -2.54169312487743460e+00, -6.45167039712987389e-01, -1.20542435994996879e+02, -3.85673240766460424e+02, 9.75476291403326456e+01, -1.78372108529576567e+00, 4.15466799433126077e+00, 2.04025718029898906e+00, 3.49176397433145880e-01, 0.00000000000000000e+00, 4.17022000000000004e-01, 1.18149147704414503e+02, 3.07250108960343255e+02, 1.78372108529576567e+00, -4.15466799433126077e+00, -2.04025718029898906e+00, 6.23335921553064054e-01, 2.28877202208246757e+02, 6.34574811495545418e+02, -7.82222866259340549e+02, 2.42892615607159668e+00, -1.17828079628011313e+01, 2.54169312487743460e+00, -1.03657084958518086e+00, 4.17022000000000004e-01, 0.00000000000000000e+00, -3.50739521096005205e+02, -9.12107773668008576e+02, -2.42892615607159668e+00, 1.17828079628011313e+01, -2.54169312487743460e+00, -6.45167039712987389e-01, -1.20542435994996879e+02, -3.85673240766460424e+02, 9.75476291403326456e+01, -1.78372108529576567e+00, 4.15466799433126077e+00, 2.04025718029898906e+00, 3.49176397433145880e-01, 0.00000000000000000e+00, 4.17022000000000004e-01, 1.18149147704414503e+02, 3.07250108960343255e+02, 1.78372108529576567e+00, -4.15466799433126077e+00, -2.04025718029898906e+00, 6.23335921553064054e-01, 2.28877202208246757e+02, 6.34574811495545418e+02, -7.82222866259340549e+02, 2.42892615607159668e+00, -1.17828079628011313e+01, 2.54169312487743460e+00, -1.03657084958518086e+00, 4.17022000000000004e-01, 0.00000000000000000e+00, -3.50739521096005205e+02, -9.12107773668008576e+02, -2.42892615607159668e+00, 1.17828079628011313e+01, -2.54169312487743460e+00, -6.45167039712987389e-01, -1.20542435994996879e+02, -3.85673240766460424e+02, 9.75476291403326456e+01, -1.78372108529576567e+00, 4.15466799433126077e+00, 2.04025718029898906e+00, 3.49176397433145880e-01, 0.00000000000000000e+00, 4.17022000000000004e-01, 1.18149147704414503e+02, 3.07250108960343255e+02, 1.78372108529576567e+00, -4.15466799433126077e+00, -2.04025718029898906e+00, 6.23335921553064054e-01, 2.28877202208246757e+02, 6.34574811495545418e+02, -7.82222866259340549e+02, 2.42892615607159668e+00, -1.17828079628011313e+01, 2.54169312487743460e+00, -1.03657084958518086e+00, 4.17022000000000004e-01, 0.00000000000000000e+00, -3.50739521096005205e+02, -9.12107773668008576e+02, -2.42892615607159668e+00, 1.17828079628011313e+01, -2.54169312487743460e+00, -6.45167039712987389e-01, -1.20542435994996879e+02, -3.85673240766460424e+02, 9.75476291403326456e+01, -1.78372108529576567e+00, 4.15466799433126077e+00, 2.04025718029898906e+00, 3.49176397433145880e-01, 0.00000000000000000e+00, 4.17022000000000004e-01, 1.18149147704414503e+02, 3.07250108960343255e+02, 1.78372108529576567e+00, -4.15466799433126077e+00, -2.04025718029898906e+00, 6.23335921553064054e-01, 2.28877202208246757e+02, 6.34574811495545418e+02, -7.82222866259340549e+02, 2.42892615607159668e+00, -1.17828079628011313e+01, 2.54169312487743460e+00, -1.03657084958518086e+00, 4.17022000000000004e-01, 0.00000000000000000e+00, -3.50739521096005205e+02, -9.12107773668008576e+02, -2.42892615607159668e+00, 1.17828079628011313e+01, -2.54169312487743460e+00, -6.45167039712987389e-01, -1.20542435994996879e+02, -3.85673240766460424e+02, 9.75476291403326456e+01, -1.78372108529576567e+00, 4.15466799433126077e+00, 2.04025718029898906e+00, 3.49176397433145880e-01, 0.00000000000000000e+00, 4.17022000000000004e-01, 1.18149147704414503e+02, 3.07250108960343255e+02, 1.78372108529576567e+00, -4.15466799433126077e+00, -2.04025718029898906e+00, 6.23335921553064054e-01, 2.28877202208246757e+02, 6.34574811495545418e+02, -7.82222866259340549e+02, 2.42892615607159668e+00, -1.17828079628011313e+01, 2.54169312487743460e+00, -1.03657084958518086e+00, 4.17022000000000004e-01, 0.00000000000000000e+00, -3.50739521096005205e+02, -9.12107773668008576e+02, -2.42892615607159668e+00, 1.17828079628011313e+01, -2.54169312487743460e+00, -6.45167039712987389e-01, -1.20542435994996879e+02, -3.85673240766460424e+02, 9.75476291403326456e+01, -1.78372108529576567e+00, 4.15466799433126077e+00, 2.04025718029898906e+00, 3.49176397433145880e-01, 0.00000000000000000e+00, 4.17022000000000004e-01, 1.18149147704414503e+02, 3.07250108960343255e+02, 1.78372108529576567e+00, -4.15466799433126077e+00, -2.04025718029898906e+00, 6.23335921553064054e-01, 2.28877202208246757e+02, 6.34574811495545418e+02, -7.82222866259340549e+02, 2.42892615607159668e+00, -1.17828079628011313e+01, 2.54169312487743460e+00, -1.03657084958518086e+00, 4.17022000000000004e-01, 0.00000000000000000e+00, -3.50739521096005205e+02, -9.12107773668008576e+02, -2.42892615607159668e+00, 1.17828079628011313e+01, -2.54169312487743460e+00, -6.45167039712987389e-01, -1.20542435994996879e+02, -3.85673240766460424e+02, 9.75476291403326456e+01, -1.78372108529576567e+00, 4.15466799433126077e+00, 2.04025718029898906e+00, 3.49176397433145880e-01, 0.00000000000000000e+00, 4.17022000000000004e-01, 1.18149147704414503e+02, 3.07250108960343255e+02, 1.78372108529576567e+00, -4.15466799433126077e+00, -2.04025718029898906e+00, 6.23335921553064054e-01, -8.34044000000000008e-01, -8.34044000000000008e-01, -8.34044000000000008e-01, -8.34044000000000008e-01, -8.34044000000000008e-01, -8.34044000000000008e-01, -8.34044000000000008e-01, -8.34044000000000008e-01, -8.34044000000000008e-01, -8.34044000000000008e-01 };
+
+                Assert.Equal(correct_jacobian_nrows, output.J.NRows);
+                Assert.Equal(correct_jacobian_ncols, output.J.NCols);
+                Assert.Equal(correct_jacobian_rows, output.J.Rows);
+                Assert.Equal(correct_jacobian_cols, output.J.Cols);
+                Assert.Equal(correct_jacobian_vals, output.J.Vals, comparer);
             }
         }
 
-        void CheckJacobianCalculation(int times)
+        [Theory]
+        [MemberData(nameof(TestParameterSet))]
+        public void Load(ModuleTestParameters testParameters)
         {
-            var module = moduleLoader.GetBATest();
-            Assert.NotNull(module);
-
-            // Read instance
-            var input = DataLoader.ReadBAInstance("batest.txt");
-
-            module.Prepare(input);
-            module.CalculateJacobian(times);
-
-            var output = module.Output();
-            Assert.Equal(30, output.J.NRows);
-            Assert.Equal(62, output.J.NCols);
-            Assert.Equal(31, output.J.Rows.Count);
-            Assert.Equal(310, output.J.Cols.Count);
-            Assert.Equal(310, output.J.Vals.Count);
-            Assert.Equal(2.28877202208246757e+02, output.J.Vals[0], comparer);
-            Assert.Equal(6.34574811495545418e+02, output.J.Vals[1], comparer);
-            Assert.Equal(-7.82222866259340549e+02, output.J.Vals[2], comparer);
-            Assert.Equal(2.42892615607159668e+00, output.J.Vals[3], comparer);
-            Assert.Equal(-1.17828079628011313e+01, output.J.Vals[4], comparer);
-            Assert.Equal(2.54169312487743460e+00, output.J.Vals[5], comparer);
-            Assert.Equal(-1.03657084958518086e+00, output.J.Vals[6], comparer);
-            Assert.Equal(4.17022000000000004e-01, output.J.Vals[7], comparer);
-            Assert.Equal(0.0, output.J.Vals[8], comparer);
-            Assert.Equal(-3.50739521096005205e+02, output.J.Vals[9], comparer);
-            Assert.Equal(-9.12107773668008576e+02, output.J.Vals[10], comparer);
-            Assert.Equal(-2.42892615607159668e+00, output.J.Vals[11], comparer);
-            Assert.Equal(1.17828079628011313e+01, output.J.Vals[12], comparer);
-            Assert.Equal(-8.34044000000000008e-01, output.J.Vals[307], comparer);
-            Assert.Equal(-8.34044000000000008e-01, output.J.Vals[308], comparer);
-            Assert.Equal(-8.34044000000000008e-01, output.J.Vals[309], comparer);
+            using (var moduleLoader = new ModuleLoader(testParameters.ModuleName))
+            {
+                var test = moduleLoader.GetBATest();
+                Assert.NotNull(test);
+            }
         }
 
-        [Fact]
-        public void Load()
+        [Theory]
+        [MemberData(nameof(TestParameterSet))]
+        public void ObjectiveCalculationCorrectness(ModuleTestParameters testParameters)
         {
-            var test = moduleLoader.GetBATest();
-            Assert.NotNull(test);
+            CheckObjectiveCalculation(testParameters.ModuleName, testParameters.Tolerance, times: 1);
         }
 
-        [Fact]
-        public void ObjectiveCalculationCorrectness()
+        [Theory]
+        [MemberData(nameof(TestParameterSet))]
+        public void ObjectiveMultipleTimesCalculationCorrectness(ModuleTestParameters testParameters)
         {
-            CheckObjectiveCalculation(times: 1);
+            CheckObjectiveCalculation(testParameters.ModuleName, testParameters.Tolerance, times: 3);
         }
 
-        [Fact]
-        public void ObjectiveMultipleTimesCalculationCorrectness()
+        [Theory]
+        [MemberData(nameof(TestParameterSet))]
+        public void JacobianCalculationCorrectness(ModuleTestParameters testParameters)
         {
-            CheckObjectiveCalculation(times: 3);
+            CheckJacobianCalculation(testParameters.ModuleName, testParameters.Tolerance, times: 1);
         }
 
-        [Fact]
-        public void JacobianCalculationCorrectness()
+        [Theory]
+        [MemberData(nameof(TestParameterSet))]
+        public void JacobianMultipleTimesCalculationCorrectness(ModuleTestParameters testParameters)
         {
-            CheckJacobianCalculation(times: 1);
+            CheckJacobianCalculation(testParameters.ModuleName, testParameters.Tolerance, times: 3);
         }
 
-        [Fact]
-        public void JacobianMultipleTimesCalculationCorrectness()
+        [Theory]
+        [MemberData(nameof(TestParameterSet))]
+        public void ObjectiveRunsMultipleTimes(ModuleTestParameters testParameters)
         {
-            CheckJacobianCalculation(times: 3);
+            using (var moduleLoader = new ModuleLoader(testParameters.ModuleName))
+            {
+                var module = moduleLoader.GetBATest();
+                Assert.NotNull(module);
+
+                // Read instance
+                var input = DataLoader.ReadBAInstance("batest.txt");
+
+                module.Prepare(input);
+
+                Assert.True(Utils.CanObjectiveRunMultipleTimes(module.CalculateObjective));
+            }
         }
 
-        [Fact]
-        public void ObjectiveRunsMultipleTimes()
+        [Theory]
+        [MemberData(nameof(TestParameterSet))]
+        public void JacobianRunsMultipleTimes(ModuleTestParameters testParameters)
         {
-            var module = moduleLoader.GetBATest();
-            Assert.NotNull(module);
+            using (var moduleLoader = new ModuleLoader(testParameters.ModuleName))
+            {
+                var module = moduleLoader.GetBATest();
+                Assert.NotNull(module);
 
-            // Read instance
-            var input = DataLoader.ReadBAInstance("batest.txt");
+                // Read instance
+                var input = DataLoader.ReadBAInstance("batest.txt");
 
-            module.Prepare(input);
+                module.Prepare(input);
 
-            Assert.True(Utils.CanObjectiveRunMultipleTimes(module.CalculateObjective));
-        }
-
-        [Fact]
-        public void JacobianRunsMultipleTimes()
-        {
-            var module = moduleLoader.GetBATest();
-            Assert.NotNull(module);
-
-            // Read instance
-            var input = DataLoader.ReadBAInstance("batest.txt");
-
-            module.Prepare(input);
-
-            Assert.True(Utils.CanObjectiveRunMultipleTimes(module.CalculateJacobian));
+                Assert.True(Utils.CanObjectiveRunMultipleTimes(module.CalculateJacobian));
+            }
         }
 
     }

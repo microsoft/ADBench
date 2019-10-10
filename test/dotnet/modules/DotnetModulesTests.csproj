@@ -7,7 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="test.txt" />
+    <None Include="..\..\..\data\ba\test.txt" Link="test.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -22,9 +24,5 @@
     </ProjectReference>
     <ProjectReference Include="..\..\..\src\dotnet\runner\DotnetRunner.csproj" />
   </ItemGroup>
-
-  <Target Name="CopyTestInputs" AfterTargets="Build">
-    <Copy SourceFiles="..\..\..\data\ba\test.txt" DestinationFiles="$(OutDir)batest.txt" />
-  </Target>
   
 </Project>
