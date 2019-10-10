@@ -38,25 +38,25 @@ namespace DotnetRunner
         {
             using (var file = new StreamWriter(filepath))
             {
-                file.WriteLine(j.nrows + " " + j.ncols);
+                file.WriteLine(j.NRows + " " + j.NCols);
 
-                file.WriteLine(j.rows.Count);
+                file.WriteLine(j.Rows.Count);
 
-                foreach (var row in j.rows)
+                foreach (var row in j.Rows)
                 {
                     file.Write(row + " ");
                 }
                 file.WriteLine();
 
-                file.WriteLine(j.cols.Count);
+                file.WriteLine(j.Cols.Count);
 
-                foreach (var col in j.cols)
+                foreach (var col in j.Cols)
                 {
                     file.Write(col + " ");
                 }
                 file.WriteLine();
 
-                foreach (var val in j.vals)
+                foreach (var val in j.Vals)
                 {
                     file.Write(val + " ");
                 }
