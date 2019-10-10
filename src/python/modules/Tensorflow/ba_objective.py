@@ -9,9 +9,7 @@ def rodrigues_rotate_point(rot, X):
         theta = tf.math.sqrt(sqtheta)
         costheta = tf.math.cos(theta)
         sintheta = tf.math.sin(theta)
-        theta_inverse = 1.0 / theta
-
-        w = theta_inverse * rot
+        w = rot / theta
         w_cross_X = tf.linalg.cross(w, X)
         tmp = tf.tensordot(w, X, 1) * (1.0 - costheta)
 
