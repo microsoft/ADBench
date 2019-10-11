@@ -6,10 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="hg2ojvpq.byq~" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="System.Composition.AttributedModel" Version="1.2.0" />
     <PackageReference Include="System.Composition.TypedParts" Version="1.2.0" />
   </ItemGroup>
