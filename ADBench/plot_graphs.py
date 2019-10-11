@@ -175,6 +175,17 @@ def get_style(tool, tool_names):
 
 
 
+def  draw_vertical_lines(sorted_vals_by_tools):
+    '''Adds vertical lines to the figure for clarifying results.'''
+
+    n_vals = [ n_val for _, n_val, _, _ in sorted_vals_by_tool ]
+    max_n_val = max(n_vals, key = lambda n_val: len(n_val))
+
+    for n in max_n_val:
+        pyplot.axvline(n, ls = '--', color = "grey", zorder = 0.0, lw = 0.5)
+
+
+
 if __name__ == "__main__":
     # Script arguments
     do_save = "--save" in sys.argv
@@ -339,6 +350,8 @@ CMD arguments:
         pyplot.ylabel(f"Running time (s) for [{function_type.capitalize()}]")
         pyplot.xscale("log")
         pyplot.yscale("log")
+
+        draw_vertical_lines(sorted_vals_by_tool)
 
         # Export to plotly (if selected)
         if do_plotly:
