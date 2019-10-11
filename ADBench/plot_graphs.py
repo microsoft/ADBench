@@ -151,6 +151,17 @@ def vals_by_tool(objective, graph_files, tool_names):
 
         yield (tool, n_vals, t_vals, violation)
 
+def get_style(tool, tool_names):
+    '''Returns the style of the given tool from all tool list.'''
+
+    idx = tool_names.index(tool)
+    
+    # Additional operation for handling the case when tool count is greater
+    # than all style count
+    idx %= len(all_styles)
+
+    return all_styles[idx]
+
 
 
 if __name__ == "__main__":
@@ -228,15 +239,13 @@ CMD arguments:
                                     key=sorting_key_fun,
                                     reverse=True)
 
-        lines = zip(all_styles, sorted_vals_by_tool)
-
         handles, labels = [], []
         violation_x, violation_y = [], []
         was_violation = False
         additional = []
 
         # Plot results
-        for ((color, marker), (tool, n_vals, t_vals, violations)) in lines:
+        for tool, n_vals, t_vals, violations in sorted_vals_by_tool:
             def vals_with_neighbours_and_violation():
                 # Checking neighbours by shifting t_vals requires that
                 # it is in the order of monotonic n_vals
@@ -249,6 +258,8 @@ CMD arguments:
                     # Whether the right neighbour is missing
                     [t_val == float("inf") for t_val in t_vals[1:]] + [True],
                     violations)
+
+            color, marker = get_style(tool, all_tool_names)
 
             label = utils.format_tool(tool)
             all_terminated = all(t_val == float("inf") for t_val in t_vals)
