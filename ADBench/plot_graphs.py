@@ -11,17 +11,6 @@ import plotly
 
 import utils
 
-rcParams.update({"figure.max_open_warning": 0})
-
-# Script arguments
-do_save = "--save" in sys.argv
-do_plotly = "--plotly" in sys.argv
-do_help = any(help in sys.argv for help in ["--help", "-h", "-?"])
-do_show = "--show" in sys.argv or not (do_save or do_plotly or do_help)
-
-if do_show:
-    print("WARNING: `--show` enabled. This script can produce a lot of graphs and you may not wish to display all of them.\n")
-
 # Script constants
 TIMES_SUBSTRING = "_times_"
 CORRECTNESS_SUBSTRING = "_correctness_"
@@ -29,7 +18,6 @@ CORRECTNESS_SUBSTRING = "_correctness_"
 VIOLATION_LABEL = "Wrong calculation result"
 ALL_TERMINATED_SUFFIX = " (all crashed/terminated)"
 
-figure_size = (9, 6) if do_plotly else (12, 8)
 fig_dpi = 96
 save_dpi = 144
 colors = ["b", "g", "r", "c", "m", "y"]
@@ -45,16 +33,6 @@ static_out_dir_rel = "static"
 plotly_out_dir_rel = "plotly"
 static_out_dir = os.path.join(out_dir, static_out_dir_rel)
 plotly_out_dir = os.path.join(out_dir, plotly_out_dir_rel)
-
-print(f"Output directory is: {out_dir}\n")
-
-
-# Scan folder for all files, and determine which graphs to create
-all_files = [path for path in utils._scandir_rec(in_dir) if TIMES_SUBSTRING in path[-1]]
-all_graphs = [path.split("/") for path in set(["/".join(path[:-2]) for path in all_files])]
-function_types = ["objective ÷ Manual", "objective", "jacobian", "jacobian ÷ objective"]
-all_graphs = [(path, function_type) for function_type in function_types for path in all_graphs]
-all_graph_dict = {}
 
 
 def graph_data(build_type, objective, maybe_test_size):
@@ -172,8 +150,31 @@ def vals_by_tool(objective, graph_files):
 
 
 
-if do_help:
-    ref_msg = f'''
+if __name__ == "__main__":
+    rcParams.update({"figure.max_open_warning": 0})
+
+    # Script arguments
+    do_save = "--save" in sys.argv
+    do_plotly = "--plotly" in sys.argv
+    do_help = any(help in sys.argv for help in ["--help", "-h", "-?"])
+    do_show = "--show" in sys.argv or not (do_save or do_plotly or do_help)
+
+    figure_size = (9, 6) if do_plotly else (12, 8)
+    
+    if do_show:
+        print("WARNING: `--show` enabled. This script can produce a lot of graphs and you may not wish to display all of them.\n")
+
+    print(f"Output directory is: {out_dir}\n")
+
+    # Scan folder for all files, and determine which graphs to create
+    all_files = [path for path in utils._scandir_rec(in_dir) if TIMES_SUBSTRING in path[-1]]
+    all_graphs = [path.split("/") for path in set(["/".join(path[:-2]) for path in all_files])]
+    function_types = ["objective ÷ Manual", "objective", "jacobian", "jacobian ÷ objective"]
+    all_graphs = [(path, function_type) for function_type in function_types for path in all_graphs]
+    all_graph_dict = {}
+
+    if do_help:
+        ref_msg = f'''
 This script produces graphs that visualize benchmark.
 CMD arguments:
     --save
@@ -192,176 +193,176 @@ CMD arguments:
     --help, -h, -?
             show this message
 '''
-    print(ref_msg)
-    sys.exit(0)
+        print(ref_msg)
+        sys.exit(0)
 
-# Loop through each of graphs to be created
-for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
-    build_type = graph[0]
-    objective = graph[1]
-    maybe_test_size = graph[2:]
 
-    (graph_name, graph_save_location) = graph_data(build_type, objective, maybe_test_size)
+    # Loop through each of graphs to be created
+    for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
+        build_type = graph[0]
+        objective = graph[1]
+        maybe_test_size = graph[2:]
 
-    # Create figure
-    figure = pyplot.figure(figure_idx, figsize=figure_size, dpi=fig_dpi)
+        (graph_name, graph_save_location) = graph_data(build_type, objective, maybe_test_size)
 
-    # Extract file details
-    graph_files = [path for path in all_files if path[:len(graph)] == graph]
+        # Create figure
+        figure = pyplot.figure(figure_idx, figsize=figure_size, dpi=fig_dpi)
 
-    def sorting_key_fun(v):
-        y_list = utils.get_non_infinite_y_list(v[2])
-        if len(y_list) > 0:
-            return sum(y_list) / len(y_list)
-        else:
-            return 1e9
-    sorted_vals_by_tool = sorted(vals_by_tool(objective, graph_files),
-                                 key=sorting_key_fun,
-                                 reverse=True)
+        # Extract file details
+        graph_files = [path for path in all_files if path[:len(graph)] == graph]
 
-    lines = zip(all_styles, sorted_vals_by_tool)
+        def sorting_key_fun(v):
+            y_list = utils.get_non_infinite_y_list(v[2])
+            if len(y_list) > 0:
+                return sum(y_list) / len(y_list)
+            else:
+                return 1e9
+        sorted_vals_by_tool = sorted(vals_by_tool(objective, graph_files),
+                                    key=sorting_key_fun,
+                                    reverse=True)
 
-    handles, labels = [], []
-    violation_x, violation_y = [], []
-    was_violation = False
-    additional = []
+        lines = zip(all_styles, sorted_vals_by_tool)
 
-    # Plot results
-    for ((color, marker), (tool, n_vals, t_vals, violations)) in lines:
-        def vals_with_neighbours_and_violation():
-            # Checking neighbours by shifting t_vals requires that
-            # it is in the order of monotonic n_vals
-            assert n_vals == sorted(n_vals)
-            return zip(
+        handles, labels = [], []
+        violation_x, violation_y = [], []
+        was_violation = False
+        additional = []
+
+        # Plot results
+        for ((color, marker), (tool, n_vals, t_vals, violations)) in lines:
+            def vals_with_neighbours_and_violation():
+                # Checking neighbours by shifting t_vals requires that
+                # it is in the order of monotonic n_vals
+                assert n_vals == sorted(n_vals)
+                return zip(
+                    n_vals,
+                    t_vals,
+                    # Whether the left neighbour is missing
+                    [True] + [t_val == float("inf") for t_val in t_vals],
+                    # Whether the right neighbour is missing
+                    [t_val == float("inf") for t_val in t_vals[1:]] + [True],
+                    violations)
+
+            label = utils.format_tool(tool)
+            all_terminated = all(t_val == float("inf") for t_val in t_vals)
+            # Append label in legend if all point values are infinite
+            if all_terminated:
+                label += ALL_TERMINATED_SUFFIX
+
+            labels.append(label)
+            handles += pyplot.plot(
                 n_vals,
                 t_vals,
-                # Whether the left neighbour is missing
-                [True] + [t_val == float("inf") for t_val in t_vals],
-                # Whether the right neighbour is missing
-                [t_val == float("inf") for t_val in t_vals[1:]] + [True],
-                violations)
+                marker=marker,
+                color=color,
+                label=label
+            )
 
-        label = utils.format_tool(tool)
-        all_terminated = all(t_val == float("inf") for t_val in t_vals)
-        # Append label in legend if all point values are infinite
-        if all_terminated:
-            label += ALL_TERMINATED_SUFFIX
+            together = list(vals_with_neighbours_and_violation())
+            additionals = [(n_val, t_val)
+                        for (n_val, t_val, missing_left, missing_right, violation)
+                        in together
+                        if t_val != float("inf")
+                        and missing_left
+                        and missing_right
+                        and violation]
 
-        labels.append(label)
-        handles += pyplot.plot(
-            n_vals,
-            t_vals,
-            marker=marker,
-            color=color,
-            label=label
-        )
+            # adding coordinates of additional markers
+            additional.append(([n_val for (n_val, _) in additionals],
+                            [t_val for (_, t_val) in additionals],
+                            color))
 
-        together = list(vals_with_neighbours_and_violation())
-        additionals = [(n_val, t_val)
-                       for (n_val, t_val, missing_left, missing_right, violation)
-                       in together
-                       if t_val != float("inf")
-                       and missing_left
-                       and missing_right
-                       and violation]
-
-        # adding coordinates of additional markers
-        additional.append(([n_val for (n_val, _) in additionals],
-                           [t_val for (_, t_val) in additionals],
-                           color))
-
-        violation_x += [n_val for (n_val, _, _, _, violation)
-                        in together if violation]
-        violation_y += [t_val for (_, t_val, _, _, violation)
-                        in together if violation]
-        was_violation = \
-            was_violation \
-            or any(violation for (_, _, _, _, violation) in together)
+            violation_x += [n_val for (n_val, _, _, _, violation)
+                            in together if violation]
+            violation_y += [t_val for (_, t_val, _, _, violation)
+                            in together if violation]
+            was_violation = \
+                was_violation \
+                or any(violation for (_, _, _, _, violation) in together)
 
 
-    # if there was calculating violation add violation markers
-    #
-    # We must create the plot only if there was a violation because
-    # plotly will add the violation marker to its legend even if
-    # violation_x/y are empty.
-    if was_violation:
-        handles += pyplot.plot(
-            violation_x,
-            violation_y,
-            marker="v",
-            mec="k",
-            mfc="r",
-            ms=8,
-            linestyle="None",
-            label=VIOLATION_LABEL
-        )
+        # if there was calculating violation add violation markers
+        #
+        # We must create the plot only if there was a violation because
+        # plotly will add the violation marker to its legend even if
+        # violation_x/y are empty.
+        if was_violation:
+            handles += pyplot.plot(
+                violation_x,
+                violation_y,
+                marker="v",
+                mec="k",
+                mfc="r",
+                ms=8,
+                linestyle="None",
+                label=VIOLATION_LABEL
+            )
 
-        labels.append(VIOLATION_LABEL)
+            labels.append(VIOLATION_LABEL)
 
-    # Setup graph attributes
-    pyplot.title(graph_name)
-    pyplot.xlabel("No. independent variables")
-    pyplot.ylabel(f"Running time (s) for [{function_type.capitalize()}]")
-    pyplot.xscale("log")
-    pyplot.yscale("log")
+        # Setup graph attributes
+        pyplot.title(graph_name)
+        pyplot.xlabel("No. independent variables")
+        pyplot.ylabel(f"Running time (s) for [{function_type.capitalize()}]")
+        pyplot.xscale("log")
+        pyplot.yscale("log")
 
-    # Export to plotly (if selected)
-    if do_plotly:
-        plotly_fig = plotly.tools.mpl_to_plotly(copy.copy(figure))
-        plotly_fig["layout"]["showlegend"] = True
+        # Export to plotly (if selected)
+        if do_plotly:
+            plotly_fig = plotly.tools.mpl_to_plotly(copy.copy(figure))
+            plotly_fig["layout"]["showlegend"] = True
 
-        plotly_save_location_view = os.path.join(plotly_out_dir_rel, f"{graph_save_location}.html")
-        plotly_save_location = os.path.join(plotly_out_dir, f"{graph_save_location}.html")
+            plotly_save_location_view = os.path.join(plotly_out_dir_rel, f"{graph_save_location}.html")
+            plotly_save_location = os.path.join(plotly_out_dir, f"{graph_save_location}.html")
 
-        print(f"    Saving plotly: {plotly_save_location_view}")
-        utils._mkdir_if_none(plotly_save_location)
-        plotly.offline.plot(plotly_fig, filename=plotly_save_location, auto_open=False)
+            print(f"    Saving plotly: {plotly_save_location_view}")
+            utils._mkdir_if_none(plotly_save_location)
+            plotly.offline.plot(plotly_fig, filename=plotly_save_location, auto_open=False)
 
-    # Add legend (after plotly to avoid error)
-    pyplot.legend(handles, labels, loc=4, bbox_to_anchor=(1, 0))
+        # Add legend (after plotly to avoid error)
+        pyplot.legend(handles, labels, loc=4, bbox_to_anchor=(1, 0))
 
-    # draw additional markers
-    # Note: we do this later than plotly converting because plotly doesn't
-    #       need additional markers
-    for x, y, color in additional:
-        pyplot.plot(
-            x,
-            y,
-            linestyle="None",
-            marker="_",
-            ms=17,
-            mew=2,
-            color=color,
-            zorder=0
-        )
+        # draw additional markers
+        # Note: we do this later than plotly converting because plotly doesn't
+        #       need additional markers
+        for x, y, color in additional:
+            pyplot.plot(
+                x,
+                y,
+                linestyle="None",
+                marker="_",
+                ms=17,
+                mew=2,
+                color=color,
+                zorder=0
+            )
 
-    # Save graph (if selected)
-    if do_save:
-        static_save_location_view = os.path.join(
-            static_out_dir_rel,
-            f"{graph_save_location}.png"
-        )
+        # Save graph (if selected)
+        if do_save:
+            static_save_location_view = os.path.join(
+                static_out_dir_rel,
+                f"{graph_save_location}.png"
+            )
 
-        static_save_location = os.path.join(static_out_dir, f"{graph_save_location}.png")
+            static_save_location = os.path.join(static_out_dir, f"{graph_save_location}.png")
 
-        print(f"    Saving static: {static_save_location_view}")
-        utils._mkdir_if_none(static_save_location)
-        pyplot.savefig(static_save_location, dpi=save_dpi)
+            print(f"    Saving static: {static_save_location_view}")
+            utils._mkdir_if_none(static_save_location)
+            pyplot.savefig(static_save_location, dpi=save_dpi)
 
-    if not do_show:
-        pyplot.close(figure)
+        if not do_show:
+            pyplot.close(figure)
 
-print(f"\nPlotted {figure_idx} graphs")
+    print(f"\nPlotted {figure_idx} graphs")
 
-print("\nWriting graphs index...")
-index_file = open(os.path.join(out_dir, "graphs_index.json"), "w")
-index_file.write(json.dumps(all_graph_dict))
-index_file.close()
+    print("\nWriting graphs index...")
+    index_file = open(os.path.join(out_dir, "graphs_index.json"), "w")
+    index_file.write(json.dumps(all_graph_dict))
+    index_file.close()
 
-if do_show:
-    print("\nDisplaying graphs...\n")
-    pyplot.show()
-
+    if do_show:
+        print("\nDisplaying graphs...\n")
+        pyplot.show()
 
 # 3D code (from old method, will need some changes to work)
 # TODO fit this in to new method
