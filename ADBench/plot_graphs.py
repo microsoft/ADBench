@@ -35,6 +35,7 @@ static_out_dir = os.path.join(out_dir, static_out_dir_rel)
 plotly_out_dir = os.path.join(out_dir, plotly_out_dir_rel)
 
 
+
 def graph_data(build_type, objective, maybe_test_size):
     '''Creates graph name and graph saving location.'''
 
@@ -49,7 +50,11 @@ def graph_data(build_type, objective, maybe_test_size):
 
     return (graph_name, graph_save_location)
 
+
+
 has_manual = lambda tool: tool.lower() in ["manual", "manual_eigen"]
+
+
 
 def tool_names(all_files):
     '''Returns a set of tool names from all calculated files.'''
@@ -65,6 +70,8 @@ def tool_names(all_files):
     print(tool_names_)
 
     return tool_names_
+
+
 
 def read_vals(objective, graph_files, tool):
     '''Extracts data for files of the specified tool.'''
@@ -116,6 +123,8 @@ def read_vals(objective, graph_files, tool):
 
     return (n_vals, t_objective_vals, t_jacobian_vals, violation_vals)
 
+
+
 def vals_by_tool(objective, graph_files, tool_names):
     '''Classifies file values by tools'''
 
@@ -150,6 +159,8 @@ def vals_by_tool(objective, graph_files, tool_names):
             raise Exception(f"Unknown function type {function_type}")
 
         yield (tool, n_vals, t_vals, violation)
+
+
 
 def get_style(tool, tool_names):
     '''Returns the style of the given tool from all tool list.'''
@@ -216,6 +227,8 @@ CMD arguments:
     all_graphs = [(path, function_type) for function_type in function_types for path in all_graphs]
     all_graph_dict = {}
 
+
+
     # Loop through each of graphs to be created
     for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
         build_type = graph[0]
@@ -236,6 +249,7 @@ CMD arguments:
                 return sum(y_list) / len(y_list)
             else:
                 return 1e9
+
         sorted_vals_by_tool = sorted(vals_by_tool(objective, graph_files, all_tool_names),
                                     key=sorting_key_fun,
                                     reverse=True)
