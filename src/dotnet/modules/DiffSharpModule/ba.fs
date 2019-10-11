@@ -19,7 +19,7 @@ let RAD_IDX = 9
 let dot (a:DV) (b:DV) = a * b
 
 let cross (a:DV) (b:DV) = 
-    toDV [a.[1]*b.[2] - a.[2]*b.[1]; a.[2]*b.[0] - a.[0]*b.[2]; a.[0]*b.[1] - a.[1]*b.[0]]
+    toDV [ a.[1] * b.[2] - a.[2] * b.[1]; a.[2] * b.[0] - a.[0] * b.[2]; a.[0] * b.[1] - a.[1] * b.[0] ]
 
 let rodrigues_rotate_point (rot:DV) (x:DV) =
     let sqtheta = DV.l2normSq rot
@@ -67,7 +67,7 @@ let vectorize (cam:DV) (x:DV) (w:D) =
     DV.concat [| cam; x; toDV [| w |] |]
 
 let compute_zach_weight_error (w:D) =
-    1. - w*w
+    1. - w * w
 
 let create_sparse_J n m p (obs:_[][]) (reproj_err_d:_[,][]) (w_err_d:_[]) =
     let nrows = 2 * p + p;
@@ -83,7 +83,7 @@ let create_sparse_J n m p (obs:_[][]) (reproj_err_d:_[,][]) (w_err_d:_[]) =
     let reproj_iterator i value =
         let camIdx = obs.[i].[0];
         let ptIdx = obs.[i].[1];
-        J.InsertReprojErrBlock(i,camIdx,ptIdx, to1DArray value)
+        J.InsertReprojErrBlock(i, camIdx, ptIdx, to1DArray value)
 
     Array.iteri reproj_iterator reproj_err_d  
 
@@ -99,11 +99,11 @@ type BADSInput(input:BAInput) =
     member val m:int = input.M
     member val p:int = input.P
 
-    member val Cams = Array.map (fun arr -> toDV arr) input.Cams
-    member val X = Array.map (fun arr -> toDV arr) input.X with get, set
-    member val W = Array.map (fun v -> D v) input.W
+    member val Cams = Array.map toDV input.Cams
+    member val X = Array.map toDV input.X with get, set
+    member val W = Array.map D input.W
    
-    member val Feats = Array.map (fun arr -> toDV arr) input.Feats
+    member val Feats = Array.map toDV input.Feats
 
     member val Obs = input.Obs
 
@@ -125,9 +125,9 @@ type DiffSharpBA() =
     interface DotnetRunner.ITest<BAInput,BAOutput> with
         member this.Prepare(input: BAInput): unit = 
             this.input <- BADSInput input
-            //Let's build DiffSharp internal Reverse AD Trace
-            //To do it just calculate the function in the another point
-            //Moreover, it forces JIT-compiler to compile the function
+            // Let's build DiffSharp internal Reverse AD Trace
+            // To do it just calculate the function in the another point
+            // Moreover, it forces JIT-compiler to compile the function
             let oldX = this.input.X
             let newX = Array.map (fun x -> x + 1) this.input.X
             this.input.X <- newX
@@ -147,7 +147,7 @@ type DiffSharpBA() =
 
             [1..times] |> List.iter (fun _ ->
                 output.reproj_err <- 
-                    [|for i = 0 to p-1 do yield (compute_reproj_err ds_cams.[obs.[i].[0]] ds_X.[obs.[i].[1]] ds_w.[i] feats.[i])|]
+                    [| for i = 0 to p-1 do yield (compute_reproj_err ds_cams.[obs.[i].[0]] ds_X.[obs.[i].[1]] ds_w.[i] feats.[i]) |]
                 output.w_err <- Array.map compute_zach_weight_error ds_w
              )
 
@@ -159,17 +159,15 @@ type DiffSharpBA() =
             let compute_reproj_err_J_block (cam:DV) (x:DV) (w:D) (feat:DV) =
                 let compute_reproj_err_wrapper parameters = 
                     compute_reproj_err_wrapper parameters feat
-                let err_D, J_D = (jacobian' compute_reproj_err_wrapper (vectorize cam x w))
-                err_D, J_D
+                (jacobian' compute_reproj_err_wrapper (vectorize cam x w))
 
             let compute_w_err_d (w:D) = 
-                let e,ed = diff' compute_zach_weight_error w
-                e, ed
+                diff' compute_zach_weight_error w
 
             [1..times] |> List.iter (fun _ ->
                 output.reproj_err_val_J <- 
-                    [|for i=0 to p-1 do 
-                        yield compute_reproj_err_J_block this.input.Cams.[obs.[i].[0]] this.input.X.[obs.[i].[1]] this.input.W.[i] this.input.Feats.[i]|]
+                    [| for i = 0 to p - 1 do 
+                        yield compute_reproj_err_J_block this.input.Cams.[obs.[i].[0]] this.input.X.[obs.[i].[1]] this.input.W.[i] this.input.Feats.[i] |]
                 output.w_err_val_J <- Array.map compute_w_err_d this.input.W
             )
             
