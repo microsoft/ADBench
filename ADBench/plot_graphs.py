@@ -46,8 +46,8 @@ plotly_out_dir_rel = "plotly"
 static_out_dir = os.path.join(out_dir, static_out_dir_rel)
 plotly_out_dir = os.path.join(out_dir, plotly_out_dir_rel)
 
-print(f"Output directory is: {out_dir}\n")
-
+if do_save or do_plotly:
+    print(f"Output directory is: {out_dir}\n")
 
 # Scan folder for all files, and determine which graphs to create
 all_files = [path for path in utils._scandir_rec(in_dir) if TIMES_SUBSTRING in path[-1]]
