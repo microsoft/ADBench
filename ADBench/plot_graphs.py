@@ -19,10 +19,6 @@ do_plotly = "--plotly" in sys.argv
 do_help = any(help in sys.argv for help in ["--help", "-h", "-?"])
 do_show = "--show" in sys.argv or not (do_save or do_plotly or do_help)
 
-if do_show:
-    print("WARNING: `--show` enabled. This script can produce a lot of "
-          "graphs and you may not wish to display all of them.\n")
-
 # Script constants
 TIMES_SUBSTRING = "_times_"
 CORRECTNESS_SUBSTRING = "_correctness_"
@@ -46,9 +42,6 @@ static_out_dir_rel = "static"
 plotly_out_dir_rel = "plotly"
 static_out_dir = os.path.join(out_dir, static_out_dir_rel)
 plotly_out_dir = os.path.join(out_dir, plotly_out_dir_rel)
-
-if do_save or do_plotly:
-    print(f"Output directory is: {out_dir}\n")
 
 # Scan folder for all files, and determine which graphs to create
 all_files = [path for path in utils._scandir_rec(in_dir) if TIMES_SUBSTRING in path[-1]]
@@ -195,6 +188,13 @@ CMD arguments:
 '''
     print(ref_msg)
     sys.exit(0)
+
+if do_show:
+    print("WARNING: `--show` enabled. This script can produce a lot of "
+          "graphs and you may not wish to display all of them.\n")
+
+if do_save or do_plotly:
+    print(f"Output directory is: {out_dir}\n")
 
 # Loop through each of graphs to be created
 for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
