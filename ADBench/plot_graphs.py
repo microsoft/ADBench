@@ -172,13 +172,6 @@ if __name__ == "__main__":
     do_show = "--show" in sys.argv or not (do_save or do_plotly or do_help)
     
     # Show information and warnings
-    if do_show:
-        print("WARNING: `--show` enabled. This script can produce a lot of "
-              "graphs and you may not wish to display all of them.\n")
-
-    if do_save or do_plotly:
-        print(f"Output directory is: {out_dir}\n")
-
     if do_help:
         ref_msg = f'''
 This script produces graphs that visualize benchmark.
@@ -202,6 +195,14 @@ CMD arguments:
         print(ref_msg)
         sys.exit(0)
 
+    if do_show:
+        print("WARNING: `--show` enabled. This script can produce a lot of "
+              "graphs and you may not wish to display all of them.\n")
+
+    if do_save or do_plotly:
+        print(f"Output directory is: {out_dir}\n")
+
+        
 
     rcParams.update({"figure.max_open_warning": 0})
     figure_size = (9, 6) if do_plotly else (12, 8)
