@@ -14,6 +14,15 @@ namespace DotnetRunner.Benchmarks
 
         private const int maxPossiblePowerOfTwo = (int.MaxValue >> 1) + 1;
 
+        /// <summary>
+        /// Finds the number of repeats that <paramref name="func"/> needs to be asked to compute its objective
+        /// in order to to run for at least <paramref name="minimumMeasurableTime"/>.
+        /// </summary>
+        /// <returns>Returns a tuple (Repeats, Sample, TotalTime), where
+        /// Repeats is the found necessary number of repeats;
+        /// Sample is the minimal encountered value of
+        /// runtime of <paramref name="func"/>(repeats) divided by repeats;
+        /// TotalTime is the total time spent on running <paramref name="func"/> in seconds.</returns>
         public static (int Repeats, TimeSpan Sample, TimeSpan TotalTime) FindRepeatsForMinimumMeasurableTime(TimeSpan minimumMeasurableTime, Action<int> func)
         {
             var totalTime = TimeSpan.Zero;
@@ -49,6 +58,9 @@ namespace DotnetRunner.Benchmarks
             return (repeats, minSample, totalTime);
         }
 
+        /// <summary>
+        /// Benchmarks <paramref name="func"/> according to the methodology described in docs/Methodology.md
+        /// </summary>
         public static TimeSpan MeasureShortestTime(TimeSpan minimumMeasurableTime, int nruns, TimeSpan timeLimit, Action<int> func)
         {
             var findRepeatsResult = FindRepeatsForMinimumMeasurableTime(minimumMeasurableTime, func);
@@ -85,6 +97,9 @@ namespace DotnetRunner.Benchmarks
     {
         protected abstract Input ReadInputData(string inputFilePath, Parameters parameters);
 
+        /// <summary>
+        /// Performs the entire benchmark process according to the methodology described in docs/Methodology.md
+        /// </summary>
         public void Run(string modulePath, string inputFilePath, string outputPrefix, TimeSpan minimumMeasurableTime, int nrunsF, int nrunsJ,
                    TimeSpan timeLimit, Parameters parameters)
         {
@@ -99,7 +114,7 @@ namespace DotnetRunner.Benchmarks
                     MeasureShortestTime(minimumMeasurableTime, nrunsF, timeLimit, test.CalculateObjective);
 
                 var derivativeTime =
-                    MeasureShortestTime(minimumMeasurableTime, nrunsF, timeLimit, test.CalculateJacobian);
+                    MeasureShortestTime(minimumMeasurableTime, nrunsJ, timeLimit, test.CalculateJacobian);
 
                 var output = test.Output();
 
