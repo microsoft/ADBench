@@ -51,10 +51,13 @@ def graph_data(build_type, objective, maybe_test_size):
 
 has_manual = lambda tool: tool.lower() in ["manual", "manual_eigen"]
 
-def tool_names(graph_files):
+def tool_names(all_files):
     '''Returns a set of tool names from all calculated files.'''
 
-    tool_names_ = set(map(utils.get_tool_from_path, graph_files))
+    tool_names_ = set(map(utils.get_tool_from_path, all_files))
+
+    # Sort tool names lexicographically
+    tool_names_ = sorted(tool_names_)
 
     # Sort "Manual" to the front
     tool_names_ = sorted(tool_names_, key=lambda x: (not has_manual(x), x))
@@ -113,7 +116,7 @@ def read_vals(objective, graph_files, tool):
 
     return (n_vals, t_objective_vals, t_jacobian_vals, violation_vals)
 
-def vals_by_tool(objective, graph_files):
+def vals_by_tool(objective, graph_files, tool_names):
     '''Classifies file values by tools'''
 
     def div_lists(alist, blist):
@@ -126,7 +129,7 @@ def vals_by_tool(objective, graph_files):
 
     manual_times = None
 
-    for tool in tool_names(graph_files):
+    for tool in tool_names:
         (n_vals, t_objective_vals, t_jacobian_vals, violation) = read_vals(objective, graph_files, tool)
 
         if manual_times is None and has_manual(tool):
@@ -195,6 +198,8 @@ CMD arguments:
     # Scan folder for all files, and determine which graphs to create
     all_files = [path for path in utils._scandir_rec(in_dir) if TIMES_SUBSTRING in path[-1]]
     all_graphs = [path.split("/") for path in set(["/".join(path[:-2]) for path in all_files])]
+    all_tool_names = tool_names(all_files)
+
     function_types = ["objective ÷ Manual", "objective", "jacobian", "jacobian ÷ objective"]
     all_graphs = [(path, function_type) for function_type in function_types for path in all_graphs]
     all_graph_dict = {}
@@ -219,7 +224,7 @@ CMD arguments:
                 return sum(y_list) / len(y_list)
             else:
                 return 1e9
-        sorted_vals_by_tool = sorted(vals_by_tool(objective, graph_files),
+        sorted_vals_by_tool = sorted(vals_by_tool(objective, graph_files, all_tool_names),
                                     key=sorting_key_fun,
                                     reverse=True)
 
