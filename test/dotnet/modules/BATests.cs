@@ -8,12 +8,10 @@ namespace DotnetModulesTests
 {
     public class BATests
     {
-        public static ModuleTestParameters[] TestedModules { get; } = new[]
+        public static IEnumerable<object[]> TestParameterSet { get; } = new[]
         {
             new ModuleTestParameters("./DiffSharpModule.dll", 1e-10 )
-        };
-
-        public static IEnumerable<object[]> TestParameterSet => TestedModules.Select(m => new object[] { m });
+        }.Select(m => new object[] { m }).ToArray();
 
         // helper methods
         void CheckObjectiveCalculation(string moduleName, double tolerance, int times)
