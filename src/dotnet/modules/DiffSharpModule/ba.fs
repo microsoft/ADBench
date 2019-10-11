@@ -27,9 +27,8 @@ let rodrigues_rotate_point (rot:DV) (x:DV) =
         let theta = sqrt sqtheta
         let costheta = cos theta
         let sintheta = sin theta
-        let theta_inv = D 1. / theta
 
-        let w = rot * theta_inv
+        let w = rot / theta
         let w_cross_X = cross w x    
         let tmp = (dot w x) * (D 1. - costheta)
 
