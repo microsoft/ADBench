@@ -164,7 +164,13 @@ def vals_by_tool(objective, graph_files):
 
         yield (tool, n_vals, t_vals, violation)
 
+def draw_vertical_lines(vals_by_tool):
+    '''Adds vertical lines to the figure for clarifying results.'''
 
+    all_n_vals = set.union(*(set(n_vals) for _, n_vals, _, _ in vals_by_tool))
+
+    for n in all_n_vals:
+        pyplot.axvline(n, ls = '-', color = "lightgrey", zorder = 0.0, lw = 0.5)
 
 if do_help:
     ref_msg = f'''
@@ -305,6 +311,8 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
     pyplot.ylabel(f"Running time (s) for [{function_type.capitalize()}]")
     pyplot.xscale("log")
     pyplot.yscale("log")
+
+    draw_vertical_lines(sorted_vals_by_tool)
 
     # Export to plotly (if selected)
     if do_plotly:
