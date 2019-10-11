@@ -20,7 +20,8 @@ do_help = any(help in sys.argv for help in ["--help", "-h", "-?"])
 do_show = "--show" in sys.argv or not (do_save or do_plotly or do_help)
 
 if do_show:
-    print("WARNING: `--show` enabled. This script can produce a lot of graphs and you may not wish to display all of them.\n")
+    print("WARNING: `--show` enabled. This script can produce a lot of "
+          "graphs and you may not wish to display all of them.\n")
 
 # Script constants
 TIMES_SUBSTRING = "_times_"
