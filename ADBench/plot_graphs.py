@@ -182,7 +182,7 @@ def  draw_vertical_lines(sorted_vals_by_tools):
     max_n_val = max(n_vals, key = lambda n_val: len(n_val))
 
     for n in max_n_val:
-        pyplot.axvline(n, ls = '--', color = "grey", zorder = 0.0, lw = 0.5)
+        pyplot.axvline(n, ls = '-', color = "lightgrey", zorder = 0.0, lw = 0.5)
 
 
 
