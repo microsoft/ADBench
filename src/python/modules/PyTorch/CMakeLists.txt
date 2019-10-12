@@ -8,7 +8,7 @@ execute_process(
 # default option
 option(CUDA OFF)
 
-if (${CUDA})
+if (CUDA)
     execute_process(
         COMMAND ${Python3_EXECUTABLE} "-m" "pip" "install"
         "-r" "${CMAKE_CURRENT_SOURCE_DIR}/requirements-cuda.txt"
