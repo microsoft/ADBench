@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# init values
 RUN=0
 PLOT=0
 USAGE_MESSAGE="Usage: ./run-wrapper.sh ([-r|--run-all] || [-p|--plot-graphs] || [-h|--help]) args"
@@ -7,11 +8,11 @@ USAGE_MESSAGE="Usage: ./run-wrapper.sh ([-r|--run-all] || [-p|--plot-graphs] || 
 case $1 in
     -r|--run-all)
         RUN=1
-        shift
+        shift # pop first argument from $@
     ;;
     -p|--plot-graphs)
         PLOT=1
-        shift
+        shift # pop first argument from $@
     ;;
     -h|--help)
         echo $USAGE_MESSAGE
