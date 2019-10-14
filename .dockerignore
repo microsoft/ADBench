@@ -1,0 +1,35 @@
+.ipynb_checkpoints/*
+*.mexw64
+/tmp/
+
+/packages
+
+etc/HunterGate-Root-awf
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vscode
+
+# Visual C++ cache files
+ipch/
+*.aps
+*.ncb
+*.opensdf
+*.sdf
+*.cachefile
+.vs
+
+# Build results
+**/Debug/
+**/Release/
+obj/
+*-build/
+build/
+
+# Python
+__pycache__
+*.obj
+*.exe
