@@ -285,8 +285,11 @@ CMD arguments:
                     [t_val == float("inf") for t_val in t_vals[1:]] + [True],
                     violations)
 
-            color, marker = get_style(tool, all_tool_names)
+            # do nothing in case when there is not any values for this tool
+            if len(t_vals) == 0:
+                continue
 
+            color, marker = get_style(tool, all_tool_names)
             label = utils.format_tool(tool)
             all_terminated = all(t_val == float("inf") for t_val in t_vals)
             # Append label in legend if all point values are infinite
