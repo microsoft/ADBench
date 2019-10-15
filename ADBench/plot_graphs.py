@@ -42,7 +42,7 @@ tool_styles = {
     "Tapenade": ("y", "*", "C, Tapenade"),
 
     # .Net tools
-    "DiffSharp": ("b", "o", ".Net, DiffSharp"),
+    "DiffSharp": ("b", "o", "F#, DiffSharp"),
 
     # Python tools
     "PyTorch": ("g", "s", "Python, PyTorch"),
