@@ -33,24 +33,23 @@ save_dpi = 144
 default_style = ("k", "x")  # for tools that have no mapped style
 all_styles = {
     # C++ tools
-    "Finite": ("b", "*"),
-    "FiniteEigen": ("g", "*"),
-    "Manual": ("r", "*"),
-    "ManualEigen": ("c", "*"),
-    "ManualEigenVector": ("m", "*"),
-    "Tapenade": ("y", "*"),
+    "Finite": ("b", "*", "C++, Finite"),
+    "FiniteEigen": ("g", "*", "C++, Finite Eigen"),
+    "Manual": ("r", "*", "C++, Manual"),
+    "ManualEigen": ("c", "*", "C++, Manual Eigen"),
+    "ManualEigenVector": ("m", "*", "C++, Manual Eigen Vector"),
+    "Tapenade": ("y", "*", "C, Tapenade"),
 
     # .Net tools
-    "DiffSharp": ("b", "o"),
+    "DiffSharp": ("b", "o", ".Net, DiffSharp"),
 
     # Python tools
-    "PyTorch": ("g", "s"),
-    "Tensorflow": ("r", "s"),
-    "Autograd": ("c", "s"),
+    "PyTorch": ("g", "s", "Python, PyTorch"),
+    "Tensorflow": ("r", "s", "Python, Tensorflow (eager execution)"),
+    "Autograd": ("c", "s", "Python, Autograd"),
 
     # Julia tools
-    "Julia": ("m", "v"),
-    "Zygote": ("y", "v")
+    "Zygote": ("y", "v", "Julia, Zygote")
 }
 
 # Folders
@@ -277,14 +276,14 @@ both neighbours missing'''
 
     return (together, additionals)
 
-def label_and_handle(tool, n_vals, t_vals, color_marker):
+def label_and_handle(tool, n_vals, t_vals, style):
     '''Returns (label, handle)
 
 where label is the label that should be used in the legend for this
 tool and handle is a handle to the plotted data for this tool'''
 
-    (color, marker) = color_marker
-    label = utils.format_tool(tool)
+    (color, marker) = style[0: 2]
+    label = utils.format_tool(tool) if len(style) == 2 else style[2]
     all_terminated = all(t_val == float("inf") for t_val in t_vals)
     # Append label in legend if all point values are infinite
     if all_terminated:
@@ -320,12 +319,12 @@ def generate_graph(figure_idx, graph_function_type):
     # Plot results
     for (tool, n_vals, t_vals, violations) in sorted_vals_by_tool:
         if tool in all_styles:
-            color, marker = all_styles[tool]
+            style = all_styles[tool]
         else:
-            color, marker = default_style
+            style = default_style
             print(f'WARNING: style is not specified for tool "{tool}"! Default style is used')
 
-        (label, handle) = label_and_handle(tool, n_vals, t_vals, (color, marker))
+        (label, handle) = label_and_handle(tool, n_vals, t_vals, style)
         (together, additionals) = together_and_additionals(n_vals, t_vals, violations)
 
         labels.append(label)
@@ -334,7 +333,7 @@ def generate_graph(figure_idx, graph_function_type):
         # adding coordinates of additional markers
         additional.append(([n_val for (n_val, _) in additionals],
                            [t_val for (_, t_val) in additionals],
-                           color))
+                           style[0]))
 
         violation_x += [n_val for (n_val, _, _, _, violation)
                         in together if violation]
