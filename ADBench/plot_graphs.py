@@ -45,7 +45,7 @@ all_styles = {
 
     # Python tools
     "PyTorch": ("g", "s", "Python, PyTorch"),
-    "Tensorflow": ("r", "s", "Python, Tensorflow (eager execution)"),
+    "Tensorflow": ("r", "s", "Python, Tensorflow"),
     "Autograd": ("c", "s", "Python, Autograd"),
 
     # Julia tools
