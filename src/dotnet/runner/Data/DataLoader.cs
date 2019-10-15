@@ -17,6 +17,75 @@ namespace DotnetRunner.Data
                                       ).ToArray();
         }
 
+        private static double[] ParseDoubleArray(string line) =>
+            line.Split(' ')
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Select(s => double.Parse(s, System.Globalization.CultureInfo.InvariantCulture))
+            .ToArray();
+
+        public static GMMInput ReadGMMInstance(string inputFilePath, bool replicatePoint)
+        {
+            var input = new GMMInput();
+
+            using (var line = File.ReadLines(inputFilePath).GetEnumerator())
+            {
+                line.MoveNext();
+                var parts = line.Current.Split(' ');
+                input.D = int.Parse(parts[0]);
+                input.K = int.Parse(parts[1]);
+                input.N = int.Parse(parts[2]);
+                int icf_sz = input.D * (input.D + 1) / 2;
+
+                input.Alphas = new double[input.K];
+                for (int i = 0; i < input.K; ++i)
+                {
+                    line.MoveNext();
+                    input.Alphas[i] = double.Parse(line.Current);
+                }
+
+                input.Means = new double[input.K][];
+                for (int i = 0; i < input.K; ++i)
+                {
+                    line.MoveNext();
+                    input.Means[i] = ParseDoubleArray(line.Current);
+                }
+
+                input.Icf = new double[input.K][];
+                for (int i = 0; i < input.K; ++i)
+                {
+                    line.MoveNext();
+                    input.Icf[i] = ParseDoubleArray(line.Current);
+                }
+
+                input.X = new double[input.N][];
+                if (replicatePoint)
+                {
+                    line.MoveNext();
+                    double[] x = ParseDoubleArray(line.Current);
+                    for (int i = 0; i < input.N; ++i)
+                    {
+                        input.X[i] = x.ToArray();
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < input.N; ++i)
+                    {
+                        line.MoveNext();
+                        input.X[i] = ParseDoubleArray(line.Current);
+                    }
+                }
+
+                line.MoveNext();
+                parts = line.Current.Split(' ');
+                Wishart wishart = new Wishart();
+                wishart.Gamma = double.Parse(parts[0]);
+                wishart.M = int.Parse(parts[1]);
+                input.Wishart = wishart;
+            }
+            return input;
+        }
+
         public static BAInput ReadBAInstance(string inputFilePath)
         {
             var input = new BAInput();
@@ -67,28 +136,28 @@ namespace DotnetRunner.Data
                 for (int i = 0; i < 2 * input.LayerCount; ++i)
                 {
                     line.MoveNext();
-                    input.MainParams[i] = line.Current.Split(' ').Select(double.Parse).ToArray();
+                    input.MainParams[i] = ParseDoubleArray(line.Current);
                 }
                 line.MoveNext();
                 input.ExtraParams = new double[3][];
                 for (int i = 0; i < 3; ++i)
                 {
                     line.MoveNext();
-                    input.ExtraParams[i] = line.Current.Split(' ').Select(double.Parse).ToArray();
+                    input.ExtraParams[i] = ParseDoubleArray(line.Current);
                 }
                 line.MoveNext();
                 input.State = new double[2 * input.LayerCount][];
                 for (int i = 0; i < 2 * input.LayerCount; ++i)
                 {
                     line.MoveNext();
-                    input.State[i] = line.Current.Split(' ').Select(double.Parse).ToArray();
+                    input.State[i] = ParseDoubleArray(line.Current);
                 }
                 line.MoveNext();
                 input.Sequence = new double[input.CharCount][];
                 for (int i = 0; i < input.CharCount; ++i)
                 {
                     line.MoveNext();
-                    input.Sequence[i] = line.Current.Split(' ').Select(double.Parse).ToArray();
+                    input.Sequence[i] = ParseDoubleArray(line.Current);
                 }
             }
             return input;
