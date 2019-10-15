@@ -51,5 +51,47 @@ namespace DotnetRunner.Data
 
             return input;
         }
+
+        public static LSTMInput ReadLSTMInstance(string inputFilePath)
+        {
+            var input = new LSTMInput();
+            using (var line = File.ReadLines(inputFilePath).GetEnumerator())
+            {
+                line.MoveNext();
+                var parts = line.Current.Split(' ');
+                input.LayerCount = int.Parse(parts[0]);
+                input.CharCount = int.Parse(parts[1]);
+                input.CharBits = int.Parse(parts[2]);
+                line.MoveNext();
+                input.MainParams = new double[2 * input.LayerCount][];
+                for (int i = 0; i < 2 * input.LayerCount; ++i)
+                {
+                    line.MoveNext();
+                    input.MainParams[i] = line.Current.Split(' ').Select(double.Parse).ToArray();
+                }
+                line.MoveNext();
+                input.ExtraParams = new double[3][];
+                for (int i = 0; i < 3; ++i)
+                {
+                    line.MoveNext();
+                    input.ExtraParams[i] = line.Current.Split(' ').Select(double.Parse).ToArray();
+                }
+                line.MoveNext();
+                input.State = new double[2 * input.LayerCount][];
+                for (int i = 0; i < 2 * input.LayerCount; ++i)
+                {
+                    line.MoveNext();
+                    input.State[i] = line.Current.Split(' ').Select(double.Parse).ToArray();
+                }
+                line.MoveNext();
+                input.Sequence = new double[input.CharCount][];
+                for (int i = 0; i < input.CharCount; ++i)
+                {
+                    line.MoveNext();
+                    input.Sequence[i] = line.Current.Split(' ').Select(double.Parse).ToArray();
+                }
+            }
+            return input;
+        }
     }
 }
