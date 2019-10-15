@@ -308,7 +308,7 @@ def values_and_styles(sorted_vals_by_tool):
     for item in sorted_vals_by_tool:
         tool = item[0]
         if tool in tool_styles:
-            style = tool_styles[tool][0: 2]
+            style = tool_styles[tool]
         else:
             style = default_styles[next_default]
             next_default = (next_default + 1) % len(default_styles)
@@ -316,7 +316,7 @@ def values_and_styles(sorted_vals_by_tool):
 
         display_name = utils.format_tool(tool) if len(style) == 2 else style[2]
 
-        yield item, style, display_name
+        yield item, style[0: 2], display_name
 
 def generate_graph(figure_idx, graph_function_type):
     '''Generates the graph for the pair graph_function_type of graph and function_type'''
