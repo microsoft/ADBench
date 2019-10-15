@@ -30,7 +30,8 @@ figure_size = (9, 6) if do_plotly else (12, 8)
 fig_dpi = 96
 save_dpi = 144
 
-default_style = ("k", "x")  # for tools that have no mapped style
+# for tools that have no mapped style
+default_styles = [ (color, "x") for color in "rgbcmyk" ]
 tool_styles = {
     # C++ tools
     "Finite": ("b", "*", "C++, Finite"),
@@ -303,13 +304,15 @@ def values_and_styles(sorted_vals_by_tool):
     '''Returns generator for tool values concatenated with tool style and
     display name: (values, style, display_name).'''
 
+    next_default = 0
     for item in sorted_vals_by_tool:
         tool = item[0]
         if tool in tool_styles:
             style = tool_styles[tool][0: 2]
         else:
-            style = default_style
-            print(f'WARNING: style is not specified for tool "{tool}"! Default style is used')
+            style = default_styles[next_default]
+            next_default = (next_default + 1) % len(default_styles)
+            print(f'WARNING: style is not specified for tool "{tool}"! One of default styles is used')
 
         display_name = utils.format_tool(tool) if len(style) == 2 else style[2]
 
