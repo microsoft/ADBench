@@ -6,18 +6,18 @@ namespace DotnetRunner.Data
 {
     public struct LSTMInput
     {
-        int L { get; set; }
-        int C { get; set; }
-        int B { get; set; }
-        double[] MainParams { get; set; }
-        double[] ExtraParams { get; set; }
-        double[] State { get; set; }
-        double[] Sequence { get; set; }
+        public int LayerCount { get; set; }
+        public int CharCount { get; set; }
+        public int CharBits { get; set; }
+        public double[][] MainParams { get; set; }
+        public double[][] ExtraParams { get; set; }
+        public double[][] State { get; set; }
+        public double[][] Sequence { get; set; }
     };
 
     public struct LSTMOutput
     {
-        double Objective { get; set; }
-        double[] Gradient { get; set; }
+        public double Objective { get; set; }
+        public double[] Gradient { get; set; }
     };
 }
