@@ -203,15 +203,7 @@ CMD arguments:
     if do_save or do_plotly:
         print(f"Output directory is: {out_dir}\n")
 
-print_messages()
-
-# Loop through each of graphs to be created
-for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
-    objective = graph[1]
-
-    # Create figure
-    figure = pyplot.figure(figure_idx, figsize=figure_size, dpi=fig_dpi)
-
+def get_sorted_vals_by_tool(objective):
     # Extract file details
     graph_files = [path for path in all_files if path[:len(graph)] == graph]
 
@@ -224,6 +216,19 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
     sorted_vals_by_tool = sorted(vals_by_tool(objective, graph_files),
                                  key=sorting_key_fun,
                                  reverse=True)
+
+    return sorted_vals_by_tool
+
+print_messages()
+
+# Loop through each of graphs to be created
+for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
+    objective = graph[1]
+
+    # Create figure
+    figure = pyplot.figure(figure_idx, figsize=figure_size, dpi=fig_dpi)
+
+    sorted_vals_by_tool = get_sorted_vals_by_tool(objective)
 
     lines = zip(all_styles, sorted_vals_by_tool)
 
