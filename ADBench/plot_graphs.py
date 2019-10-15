@@ -276,28 +276,44 @@ both neighbours missing'''
 
     return (together, additionals)
 
-def label_and_handle(tool, n_vals, t_vals, style):
+def label_and_handle(tool, n_vals, t_vals, style, disp_name):
     '''Returns (label, handle)
 
 where label is the label that should be used in the legend for this
 tool and handle is a handle to the plotted data for this tool'''
 
-    (color, marker) = style[0: 2]
-    label = utils.format_tool(tool) if len(style) == 2 else style[2]
+    color, marker = style
     all_terminated = all(t_val == float("inf") for t_val in t_vals)
+
     # Append label in legend if all point values are infinite
     if all_terminated:
-        label += ALL_TERMINATED_SUFFIX
+        disp_name += ALL_TERMINATED_SUFFIX
 
     handle = pyplot.plot(
         n_vals,
         t_vals,
         marker=marker,
         color=color,
-        label=label
+        label=disp_name
     )
 
-    return (label, handle)
+    return (disp_name, handle)
+
+def values_and_styles(sorted_vals_by_tool):
+    '''Returns generator for tool values concatenated with tool style and
+    display name: (values, style, display_name).'''
+
+    for item in sorted_vals_by_tool:
+        tool = item[0]
+        if tool in all_styles:
+            style = all_styles[tool][0: 2]
+        else:
+            style = default_style
+            print(f'WARNING: style is not specified for tool "{tool}"! Default style is used')
+
+        display_name = utils.format_tool(tool) if len(style) == 2 else style[2]
+
+        yield item, style, display_name
 
 def generate_graph(figure_idx, graph_function_type):
     '''Generates the graph for the pair graph_function_type of graph and function_type'''
@@ -317,14 +333,8 @@ def generate_graph(figure_idx, graph_function_type):
     additional = []
 
     # Plot results
-    for (tool, n_vals, t_vals, violations) in sorted_vals_by_tool:
-        if tool in all_styles:
-            style = all_styles[tool]
-        else:
-            style = default_style
-            print(f'WARNING: style is not specified for tool "{tool}"! Default style is used')
-
-        (label, handle) = label_and_handle(tool, n_vals, t_vals, style)
+    for ((tool, n_vals, t_vals, violations), style, disp_name) in values_and_styles(sorted_vals_by_tool):
+        (label, handle) = label_and_handle(tool, n_vals, t_vals, style, disp_name)
         (together, additionals) = together_and_additionals(n_vals, t_vals, violations)
 
         labels.append(label)
