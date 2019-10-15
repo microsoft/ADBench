@@ -34,15 +34,15 @@ save_dpi = 144
 default_styles = [ (color, "x") for color in "rgbcmyk" ]
 tool_styles = {
     # C++ tools
-    "Finite": ("b", "*", "C++, Finite"),
-    "FiniteEigen": ("g", "*", "C++, Finite Eigen"),
-    "Manual": ("r", "*", "C++, Manual"),
-    "ManualEigen": ("c", "*", "C++, Manual Eigen"),
-    "ManualEigenVector": ("m", "*", "C++, Manual Eigen Vector"),
+    "Finite": ("b", "o", "C++, Finite"),
+    "FiniteEigen": ("b", "s", "C++, Finite Eigen"),
+    "Manual": ("k", "o", "C++, Manual"),
+    "ManualEigen": ("k", "s", "C++, Manual Eigen"),
+    "ManualEigenVector": ("k", "D", "C++, Manual Eigen Vector"),
     "Tapenade": ("y", "*", "C, Tapenade"),
 
     # .Net tools
-    "DiffSharp": ("b", "o", "F#, DiffSharp"),
+    "DiffSharp": ("grey", "D", "F#, DiffSharp"),
 
     # Python tools
     "PyTorch": ("g", "s", "Python, PyTorch"),
