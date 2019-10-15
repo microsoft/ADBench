@@ -252,6 +252,18 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
                 [t_val == float("inf") for t_val in t_vals[1:]] + [True],
                 violations)
 
+        def together_and_additionals():
+            together = list(vals_with_neighbours_and_violation())
+            additionals = [(n_val, t_val)
+                           for (n_val, t_val, missing_left, missing_right, violation)
+                           in together
+                           if t_val != float("inf")
+                           and missing_left
+                           and missing_right
+                           and violation]
+
+            return (together, additionals)
+
         def label_and_handle():
             label = utils.format_tool(tool)
             all_terminated = all(t_val == float("inf") for t_val in t_vals)
@@ -270,18 +282,10 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
             return (label, handle)
 
         (label, handle) = label_and_handle()
+        (together, additionals) = together_and_additionals()
 
         labels.append(label)
         handles += handle
-
-        together = list(vals_with_neighbours_and_violation())
-        additionals = [(n_val, t_val)
-                       for (n_val, t_val, missing_left, missing_right, violation)
-                       in together
-                       if t_val != float("inf")
-                       and missing_left
-                       and missing_right
-                       and violation]
 
         # adding coordinates of additional markers
         additional.append(([n_val for (n_val, _) in additionals],
