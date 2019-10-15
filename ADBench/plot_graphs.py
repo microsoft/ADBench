@@ -29,9 +29,28 @@ ALL_TERMINATED_SUFFIX = " (all crashed/terminated)"
 figure_size = (9, 6) if do_plotly else (12, 8)
 fig_dpi = 96
 save_dpi = 144
-colors = ["b", "g", "r", "c", "m", "y"]
-markers = ["*", "+", "s", "^"]
-all_styles = [(c, m) for m in markers for c in colors]
+
+all_styles = {
+    # C++ tools
+    "Finite": ("b", "*"),
+    "FiniteEigen": ("g", "*"),
+    "Manual": ("r", "*"),
+    "ManualEigen": ("c", "*"),
+    "ManualEigenVector": ("m", "*"),
+    "Tapenade": ("y", "*"),
+
+    # .Net tools
+    "DiffSharp": ("b", "o"),
+
+    # Python tools
+    "PyTorch": ("g", "s"),
+    "Tensorflow": ("r", "s"),
+    "Autograd": ("c", "s"),
+
+    # Julia tools
+    "Julia": ("m", "v"),
+    "Zygote": ("y", "v")
+}
 
 # Folders
 adbench_dir = os.path.dirname(os.path.realpath(__file__))
@@ -292,15 +311,15 @@ def generate_graph(figure_idx, graph_function_type):
 
     sorted_vals_by_tool = get_sorted_vals_by_tool(objective, graph, function_type)
 
-    lines = zip(all_styles, sorted_vals_by_tool)
-
     handles, labels = [], []
     violation_x, violation_y = [], []
     was_violation = False
     additional = []
 
     # Plot results
-    for ((color, marker), (tool, n_vals, t_vals, violations)) in lines:
+    for (tool, n_vals, t_vals, violations) in sorted_vals_by_tool:
+        color, marker = all_styles[tool]
+
         (label, handle) = label_and_handle(tool, n_vals, t_vals, (color, marker))
         (together, additionals) = together_and_additionals(n_vals, t_vals, violations)
 
