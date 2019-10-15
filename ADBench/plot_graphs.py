@@ -219,6 +219,49 @@ def get_sorted_vals_by_tool(objective, graph, function_type):
 
     return sorted_vals_by_tool
 
+def vals_with_neighbours_and_violation(n_vals, t_vals, violations):
+    # Checking neighbours by shifting t_vals requires that
+    # it is in the order of monotonic n_vals
+    assert n_vals == sorted(n_vals)
+    return zip(
+        n_vals,
+        t_vals,
+        # Whether the left neighbour is missing
+        [True] + [t_val == float("inf") for t_val in t_vals],
+        # Whether the right neighbour is missing
+        [t_val == float("inf") for t_val in t_vals[1:]] + [True],
+        violations)
+
+def together_and_additionals(n_vals, t_vals, violations):
+    together = list(vals_with_neighbours_and_violation(n_vals, t_vals, violations))
+    additionals = [(n_val, t_val)
+                   for (n_val, t_val, missing_left, missing_right, violation)
+                   in together
+                   if t_val != float("inf")
+                   and missing_left
+                   and missing_right
+                   and violation]
+
+    return (together, additionals)
+
+def label_and_handle(tool, n_vals, t_vals, color_marker):
+    (color, marker) = color_marker
+    label = utils.format_tool(tool)
+    all_terminated = all(t_val == float("inf") for t_val in t_vals)
+    # Append label in legend if all point values are infinite
+    if all_terminated:
+        label += ALL_TERMINATED_SUFFIX
+
+    handle = pyplot.plot(
+        n_vals,
+        t_vals,
+        marker=marker,
+        color=color,
+        label=label
+    )
+
+    return (label, handle)
+
 def generate_graph(figure_idx, graph_function_type):
     (graph, function_type) = graph_function_type
 
@@ -238,50 +281,8 @@ def generate_graph(figure_idx, graph_function_type):
 
     # Plot results
     for ((color, marker), (tool, n_vals, t_vals, violations)) in lines:
-        def vals_with_neighbours_and_violation():
-            # Checking neighbours by shifting t_vals requires that
-            # it is in the order of monotonic n_vals
-            assert n_vals == sorted(n_vals)
-            return zip(
-                n_vals,
-                t_vals,
-                # Whether the left neighbour is missing
-                [True] + [t_val == float("inf") for t_val in t_vals],
-                # Whether the right neighbour is missing
-                [t_val == float("inf") for t_val in t_vals[1:]] + [True],
-                violations)
-
-        def together_and_additionals():
-            together = list(vals_with_neighbours_and_violation())
-            additionals = [(n_val, t_val)
-                           for (n_val, t_val, missing_left, missing_right, violation)
-                           in together
-                           if t_val != float("inf")
-                           and missing_left
-                           and missing_right
-                           and violation]
-
-            return (together, additionals)
-
-        def label_and_handle():
-            label = utils.format_tool(tool)
-            all_terminated = all(t_val == float("inf") for t_val in t_vals)
-            # Append label in legend if all point values are infinite
-            if all_terminated:
-                label += ALL_TERMINATED_SUFFIX
-
-            handle = pyplot.plot(
-                n_vals,
-                t_vals,
-                marker=marker,
-                color=color,
-                label=label
-            )
-
-            return (label, handle)
-
-        (label, handle) = label_and_handle()
-        (together, additionals) = together_and_additionals()
+        (label, handle) = label_and_handle(tool, n_vals, t_vals, (color, marker))
+        (together, additionals) = together_and_additionals(n_vals, t_vals, violations)
 
         labels.append(label)
         handles += handle
