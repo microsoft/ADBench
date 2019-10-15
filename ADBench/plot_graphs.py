@@ -31,7 +31,7 @@ fig_dpi = 96
 save_dpi = 144
 
 default_style = ("k", "x")  # for tools that have no mapped style
-all_styles = {
+tool_styles = {
     # C++ tools
     "Finite": ("b", "*", "C++, Finite"),
     "FiniteEigen": ("g", "*", "C++, Finite Eigen"),
@@ -305,8 +305,8 @@ def values_and_styles(sorted_vals_by_tool):
 
     for item in sorted_vals_by_tool:
         tool = item[0]
-        if tool in all_styles:
-            style = all_styles[tool][0: 2]
+        if tool in tool_styles:
+            style = tool_styles[tool][0: 2]
         else:
             style = default_style
             print(f'WARNING: style is not specified for tool "{tool}"! Default style is used')
