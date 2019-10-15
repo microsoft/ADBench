@@ -51,7 +51,7 @@ all_graphs = [(path, function_type) for function_type in function_types for path
 all_graph_dict = {}
 
 
-def graph_data(build_type, objective, maybe_test_size):
+def graph_data(build_type, objective, maybe_test_size, function_type):
     '''Creates graph name and graph saving location.'''
 
     test_size = ", ".join([utils.cap_str(s) for s in maybe_test_size[0].split("_")]) if len(maybe_test_size) == 1 else None
@@ -129,7 +129,7 @@ def read_vals(objective, graph_files, tool):
 
     return (n_vals, t_objective_vals, t_jacobian_vals, violation_vals)
 
-def vals_by_tool(objective, graph_files):
+def vals_by_tool(objective, graph_files, function_type):
     '''Classifies file values by tools'''
 
     def div_lists(alist, blist):
@@ -203,7 +203,7 @@ CMD arguments:
     if do_save or do_plotly:
         print(f"Output directory is: {out_dir}\n")
 
-def get_sorted_vals_by_tool(objective):
+def get_sorted_vals_by_tool(objective, graph, function_type):
     # Extract file details
     graph_files = [path for path in all_files if path[:len(graph)] == graph]
 
@@ -213,22 +213,21 @@ def get_sorted_vals_by_tool(objective):
             return sum(y_list) / len(y_list)
         else:
             return 1e9
-    sorted_vals_by_tool = sorted(vals_by_tool(objective, graph_files),
+    sorted_vals_by_tool = sorted(vals_by_tool(objective, graph_files, function_type),
                                  key=sorting_key_fun,
                                  reverse=True)
 
     return sorted_vals_by_tool
 
-print_messages()
+def generate_graph(figure_idx, graph_function_type):
+    (graph, function_type) = graph_function_type
 
-# Loop through each of graphs to be created
-for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
     objective = graph[1]
 
     # Create figure
     figure = pyplot.figure(figure_idx, figsize=figure_size, dpi=fig_dpi)
 
-    sorted_vals_by_tool = get_sorted_vals_by_tool(objective)
+    sorted_vals_by_tool = get_sorted_vals_by_tool(objective, graph, function_type)
 
     lines = zip(all_styles, sorted_vals_by_tool)
 
@@ -322,7 +321,7 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
 
     build_type = graph[0]
     maybe_test_size = graph[2:]
-    (graph_name, graph_save_location) = graph_data(build_type, objective, maybe_test_size)
+    (graph_name, graph_save_location) = graph_data(build_type, objective, maybe_test_size, function_type)
 
     # Setup graph attributes
     pyplot.title(graph_name)
@@ -378,6 +377,12 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
 
     if not do_show:
         pyplot.close(figure)
+
+print_messages()
+
+# Loop through each of graphs to be created
+for (figure_idx, t) in enumerate(all_graphs, start=1):
+    generate_graph(figure_idx, t)
 
 print(f"\nPlotted {figure_idx} graphs")
 
