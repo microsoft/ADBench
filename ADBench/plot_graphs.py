@@ -172,8 +172,9 @@ def draw_vertical_lines(vals_by_tool):
     for n in all_n_vals:
         pyplot.axvline(n, ls = '-', color = "lightgrey", zorder = 0.0, lw = 0.5)
 
-if do_help:
-    ref_msg = f'''
+def print_messages():
+    if do_help:
+        ref_msg = f'''
 This script produces graphs that visualize benchmark.
 CMD arguments:
     --save
@@ -192,15 +193,17 @@ CMD arguments:
     --help, -h, -?
             show this message
 '''
-    print(ref_msg)
-    sys.exit(0)
+        print(ref_msg)
+        sys.exit(0)
 
-if do_show:
-    print("WARNING: `--show` enabled. This script can produce a lot of "
-          "graphs and you may not wish to display all of them.\n")
+    if do_show:
+        print("WARNING: `--show` enabled. This script can produce a lot of "
+              "graphs and you may not wish to display all of them.\n")
 
-if do_save or do_plotly:
-    print(f"Output directory is: {out_dir}\n")
+    if do_save or do_plotly:
+        print(f"Output directory is: {out_dir}\n")
+
+print_messages()
 
 # Loop through each of graphs to be created
 for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
