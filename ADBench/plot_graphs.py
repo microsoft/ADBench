@@ -399,23 +399,25 @@ def generate_graph(figure_idx, graph_function_type):
     if not do_show:
         pyplot.close(figure)
 
-print_messages()
+def main():
+    print_messages()
 
-# Loop through each of graphs to be created
-for (figure_idx, t) in enumerate(all_graphs, start=1):
-    generate_graph(figure_idx, t)
+    # Loop through each of graphs to be created
+    for (figure_idx, t) in enumerate(all_graphs, start=1):
+        generate_graph(figure_idx, t)
 
-print(f"\nPlotted {figure_idx} graphs")
+    print(f"\nPlotted {figure_idx} graphs")
 
-print("\nWriting graphs index...")
-index_file = open(os.path.join(out_dir, "graphs_index.json"), "w")
-index_file.write(json.dumps(all_graph_dict))
-index_file.close()
+    print("\nWriting graphs index...")
+    index_file = open(os.path.join(out_dir, "graphs_index.json"), "w")
+    index_file.write(json.dumps(all_graph_dict))
+    index_file.close()
 
-if do_show:
-    print("\nDisplaying graphs...\n")
-    pyplot.show()
+    if do_show:
+        print("\nDisplaying graphs...\n")
+        pyplot.show()
 
+if __name__ == '__main__': main()
 
 # 3D code (from old method, will need some changes to work)
 # TODO fit this in to new method
