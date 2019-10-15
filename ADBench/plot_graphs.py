@@ -30,6 +30,7 @@ figure_size = (9, 6) if do_plotly else (12, 8)
 fig_dpi = 96
 save_dpi = 144
 
+default_style = ("k", "x")  # for tools that have no mapped style
 all_styles = {
     # C++ tools
     "Finite": ("b", "*"),
@@ -318,7 +319,11 @@ def generate_graph(figure_idx, graph_function_type):
 
     # Plot results
     for (tool, n_vals, t_vals, violations) in sorted_vals_by_tool:
-        color, marker = all_styles[tool]
+        if tool in all_styles:
+            color, marker = all_styles[tool]
+        else:
+            color, marker = default_style
+            print(f'WARNING: style is not specified for tool "{tool}"! Default style is used')
 
         (label, handle) = label_and_handle(tool, n_vals, t_vals, (color, marker))
         (together, additionals) = together_and_additionals(n_vals, t_vals, violations)
