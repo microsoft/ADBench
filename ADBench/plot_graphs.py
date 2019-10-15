@@ -252,20 +252,27 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
                 [t_val == float("inf") for t_val in t_vals[1:]] + [True],
                 violations)
 
-        label = utils.format_tool(tool)
-        all_terminated = all(t_val == float("inf") for t_val in t_vals)
-        # Append label in legend if all point values are infinite
-        if all_terminated:
-            label += ALL_TERMINATED_SUFFIX
+        def label_and_handle():
+            label = utils.format_tool(tool)
+            all_terminated = all(t_val == float("inf") for t_val in t_vals)
+            # Append label in legend if all point values are infinite
+            if all_terminated:
+                label += ALL_TERMINATED_SUFFIX
+
+            handle = pyplot.plot(
+                n_vals,
+                t_vals,
+                marker=marker,
+                color=color,
+                label=label
+            )
+
+            return (label, handle)
+
+        (label, handle) = label_and_handle()
 
         labels.append(label)
-        handles += pyplot.plot(
-            n_vals,
-            t_vals,
-            marker=marker,
-            color=color,
-            label=label
-        )
+        handles += handle
 
         together = list(vals_with_neighbours_and_violation())
         additionals = [(n_val, t_val)
