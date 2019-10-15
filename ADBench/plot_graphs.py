@@ -207,11 +207,7 @@ print_messages()
 
 # Loop through each of graphs to be created
 for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
-    build_type = graph[0]
     objective = graph[1]
-    maybe_test_size = graph[2:]
-
-    (graph_name, graph_save_location) = graph_data(build_type, objective, maybe_test_size)
 
     # Create figure
     figure = pyplot.figure(figure_idx, figsize=figure_size, dpi=fig_dpi)
@@ -307,6 +303,10 @@ for (figure_idx, (graph, function_type)) in enumerate(all_graphs, start=1):
         )
 
         labels.append(VIOLATION_LABEL)
+
+    build_type = graph[0]
+    maybe_test_size = graph[2:]
+    (graph_name, graph_save_location) = graph_data(build_type, objective, maybe_test_size)
 
     # Setup graph attributes
     pyplot.title(graph_name)
