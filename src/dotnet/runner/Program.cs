@@ -50,8 +50,8 @@ namespace DotnetRunner
                 }
                 else if (testType == "LSTM")
                 {
-                    throw new NotImplementedException();
-                    // Benchmark.Run<LSTMInput, LSTMOutput>(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit);
+                    var benchmark = new LSTMBenchmark();
+                    benchmark.Run(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit);
                 }
                 else
                 {
