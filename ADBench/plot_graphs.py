@@ -173,6 +173,8 @@ def draw_vertical_lines(vals_by_tool):
         pyplot.axvline(n, ls = '-', color = "lightgrey", zorder = 0.0, lw = 0.5)
 
 def print_messages():
+    '''Prints messages and exits the program if --help were specified'''
+
     if do_help:
         ref_msg = f'''
 This script produces graphs that visualize benchmark.
@@ -220,6 +222,11 @@ def get_sorted_vals_by_tool(objective, graph, function_type):
     return sorted_vals_by_tool
 
 def vals_with_neighbours_and_violation(n_vals, t_vals, violations):
+    '''Returns an iterator of tuples of the form
+
+(n_val, t_val, left_neighbour_missing, right_neighbour_missing, was_violition)
+'''
+
     # Checking neighbours by shifting t_vals requires that
     # it is in the order of monotonic n_vals
     assert n_vals == sorted(n_vals)
@@ -233,6 +240,12 @@ def vals_with_neighbours_and_violation(n_vals, t_vals, violations):
         violations)
 
 def together_and_additionals(n_vals, t_vals, violations):
+    '''Returns (together, additionals)
+
+where together is the list of tuples returned by vals_with_neighbours_and_violation
+and additionals is a list of points that were violations, not infinite, and had
+both neighbours missing'''
+
     together = list(vals_with_neighbours_and_violation(n_vals, t_vals, violations))
     additionals = [(n_val, t_val)
                    for (n_val, t_val, missing_left, missing_right, violation)
@@ -245,6 +258,11 @@ def together_and_additionals(n_vals, t_vals, violations):
     return (together, additionals)
 
 def label_and_handle(tool, n_vals, t_vals, color_marker):
+    '''Returns (label, handle)
+
+where label is the label that should be used in the legend for this
+tool and handle is a handle to the plotted data for this tool'''
+
     (color, marker) = color_marker
     label = utils.format_tool(tool)
     all_terminated = all(t_val == float("inf") for t_val in t_vals)
@@ -263,6 +281,8 @@ def label_and_handle(tool, n_vals, t_vals, color_marker):
     return (label, handle)
 
 def generate_graph(figure_idx, graph_function_type):
+    '''Generates the graph for the pair graph_function_type of graph and function_type'''
+
     (graph, function_type) = graph_function_type
 
     objective = graph[1]
