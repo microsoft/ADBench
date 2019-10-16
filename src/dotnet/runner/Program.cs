@@ -30,8 +30,8 @@ namespace DotnetRunner
 
                 if (testType == "GMM")
                 {
-                    throw new NotImplementedException();
-                    //Benchmark.Run<GMMInput, GMMOutput, GMMParameters>(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit, new GMMParameters() { });
+                    var benchmark = new GMMBenchmark();
+                    benchmark.Run(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit, new GMMParameters() { ReplicatePoint = replicate_point });
                 }
                 else if (testType == "BA")
                 {
