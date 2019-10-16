@@ -61,24 +61,21 @@ type DiffSharpBA() =
             this.input <- input
             this.packedInput <- Array.map toDV (Array.concat [ [| input.Alphas |]; input.Means; input.Icf ]) |> DV.concat
             let icfStartIndex = input.K + input.D * input.K
-            //let mainParamsSliceCount = 2 * input.LayerCount
-            //let mainParamsSize = 8 * input.LayerCount * input.CharBits
             let xDM = input.X |> Seq.ofArray |> Seq.map Seq.ofArray |> toDM
-            //let sequenceDM = input.Sequence |> Seq.ofArray |> Seq.map Seq.ofArray |> toDM
             this.gmmObjectiveWrapper <- (fun par ->
                 let alphas = par.[0..input.K - 1]
                 let means = DV.splitEqual input.K par.[input.K..icfStartIndex - 1] |> DM.ofRows
                 let icf = DV.splitEqual input.K par.[icfStartIndex..] |> DM.ofRows
                 gmmObjective alphas means icf xDM input.Wishart.Gamma input.Wishart.M)
-            //// Let's build DiffSharp internal Reverse AD Trace
-            //// To do it just calculate the function in the another point
-            //// Moreover, it forces JIT-compiler to compile the function
-            //let oldInput = this.packedInput
-            //this.packedInput <- this.packedInput + 1.
-            //(this :> DotnetRunner.ITest<GMMInput,GMMOutput>).CalculateObjective(1)
-            //(this :> DotnetRunner.ITest<GMMInput,GMMOutput>).CalculateJacobian(1)
-            //// Put the old input back 
-            //this.packedInput <- oldInput
+            // Let's build DiffSharp internal Reverse AD Trace
+            // To do it just calculate the function in the another point
+            // Moreover, it forces JIT-compiler to compile the function
+            let oldInput = this.packedInput
+            this.packedInput <- this.packedInput + 1.
+            (this :> DotnetRunner.ITest<GMMInput,GMMOutput>).CalculateObjective(1)
+            (this :> DotnetRunner.ITest<GMMInput,GMMOutput>).CalculateJacobian(1)
+            // Put the old input back 
+            this.packedInput <- oldInput
 
         member this.CalculateObjective(times: int): unit =
             [1..times] |> List.iter (fun _ ->
