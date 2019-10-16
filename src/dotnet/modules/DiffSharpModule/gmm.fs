@@ -10,7 +10,7 @@ let unpackQ (logdiag: DV) (lt: DV): DM =
     DM.init d d (fun i j ->
                     if i < j then D 0.
                     else if i = j then exp logdiag.[i]
-                    else lt.[d * j - j * (j + 1) / 2 - 1 + i])
+                    else lt.[d * j + i - j - 1 - j * (j + 1) / 2])
 
 let logGammaDistrib a p = 0.25 * float(p) * float(p - 1) * log System.Math.PI + ([1..p] |> List.sumBy (fun j -> log (MathNet.Numerics.SpecialFunctions.Gamma (a + 0.5 * float(1 - j)))))
 
