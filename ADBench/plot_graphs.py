@@ -29,9 +29,29 @@ ALL_TERMINATED_SUFFIX = " (all crashed/terminated)"
 figure_size = (9, 6) if do_plotly else (12, 8)
 fig_dpi = 96
 save_dpi = 144
-colors = ["b", "g", "r", "c", "m", "y"]
-markers = ["*", "+", "s", "^"]
-all_styles = [(c, m) for m in markers for c in colors]
+
+# for tools that have no mapped style
+default_styles = [ (color, "x") for color in "rgbcmyk" ]
+tool_styles = {
+    # C++ tools
+    "Finite": ("b", "o", "C++, Finite"),
+    "FiniteEigen": ("b", "s", "C++, Finite Eigen"),
+    "Manual": ("k", "o", "C++, Manual"),
+    "ManualEigen": ("k", "s", "C++, Manual Eigen"),
+    "ManualEigenVector": ("k", "D", "C++, Manual Eigen Vector"),
+    "Tapenade": ("y", "*", "C, Tapenade"),
+
+    # .Net tools
+    "DiffSharp": ("grey", "D", "F#, DiffSharp"),
+
+    # Python tools
+    "PyTorch": ("g", "s", "Python, PyTorch"),
+    "Tensorflow": ("r", "s", "Python, Tensorflow"),
+    "Autograd": ("c", "s", "Python, Autograd"),
+
+    # Julia tools
+    "Zygote": ("y", "v", "Julia, Zygote")
+}
 
 # Folders
 adbench_dir = os.path.dirname(os.path.realpath(__file__))
@@ -257,28 +277,46 @@ both neighbours missing'''
 
     return (together, additionals)
 
-def label_and_handle(tool, n_vals, t_vals, color_marker):
+def label_and_handle(tool, n_vals, t_vals, style, disp_name):
     '''Returns (label, handle)
 
 where label is the label that should be used in the legend for this
 tool and handle is a handle to the plotted data for this tool'''
 
-    (color, marker) = color_marker
-    label = utils.format_tool(tool)
+    color, marker = style
     all_terminated = all(t_val == float("inf") for t_val in t_vals)
+
     # Append label in legend if all point values are infinite
     if all_terminated:
-        label += ALL_TERMINATED_SUFFIX
+        disp_name += ALL_TERMINATED_SUFFIX
 
     handle = pyplot.plot(
         n_vals,
         t_vals,
         marker=marker,
         color=color,
-        label=label
+        label=disp_name
     )
 
-    return (label, handle)
+    return (disp_name, handle)
+
+def values_and_styles(sorted_vals_by_tool):
+    '''Returns generator for tool values concatenated with tool style and
+    display name: (values, style, display_name).'''
+
+    next_default = 0
+    for item in sorted_vals_by_tool:
+        tool = item[0]
+        if tool in tool_styles:
+            style = tool_styles[tool]
+        else:
+            style = default_styles[next_default]
+            next_default = (next_default + 1) % len(default_styles)
+            print(f'WARNING: style is not specified for tool "{tool}"! One of default styles is used')
+
+        display_name = utils.format_tool(tool) if len(style) == 2 else style[2]
+
+        yield item, style[0: 2], display_name
 
 def generate_graph(figure_idx, graph_function_type):
     '''Generates the graph for the pair graph_function_type of graph and function_type'''
@@ -292,16 +330,14 @@ def generate_graph(figure_idx, graph_function_type):
 
     sorted_vals_by_tool = get_sorted_vals_by_tool(objective, graph, function_type)
 
-    lines = zip(all_styles, sorted_vals_by_tool)
-
     handles, labels = [], []
     violation_x, violation_y = [], []
     was_violation = False
     additional = []
 
     # Plot results
-    for ((color, marker), (tool, n_vals, t_vals, violations)) in lines:
-        (label, handle) = label_and_handle(tool, n_vals, t_vals, (color, marker))
+    for ((tool, n_vals, t_vals, violations), style, disp_name) in values_and_styles(sorted_vals_by_tool):
+        (label, handle) = label_and_handle(tool, n_vals, t_vals, style, disp_name)
         (together, additionals) = together_and_additionals(n_vals, t_vals, violations)
 
         labels.append(label)
@@ -310,7 +346,7 @@ def generate_graph(figure_idx, graph_function_type):
         # adding coordinates of additional markers
         additional.append(([n_val for (n_val, _) in additionals],
                            [t_val for (_, t_val) in additionals],
-                           color))
+                           style[0]))
 
         violation_x += [n_val for (n_val, _, _, _, violation)
                         in together if violation]
