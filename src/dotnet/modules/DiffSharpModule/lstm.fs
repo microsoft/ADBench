@@ -40,7 +40,7 @@ let lstmObjective (mainParams:DM) (extraParams:DM) (state:DM) (sequence:DM):D =
     -total / count
 
 [<Export(typeof<DotnetRunner.ITest<LSTMInput, LSTMOutput>>)>]
-type DiffSharpBA() =
+type DiffSharpLSTM() =
     [<DefaultValue>] val mutable input : LSTMInput
     [<DefaultValue>] val mutable packedInput : DV
     [<DefaultValue>] val mutable lstmObjectiveWrapper : DV -> D
