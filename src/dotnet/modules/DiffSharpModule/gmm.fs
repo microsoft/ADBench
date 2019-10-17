@@ -49,7 +49,7 @@ let gmmObjective (alphas: DV) (means: DM) (icf: DM) (x: DM) (wishartGamma: float
     constant + slse  - float(n) * logsumexp alphas + logWishartPrior qsAndSums wishartGamma wishartM d
 
 [<Export(typeof<DotnetRunner.ITest<GMMInput, GMMOutput>>)>]
-type DiffSharpBA() =
+type DiffSharpGMM() =
     [<DefaultValue>] val mutable input : GMMInput
     [<DefaultValue>] val mutable packedInput : DV
     [<DefaultValue>] val mutable gmmObjectiveWrapper : DV -> D
