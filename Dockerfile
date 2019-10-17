@@ -14,7 +14,7 @@ RUN apt-get update && \
 WORKDIR /powershell
 RUN wget https://github.com/PowerShell/PowerShell/releases/download/v6.2.3/powershell-6.2.3-linux-x64.tar.gz \
     && tar -xzf powershell-6.2.3-linux-x64.tar.gz \
-    # Create a symlink
+    # Create a symlink to pwsh
     && ln -s /powershell/pwsh /usr/local/bin \
     && rm powershell-6.2.3-linux-x64.tar.gz
 
@@ -22,27 +22,23 @@ RUN wget https://github.com/PowerShell/PowerShell/releases/download/v6.2.3/power
 RUN wget https://dot.net/v1/dotnet-install.sh \
     && chmod +x dotnet-install.sh \
     && ./dotnet-install.sh -c 2.1 \
-    # Create a symlink
+    # Create a symlink to dotnet
     && ln -s ~/.dotnet/dotnet /usr/local/bin
 
 WORKDIR /adb
 # Copy code to /adb (.dockerignore exclude some files)
 COPY . .
-# Clone repo into workdir
-#RUN git clone --single-branch --branch iliaeg/docker https://github.com/awf/ADBench.git .
 
 # Setting workdir for building the project
 WORKDIR /adb/build
 
+# Configure and build
 # Optional cmake key: -DCUDA=ON
 RUN cmake -DCMAKE_BUILD_TYPE=release .. \
     && make
 
 WORKDIR /adb/ADBench
-# make run-wrapper.sh script executable
+# make wrapper script executable
 RUN chmod +x run-wrapper.sh
 
 ENTRYPOINT ["./run-wrapper.sh"]
-
-# docker build -t adb-docker .
-# docker run -v C:/Users/egoro/ADB/tmp/tmp-docker:/adb/tmp/ adb-docker -p
