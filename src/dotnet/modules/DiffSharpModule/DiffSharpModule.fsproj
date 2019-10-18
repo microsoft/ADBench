@@ -7,6 +7,7 @@
   </PropertyGroup>
  
   <ItemGroup>
+	<Compile Include="hand.fs" />
 	<Compile Include="gmm.fs" />
 	<Compile Include="lstm.fs" />
 	<Compile Include="ba.fs" />
