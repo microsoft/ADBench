@@ -86,7 +86,10 @@ class PythonRunnerTests(unittest.TestCase):
         def objective(_int):
             nonlocal counter
             counter += 1
-            sleep(execution_time)
+            # sleep() function might stop execution for a bit less time
+            # than it should, so we need to increase time to sleep
+            # for a successfull assertion
+            sleep(execution_time * 1.3)
 
         shortest_time = measure_shortest_time(minimum_measurable_time, run_count, time_limit, objective)
         # Number of runs should be equal to run_count variable because total_time won't be reached.
