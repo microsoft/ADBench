@@ -8,9 +8,9 @@ namespace DotnetRunner.Data
     {
         public string[] BoneNames { get; set; }
         public int[] Parents { get; set; }
-        public double[][][] BaseRelatives { get; set; }
-        public double[][][] InverseBaseAbsolutes { get; set; }
-        public double[][] BasePositions { get; set; }
+        public double[][,] BaseRelatives { get; set; }
+        public double[][,] InverseBaseAbsolutes { get; set; }
+        public double[,] BasePositions { get; set; }
         public double[][] Weights { get; set; }
         public int[][] Triangles { get; set; }
         public bool IsMirrored { get; set; }
