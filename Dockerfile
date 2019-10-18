@@ -25,6 +25,9 @@ RUN wget https://dot.net/v1/dotnet-install.sh \
     # Create a symlink to dotnet
     && ln -s ~/.dotnet/dotnet /usr/local/bin
 
+# upgrade pip to be sure that tf>=2.0 could be installed
+RUN python3 -m pip install --upgrade pip
+
 WORKDIR /adb
 # Copy code to /adb (.dockerignore exclude some files)
 COPY . .
