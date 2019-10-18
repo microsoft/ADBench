@@ -24,18 +24,17 @@ namespace DotnetRunner.Data
             .Select(s => double.Parse(s, System.Globalization.CultureInfo.InvariantCulture))
             .ToArray();
 
-        private static double[][] Double4x4MatrixFromStringTokens(IEnumerable<string> tokens)
+        private static double[,] Double4x4MatrixFromStringTokens(IEnumerable<string> tokens)
         {
             using (var token = tokens.GetEnumerator())
             {
-                var m = new double[4][];
-                for (int i = 0; i < 3; ++i)
+                var m = new double[4, 4];
+                for (int i = 0; i < 4; ++i)
                 {
-                    m[i] = new double[4];
-                    for (int j = 0; j < 3; ++j)
+                    for (int j = 0; j < 4; ++j)
                     {
                         token.MoveNext();
-                        m[i][j] = double.Parse(token.Current);
+                        m[i, j] = double.Parse(token.Current);
                     }
                 }
                 return m;
@@ -153,16 +152,18 @@ namespace DotnetRunner.Data
 
             parts = ReadInElements(Path.Combine(folder, "vertices.txt"), delimeter);
             int nVertices = parts.Length;
-            model.BasePositions = new double[4][];
+            model.BasePositions = new double[4, nVertices];
             for (int i = 0; i < 3; ++i)
-                model.BasePositions[i] = parts.Select(line => double.Parse(line[i])).ToArray();
+                for (int j = 0; j < nVertices; ++j)
+                    model.BasePositions[i, j] = double.Parse(parts[j][i]);
 
-            model.BasePositions[3] = parts.Select(line => 1.0).ToArray();
+            for (int j = 0; j < nVertices; ++j)
+                model.BasePositions[3, j] = 1.0;
 
             model.Weights = model.BoneNames.Select(_ => new double[nVertices]).ToArray();
             for (int iVert = 0; iVert < nVertices; ++iVert)
             {
-                int nVals = int.Parse(parts[iVert][9]);
+                int nVals = int.Parse(parts[iVert][8]);
                 for (int i = 0; i < nVals; ++i)
                 {
                     int iBone = int.Parse(parts[iVert][9 + 2 * i]);
@@ -178,7 +179,7 @@ namespace DotnetRunner.Data
             return model;
         }
 
-        public static HandInput ReadHandInput(string inputFilePath, bool isComplicated)
+        public static HandInput ReadHandInstance(string inputFilePath, bool isComplicated)
         {
             var input = new HandInput();
 
