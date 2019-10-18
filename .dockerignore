@@ -33,3 +33,12 @@ build/
 __pycache__
 *.obj
 *.exe
+
+# other unused folders
+Backup
+bak
+docs
+Documents
+out
+submodules
+usr
