@@ -37,8 +37,8 @@ def euler_angles_to_rotation_matrix(xzy):
 
     Ry = torch.eye(3)
     Ry[0, 0] = torch.cos(ty)
-    Ry[0, 2] = torch.sin(ty)
-    Ry[2, 0] = -Ry[0, 2]
+    Ry[2, 0] = torch.sin(ty)
+    Ry[0, 2] = -Ry[2, 0]
     Ry[2, 2] = Ry[0, 0]
 
     Rz = torch.eye(3)
