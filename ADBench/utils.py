@@ -101,7 +101,7 @@ def read_times(path):
     return (float(times[0]), float(times[1]))
 
 
-# Get the GMM D value from a key
+# Get the D value from a key
 def key_get_val(key, ind):
     return int(key.split("_")[ind][1:])
 
@@ -120,15 +120,25 @@ def lstm_get_n(key):
     return l * c
 
 
-# Get the problem size from a standard (BA, hand) key
-def std_get_n(key):
-    return int("".join([c for c in key if c.isdigit()]))
+# Get the problem size for a BA key
+def ba_get_n(key):
+    n = key_get_val(key, 1)
+    m = key_get_val(key, 2)
+    p = key_get_val(key, 3)
+    return 11 * n + 3 * m + 2 * p
+
+
+# Get the problem size for a Hand key
+def hand_get_n(key):
+    thetas = key_get_val(key, 1)
+    us = key_get_val(key, 2)
+    return thetas + 2 * us
 
 
 # All (key->problem size) functions for different objectives
 key_functions = {
     "gmm": gmm_get_n,
-    "ba": std_get_n,
-    "hand": std_get_n,
+    "ba": ba_get_n,
+    "hand": hand_get_n,
     "lstm": lstm_get_n
 }
