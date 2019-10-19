@@ -86,14 +86,12 @@ def torch_jacobian(func, inputs, params = None, flatten = True):
         else:
             for inp in inputs:
                 inp.grad = None
+
             output.backward(retain_graph = True)
 
-            if True:
-                J.append(torch.cat(
-                    list(get_grad(inp, True) for inp in inputs)
-                ))
-            else:
-                J.append(list(get_grad(inp, False) for inp in inputs))
+            J.append(torch.cat(
+                list(get_grad(inp, flatten) for inp in inputs)
+            ))
 
 
     if params != None:
