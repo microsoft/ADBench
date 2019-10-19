@@ -402,8 +402,9 @@ Class Tool {
         Write-Host "  BA"
 
         for ($n = [Tool]::ba_min_n; $n -le [Tool]::ba_max_n; $n++) {
+            $fn = (Get-ChildItem -Path $([Tool]::ba_dir_in) -Filter "ba${n}_*")[0].BaseName
             Write-Host "    $n"
-            $this.run("BA", [Tool]::ba_dir_in, $dir_out, "ba$n")
+            $this.run("BA", [Tool]::ba_dir_in, $dir_out, $fn)
         }
     }
 
@@ -420,8 +421,9 @@ Class Tool {
                 mkdir_p $dir_out
 
                 for ($n = [Tool]::hand_min_n; $n -le [Tool]::hand_max_n; $n++) {
+                    $fn = (Get-ChildItem -Path $dir_in -Filter "hand${n}_*")[0].BaseName
                     Write-Host "      $n"
-                    $this.run("Hand-${type}", $dir_in, $dir_out, "hand$n")
+                    $this.run("Hand-${type}", $dir_in, $dir_out, $fn)
                 }
             }
         }
