@@ -103,7 +103,8 @@ def read_times(path):
 
 # Get the D value from a key
 def key_get_val(key, ind):
-    return int(key.split("_")[ind][1:])
+    parts = os.path.basename(key).split("_")
+    return int(parts[ind][1:])
 
 
 # Get the problem size from a GMM key
@@ -130,9 +131,12 @@ def ba_get_n(key):
 
 # Get the problem size for a Hand key
 def hand_get_n(key):
-    thetas = key_get_val(key, 1)
-    us = key_get_val(key, 2)
-    return thetas + 2 * us
+    var_count = key_get_val(key, 1)             # thetas
+
+    if "complicated" in key:
+        var_count += 2 * key_get_val(key, 2)    # us
+
+    return var_count
 
 
 # All (key->problem size) functions for different objectives
