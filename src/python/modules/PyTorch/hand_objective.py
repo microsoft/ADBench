@@ -70,24 +70,15 @@ def get_posed_relatives(pose_params, base_relatives):
 
 
 def relatives_to_absolutes(relatives, parents):
-    def compute_absolute(i, parent, relative, absolutes):
-        new_absolutes = torch.tensor(absolutes.detach().numpy())
-        # ^ hack for deepcopy
-        new_absolutes[i] = absolutes[int(parent)] @ relative
-        return new_absolutes
 
-    absolutes = torch.zeros(relatives.shape, dtype=torch.float64)
-    absolutes[-1] = torch.eye(4)
-    absolutes_timeline = [absolutes]
+    absolutes = []
     for i in range(relatives.shape[0]):
-        absolutes_timeline.append(compute_absolute(i, parents[i], relatives[i], absolutes_timeline[-1]))
-    #absolutes_timeline = [compute_absolute(i, parents[i], relatives[i], absolutes) for i in range(relatives.shape[0])]
-    # absolutes_timeline, _ = th.scan(fn=compute_absolute,
-    #                                sequences=[
-    #                                    torch.arange(relatives.shape[0]), parents, relatives],
-    #                                outputs_info=absolutes)
+        if parents[i] == -1:
+            absolutes.append(relatives[i])
+        else:
+            absolutes.append(absolutes[parents[i]] @ relatives[i])
 
-    return absolutes_timeline[-1]
+    return torch.stack(absolutes)
 
 
 def angle_axis_to_rotation_matrix(angle_axis):
