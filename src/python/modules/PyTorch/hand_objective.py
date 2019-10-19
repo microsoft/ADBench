@@ -62,10 +62,6 @@ def get_posed_relatives(pose_params, base_relatives):
         for i in range(len(pose_params[3:]))
     ])
 
-    # relatives, _ = th.scan(fn=inner,
-    #                       outputs_info=None,
-    #                       sequences=[pose_params[3:], base_relatives])
-
     return relatives
 
 
@@ -113,11 +109,11 @@ def angle_axis_to_rotation_matrix(angle_axis):
 def apply_global_transform(pose_params, positions):
     R = angle_axis_to_rotation_matrix(pose_params[0])
     s = pose_params[1]
-    R *= s  # [np.newaxis, :]
+    R *= s
     t = pose_params[2]
     return torch.transpose(R @ torch.transpose(positions, 0, 1), 0, 1) + t
 
-# TODO this one
+
 def get_skinned_vertex_positions(
     pose_params,
     base_relatives,
@@ -136,19 +132,12 @@ def get_skinned_vertex_positions(
         for i in range(len(absolutes))
     ])
 
-    # transforms, _ = th.scan(fn=(lambda A, B: torch.dot(A, B)),
-    #                        sequences=[absolutes, inverse_base_absolutes])
-
     positions = torch.stack([
         transforms[i, :, :] @ base_positions.transpose(0, 1)
         for i in range(transforms.shape[0])
     ]).transpose(0, 2).transpose(1, 2)
 
-    #positions = torch.dot(transforms, base_positions, [2, 1]).dimshuffle((2, 0, 1))  # T.tensordot
-
-    positions2 = torch.sum(positions * weights.reshape(weights.shape + (1,)), 1)[:, :3]  # , np.newaxis
-
-    # positions[:, 0] = positions[:, 0] * mirror_factor
+    positions2 = torch.sum(positions * weights.reshape(weights.shape + (1,)), 1)[:, :3]
 
     positions3 = apply_global_transform(pose_params, positions2)
 
@@ -182,10 +171,6 @@ def hand_objective(
         points[i] - vertex_positions[int(correspondences[i])]
         for i in range(points.shape[0])
     ])
-
-    # err, _ = th.scan(fn=(lambda pt, i_vert: pt - vertex_positions[i_vert]),
-    #                 sequences=[points, correspondences],
-    #                 outputs_info=None)
 
     return err
 
@@ -227,9 +212,5 @@ def hand_objective_complicated(
         points[i] - get_hand_pt(us[i], triangles[int(correspondences[i])])
         for i in range(points.shape[0])
     ])
-
-    # err, _ = th.scan(fn=(lambda u, pt, i_triangle: pt - get_hand_pt(u, triangles[i_triangle])),
-    #                 sequences=[us, points, correspondences],
-    #                 outputs_info=None)
 
     return err
