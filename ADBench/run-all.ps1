@@ -469,7 +469,7 @@ $tool_descriptors = @(
     [Tool]::new("ManualEigenVector", "cpp", [ObjectiveType] "GMM", $true, $default_tolerance)
     [Tool]::new("DiffSharpModule", "dotnet", [ObjectiveType] "BA", $true, $default_tolerance)
     [Tool]::new("Tapenade", "cpp", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, $default_tolerance)
-    [Tool]::new("PyTorch", "python", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, $default_tolerance)
+    [Tool]::new("PyTorch", "python", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, 1e-7)
     [Tool]::new("Tensorflow", "python", [ObjectiveType] "LSTM, GMM, BA", $true, $default_tolerance)
     [Tool]::new("Autograd", "py", [ObjectiveType] "GMM, BA", $false, 0.0, $true, $false)
     [Tool]::new("Julia", "julia_tool", [ObjectiveType] "GMM, BA", $false, 0.0)
