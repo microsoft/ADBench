@@ -126,23 +126,15 @@ type DiffSharpHand() =
                     let theta = par.[0..thetaCount - 1]
                     let allUs = par.[thetaCount..]
                     handObjectiveComplicated input.Model input.Correspondences dvPoints theta allUs)
-            //this.packedInput <- Array.map toDV (Array.concat [ [| input.Alphas |]; input.Means; input.Icf ]) |> DV.concat
-            //let icfStartIndex = input.K + input.D * input.K
-            //let xDM = input.X |> Seq.ofArray |> Seq.map Seq.ofArray |> toDM
-            //this.gmmObjectiveWrapper <- (fun par ->
-            //    let alphas = par.[0..input.K - 1]
-            //    let means = DV.splitEqual input.K par.[input.K..icfStartIndex - 1] |> DM.ofRows
-            //    let icf = DV.splitEqual input.K par.[icfStartIndex..] |> DM.ofRows
-            //    gmmObjective alphas means icf xDM input.Wishart.Gamma input.Wishart.M)
-            //// Let's build DiffSharp internal Reverse AD Trace
-            //// To do it just calculate the function in the another point
-            //// Moreover, it forces JIT-compiler to compile the function
-            //let oldInput = this.packedInput
-            //this.packedInput <- this.packedInput + 1.
-            //(this :> DotnetRunner.ITest<GMMInput, HandOutput>).CalculateObjective(1)
-            //(this :> DotnetRunner.ITest<GMMInput, HandOutput>).CalculateJacobian(1)
+            // Let's build DiffSharp internal Reverse AD Trace
+            // To do it just calculate the function in the another point
+            // Moreover, it forces JIT-compiler to compile the function
+            let oldInput = this.packedInput
+            this.packedInput <- this.packedInput + 1.
+            (this :> DotnetRunner.ITest<HandInput, HandOutput>).CalculateObjective(1)
+            (this :> DotnetRunner.ITest<HandInput, HandOutput>).CalculateJacobian(1)
             // Put the old input back 
-            //this.packedInput <- oldInput
+            this.packedInput <- oldInput
 
         member this.CalculateObjective(times: int): unit =
             [1..times] |> List.iter (fun _ ->
