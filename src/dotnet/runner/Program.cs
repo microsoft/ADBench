@@ -40,13 +40,13 @@ namespace DotnetRunner
                 }
                 else if (testType == "HAND")
                 {
-                    throw new NotImplementedException();
-                    //Benchmark.Run<HandInput, HandOutput, HandParameters>(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit, new HandParameters() { });
+                    var benchmark = new HandBenchmark();
+                    benchmark.Run(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit, new HandParameters() { IsComplicated = false });
                 }
                 else if (testType == "HAND-COMPLICATED")
                 {
-                    throw new NotImplementedException();
-                    // Benchmark.Run<HandInput, HandOutput, HandParameters>(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit, new HandParameters() { });
+                    var benchmark = new HandBenchmark();
+                    benchmark.Run(modulePath, inputFilePath, outputPrefix, minimumMeasurableTime, nrunsF, nrunsJ, timeLimit, new HandParameters() { IsComplicated = true });
                 }
                 else if (testType == "LSTM")
                 {
