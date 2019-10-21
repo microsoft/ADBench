@@ -1,1 +1,3 @@
 scipy
+future
+setuptools>=41.0.0
