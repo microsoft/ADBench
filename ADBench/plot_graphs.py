@@ -382,7 +382,7 @@ def generate_graph(figure_idx, graph_function_type):
 
     # Setup graph attributes
     pyplot.title(graph_name)
-    pyplot.xlabel("No. independent variables")
+    pyplot.xlabel("No. correspondencies" if "hand" in graph else "No. independent variables")
     pyplot.ylabel(f"Running time (s) for [{function_type.capitalize()}]")
     pyplot.xscale("log")
     pyplot.yscale("log")
