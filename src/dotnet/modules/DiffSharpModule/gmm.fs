@@ -12,7 +12,7 @@ let unpackQ (logdiag: DV) (lt: DV): DM =
                     else if i = j then exp logdiag.[i]
                     else lt.[d * j + i - j - 1 - j * (j + 1) / 2])
 
-let logGammaDistrib a p = 0.25 * float(p) * float(p - 1) * log System.Math.PI + ([1..p] |> List.sumBy (fun j -> log (MathNet.Numerics.SpecialFunctions.Gamma (a + 0.5 * float(1 - j)))))
+let logGammaDistrib a p = 0.25 * float(p) * float(p - 1) * log System.Math.PI + ([1..p] |> List.sumBy (fun j -> MathNet.Numerics.SpecialFunctions.GammaLn (a + 0.5 * float(1 - j))))
 
 let logWishartPrior (qsAndSums: (DM * D) array) wishartGamma wishartM p =
     let k = qsAndSums.Length
