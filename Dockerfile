@@ -41,7 +41,8 @@ RUN cmake -DCMAKE_BUILD_TYPE=release .. \
     && make
 
 WORKDIR /adb/ADBench
-# make wrapper script executable
-RUN chmod +x run-wrapper.sh
+RUN sed -i 's/\r//' run-wrapper.sh \
+    # make wrapper script executable
+    && chmod +x run-wrapper.sh
 
 ENTRYPOINT ["./run-wrapper.sh"]
