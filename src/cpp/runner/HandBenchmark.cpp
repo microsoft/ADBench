@@ -5,7 +5,7 @@ HandInput read_input_data<HandInput, HandParameters>(const std::string& input_fi
 {
     HandInput input;
 
-    const auto model_dir = filepath_to_dirname(input_file) + "model\\";
+    const auto model_dir = filepath_to_dirname(input_file) + "model/";
     // Read instance
     if (params.is_complicated) {
         read_hand_instance(model_dir, input_file, &input.theta, &input.data, &input.us);
