@@ -24,12 +24,20 @@ let applyGlobalTransform (poseParams: DV array) (positions: DM): DM =
     ((angleAxisToRotationMatrix poseParams.[0]) |> DM.mapRows ((.*) poseParams.[1])) * positions + poseParams.[2]
 
 let relativesToAbsolutes (relatives: DM array) (parents: int array): DM array =
-    // TODO: try mutable array
     Array.fold2 (fun (state: DM list * int) (relative: DM) (parent: int) ->
         let reversedAbsolutes, lastIdx = state
         if parent = -1 then relative :: reversedAbsolutes, lastIdx + 1
         else reversedAbsolutes.[lastIdx - parent] * relative :: reversedAbsolutes, lastIdx + 1
     ) ([], -1) relatives parents |> fst |> List.rev |> Array.ofList
+    // Note: it's possible to use a mutable array instead of indexing the linked list,
+    // but the performace boost it gives is too miniscule to justify sacrificing the
+    // purity of the functional code.
+    //let mutable absolutes: DM array = Array.zeroCreate relatives.Length
+    //Array.iteri2 (fun i (relative: DM) (parent: int) ->
+    //    if parent = -1 then absolutes.[i] <- relative
+    //    else absolutes.[i] <- absolutes.[parent] * relative
+    //) relatives parents
+    //absolutes
 
 let eulerAnglesToRotationMatrix (xzy: DV): DM =
     let tx = xzy.[0]
@@ -82,8 +90,8 @@ let toPoseParams (theta: DV) (nBones: int): DV array =
                             | 1 -> DV [| 1.0; 1.0; 1.0 |]
                             | 2 -> theta.[3..5]
                             | j when j >= cols || j = 3 || j % 4 = 0 -> DV.zeroCreate 3
-                            | j when j % 4 = 1 -> DV.append theta.[j + 1..j + 2] (DV.zeroCreate 1) //   toDV [| theta.[j + 1]; theta.[j + 2]; D 0.0 |]
-                            | j -> DV.append theta.[j + 2..j + 2] (DV.zeroCreate 2))// toDV [| theta.[j + 2]; D 0.0; D 0.0 |])
+                            | j when j % 4 = 1 -> toDV [| theta.[j + 1]; theta.[j + 2]; D 0.0 |]
+                            | j -> toDV [| theta.[j + 2]; D 0.0; D 0.0 |])
 
 let handObjectiveSimple (model: HandModel) (correspondences: int array) (points: DV array) (theta: DV): DV =
     let poseParams = toPoseParams theta model.BoneNames.Length
