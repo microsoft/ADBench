@@ -30,8 +30,8 @@ case $1 in
 esac
 
 if ((RUN)) ; then
-    echo "Executing:" "pwsh" "run-all.ps1" "$@"
-    "pwsh" "run-all.ps1" "$@"
+    echo "Executing:" "pwsh" "-Command" "& {./run-all.ps1 $@}"
+    "pwsh" "-Command" "& {./run-all.ps1 $@}"
 fi
 
 if ((PLOT)) ; then
