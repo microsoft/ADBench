@@ -48,6 +48,10 @@ test_params = [
     {
         "path": os.path.join("PyTorch", "PyTorchHand.py"),
         "tolerance": 1e-8
+    },
+    {
+        "path": os.path.join("Tensorflow", "TensorflowHand.py"),
+        "tolerance": 1e-8
     }
 ]
 
