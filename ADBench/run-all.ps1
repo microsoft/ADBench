@@ -318,7 +318,7 @@ Class Tool {
             if ($objective.contains("COMPLICATED")) { $test_type = "$($test_type)-COMPLICATED" }
             $suffix = $test_type
             if ($test_type.contains("HAND")) { $suffix = "Hand" }
-            $cmd = "python"
+            $cmd = $script:pythonexec
             $module_loader = @("$script:dir/src/python/runner/main.py")
             $module_path = @("$script:dir/src/python/modules/$($this.name)/$($this.name)$suffix.py")
             $cmdargs = @("$module_loader $test_type $module_path $dir_in$fn.txt $dir_out $script:minimum_measurable_time $script:nruns_f $script:nruns_J $script:time_limit")
@@ -330,7 +330,7 @@ Class Tool {
             $cmdargs = @("$script:bindir/src/dotnet/runner/DotnetRunner.dll $task $module_path $dir_in$fn.txt $dir_out $script:minimum_measurable_time $script:nruns_f $script:nruns_J $script:time_limit")
         } elseif ($this.type -eq [ToolType]::py -or $this.type -eq [ToolType]::pybat) {
             $objective = $objective.ToLower().Replace("-", "_")
-            if ($this.type -eq "py") { $cmd = "python" }
+            if ($this.type -eq "py") { $cmd = $script:pythonexec }
             elseif ($this.type -eq "pybat") { $cmd = "$script:dir/tools/$($this.name)/run.bat" }
             $cmdargs = @("$script:dir/tools/$($this.name)/$($this.name)_$objective.py") + $cmdargs
         } elseif ($this.type -eq [ToolType]::julia) {
