@@ -18,7 +18,7 @@ void save_time_to_file(const std::string& filepath, const double objective_time,
 {
     std::ofstream out(filepath);
 
-    out << std::scientific << objective_time << std::endl << derivative_time;
+    out << std::scientific << objective_time << std::endl << derivative_time << std::endl;
     out.close();
 }
 
@@ -26,7 +26,7 @@ void save_value_to_file(const std::string& filepath, const double& value)
 {
     precise_ofstream<std::remove_reference_t<decltype(value)>> out(filepath);
 
-    out << value;
+    out << value << std::endl;
     out.close();
 }
 
