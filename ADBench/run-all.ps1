@@ -69,7 +69,24 @@ param(# Which build to test.
       [int[]]$gmm_d_vals_param,
       
       # GMM K values to run.  As above.
-      [int[]]$gmm_k_vals_param 
+      [int[]]$gmm_k_vals_param,
+
+      # can be "1k", "10k", and "2.5M"
+      [string[]]$gmm_sizes = @("1k", "10k"),
+      # "small", "big"
+      [string[]]$hand_sizes = @("small", "big"),
+      # >= 1
+      [int]$ba_min_n = 1,
+      # <= 20
+      [int]$ba_max_n = 5,
+      # >= 1
+      [int]$hand_min_n = 1,
+      # <=12
+      [int]$hand_max_n = 5,
+      # subset of @(2, 4)
+      [int[]]$lstm_l_vals = @(2, 4),
+      # subset of @(1024, 4096)
+      [int[]]$lstm_c_vals = @(1024, 4096)
       )
 
 # Assert function
@@ -200,15 +217,6 @@ Class Tool {
     static [string]$ba_dir_in = "$datadir/ba/"
     static [string]$hand_dir_in = "$datadir/hand/"
     static [string]$lstm_dir_in = "$datadir/lstm/"
-    static [array]$gmm_sizes = @("1k", "10k") # also "2.5M"
-    static [array]$hand_sizes = @("small", "big")
-    static [int]$ba_min_n = 1
-    static [int]$ba_max_n = 5
-    static [int]$hand_min_n = 1
-    static [int]$hand_max_n = 5
-    static [array]$lstm_l_vals = @(2, 4)
-    static [array]$lstm_c_vals = @(1024, 4096)
-    # TODO probably want to set these in CMake somewhere
 
     # Constructor
     Tool ([string]$name, [ToolType]$type, [ObjectiveType]$objectives, [bool]$check_results, [double]$result_check_tolerance) {
@@ -376,7 +384,7 @@ Class Tool {
         foreach ($type in $types) {
             Write-Host "  GMM$type"
 
-            foreach ($sz in [Tool]::gmm_sizes) {
+            foreach ($sz in $script:gmm_sizes) {
                 Write-Host "    $sz"
 
                 $dir_in = "$([Tool]::gmm_dir_in)$sz/"
@@ -403,7 +411,7 @@ Class Tool {
 
         Write-Host "  BA"
 
-        for ($n = [Tool]::ba_min_n; $n -le [Tool]::ba_max_n; $n++) {
+        for ($n = $script:ba_min_n; $n -le $script:ba_max_n; $n++) {
             $fn = (Get-ChildItem -Path $([Tool]::ba_dir_in) -Filter "ba${n}_*")[0].BaseName
             Write-Host "    $n"
             $this.run("BA", [Tool]::ba_dir_in, $dir_out, $fn)
@@ -415,14 +423,14 @@ Class Tool {
         Write-Host "  Hand"
 
         foreach ($type in @("simple", "complicated")) {
-            foreach ($sz in [Tool]::hand_sizes) {
+            foreach ($sz in $script:hand_sizes) {
                 Write-Host "    ${type}_$sz"
 
                 $dir_in = "$([Tool]::hand_dir_in)${type}_$sz/"
                 $dir_out = "$script:tmpdir/hand/${type}_$sz/$($this.name)/"
                 mkdir_p $dir_out
 
-                for ($n = [Tool]::hand_min_n; $n -le [Tool]::hand_max_n; $n++) {
+                for ($n = $script:hand_min_n; $n -le $script:hand_max_n; $n++) {
                     $fn = (Get-ChildItem -Path $dir_in -Filter "hand${n}_*")[0].BaseName
                     Write-Host "      $n"
                     $this.run("Hand-${type}", $dir_in, $dir_out, $fn)
@@ -436,9 +444,9 @@ Class Tool {
         $dir_out = "$script:tmpdir/lstm/$($this.name)/"
         mkdir_p $dir_out
 
-        foreach ($l in [Tool]::lstm_l_vals) {
+        foreach ($l in $script:lstm_l_vals) {
             Write-Host "    l=$l"
-            foreach ($c in [Tool]::lstm_c_vals) {
+            foreach ($c in $script:lstm_c_vals) {
                 Write-Host "      c=$c"
 
                 $this.run("LSTM", [Tool]::lstm_dir_in, $dir_out, "lstm_l${l}_c$c")
