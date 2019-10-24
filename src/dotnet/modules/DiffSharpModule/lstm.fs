@@ -5,7 +5,7 @@ open DotnetRunner.Data
 open System.Composition
 open DiffSharp.Util
 
-let lstmModel (weight:DV) (bias:DV) (hidden:DV) (cell:DV) (input:DV):DV * DV =
+let lstmModel (weight: DV) (bias: DV) (hidden: DV) (cell: DV) (input: DV) : DV * DV =
     let hsize = hidden.Length
     let forget = sigmoid (input .* weight.[0..hsize - 1] + bias.[0..hsize - 1])
     let ingate = sigmoid (hidden .* weight.[hsize..2 * hsize - 1] + bias.[hsize..2 * hsize - 1])
@@ -16,7 +16,7 @@ let lstmModel (weight:DV) (bias:DV) (hidden:DV) (cell:DV) (input:DV):DV * DV =
     let hidden2 = outgate .* tanh (cell2)
     hidden2, cell2
 
-let lstmPredict (mainParams:DM) (extraParams:DM) (state:DM) (input:DV):DV * DM =
+let lstmPredict (mainParams: DM) (extraParams: DM) (state: DM) (input: DV) : DV * DM =
     let x = input .* extraParams.[0, *]
     let lenState = state.Rows / 2
     let s2list, x2 = [0..lenState - 1]
@@ -27,7 +27,7 @@ let lstmPredict (mainParams:DM) (extraParams:DM) (state:DM) (input:DV):DV * DM =
                             ) ([], x)
     x2 .* extraParams.[1, *] + extraParams.[2, *], DM.ofRows (List.rev s2list)
 
-let lstmObjective (mainParams:DM) (extraParams:DM) (state:DM) (sequence:DM):D =
+let lstmObjective (mainParams: DM) (extraParams: DM) (state: DM) (sequence: DM) : D =
     let lenSeq = sequence.Rows
     let count = sequence.Cols * (sequence.Rows - 1)
     let total = [0..lenSeq - 2]
@@ -47,8 +47,8 @@ type DiffSharpLSTM() =
     let mutable objective : D = D 0.
     let mutable gradient : DV = DV.empty
      
-    interface DotnetRunner.ITest<LSTMInput,LSTMOutput> with
-        member this.Prepare(input: LSTMInput): unit = 
+    interface DotnetRunner.ITest<LSTMInput, LSTMOutput> with
+        member this.Prepare(input: LSTMInput) : unit = 
             this.input <- input
             this.packedInput <- Array.map toDV (Array.append input.MainParams input.ExtraParams) |> DV.concat
             let mainParamsSliceCount = 2 * input.LayerCount
@@ -64,22 +64,22 @@ type DiffSharpLSTM() =
             // Moreover, it forces JIT-compiler to compile the function
             let oldInput = this.packedInput
             this.packedInput <- this.packedInput + 1.
-            (this :> DotnetRunner.ITest<LSTMInput,LSTMOutput>).CalculateObjective(1)
-            (this :> DotnetRunner.ITest<LSTMInput,LSTMOutput>).CalculateJacobian(1)
+            (this :> DotnetRunner.ITest<LSTMInput, LSTMOutput>).CalculateObjective(1)
+            (this :> DotnetRunner.ITest<LSTMInput, LSTMOutput>).CalculateJacobian(1)
             // Put the old input back 
             this.packedInput <- oldInput
 
-        member this.CalculateObjective(times: int): unit =
+        member this.CalculateObjective(times: int) : unit =
             [1..times] |> List.iter (fun _ ->
                 objective <- this.lstmObjectiveWrapper this.packedInput
             )
 
-        member this.CalculateJacobian(times: int): unit =
+        member this.CalculateJacobian(times: int) : unit =
             [1..times] |> List.iter (fun _ ->
                 gradient <- grad this.lstmObjectiveWrapper this.packedInput
             )
             
-        member this.Output(): LSTMOutput = 
+        member this.Output() : LSTMOutput = 
             let mutable output = new LSTMOutput()
             output.Objective <- convert objective
             output.Gradient <- convert gradient
