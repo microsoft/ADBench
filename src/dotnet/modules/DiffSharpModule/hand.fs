@@ -5,9 +5,12 @@ open DotnetRunner.Data
 open System.Composition
 open DiffSharp.Util
 
-let angleAxisToRotationMatrix (angleAxis: DV): DM =
+let identity n = DM.init n n (fun i j -> if i = j then 1.0 else 0.0)
+
+let angleAxisToRotationMatrix (angleAxis: DV) : DM =
     let n = DV.l2norm angleAxis
-    if n < D 0.0001 then DM.init 3 3 (fun i j -> if i = j then 1.0 else 0.0) // 3x3 identity matrix
+    if n < D 0.0001 then
+        identity 3
     else
         let x = angleAxis.[0] / n
         let y = angleAxis.[1] / n
@@ -20,13 +23,14 @@ let angleAxisToRotationMatrix (angleAxis: DV): DM =
             x * z * (1 - c) - y * s; z * y * (1 - c) + x * s; z * z + (1 - z * z) * c
         |]
 
-let applyGlobalTransform (poseParams: DV array) (positions: DM): DM =
+let applyGlobalTransform (poseParams: DV array) (positions: DM) : DM =
     ((angleAxisToRotationMatrix poseParams.[0]) |> DM.mapRows ((.*) poseParams.[1])) * positions + poseParams.[2]
 
-let relativesToAbsolutes (relatives: DM array) (parents: int array): DM array =
+let relativesToAbsolutes (relatives: DM array) (parents: int array) : DM array =
     Array.fold2 (fun (state: DM list * int) (relative: DM) (parent: int) ->
         let reversedAbsolutes, lastIdx = state
-        if parent = -1 then relative :: reversedAbsolutes, lastIdx + 1
+        if parent = -1
+        then relative :: reversedAbsolutes, lastIdx + 1
         else reversedAbsolutes.[lastIdx - parent] * relative :: reversedAbsolutes, lastIdx + 1
     ) ([], -1) relatives parents |> fst |> List.rev |> Array.ofList
     // Note: it's possible to use a mutable array instead of indexing the linked list,
@@ -39,7 +43,7 @@ let relativesToAbsolutes (relatives: DM array) (parents: int array): DM array =
     //) relatives parents
     //absolutes
 
-let eulerAnglesToRotationMatrix (xzy: DV): DM =
+let eulerAnglesToRotationMatrix (xzy: DV) : DM =
     let tx = xzy.[0]
     let ty = xzy.[2]
     let tz = xzy.[1]
@@ -55,6 +59,7 @@ let eulerAnglesToRotationMatrix (xzy: DV): DM =
         -sinty;         sintx * costy;                          costx * costy;                          D 0.0;
         D 0.0;          D 0.0;                                  D 0.0;                                  D 1.0
     |]
+    // TODO:
     // The matrix above should have been produced by the code below, instead of being written out explicitly.
     // However, the following code produced the correct objective, but, for some reason, a wrong jacobian.
     //let Rx = toDM [ [ D 1.0; D 0.0; D 0.0 ]; [ D 0.0; costx; -sintx ]; [ D 0.0; sintx; costx ] ]
@@ -62,7 +67,7 @@ let eulerAnglesToRotationMatrix (xzy: DV): DM =
     //let Rz = toDM [ [ costz; -sintz; D 0.0 ]; [ sintz; costz; D 0.0 ]; [ D 0.0; D 0.0; D 1.0 ] ]
     //Rz * Ry * Rx |> DM.appendCol (DV.zeroCreate 3) |> DM.appendRow (DV [| 0.0; 0.0; 0.0; 1.0 |])
 
-let getPosedRelatives (model: HandModel) (poseParams: DV array): DM array =
+let getPosedRelatives (model: HandModel) (poseParams: DV array) : DM array =
     let lastBoneIdx = model.BoneNames.Length - 1
     let offset = 3
     [| for i in 0..lastBoneIdx -> DM model.BaseRelatives.[i] * eulerAnglesToRotationMatrix poseParams.[i + offset] |]
@@ -75,13 +80,15 @@ let getSkinnedVertexPositions (model: HandModel) (poseParams: DV array) (applyGl
     let positions = Array.fold2 (fun (pos: DM) (transform: DM) (weights: float array) ->
         pos + (transform.[0..2, *] * basePositions |> DM.mapRows ((.*) (DV weights)))) (DM.zeroCreate 3 (model.BasePositions.GetLength(1))) transforms model.Weights
 
-    let positions = if model.IsMirrored then DM.mapiRows (fun i row -> if i = 0 then -row else row) positions
+    let positions = if model.IsMirrored
+                    then DM.mapiRows (fun i row -> if i = 0 then -row else row) positions
                     else positions
 
-    if applyGlobal then applyGlobalTransform poseParams positions
+    if applyGlobal
+    then applyGlobalTransform poseParams positions
     else positions
 
-let toPoseParams (theta: DV) (nBones: int): DV array =
+let toPoseParams (theta: DV) (nBones: int) : DV array =
     let n = 3 + nBones
     let nFingers = 5
     let cols = 5 + nFingers * 4
@@ -93,7 +100,7 @@ let toPoseParams (theta: DV) (nBones: int): DV array =
                             | j when j % 4 = 1 -> toDV [| theta.[j + 1]; theta.[j + 2]; D 0.0 |]
                             | j -> toDV [| theta.[j + 2]; D 0.0; D 0.0 |])
 
-let handObjectiveSimple (model: HandModel) (correspondences: int array) (points: DV array) (theta: DV): DV =
+let handObjectiveSimple (model: HandModel) (correspondences: int array) (points: DV array) (theta: DV) : DV =
     let poseParams = toPoseParams theta model.BoneNames.Length
     let vertexPositions = getSkinnedVertexPositions model poseParams true
     Seq.map2 (fun point correspondence -> point - vertexPositions.[*, correspondence]) points correspondences |> DV.concat
@@ -119,7 +126,7 @@ type DiffSharpHand() =
     let mutable isComplicated : bool = false
      
     interface DotnetRunner.ITest<HandInput, HandOutput> with
-        member this.Prepare(input: HandInput): unit = 
+        member this.Prepare(input: HandInput) : unit = 
             this.input <- input
             match input.Us with
             | null ->
@@ -144,17 +151,17 @@ type DiffSharpHand() =
             // Put the old input back 
             this.packedInput <- oldInput
 
-        member this.CalculateObjective(times: int): unit =
+        member this.CalculateObjective(times: int) : unit =
             [1..times] |> List.iter (fun _ ->
                 objective <- this.handObjectiveWrapper this.packedInput
             )
 
-        member this.CalculateJacobian(times: int): unit =
+        member this.CalculateJacobian(times: int) : unit =
             [1..times] |> List.iter (fun _ ->
                 j <- jacobian this.handObjectiveWrapper this.packedInput
             )
             
-        member this.Output(): HandOutput = 
+        member this.Output() : HandOutput = 
             let mutable output = new HandOutput()
             output.Objective <- convert objective
             match this.input.Us with
