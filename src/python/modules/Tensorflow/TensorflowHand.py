@@ -32,9 +32,8 @@ class TensorflowHand(ITest):
         '''Prepares calculating. This function must be run before
         any others.'''
 
-        self.bone_count = input.data.model.bone_count
-        nrows = 3 * len(input.data.correspondences)
         self.complicated = len(input.us) > 0
+        self.nrows = 3 * len(input.data.correspondences)
 
         if self.complicated:
             self.variables = to_tf_tensor(
@@ -42,7 +41,7 @@ class TensorflowHand(ITest):
             )
 
             self.params = (
-                self.bone_count,
+                input.data.model.bone_count,
                 to_tf_tensor(input.data.model.parents, dtype = tf.int32),
                 to_tf_tensor(input.data.model.base_relatives),
                 to_tf_tensor(input.data.model.inverse_base_absolutes),
@@ -58,11 +57,11 @@ class TensorflowHand(ITest):
             )
 
             self.objective_function = hand_objective_complicated
-            ncols = len(input.theta) + 2
+            self.ncols = len(input.theta) + 2
         else:
             self.variables = to_tf_tensor(input.theta)
             self.params = (
-                self.bone_count,
+                input.data.model.bone_count,
                 to_tf_tensor(input.data.model.parents, dtype = tf.int32),
                 to_tf_tensor(input.data.model.base_relatives),
                 to_tf_tensor(input.data.model.inverse_base_absolutes),
@@ -74,13 +73,38 @@ class TensorflowHand(ITest):
             )
 
             self.objective_function = hand_objective
-            ncols = len(input.theta)
+            self.ncols = len(input.theta)
 
-        self.objective = tf.zeros(nrows)
-        self.jacobian = tf.zeros([ nrows, ncols ])
+        self.objective = None
+        self.jacobian = None
 
     def output(self):
         '''Returns calculation result.'''
+
+        if self.objective is None:
+            self.objective = tf.zeros(self.nrows, dtype = tf.float64)
+
+        if self.jacobian is None:
+            self.jacobian = tf.zeros(( self.nrows, self.ncols ), dtype = tf.float64)
+
+        if self.complicated:
+            # Merging us part of jacobian to two columns.
+            # Note: jacobian has the following structure:
+            #
+            #   [us_part theta_part]
+            #
+            # where us part is a block diagonal matrix with blocks of
+            # size [3, 2]
+
+            us_J = tf.concat([
+                self.jacobian[3 * i: 3 * i + 3, 2 * i: 2 * i + 2]
+                for i in range(self.nrows // 3)
+            ], 0)
+
+            us_count = 2 * self.nrows // 3
+            theta_J = self.jacobian[:, us_count:]
+
+            self.jacobian = tf.concat((us_J, theta_J), 1)
 
         return HandOutput(self.objective.numpy(), self.jacobian.numpy())
     
@@ -109,32 +133,4 @@ class TensorflowHand(ITest):
 
                 self.objective = flatten(self.objective)
 
-            if self.complicated:
-                # getting us part of jacobian
-                # Note: jacobian has the following structure:
-                #
-                #   [us_part theta_part]
-                #
-                # where in us part is a block diagonal matrix with blocks of
-                # size [3, 2]
-
-                J = t.jacobian(self.objective, self.variables)
-                n_rows, n_cols = shape(J)
-                us_J = tf.Variable(np.empty(( n_rows, 2 )))
-
-                for i in range(n_rows // 3):
-                    for k in range(3):
-                        us_J[3 * i + k].assign(J[3 * i + k][2 * i: 2 * i + 2])
-
-                us_count = 2 * n_rows // 3
-                theta_count = n_cols - us_count
-                theta_J = tf.Variable(np.empty([ n_rows, theta_count ]))
-                for i in range(n_rows):
-                    theta_J[i].assign(J[i][us_count:])
-
-                self.jacobian = tf.concat((
-                    tf.convert_to_tensor(us_J),
-                    tf.convert_to_tensor(theta_J)
-                ), 1)
-            else:
-                self.jacobian = t.jacobian(self.objective, self.variables)
+            self.jacobian = t.jacobian(self.objective, self.variables)
