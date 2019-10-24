@@ -4,6 +4,7 @@ resources:
   
 trigger: none # disable CI build
 
+jobs:
 - job: 'Linux'
   pool:
     vmImage: 'ubuntu-latest'
