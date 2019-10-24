@@ -53,16 +53,19 @@ param(# Which build to test.
       [double]$timeout=300,    
       
       # Where to store the ouput, defaults to tmp/ in the project root 
-      [string]$tmpdir="",      
+      [string]$tmpdir="",
       
       # Repeat tests, even if output file exists
-      [switch]$repeat,         
+      [switch]$repeat,
       
       # Repeat only failed tests
       [switch]$repeat_failures,
       
       # List of tools to run
-      [string[]]$tools=@(),    
+      [string[]]$tools=@(),
+      
+      # Don't delete produced jacobians even if they're accurate
+      [switch]$keep_correct_jacobians, 
       
       # GMM D values to try.  Must be a subset of the list of
       # compiled values in ADBench/cmake-vars-$buildtype.ps1                         
@@ -372,6 +375,12 @@ Class Tool {
             $comparison.ToJsonString() | Out-File "${dir_out}${fn}_correctness_${out_name}.txt" -encoding ASCII
             if ($comparison.ViolationsHappened()) {
                 Write-Host "          Discrepancies with the correct jacobian found. See ${dir_out}${fn}_correctness_${out_name}.txt for details."
+            } else {
+                if (-not $script:keep_correct_jacobians) {
+                    $current_objective_path = "${dir_out}${fn}_F_${out_name}.txt"
+                    if (Test-Path $current_objective_path) { Remove-Item $current_objective_path }
+                    if (Test-Path $current_jacobian_path) { Remove-Item $current_jacobian_path }
+                }
             }
         }
     }
