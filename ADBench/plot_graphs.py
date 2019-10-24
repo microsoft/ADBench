@@ -332,7 +332,6 @@ def generate_graph(figure_idx, graph_function_type):
 
     handles, labels = [], []
     violation_x, violation_y = [], []
-    was_violation = False
     additional = []
 
     # Plot results
@@ -348,13 +347,11 @@ def generate_graph(figure_idx, graph_function_type):
                            [t_val for (_, t_val) in additionals],
                            style[0]))
 
-        violation_x += [n_val for (n_val, _, _, _, violation)
-                        in together if violation]
+        violation_x += [n_val for (n_val, t_val, _, _, violation)
+                        in together if violation and t_val != float("inf")]
         violation_y += [t_val for (_, t_val, _, _, violation)
-                        in together if violation]
-        was_violation = \
-            was_violation \
-            or any(violation for (_, _, _, _, violation) in together)
+                        in together if violation and t_val != float("inf")]
+        was_violation = len(violation_x) > 0
 
 
     # if there was calculating violation add violation markers
