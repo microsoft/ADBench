@@ -4,6 +4,9 @@ resources:
   
 trigger: none # disable CI build
 
+pr:
+- master
+
 jobs:
 - job: 'Linux'
   pool:
