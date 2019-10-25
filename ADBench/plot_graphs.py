@@ -351,7 +351,6 @@ def generate_graph(figure_idx, graph_function_type):
                         in together if violation and t_val != float("inf")]
         violation_y += [t_val for (_, t_val, _, _, violation)
                         in together if violation and t_val != float("inf")]
-        was_violation = len(violation_x) > 0
 
 
     # if there was calculating violation add violation markers
@@ -359,7 +358,7 @@ def generate_graph(figure_idx, graph_function_type):
     # We must create the plot only if there was a violation because
     # plotly will add the violation marker to its legend even if
     # violation_x/y are empty.
-    if was_violation:
+    if len(violation_x) > 0:
         handles += pyplot.plot(
             violation_x,
             violation_y,
