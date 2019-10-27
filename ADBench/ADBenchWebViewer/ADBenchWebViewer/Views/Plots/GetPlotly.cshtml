@@ -1,0 +1,26 @@
+﻿@model IDictionary<string, IEnumerable<ADBenchWebViewer.Models.PlotInfo>>
+
+<style>
+    .title {
+        font-size: 25pt;
+        font-weight: 900;
+    }
+    .ref {
+        font-size: 15pt;
+        font-weight: 600;
+    }
+    .block {
+        margin-left: 40px;
+    }
+</style>
+
+@foreach (var (type, infos) in Model)
+{
+    <div class="title">@type</div>
+    <div class="block">
+        @foreach (var info in infos)
+        {
+            <div><a href="@info.PlotlyPlotUrl">@info.DisplayName</a></div>
+        }
+    </div>
+}
