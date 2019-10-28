@@ -1,0 +1,73 @@
+resources:
+- repo: self
+  clean: true
+  
+trigger: none # disable CI build
+
+pr:
+- master
+
+jobs:
+- job: 'Windows'
+  pool:
+    vmImage: 'windows-latest'
+  timeoutInMinutes: 180
+
+  steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: 3.7
+        addToPath: true
+        architecture: x64
+
+    - script: |
+        choco install --limit-output julia
+      displayName: Install Julia
+
+    - task: CMake@1
+      inputs:
+        workingDirectory: '$(Build.SourcesDirectory)/build'
+        cmakeArgs: '-DCMAKE_BUILD_TYPE=release ..'
+      displayName: Configure
+
+    - task: CMake@1
+      inputs:
+        cmakeArgs: '--build $(Build.SourcesDirectory)/build --config release'
+      displayName: Build      
+    
+    - script: |
+        ctest --output-on-failure -T test --config release
+      workingDirectory: '$(Build.SourcesDirectory)/build'
+      displayName: Run Tests (ctest)
+      continueOnError: true
+
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFormat: 'cTest'
+        testResultsFiles: '**/Test.xml' 
+        searchFolder: '$(Build.SourcesDirectory)/build/Testing'
+        failTaskOnFailedTests: true
+      displayName: Publish CTest Results
+      condition: succeededOrFailed()
+
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFormat: 'VSTest'
+        testResultsFiles: '**/*.trx' 
+        searchFolder: '$(Build.SourcesDirectory)/build/Testing'
+        failTaskOnFailedTests: true
+      displayName: Publish .NET Test Results
+      condition: succeededOrFailed()
+    
+    - pwsh: |
+        $(Build.SourcesDirectory)/ADBench/run-all.ps1 -gmm_d_vals_param @(2,10) -gmm_k_vals_param @(5,10) -ba_max_n 1 -hand_max_n 1 -lstm_l_vals @(2) -lstm_c_vals @(1024)
+      displayName: Run Benchmark Subset
+    
+    - script: |
+        python "$(Build.SourcesDirectory)/ADBench/plot_graphs.py" --save
+      displayName: Produce Plots
+    
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathToPublish: '$(Build.SourcesDirectory)/tmp'
+        artifactName: PlotsAndData
