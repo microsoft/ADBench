@@ -4,24 +4,24 @@ namespace ADBenchWebViewer.Controllers
 {
     public class PlotsController : Controller
     {
-        private readonly IRunInfoProvider shareHelper;
+        private readonly IRunInfoProvider runInfoProvider;
 
-        public PlotsController(IRunInfoProvider shareHandler) => this.shareHelper = shareHandler;
+        public PlotsController(IRunInfoProvider runInfoProvider) => this.runInfoProvider = runInfoProvider;
 
         public IActionResult Index()
         {
-            var dirInfo = shareHelper.GetRunsInfo();
+            var dirInfo = runInfoProvider.GetRunsInfo();
             return View(dirInfo);
         }
 
         public IActionResult GetStatic(string dir)
         {
-            return View(shareHelper.GetPlotsInfo(dir));
+            return View(runInfoProvider.GetPlotsInfo(dir));
         }
 
         public IActionResult GetPlotly(string dir)
         {
-            return View(shareHelper.GetPlotsInfo(dir));
+            return View(runInfoProvider.GetPlotsInfo(dir));
         }
     }
 }
