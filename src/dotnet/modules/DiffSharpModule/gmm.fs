@@ -28,17 +28,15 @@ let logWishartPrior (qsAndSums: (DM * D) array) wishartGamma wishartM p =
 
     0.5 * wishartGamma * wishartGamma * frobenius - float wishartM * sumQs - float k * c
 
-let gmmObjective (alphas: DV) (means: DM) (icf: DM) (x: DM) (wishartGamma: float) (wishartM: int) =
+let gmmObjective (alphas: DV) (means: DV[]) (icf: DV[]) (x: DM) (wishartGamma: float) (wishartM: int) =
     let d = x.Cols
     let n = x.Rows
     let constant = - float n * float d * 0.5 * log (2. * System.Math.PI)
-    let alphasAndMeans = Seq.zip (alphas.ToArray ()) (means.GetRows ()) |> Array.ofSeq
-    let qsAndSums = icf.GetRows ()
-                    |> Seq.map (fun (v:DV) ->
+    let alphasAndMeans = Array.zip (alphas.ToArray ()) means
+    let qsAndSums = icf |> Array.map (fun (v:DV) ->
                         let logdiag = v.[0..d - 1]
                         let lt = v.[d..]
                         unpackQ logdiag lt, DV.Sum logdiag)
-                    |> Array.ofSeq
 
     let slse = x.GetRows ()
                 |> Seq.sumBy (fun xi ->
@@ -65,8 +63,8 @@ type DiffSharpGMM() =
         let xDM = input.X |> Seq.ofArray |> Seq.map Seq.ofArray |> toDM
         this.gmmObjectiveWrapper <- (fun par ->
             let alphas = par.[0..input.K - 1]
-            let means = DV.splitEqual input.K par.[input.K..icfStartIndex - 1] |> DM.ofRows
-            let icf = DV.splitEqual input.K par.[icfStartIndex..] |> DM.ofRows
+            let means = DV.splitEqual input.K par.[input.K..icfStartIndex - 1] |> Array.ofSeq
+            let icf = DV.splitEqual input.K par.[icfStartIndex..] |> Array.ofSeq
             gmmObjective alphas means icf xDM input.Wishart.Gamma input.Wishart.M)
         this.burnIn()
 
