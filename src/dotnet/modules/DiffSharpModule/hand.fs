@@ -4,6 +4,7 @@ open DiffSharp.AD.Float64
 open DotnetRunner.Data
 open System.Composition
 open DiffSharp.Util
+open utils
 
 let identity n = DM.init n n (fun i j -> if i = j then 1.0 else 0.0)
 
@@ -117,60 +118,51 @@ let handObjectiveComplicated (model: HandModel) (correspondences: int array) (po
 
 [<Export(typeof<DotnetRunner.ITest<HandInput, HandOutput>>)>]
 type DiffSharpHand() =
+    inherit DiffSharpModuleBase<HandInput, HandOutput>()
     [<DefaultValue>] val mutable input : HandInput
-    [<DefaultValue>] val mutable packedInput : DV
     [<DefaultValue>] val mutable handObjectiveWrapper : DV -> DV
     let mutable objective : DV = DV.empty
     let mutable j : DM = DM.empty
 
     let mutable isComplicated : bool = false
      
-    interface DotnetRunner.ITest<HandInput, HandOutput> with
-        member this.Prepare(input: HandInput) : unit = 
-            this.input <- input
-            match input.Us with
-            | null ->
-                this.packedInput <- DV input.Theta
-                let dvPoints = Array.map toDV input.Points
-                this.handObjectiveWrapper <- handObjectiveSimple input.Model input.Correspondences dvPoints
-            | us ->
-                this.packedInput <- DV.append (DV input.Theta) (Seq.map toDV us |> DV.concat)
-                let dvPoints = Array.map toDV input.Points
-                let thetaCount = input.Theta.Length
-                this.handObjectiveWrapper <- (fun par ->
-                    let theta = par.[0..thetaCount - 1]
-                    let allUs = par.[thetaCount..]
-                    handObjectiveComplicated input.Model input.Correspondences dvPoints theta allUs)
-            // Let's build DiffSharp internal Reverse AD Trace
-            // To do it just calculate the function in the another point
-            // Moreover, it forces JIT-compiler to compile the function
-            let oldInput = this.packedInput
-            this.packedInput <- this.packedInput + 1.
-            (this :> DotnetRunner.ITest<HandInput, HandOutput>).CalculateObjective(1)
-            (this :> DotnetRunner.ITest<HandInput, HandOutput>).CalculateJacobian(1)
-            // Put the old input back 
-            this.packedInput <- oldInput
+    override this.Prepare(input: HandInput) : unit = 
+        this.input <- input
+        match input.Us with
+        | null ->
+            this.packedInput <- DV input.Theta
+            let dvPoints = Array.map toDV input.Points
+            this.handObjectiveWrapper <- handObjectiveSimple input.Model input.Correspondences dvPoints
+        | us ->
+            this.packedInput <- DV.append (DV input.Theta) (Seq.map toDV us |> DV.concat)
+            let dvPoints = Array.map toDV input.Points
+            let thetaCount = input.Theta.Length
+            this.handObjectiveWrapper <- (fun par ->
+                let theta = par.[0..thetaCount - 1]
+                let allUs = par.[thetaCount..]
+                handObjectiveComplicated input.Model input.Correspondences dvPoints theta allUs)
+        this.burnIn()
 
-        member this.CalculateObjective(times: int) : unit =
-            [1..times] |> List.iter (fun _ ->
-                objective <- this.handObjectiveWrapper this.packedInput
-            )
+    override this.CalculateObjective(times: int) : unit =
+        [1..times] |> List.iter (fun _ ->
+            objective <- this.handObjectiveWrapper this.packedInput
+        )
 
-        member this.CalculateJacobian(times: int) : unit =
-            [1..times] |> List.iter (fun _ ->
-                j <- jacobian this.handObjectiveWrapper this.packedInput
-            )
+    override this.CalculateJacobian(times: int) : unit =
+        [1..times] |> List.iter (fun _ ->
+            j <- jacobian this.handObjectiveWrapper this.packedInput
+        )
             
-        member this.Output() : HandOutput = 
-            let mutable output = new HandOutput()
-            output.Objective <- convert objective
-            match this.input.Us with
-            | null ->
-                output.Jacobian <- j.GetRows () |> Seq.map convert |> Array.ofSeq
-            | us ->
-                let thetaCount = this.input.Theta.Length
-                let uCount = us.Length
-                let compression = DM.init (thetaCount + 2 * uCount) (thetaCount + 2)
-                                    (fun i j -> if (i < thetaCount && j >= 2 && i + 2 = j) || (i >= thetaCount && j < 2 && (i - thetaCount - j) % 2 = 0) then 1.0 else 0.0)
-                output.Jacobian <- (j * compression).GetRows () |> Seq.map convert |> Array.ofSeq
-            output
+    override this.Output() : HandOutput = 
+        let mutable output = new HandOutput()
+        output.Objective <- convert objective
+        match this.input.Us with
+        | null ->
+            output.Jacobian <- j.GetRows () |> Seq.map convert |> Array.ofSeq
+        | us ->
+            let thetaCount = this.input.Theta.Length
+            let uCount = us.Length
+            let compression = DM.init (thetaCount + 2 * uCount) (thetaCount + 2)
+                                (fun i j -> if (i < thetaCount && j >= 2 && i + 2 = j) || (i >= thetaCount && j < 2 && (i - thetaCount - j) % 2 = 0) then 1.0 else 0.0)
+            output.Jacobian <- (j * compression).GetRows () |> Seq.map convert |> Array.ofSeq
+        output

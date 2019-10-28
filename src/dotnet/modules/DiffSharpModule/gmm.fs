@@ -4,6 +4,7 @@ open DiffSharp.AD.Float64
 open DotnetRunner.Data
 open System.Composition
 open DiffSharp.Util
+open utils
 
 let frobeniusNormSq (m: DM) = m.GetRows () |> Seq.sumBy DV.l2normSq
 
@@ -51,45 +52,36 @@ let gmmObjective (alphas: DV) (means: DM) (icf: DM) (x: DM) (wishartGamma: float
 
 [<Export(typeof<DotnetRunner.ITest<GMMInput, GMMOutput>>)>]
 type DiffSharpGMM() =
+    inherit DiffSharpModuleBase<GMMInput, GMMOutput>()
     [<DefaultValue>] val mutable input : GMMInput
-    [<DefaultValue>] val mutable packedInput : DV
     [<DefaultValue>] val mutable gmmObjectiveWrapper : DV -> D
     let mutable objective : D = D 0.
     let mutable gradient : DV = DV.empty
      
-    interface DotnetRunner.ITest<GMMInput,GMMOutput> with
-        member this.Prepare(input: GMMInput) : unit = 
-            this.input <- input
-            this.packedInput <- Array.map toDV (Array.concat [ [| input.Alphas |]; input.Means; input.Icf ]) |> DV.concat
-            let icfStartIndex = input.K + input.D * input.K
-            let xDM = input.X |> Seq.ofArray |> Seq.map Seq.ofArray |> toDM
-            this.gmmObjectiveWrapper <- (fun par ->
-                let alphas = par.[0..input.K - 1]
-                let means = DV.splitEqual input.K par.[input.K..icfStartIndex - 1] |> DM.ofRows
-                let icf = DV.splitEqual input.K par.[icfStartIndex..] |> DM.ofRows
-                gmmObjective alphas means icf xDM input.Wishart.Gamma input.Wishart.M)
-            // Let's build DiffSharp internal Reverse AD Trace
-            // To do it just calculate the function in the another point
-            // Moreover, it forces JIT-compiler to compile the function
-            let oldInput = this.packedInput
-            this.packedInput <- this.packedInput + 1.
-            (this :> DotnetRunner.ITest<GMMInput, GMMOutput>).CalculateObjective(1)
-            (this :> DotnetRunner.ITest<GMMInput, GMMOutput>).CalculateJacobian(1)
-            // Put the old input back 
-            this.packedInput <- oldInput
+    override this.Prepare(input: GMMInput) : unit = 
+        this.input <- input
+        this.packedInput <- Array.map toDV (Array.concat [ [| input.Alphas |]; input.Means; input.Icf ]) |> DV.concat
+        let icfStartIndex = input.K + input.D * input.K
+        let xDM = input.X |> Seq.ofArray |> Seq.map Seq.ofArray |> toDM
+        this.gmmObjectiveWrapper <- (fun par ->
+            let alphas = par.[0..input.K - 1]
+            let means = DV.splitEqual input.K par.[input.K..icfStartIndex - 1] |> DM.ofRows
+            let icf = DV.splitEqual input.K par.[icfStartIndex..] |> DM.ofRows
+            gmmObjective alphas means icf xDM input.Wishart.Gamma input.Wishart.M)
+        this.burnIn()
 
-        member this.CalculateObjective(times: int) : unit =
-            [1..times] |> List.iter (fun _ ->
-                objective <- this.gmmObjectiveWrapper this.packedInput
-            )
+    override this.CalculateObjective(times: int) : unit =
+        [1..times] |> List.iter (fun _ ->
+            objective <- this.gmmObjectiveWrapper this.packedInput
+        )
 
-        member this.CalculateJacobian(times: int) : unit =
-            [1..times] |> List.iter (fun _ ->
-                gradient <- grad this.gmmObjectiveWrapper this.packedInput
-            )
+    override this.CalculateJacobian(times: int) : unit =
+        [1..times] |> List.iter (fun _ ->
+            gradient <- grad this.gmmObjectiveWrapper this.packedInput
+        )
             
-        member this.Output() : GMMOutput = 
-            let mutable output = new GMMOutput()
-            output.Objective <- convert objective
-            output.Gradient <- convert gradient
-            output
+    override this.Output() : GMMOutput = 
+        let mutable output = new GMMOutput()
+        output.Objective <- convert objective
+        output.Gradient <- convert gradient
+        output
