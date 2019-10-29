@@ -11,6 +11,8 @@ jobs:
 - job: 'Linux'
   pool:
     vmImage: 'ubuntu-latest'
+  timeoutInMinutes: 180
+  
   steps:
     - script: |
         docker build -t adb-docker $(Build.Repository.LocalPath)
