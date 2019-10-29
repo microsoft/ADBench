@@ -39,7 +39,6 @@ jobs:
         ctest -C release -T test --output-on-failure
       workingDirectory: '$(Build.SourcesDirectory)/build'
       displayName: Run Tests (ctest)
-      continueOnError: true
 
     - task: PublishTestResults@2
       inputs:

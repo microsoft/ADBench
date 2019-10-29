@@ -21,7 +21,6 @@ jobs:
     - script: |
         docker run -v $(Common.TestResultsDirectory):/adb/build/Testing/ adb-docker -t --output-on-failure -T test
       displayName: Run Tests (ctest)
-      continueOnError: true
 
     - task: PublishTestResults@2
       inputs:
