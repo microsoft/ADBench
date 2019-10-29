@@ -41,7 +41,7 @@ jobs:
       condition: succeededOrFailed()
     
     - script: |
-        docker run -v $(Build.ArtifactStagingDirectory):/adb/tmp/ adb-docker -r "-gmm_d_vals_param @(2,10) -gmm_k_vals_param @(5) -ba_max_n 1 -hand_max_n 1 -lstm_l_vals @(2) -lstm_c_vals @(1024)"
+        docker run -v $(Build.ArtifactStagingDirectory):/adb/tmp/ adb-docker -r "-gmm_d_vals_param @(2,10) -gmm_k_vals_param @(5) -gmm_sizes @(\"1k\") -ba_max_n 1 -hand_max_n 1 -hand_sizes = @(\"small\") -lstm_l_vals @(2) -lstm_c_vals @(1024)"
       displayName: Run Benchmark Subset
     
     - script: |
