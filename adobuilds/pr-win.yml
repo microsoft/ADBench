@@ -24,6 +24,11 @@ jobs:
         choco install --limit-output julia
       displayName: Install Julia
 
+    - task: DotNetCoreInstaller@0
+      inputs:
+        packageType: 'sdk' 
+        version: '2.1.403' 
+
     - task: CMake@1
       inputs:
         workingDirectory: '$(Build.SourcesDirectory)/build'
