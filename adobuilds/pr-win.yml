@@ -36,7 +36,7 @@ jobs:
       displayName: Build      
     
     - script: |
-        ctest --output-on-failure -T test --config release
+        ctest -C release -T test --output-on-failure
       workingDirectory: '$(Build.SourcesDirectory)/build'
       displayName: Run Tests (ctest)
       continueOnError: true
