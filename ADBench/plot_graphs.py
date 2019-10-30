@@ -331,7 +331,7 @@ def generate_graph(figure_idx, graph_function_type):
     sorted_vals_by_tool = get_sorted_vals_by_tool(objective, graph, function_type)
 
     handles, labels = [], []
-    violation_x, violation_y = [], []
+    non_timeout_violation_x, non_timeout_violation_y = [], []
     additional = []
 
     # Plot results
@@ -347,9 +347,9 @@ def generate_graph(figure_idx, graph_function_type):
                            [t_val for (_, t_val) in additionals],
                            style[0]))
 
-        violation_x += [n_val for (n_val, t_val, _, _, violation)
+        non_timeout_violation_x += [n_val for (n_val, t_val, _, _, violation)
                         in together if violation and t_val != float("inf")]
-        violation_y += [t_val for (_, t_val, _, _, violation)
+        non_timeout_violation_y += [t_val for (_, t_val, _, _, violation)
                         in together if violation and t_val != float("inf")]
 
 
@@ -357,11 +357,11 @@ def generate_graph(figure_idx, graph_function_type):
     #
     # We must create the plot only if there was a violation because
     # plotly will add the violation marker to its legend even if
-    # violation_x/y are empty.
-    if len(violation_x) > 0:
+    # non_timeout_violation_x/y are empty.
+    if len(non_timeout_violation_x) > 0:
         handles += pyplot.plot(
-            violation_x,
-            violation_y,
+            non_timeout_violation_x,
+            non_timeout_violation_y,
             marker="v",
             mec="k",
             mfc="r",
