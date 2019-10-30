@@ -25,6 +25,7 @@
     <None Include="..\..\..\data\gmm\test.txt" Link="gmmtest.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
