@@ -24,6 +24,10 @@ jobs:
         choco install --limit-output julia
       displayName: Install Julia
 
+    - script: |
+        python -m pip install --user autograd
+      displayName: Install Autograd
+
     - task: DotNetCoreInstaller@0
       inputs:
         packageType: 'sdk' 
@@ -64,7 +68,7 @@ jobs:
       condition: succeededOrFailed()
     
     - pwsh: |
-        $(Build.SourcesDirectory)/ADBench/run-all.ps1 -timeout 1800 -gmm_d_vals_param @(2,10) -gmm_k_vals_param @(5) -gmm_sizes @("1k") -ba_max_n 1 -hand_max_n 1 -hand_sizes = @("small") -lstm_l_vals @(2) -lstm_c_vals @(1024)
+        $(Build.SourcesDirectory)/ADBench/run-all.ps1 -timeout 1800 -gmm_d_vals_param @(2,10) -gmm_k_vals_param @(5) -gmm_sizes @("1k") -ba_max_n 1 -hand_max_n 1 -hand_sizes @("small") -lstm_l_vals @(2) -lstm_c_vals @(1024)
       displayName: Run Benchmark Subset
     
     - script: |
