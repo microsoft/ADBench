@@ -441,9 +441,9 @@ def main():
     print(f"\nPlotted {figure_idx} graphs")
 
     print("\nWriting graphs index...")
-    index_file = open(os.path.join(out_dir, "graphs_index.json"), "w")
-    index_file.write(json.dumps(all_graph_dict))
-    index_file.close()
+
+    with open(os.path.join(out_dir, "graphs_index.json"), "w") as index_file:
+        index_file.write(json.dumps(all_graph_dict))
 
     if do_show:
         print("\nDisplaying graphs...\n")
