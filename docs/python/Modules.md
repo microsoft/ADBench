@@ -33,7 +33,7 @@
         Returns an object of the class `<Objective>Output` contains calculated values.
         Such classes are defined int the files `<Objective>Data.py`.
 
-4. Do not forget to add your module to the global runner script.
+4. Do not forget to add your module to the [global runner script](../Architecture.md#Global-Runner).
 
 ## Unit Tests
 
