@@ -101,7 +101,7 @@ function assert ($expr) {
 
 # A global list of non-fatal errors to be printed at the end,
 # and, optionally, affect the script's exit code
-[string[]]$non_fatal_errors=@()
+$non_fatal_errors=[System.Collections.Generic.List[string]]::new()
 
 # Stores a non-fatal error in the global list and prints it on screen
 function Report-NonFatalError([string]$message) {
