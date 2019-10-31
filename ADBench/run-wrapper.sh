@@ -31,7 +31,7 @@ esac
 
 if ((RUN)) ; then
     echo "Executing:" "pwsh" "-Command" "\"& {./run-all.ps1 $@} ; EXIT \$LASTEXITCODE\""
-    "pwsh" "-Command" "& {./run-all.ps1 $@} ; EXIT $LASTEXITCODE"
+    "pwsh" "-Command" "& {./run-all.ps1 $@} ; EXIT \$LASTEXITCODE"
     # return exit code after executing
     exit $?
 fi
