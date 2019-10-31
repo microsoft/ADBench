@@ -1,0 +1,52 @@
+{
+    "id": "runallschedule",
+    "displayName": "Run All Schedule",
+    "schedule": {
+        "startWindow": null,
+        "recurrenceInterval": "PT168H"
+    },
+    "jobSpecification": {
+        "poolInfo": {
+            "poolId": "runallpool"
+        },
+        "constraints": {
+            "maxWallClockTime": null,
+            "maxTaskRetryCount": 0
+        },
+        "jobManagerTask": {
+            "id": "runall",
+            "userIdentity": {
+                "autoUser": {
+                    "scope": "pool",
+                    "elevationLevel": "admin"
+                }
+            },
+            "commandLine": "/bin/sh -c 'bash $AZ_BATCH_APP_PACKAGE_runallscript/runallscript.sh'",
+            "applicationPackageReferences": [
+                {
+                    "applicationId": "runallscript"
+                }
+            ],
+            "resourceFiles": [
+                {
+                    "httpUrl": "<URL of a result blob container>/last_commit.txt",
+                    "filePath": "last_commit.txt"
+                }
+            ],
+            "outputFiles": [
+                {
+                    "destination": {
+                        "container": {
+                            "containerUrl": "<URL of a result blob container with SAS with creating permissions>"
+                        }
+                    },
+                    "filePattern": "results/**/*",
+                    "uploadOptions": {
+                        "uploadCondition": "tasksuccess"
+                    }
+                }
+            ]
+        },
+        "priority": 100
+    }
+}
