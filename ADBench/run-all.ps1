@@ -74,21 +74,29 @@ param(# Which build to test.
       # GMM K values to run.  As above.
       [int[]]$gmm_k_vals_param,
 
-      # can be "1k", "10k", and "2.5M"
+      # GMM sizes to try. Must be a subset of @("1k", "10k", "2.5M")
+      # 2.5M currently is not supported
       [string[]]$gmm_sizes = @("1k", "10k"),
-      # "small", "big"
+
+      # Hand problem sizes to try. Must be a subset of @("small", "big")
       [string[]]$hand_sizes = @("small", "big"),
-      # >= 1
+
+      # Number of the first BA problem to try. Must be between 1 and ba_max_n
       [int]$ba_min_n = 1,
-      # <= 20
+
+      # Number of the last BA problem to try. Must be between ba_min_n and 20
       [int]$ba_max_n = 5,
-      # >= 1
+
+      # Number of the first Hand problem to try. Must be between 1 and hand_max_n
       [int]$hand_min_n = 1,
-      # <=12
+
+      # Number of the last Hand problem to try. Must be between hand_min_n and 12
       [int]$hand_max_n = 5,
-      # subset of @(2, 4)
+
+      # Numbers of layers in LSTM to try. Must be a subset of @(2, 4)
       [int[]]$lstm_l_vals = @(2, 4),
-      # subset of @(1024, 4096)
+
+      # Sequence lengths in LSTM to try. Must be a subset of @(1024, 4096)
       [int[]]$lstm_c_vals = @(1024, 4096)
       )
 
