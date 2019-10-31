@@ -24,10 +24,6 @@ jobs:
         choco install --limit-output julia
       displayName: Install Julia
 
-    - script: |
-        python -m pip install --user autograd
-      displayName: Install Autograd
-
     - task: DotNetCoreInstaller@0
       inputs:
         packageType: 'sdk' 
