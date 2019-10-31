@@ -81,7 +81,7 @@ It contains code for starting all the _benchmark runners_ and is aware of all ex
 
 _Global runner_ is started by the user. User may pass some or all of the variables listed in the [methodology](Methodology.md) as command line arguments.
 
-__The exact specifications are to be developed along with the _global runner_ itself__.
+For the complete documentation refer to [GlobalRunner.md](./GlobalRunner.md).
 
 ### Result-Processing Scripts
 
