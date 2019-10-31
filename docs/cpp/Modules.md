@@ -8,7 +8,7 @@
     add_library("YourModule" MODULE)
     ```
     
-    Note that [run-all.ps1](../Architecture.md#global-runner) expects the directory name to be equal to the module binary name but with a lowercase first letter.
+    Note that [global runner](../GlobalRunner.md) expects the directory name to be equal to the module binary name but with a lowercase first letter.
 2. Add the following line to `/src/cpp/modules/CMakeLists.txt`:
     ```cmake
     add_subdirectory ("YourModule")
@@ -31,7 +31,7 @@
     - ```cpp
       virtual TOutput output()
       ```
-        Convertes internally saved outputs into the format specified by the runner.
+        Converts internally saved outputs into the format specified by the runner.
     </span>
 
 4. For each class add an exported factory function just below class implementation as follows:
