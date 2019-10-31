@@ -3,7 +3,7 @@
 Modules on the dotnet platform are .NET Core assemblies that export one or more implementations of different instantiations of the generic `ITest<TInput, TOutput>` interface. The interface is defined in the `DotnetRunner` assembly, and the exporting is done using MEF.
 
 ## Adding new modules
-1. Create a new .NET Core class library project `/src/dotnet/modules/YourModule/YourModule.XXproj`. The extension of the project file name depends on the chosen language. Any language that can be compiled into a .NET Core class library can be used.
+1. Create a new .NET Core class library project `/src/dotnet/modules/YourModule/YourModule.XXproj`. The extension of the project file name depends on the chosen language. Any language that can be compiled into a .NET Core class library can be used. This file structure is expected by the [global runner](../GlobalRunner.md).
 1. In your project add a reference to `DotnetRunner`:
     ```xml
     <ItemGroup>
