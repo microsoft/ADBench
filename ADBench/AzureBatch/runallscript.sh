@@ -18,6 +18,8 @@ DOCKER_INSTALLATION_PROBLEM_EXIT_CODE=3
 DOCKER_ACTIVATING_PROBLEM_EXIT_CODE=4
 DOCKER_BUILD_PROBLEM_EXIT_CODE=5
 TEST_FAIL_EXIT_CODE=6
+TOOL_RUNNING_FAILURE_EXIT_CODE=7
+PLOT_CREATING_FAILURE_EXIT_CODE=8
 
 
 
@@ -118,8 +120,23 @@ mkdir tmp
 # Run all tools.
 docker run -v $(pwd)/tmp:/adb/tmp/ adb-docker -r
 
+# Check tool running.
+# Note: run-all.ps1 script returns "8" in case of non-fatal errors.
+if [[ $? -ne 0 && $? -ne 8 ]]
+then
+    echo "Running all tools failure! Stopping the script"
+    exit $TOOL_RUNNING_FAILURE_EXIT_CODE
+fi
+
 # Create plots.
 docker run -v $(pwd)/tmp:/adb/tmp/ adb-docker -p --save --plotly
+
+# Check plot creating.
+if [[ $? -ne 0 ]]
+then
+    echo "Plot creating failure! Stopping the script"
+    exit $PLOT_CREATING_FAILURE_EXIT_CODE
+fi
 
 # Create output directory name in the format:
 #   <year>-<month>-<day>_<hour>-<minute>-<second>_<commit hash>
