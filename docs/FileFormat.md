@@ -17,7 +17,7 @@
   x<sub>1,n</sub> ... x<sub>D,n</sub></br>
   γ m</br>
   
-Definitions of all variables are given in the  [srajer-autodiff-screen.pdf](../../Documents/srajer-autodiff-screen.pdf), page 3.
+Definitions of all variables are given in the  [srajer-autodiff-screen.pdf](../Documents/srajer-autodiff-screen.pdf), page 3.
 Note that if replicate point mode is enabled the benchmark expects only a line containing x<sub>1,1</sub> ... x<sub>D,1</sub> and duplicates that point `n` times.
 
 ### Output
@@ -36,7 +36,7 @@ Note that if replicate point mode is enabled the benchmark expects only a line c
   feat<sub>1</sub> feat<sub>2</sub></br>
 
 n,m,p are number of cams, points and observations.
-Definitions of all other variables are given in the  [srajer-autodiff-screen.pdf](../../Documents/srajer-autodiff-screen.pdf), page 4.
+Definitions of all other variables are given in the  [srajer-autodiff-screen.pdf](../Documents/srajer-autodiff-screen.pdf), page 4.
 
 ### Output
 
@@ -72,13 +72,13 @@ Definitions of all other variables are given in the  [srajer-autodiff-screen.pdf
 ## Hand
 ### Input
 1. model/bones.txt
-	Contains a list of lines where each line contains such parameters separated by ":" delimeter:
+	Contains a list of lines where each line contains such parameters separated by ":" delimiter:
 	- bone_name
 	- bone_parent
 	- base_relative<sub>1</sub> ... base_relative<sub>16</sub>
 	- base_absolute<sub>1</sub> ... base_absolute<sub>16</sub>
 2. model/vertices.txt
-    Contains a list of lines where each line containts such parameters separated by ":" delimeter:
+    Contains a list of lines where each line contains such parameters separated by ":" delimiter:
 	- v<sub>1</sub> ... v<sub>3</sub>
 	- dummy<sub>1</sub> ... dummy<sub>5</sub>
 	- n
@@ -91,9 +91,9 @@ Definitions of all other variables are given in the  [srajer-autodiff-screen.pdf
  4. input.txt
     
       N  n_theta</br>
-      correspondance<sub>1</sub> point<sub>1,1</sub> point<sub>1,2</sub> point<sub>1,3</sub></br>
+      correspondence<sub>1</sub> point<sub>1,1</sub> point<sub>1,2</sub> point<sub>1,3</sub></br>
         ...</br>
-      correspondance<sub>N</sub> point<sub>N,1</sub> point<sub>N,2</sub> point<sub>N,3</sub></br>
+      correspondence<sub>N</sub> point<sub>N,1</sub> point<sub>N,2</sub> point<sub>N,3</sub></br>
       u<sub>1,1</sub> u<sub>1,2</sub></br>
         ...</br>
       u<sub>n_pts,1</sub> u<sub>N,2</sub></br>
@@ -103,7 +103,7 @@ Definitions of all other variables are given in the  [srajer-autodiff-screen.pdf
    
 Note that the benchmark expects "u" block only if complicated mode is enabled.
 
-Definitions of all variables are given in the  [srajer-autodiff-screen.pdf](../../Documents/srajer-autodiff-screen.pdf), page 5.
+Definitions of all variables are given in the  [srajer-autodiff-screen.pdf](../Documents/srajer-autodiff-screen.pdf), page 5.
 
 ### Output
 1. `..._F_...` file  
