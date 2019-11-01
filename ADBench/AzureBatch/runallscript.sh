@@ -15,7 +15,7 @@ SUCCESS_EXIT_CODE=0
 UNNECESSARY_RUN_EXIT_CODE=1
 GIT_PROBLEM_EXIT_CODE=2
 DOCKER_PROBLEM_EXIT_CODE=3
-RUNNING_TOOLS_PROBLEM_EXIT_CODE=4
+DOCKER_BUILD_PROBLEM_EXIT_CODE=4
 
 
 
@@ -81,19 +81,24 @@ then
     exit $DOCKER_PROBLEM_EXIT_CODE
 fi
 
+# Create docker container.
+docker build -t adb-docker .
+
+# Check that the container has been created successfully.
+if [[ $? -ne 0 ]]
+then
+    echo "Docker container build fail! Stopping the script"
+    exit $DOCKER_BUILD_PROBLEM_EXIT_CODE
+fi
+
 # Prepare docker output directory.
 mkdir tmp
 
-# Create docker image, run all tools and create plots.
-docker build -t adb-docker . \
-    && docker run -v $(pwd)/tmp:/adb/tmp/ adb-docker -r \
-    && docker run -v $(pwd)/tmp:/adb/tmp/ adb-docker -p --save --plotly
+# Run all tools.
+docker run -v $(pwd)/tmp:/adb/tmp/ adb-docker -r
 
-if [[ $? -ne 0 ]]
-then
-    echo "Docker running failed! Stopping the script"
-    exit $RUNNING_TOOLS_PROBLEM_EXIT_CODE
-fi
+# Create plots.
+docker run -v $(pwd)/tmp:/adb/tmp/ adb-docker -p --save --plotly
 
 # Create output directory name in the format:
 #   <year>-<month>-<day>_<hour>-<minute>-<second>_<commit hash>
