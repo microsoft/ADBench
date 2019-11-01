@@ -18,8 +18,10 @@ If graphs have been already created for the last commit, then the script finishe
 | 0 | Script run successfully and created all graphs |
 | 1 | Graph creation is not needed becuase for the current commit it has been done |
 | 2 | There was a problem with git |
-| 3 | There was a problem with docker |
-| 4 | There was a problem during all tool running |
+| 3 | There was a problem with docker installation |
+| 4 | There was a problem with docker daemon activating |
+| 5 | There was a problem with docker container building |
+| 6 | ADBench test failed |
 
 ### Web viewer
 Special application is used for the process results view. Its source located in the directory `ADBench/ADBenchWebViewer`. This application looks through the blob container, which URL is defined in its `appsettings.json` file and creates HTML pages for result observing. The viewer could be published in Azure as the hosted [Web Application](https://docs.microsoft.com/en-us/azure/app-service/) (see [instruction](https://docs.microsoft.com/en-us/azure/app-service/app-service-web-get-started-dotnet#publish-your-web-app)).
