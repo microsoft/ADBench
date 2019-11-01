@@ -16,6 +16,7 @@ UNNECESSARY_RUN_EXIT_CODE=1
 GIT_PROBLEM_EXIT_CODE=2
 DOCKER_PROBLEM_EXIT_CODE=3
 DOCKER_BUILD_PROBLEM_EXIT_CODE=4
+TEST_FAIL_EXIT_CODE=5
 
 
 
@@ -89,6 +90,25 @@ if [[ $? -ne 0 ]]
 then
     echo "Docker container build fail! Stopping the script"
     exit $DOCKER_BUILD_PROBLEM_EXIT_CODE
+fi
+
+# Some tools/or interpreters (e.g. dotnet, julia) perform some long
+# operations the first time they run, which theoretically can cause some
+# unjustified timeouts. Running test before actual benchmarks would eliminate
+# that problem. Moreover, thus we can be sure that the code in the repository
+# passes the tests.
+
+# Creating directory for test output.
+mkdir testout
+
+# Running CTests.
+docker run -v $(pwd)/testout:/adb/tmp/ adb-docker -t -Q -T test
+
+# Check that tests are passed.
+if [[ $? -ne 0 ]]
+then
+    echo "Tests are failed! Stopping the script"
+    exit $TEST_FAIL_EXIT_CODE
 fi
 
 # Prepare docker output directory.
