@@ -14,9 +14,10 @@ COMMIT_HASH_FILE_NAME="last_commit.txt" # holds the hash of the last commit,
 SUCCESS_EXIT_CODE=0
 UNNECESSARY_RUN_EXIT_CODE=1
 GIT_PROBLEM_EXIT_CODE=2
-DOCKER_PROBLEM_EXIT_CODE=3
-DOCKER_BUILD_PROBLEM_EXIT_CODE=4
-TEST_FAIL_EXIT_CODE=5
+DOCKER_INSTALLATION_PROBLEM_EXIT_CODE=3
+DOCKER_ACTIVATING_PROBLEM_EXIT_CODE=4
+DOCKER_BUILD_PROBLEM_EXIT_CODE=5
+TEST_FAIL_EXIT_CODE=6
 
 
 
@@ -69,7 +70,7 @@ DEBIAN_FRONTEND="noninteractive" apt-get install -y docker.io
 if [[ $? -ne 0 ]]
 then
     echo "Docker installation fail! Stopping the script"
-    exit $DOCKER_PROBLEM_EXIT_CODE
+    exit $DOCKER_INSTALLATION_PROBLEM_EXIT_CODE
 fi
 
 # Start docker.
@@ -79,7 +80,7 @@ systemctl start docker && sudo systemctl enable docker
 if [[ ! $(systemctl status docker | grep 'Active: active (running)') ]]
 then
     echo "Docker is not active! Stopping the script"
-    exit $DOCKER_PROBLEM_EXIT_CODE
+    exit $DOCKER_ACTIVATING_PROBLEM_EXIT_CODE
 fi
 
 # Create docker container.
