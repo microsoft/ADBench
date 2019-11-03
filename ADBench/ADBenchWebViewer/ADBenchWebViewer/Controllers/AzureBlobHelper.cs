@@ -73,16 +73,18 @@ namespace ADBenchWebViewer.Controllers
                 cloudDir.ListBlobs()
                     .Where(item => item is CloudBlobDirectory)
                     .Select(item => item as CloudBlobDirectory)
+                    .Select(dir => (name: dir.Prefix.Trim('/').Split('/').Last(), directory: dir))
+                    .OrderBy(pair => pair.name)
                     .ToDictionary(
-                        dir => dir.Prefix.Trim('/').Split('/').Last(),
-                        dir => dir.ListBlobs()
-                            .Where(sitem => sitem is CloudBlob)
-                            .Select(sitem => sitem as CloudBlob)
+                        pair => pair.name,
+                        pair => pair.directory.ListBlobs()
+                            .Where(item => item is CloudBlob)
+                            .Select(item => item as CloudBlob)
                     );
 
             string GetDisplayName(string name) => System.IO.Path.GetFileNameWithoutExtension(name.Split('/').Last());
 
-            string CapitalFirstLetter(string str) => Char.ToUpper(str[0]) + str.Substring(1);
+            string CapitalFirstLetter(string str) => char.ToUpper(str[0]) + str.Substring(1);
         }
     }
 }
