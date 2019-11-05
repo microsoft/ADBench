@@ -1,19 +1,19 @@
-# ADBench Docker
+# Docker
 
 You may use docker images of the ADBench project without having to install dependencies on your PC.
 
-## Build docker image
+## Building docker image
 
 1. Clone repository
-2. Add nessasary AD tools
-3. Run `docker build -f <dockerfile name> -t <docker image name> .`  
+2. Add your AD tools if nessasary
+3. Run `docker build -f <dockerfile name> -t <docker image name> .` from root directory of ADBench project  
    e.g. `docker build -f some.Dockerfile -t adb-docker .`
 
-## Run docker image
+## Running docker image
 
 1. Create folder for results
 2. Run docker image with proper arguments  
-   - Option `-r|--run` to run benchmark (execute `run-all.ps1`)  
+   - Option `-r|--run` to run benchmark (execute [global runner script](Architecture.md#Global-Runner))  
    e.g. `docker run -v /folder/for/results:/adb/tmp/ adb-docker -r -tools "Manual"`  
    - Option `-p|--plot` to plot graphs (execute `plot_graphs.py`)  
    e.g. `docker run -v /folder/for/results:/adb/tmp/ adb-docker -p --save`  
@@ -32,13 +32,17 @@ E.g. `docker run -it --rm -v /folder/for/results:/adb/tmp/ adb-docker -r`
 
 You may find more information here: https://docs.docker.com/engine/reference/run/
 
-## Add dependencies to docker
+## Adding dependencies to docker
 
-If you need additional dependencies to be added, you should add docker build steps before `COPY` stage, e.g.:
+If you need additional dependencies to be installed, you should add docker build steps before `COPY` stage, e.g.:
 ```
 # other build steps
+
 WORKDIR /utils/additional_tool
 RUN <some linux commands, separated with &&>
+
+WORKDIR /adb
+# Copy code to /adb (.dockerignore exclude some files)
 COPY . .
 ```
 `WORKDIR` is used to change directory during docker build.
