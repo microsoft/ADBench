@@ -1,18 +1,5 @@
 from __future__ import absolute_import, division, print_function, \
                        unicode_literals
- 
-# By some reason TF 2.0 produces a lot of messages of the following type:
-#
-#       2019-10-22 19:08:15.313154: E tensorflow/core/common_runtime/executor.cc:642] Executor failed to create kernel. Internal: No function library
-#           [[{{node loop_body/MatMul_111/pfor/cond}}]]
-#
-# Possible source of these messages is function 'euler_angles_to_rotation_matrix'
-# in the file 'hand_objective.py' of the current directory.
-#
-# A similar problem is described in issue https://github.com/tensorflow/tensorflow/issues/32460
-# Such errors don't affect on result correctness, so, they are just turned off.
-import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'    # turn TF warnings off
 
 import tensorflow as tf
 import numpy as np
@@ -133,4 +120,8 @@ class TensorflowHand(ITest):
 
                 self.objective = flatten(self.objective)
 
-            self.jacobian = t.jacobian(self.objective, self.variables)
+            self.jacobian = t.jacobian(
+                self.objective,
+                self.variables,
+                experimental_use_pfor = False
+            )
