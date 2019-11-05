@@ -4,7 +4,7 @@
 
 1. Create a new folder in the directory `/src/python/modules` with the name equals to adding module name (let's suppose it is `<ModuleName>`).
 
-2. Create an empty `__init__.py` file in your folder. This has to be done becuase `/src/python` folder is designed as a package.
+2. Create an empty `__init__.py` file in your folder. This has to be done because `/src/python` folder is designed as a package.
 
 3. For each objective create a class implementing abstract class `ITest` (it is defined in the file `/src/python/shared/ITest.py`). Your class name must have the form `<ModuleName><Objective>`, where `<Objective>` is the type of objective this class is created for (`BA`, `GMM` etc.). The class file must have the same name as the class itself (i.e. `<ModuleName><Objective>.py`). As far as the `/src/python` designed as a package, imports in your class files must be relative to `src/python` directory. E.g. 
     ```python
@@ -31,7 +31,7 @@
       output(self)
       ```
         Returns an object of the class `<Objective>Output` contains calculated values.
-        Such classes are defined int the files `<Objective>Data.py`.
+        Such classes are defined in the files `<Objective>Data.py`.
 
 4. Do not forget to add your module to the [global runner script](../Architecture.md#Global-Runner).
 
@@ -90,7 +90,7 @@ If you want to add common tests for a new type of objective follow these steps:
     import utils
     ```
 
-3. Create a test class inherited form `utils.BaseTestClass`. This base class has additional assertions and also provides parametrization, so, you will able to create common tests for several modules.
+3. Create a test class inherited form `utils.BaseTestClass`. This base class has additional assertions and also provides parametrization, so you are able to create common tests for several modules using its.
 
 5. If you don't need parametrization, then just add the following code to the end of the file:
     ```python
