@@ -48,8 +48,10 @@ tool_styles = {
     "PyTorch": ("g", "s", "Python, PyTorch"),
     "Tensorflow": ("r", "s", "Python, Tensorflow"),
     "Autograd": ("c", "s", "Python, Autograd"),
+    "Autograd_split": ("grey", "*", "Python, Autograd (Split)"),
 
     # Julia tools
+    "Julia": ("c", "v", "Julia, Julia"),
     "Zygote": ("y", "v", "Julia, Zygote")
 }
 
