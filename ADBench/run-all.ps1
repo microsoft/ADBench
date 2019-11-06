@@ -7,7 +7,7 @@ This is a PowerShell script to run all autodiff benchmarking tests.
 This script loops through each of a set of tools (defined using the Tool class) and runs a set of test functions on each of them.
 
 .EXAMPLE
-./run-all.ps1 -buildtype "Release" -minimum_measurable_time 0.5 -nruns_f 10 -nruns_J 10 -time_limit 180 -timeout 600 -tmpdir "C:/path/to/tmp/" -repeat $FALSE  -tools (echo Finite Manual Julia) -gmm_d_vals_param @(2,10)
+./run-all.ps1 -buildtype "Release" -minimum_measurable_time 0.5 -nruns_f 10 -nruns_J 10 -time_limit 180 -timeout 600 -tmpdir "C:/path/to/tmp/" -tools (echo Finite Manual Julia) -gmm_d_vals_param @(2,10)
 
 This will:
 - run only release builds
