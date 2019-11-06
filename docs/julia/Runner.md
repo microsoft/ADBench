@@ -23,7 +23,7 @@ Currently supported objective types:
 ## Command Line
 
 ```powershell
-julia --project=/path/ti/repo/JuliaProject.toml --optimize=3 Runner.jl test_type module_path input_filepath output_dir minimum_measurable_time nruns_F nruns_J time_limit [-rep]
+julia --project=/path/to/repo/JuliaProject.toml --optimize=3 Runner.jl test_type module_path input_filepath output_dir minimum_measurable_time nruns_F nruns_J time_limit [-rep]
 ```
 
  - `test_type` - The short type name of the objective function. It may also be equal to "Hand-Complicated" that designates the complicated case of the "Hand" objective, where the variable U is considered (see [srajer-autodiff-screen.pdf](../../Documents/srajer-autodiff-screen.pdf), page 5).
