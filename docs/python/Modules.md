@@ -37,25 +37,25 @@
     - Add the following line to `/src/python/modules/CMakeLists.txt`:
 
         ```cmake
-            add_subdirectory ("<ModuleName>")
+        add_subdirectory ("<ModuleName>")
         ```
 
-    In `/src/python/modules/<ModuleName>/` create following files:
-    - `requirements.txt` with python requirements. E.g.  
-        ```
-        scipy>=1.3.1
-        numpy>=1.11
-        ```
-    - `CMakeLists.txt` with the following content:  
-        ```cmake
-        project(<ModuleName>)
+    - In `/src/python/modules/<ModuleName>/` create following files:
+        - `requirements.txt` with python requirements. E.g.  
+            ```
+            scipy>=1.3.1
+            numpy>=1.11
+            ```
+        - `CMakeLists.txt` with the following content:  
+            ```cmake
+            project(<ModuleName>)
 
-        execute_process(
-            COMMAND ${Python3_EXECUTABLE} "-m" "pip" "install"
-            "-r" "${CMAKE_CURRENT_SOURCE_DIR}/requirements.txt"
-            )
-        ```  
-        This command install required pip packages on configure stage of CMake.
+            execute_process(
+                COMMAND ${Python3_EXECUTABLE} "-m" "pip" "install"
+                "-r" "${CMAKE_CURRENT_SOURCE_DIR}/requirements.txt"
+                )
+            ```  
+            This command installs required pip packages on configure stage of CMake.
 
 5. Do not forget to add your module to the [global runner script](../Architecture.md#Global-Runner).
 
