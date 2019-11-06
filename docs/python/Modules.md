@@ -33,7 +33,31 @@
         Returns an object of the class `<Objective>Output` contains calculated values.
         Such classes are defined in the files `<Objective>Data.py`.
 
-4. Do not forget to add your module to the [global runner script](../Architecture.md#Global-Runner).
+4. Configure python requirements for a new module:
+    - Add the following line to `/src/python/modules/CMakeLists.txt`:
+
+        ```cmake
+            add_subdirectory ("<ModuleName>")
+        ```
+
+    In `/src/python/modules/<ModuleName>/` create following files:
+    - `requirements.txt` with python requirements. E.g.  
+        ```
+        scipy>=1.3.1
+        numpy>=1.11
+        ```
+    - `CMakeLists.txt` with the following content:  
+        ```cmake
+        project(<ModuleName>)
+
+        execute_process(
+            COMMAND ${Python3_EXECUTABLE} "-m" "pip" "install"
+            "-r" "${CMAKE_CURRENT_SOURCE_DIR}/requirements.txt"
+            )
+        ```  
+        This command install required pip packages on configure stage of CMake.
+
+5. Do not forget to add your module to the [global runner script](../Architecture.md#Global-Runner).
 
 ## Unit Tests
 
@@ -121,9 +145,9 @@ If you want to add common tests for a new type of objective follow these steps:
 
 6. You can make a new test file visible for _GTest_ runner. Add the following lines to the file  `/test/python/modules/common/CMakeList.txt`:
     ```CMake
-    add_test(NAME <TestsName> COMMAND "<python>" "${CMAKE_SOURCE_DIR}/test/python/modules/common/<test_file_name>")
+    add_test(NAME <TestsName> COMMAND ${Python3_EXECUTABLE} "${CMAKE_SOURCE_DIR}/test/python/modules/common/<test_file_name>")
     ```
-    Here `<python>` is the name of your _Python3_ interpreter, `<TestsName>` is the displaying name of your tests for _GTest_, `<test_file_name>` is a name of the new common test file.
+    Here `<TestsName>` is the displaying name of your tests for _GTest_, `<test_file_name>` is a name of the new common test file.
 
 ### Test Running
 
