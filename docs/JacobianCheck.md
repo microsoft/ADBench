@@ -33,7 +33,9 @@ We say, that two floating-point numbers are _near_, when the difference between 
 
 is smaller than the given _tolerance_. Note, that the formula (1) produces the absolute difference between `x` and `y`, when both lie in the vicinity of zero, and the relative one otherwise, which is a suitable way of comparing floating-point numbers.
 
-We generally use the tolerance of `1e-6` to allow for rounding errors during both the computation and the output. This number may be adjusted for specific tests, e.g. it can be increased when the _testing module_ uses single-precision arithmetic.
+We generally use the tolerance of `1e-8` to allow for rounding errors during both the computation and the output. This number may be adjusted for specific tests, e.g. it can be increased when the _testing module_ uses single-precision arithmetic.
+
+The comparison described here is implemented as a .NET Standard 2.0 library `src/dotnet/utils/JacobianComparisonLib`.
 
 ## Verification of the Golden Module
 
