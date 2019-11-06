@@ -70,9 +70,9 @@ _Global runner_ tells _benchmark runners_ which _testing module_ to use, which t
 - some of the variables listed in the [methodology](Methodology.md)
 
 _Benchmark runners_ output 3 files into the folder specified by the _global runner_. These files are
-- `<name of the input>_times_<name of the testing module>.txt` - tab-separated timings for the computation of the objective function and the derivative
-- `<name of the input>_F_<name of the testing module>.txt` - tab-separated values of the objective function computed by the module
-- `<name of the input>_J_<name of the testing module>.txt` - tab-separated values of the derivative computed by the module
+- `<name of the input>_times_<name of the testing module>.txt` - new line-separated timings for the computation of the objective function and the derivative.
+- `<name of the input>_F_<name of the testing module>.txt` - new line-separated values of the objective function computed by the module.
+- `<name of the input>_J_<name of the testing module>.txt` - values of the derivative computed by the module. Exact format is specific to the objective function. See [FileFormat](./FileFormat.md) for details.
 
 ### Global Runner
 
