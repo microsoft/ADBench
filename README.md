@@ -6,6 +6,8 @@ It outputs a set of relevant graphs (see [Graph Archive](#graph-archive)).
 
 For information about the layout of the project, see [Development](docs/Development.md#structure-of-the-repository).
 
+For information about the current status of the project, see [Status](/STATUS.md).
+
 ## Methodology
 
 For explanations on how do we perform the benchmarking see [Benchmarking Methodology](docs/Methodology.md), [Jacobian Correctness Verification](docs/JacobianCheck.md).

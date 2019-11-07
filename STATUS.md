@@ -1,23 +1,6 @@
 # Status
 
-This file contains details about the layout of the repository, and the current development status of different tools and objectives.
-
-
-## Folder structure
-
-| Folder    | Purpose
-| --------- | ------- |
-| ADBench   | Orchestration scripts, plotting etc
-| Backup	| Old files
-| Documents | Graphs, papers, presentations etc
-| bak		| Old files
-| data      | Data files for different examples 
-| etc		| [HunterGate](https://github.com/ruslo/hunter) files
-| submodules| Dependencies on other git repositories
-| tmp       | Output of benchmark files, figures etc
-| tools     | Implementations for each tested tool, one folder per tool, with *-common folders for shared files by language
-| usr       | Per-user scratch folder
-
+This file contains the current development status of different tools and objectives.
 
 ## Tools
 
@@ -40,13 +23,14 @@ Checked items are built (where relevant) by CMake and can be run by run-all.ps1
 - [x] Manual
 	- Manually-differentiated C++ functions
 	- No external dependencies
-- [ ] Tapenade
+- [x] Tapenade
 
 ### Python
-All Python tools use pip/conda modules. See list under [Prerequisites](#prerequisites).
+All Python tools use pip/conda modules. Dependencies for checked items are automatically fetched during CMake configure.
 - [x] [Autograd](https://github.com/HIPS/autograd)
-- [x] [Theano](https://github.com/Theano/Theano)
+- [ ] [Theano](https://github.com/Theano/Theano)
 - [x] [PyTorch](https://pytorch.org/)
+- [x] [Tensorflow](https://www.tensorflow.org/)
 
 ### Matlab
 Matlab tools are not currently run by `run-all.ps1` due to the limitations of the Matlab free trial. With the full version, they *should* run correctly.
@@ -56,10 +40,12 @@ Matlab tools are not currently run by `run-all.ps1` due to the limitations of th
 
 ### F#
 - [x] [DiffSharp](https://github.com/DiffSharp/DiffSharp)
-	- Built using `dotnet build` (in batch file), which restores NuGet packages
+	- Built using `dotnet build`, which restores NuGet packages
 
 ### Julia
+Dependencies for Julia-based tools are listed in `JuliaProject.toml` and automatically fetched during CMake configure.
 - [ ] ForwardDiff.jl
+- [x] Zygote
 
 
 ## Completeness
@@ -73,17 +59,20 @@ This is a table of all current tools, with their status in terms of running each
 | ADOLC     |   x   |   x   |   x   |   -   |
 | Autograd  |   x   |   x   |   *   |   -   |
 | Ceres     |   x   |   x   |   *   |   -   |
-| DiffSharp |   !   |   x   |   -   |   -   |
+| DiffSharp |   x!  |   x   |   x   |   x   |
 | Finite    |   x   |   x   |   x   |   x   |
-| Julia     |   -   |   -   |   -   |   -   |
-| Manual    |   x   |   x   |   x   |   ?   |
+| Julia     |   x   |   x   |   -   |   -   |
+| Manual    |   x   |   x   |   x   |   x   |
 | MuPad     |   x   |   !   |   ?   |   -   |
-| PyTorch   |   x   |   !   |   x   |   x   |
-| Tapenade  |   -   |   -   |   -   |   -   |
+| PyTorch   |   x   |   x   |   x   |   x   |
+| Tapenade  |   x   |   x   |   x   |   x   |
+| Tensorflow|   x   |   x   |   x   |   x   |
 | Theano    |   x   |   x   |   x   |   -   |
+| Zygote    |   x!  |   x   |   x   |   x   |
 
 ### Key
 - `x` = Runs successfully
+- `x!` = Generally runs successfully, but fails on some of the problem sizes
 - `!` = Has been attempted, with problems
 - `?` = Has been started, but is not complete
 - `-` = Not attempted yet
