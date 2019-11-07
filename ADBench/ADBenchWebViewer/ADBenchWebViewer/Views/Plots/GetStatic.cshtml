@@ -1,0 +1,28 @@
+﻿@model  IDictionary<string, IEnumerable<ADBenchWebViewer.Models.PlotInfo>>
+
+<style>
+    .graph {
+        width: 70%;
+    }
+    .block {
+        border: double
+    }
+    .plotly-ref {
+        font-size: 15pt;
+        font-weight: 700;
+    }
+</style>
+
+@foreach (var (type, infos) in Model)
+{
+    <h1>@type</h1>
+    @foreach (var info in infos)
+    {
+        <div class="block" align="center">
+            <img class="graph" src="@info.StaticPlotUrl" />
+            <div>
+                <a class="plotly-ref" href="@info.PlotlyPlotUrl">Plotly version</a>
+            </div>
+        </div>
+    }
+}

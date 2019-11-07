@@ -1,0 +1,26 @@
+﻿@model IDictionary<string, ADBenchWebViewer.Models.RunInfo>
+
+<style>
+    .run-info {
+        color: darkcyan;
+        font-weight: 500;
+        border: double;
+    }
+</style>
+
+<h2>Runs</h2>
+<ul>
+    @foreach (var (key, info) in Model)
+    {
+        <li>
+            <span class="run-info">
+                @info.Date @info.Time
+                <a style="color: green" href="https://github.com/awf/ADBench/commit/@info.Commit">(commit @info.Commit)</a>
+            </span>
+            <ul>
+                <li><a href="/Plots/GetStatic?dir=@key">static</a></li>
+                <li><a href="/Plots/GetPlotly?dir=@key">plotly</a></li>
+            </ul>
+        </li>
+    }
+</ul>
