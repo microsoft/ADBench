@@ -1,17 +1,17 @@
 # Plotting Graphs
 
-This file describes how to plot benchmark results.
+This file describes how to plot benchmark results. All paths in this files are given relative to the project root.
 
 ## Plot Script Definition
 
-Special plotting script is responsible for creating benchmark plots. It is a Python3 script defined in the file `/ADBench/plot_graphs.py`. It has the following dependencies:
+Special plotting script is responsible for creating benchmark plots. It is a Python3 script defined in the file `ADBench/plot_graphs.py`. It has the following dependencies:
 
 * matplotlib
 * plotly
 
 These dependencies are fetched automatically during CMake configure.
 
-This script looks through the directory `/tmp` and for every subdirectory, that contains results produced by [the global runner](./GlobalRunner.md), it creates graphs and stores them in the folder `/tmp/graphs`. Two kinds of graphs are available: static PNG files and dynamic [plotly](https://plot.ly/python/) HTML files.
+This script looks through the directory `tmp` and for every subdirectory, that contains results produced by [the global runner](./GlobalRunner.md), it creates graphs and stores them in the folder `tmp/graphs`. Two kinds of graphs are available: static PNG files and dynamic [plotly](https://plot.ly/python/) HTML files.
 
 The script command line arguments are:
 
@@ -36,10 +36,10 @@ Here `<DataFileName>` is the name of the input data file that was used for the r
 
 ## Output Files
 
-If `--save` or `--plotly` option is specified then the script creates the folder `/tmp/graphs` where it stores the result plots. The structure of this directory has the following form:
+If `--save` or `--plotly` option is specified then the script creates the folder `tmp/graphs` where it stores the result plots. The structure of this directory has the following form:
 
 ```
-/tmp/graphs
+tmp/graphs
     /static
         /<BuildType>
             /jacobain
@@ -101,7 +101,7 @@ Here `<BuildType>` is the run build type, `<GraphType>` is a graph type, `<Objec
 
 ## Plot Styles
 
-Each tool has a unique specific plot style in all graphs. These styles are defined in the variable `tool_styles` in the file `/ADBench/plot_graphs.py`. This variable has the following form:
+Each tool has a unique specific plot style in all graphs. These styles are defined in the variable `tool_styles` in the file `ADBench/plot_graphs.py`. This variable has the following form:
 
 ```python
 tool_styles = {
