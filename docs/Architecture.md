@@ -12,10 +12,9 @@ _Testing modules_ here are modules in terms of the platform they are developed f
 
 _Benchmark runners_ are console applications that load _testing modules_ and input data and measure the time modules take to compute the objective function and its considered derivative for the loaded input data. Then they write measured times and computed derivatives to files with standardized names. We have one benchmark runner per development platform, so that we can use the same time-measuring code for all frameworks supporting that platform.
 
-_Global runner_ is a script that is aware of all existing _benchmark runners_, _testing modules_, and sets of input parameters for the objective functions. It consecutively runs all benchmarks using corresponding _benchmark runners_ while enforcing specified hard time limits.
+_Global runner_ is a script that is aware of all existing _benchmark runners_, _testing modules_, and sets of input parameters for the objective functions. It consecutively runs all benchmarks using corresponding _benchmark runners_ while enforcing specified hard time limits. After every benchmarks it checks the accuracy of the computed derivatives.
 
-_Result-processing scripts_ are scripts that consume the outputs of _benchmark runners_ and
-- Check the accuracy of computed objective functions and derivatives
+_Result-processing scripts_ are the scripts that consume the outputs of the _benchmark runners_ and somehow process them, e.g.
 - Create visualizations
 
 <table>
@@ -85,6 +84,6 @@ For the complete documentation refer to [GlobalRunner.md](./GlobalRunner.md).
 
 ### Result-Processing Scripts
 
-Two scripts. One looks at the output files and compares the results in them to the manually computed correct ones, the other produces visualizations of the timings.
-
-__The exact specifications are to be developed along with the _result-processing scripts_ themselves__.
+Scripts that consume the outputs of the _benchmark runners_ and process them.
+Currently we have the following scripts:
+- [ADBench/plot_graphs.py](docs/PlotCreating.md)
