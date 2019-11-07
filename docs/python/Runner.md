@@ -7,7 +7,7 @@ Every _testing module_ contains an implementation of some algorithm computing ob
 
 A module doesn't have to support all of the objective types. If a user asks the runner to benchmark an unsupported objective, the runner prints an error and stops.
 
-<!-- Every module, for every objective it supports, exports a parameterless factory function that returns an object of the corresponding instantiation of generic [`Test{Input, Output}`](./Modules.md#itest-implementation) type. -->
+Every module, for every objective it supports, defines a class implementing abstract class `ITest`.
 
 ## Supported Objective Types
 Currently supported objective types:
