@@ -20,7 +20,7 @@ This is a list of known issues/TODOs for the project. Any fixes are welcomed.
 ## Tools
 
 - Test building and running on non-windows platforms
-    - Will need to produce alternatives to existing batch files (currently in ADOL-C, DiffSharp, MuPad, Theano)
+    - Will need to produce alternatives to existing batch files (currently in ADOL-C, MuPad, Theano)
 - Matlab tools need testing properly
     - `run-all.ps1` has Matlab tools commented out due to an issue with the trial version - it should be possible to remove these comments and run them with the full version
 - ADiMat
@@ -31,21 +31,12 @@ This is a list of known issues/TODOs for the project. Any fixes are welcomed.
         - Try to automate Windows SDK selection, and/or check properly for correct SDK and give clear error message
     - `main.cpp` - build fails with `DO_BA_BLOCK` and `DO_EIGEN`
 - Ceres
-    - Memory issue when building GMM at instance sizes above about d=20,K=50
+    - Memory issue when building GMM at instance sizes above about d=20, K=50
 - DiffSharp
-    - GMM build fails (expected float[] but got D[])
-    - BA is very slow (may just be slow, but could be an error)
-- Manual
-    - `ba_d.cpp` - refactor functions under `DO_CPP` to work without Eigen
-    - Perhaps add Hand derivative without Eigen
+    - GMM produces "NaN" for Jacobians when `d = 64`.
 - MuPad
     - Missing mex files for MuPad_Hand
-- PyTorch
-    - BA times out (as with DiffSharp, may just be slow or may be an error)
 - Theano
     - `run.bat` - remove hard path to Miniconda
-
-
-## Accuracy
-
-Use `ADBench/check_J.py` to compare the jacobian output files. There seem to be some problems with mismatches here.
+- Zygote
+    - GMM produces "NaN" for Jacobians when `d = 64`.
