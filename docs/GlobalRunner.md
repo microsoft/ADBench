@@ -162,17 +162,29 @@ See [JacobianCheck.md](./JacobianCheck.md#comparing-jacobians) for the definitio
 
 ### Output
 
-`run-all.ps1` outputs its logs into standard output. It retains most of the output produced by the benchmark runners with one exception: unless explicitly instructed otherwise, it deletes the files with the Jacobians that passed the correctness test.
+`run-all.ps1` outputs its logs into standard output.
 
-`run-all.ps1` also directly produces the following outputs:
+For every benchmark `run-all.ps1` performs, it produces a number of file outputs. These files are placed in the following folder
+```
+/<path to tmp>/<build config>/<objective>/<objective subtype>/<testing module>/
+```
+Here
+- `<path to tmp>` is the path passed to the script in the `tmpdir` parameter, which defaults to `tmp` folder in the root of the repository.
+- `<build config>` is the configuration of the build passed to the script in the `buildtype` parameter, which defaults to `Release`.
+- `<objective>` is the short name of the objective function in lowercase (so it's one of "gmm", "ba", "hand", and "lstm").
+- `<objective subtype>` is an optional subtype specific to the objective. For the GMM objective it's the number of points ("1k", "10k", or "2.5M"), for the Hand objective it's `<complexity>_<size>`, where `<complexity>` is either "simple" or "complicated", and `<size>` is either "big" or "small". BA and LSTM have no subtypes.
+- `<testing module>` is the name of the testing module.
 
-- Files with timings (`<name of the input>_times_<name of the testing module>.txt`) for modules that timed out (with `inf` values for both times).
-- JSON files with the results of correctness checking (`<name of the input>_correctness_<name of the testing module>.txt`). These files have the following format:
+The outputs themselves are:
+- `<name of the input>_times_<name of the testing module>.txt` - new line-separated timings for the computation of the objective function and the derivative. Produced by the benchmark runner, unless it timed out, in which case `run-all.ps1` produces this file by itself (with `inf` values for both times).
+- `<name of the input>_F_<name of the testing module>.txt` - new line-separated values of the objective function computed by the module. Produced by the benchmark runner.
+- `<name of the input>_J_<name of the testing module>.txt` - values of the derivative computed by the module. Exact format is specific to the objective function. See [FileFormat](./FileFormat.md) for details. Produced by the benchmark runner. Unless explicitly instructed otherwise, `run-all.ps1` deletes these files if they pass the correctness test.
+- `<name of the input>_correctness_<name of the testing module>.txt` - JSON files with the results of correctness checking. Produced by `run-all.ps1`. These files have the following format:
 ```json
 {
     "Tolerance": <double>,
-    "File1": "/path/to/Jcaobian/being/checked.txt",
-    "File2": "/path/to/golde/Jacobian.txt",
+    "File1": "/path/to/Jacobian/being/checked.txt",
+    "File2": "/path/to/golden/Jacobian.txt",
     "DimensionMismatch": <bool>,
     "ParseError": <bool>,
     "MaxDifference": <double>,
