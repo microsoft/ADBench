@@ -93,9 +93,9 @@ After that add the support for your new objective functions to all testing modul
 
 Put inputs for your new objective function into the corresponding subfolder of `data` folder.
 
-Finally, add the it to `run-all.ps1`:
+Finally, add it to `run-all.ps1`:
 1. Add the name of your objective to the `ObjectiveType` enumeration.
-1. Create a new method on the `[Tool]` class (format should be `[Tool]::test<your objective name>()`)
+1. Add a new method to the `[Tool]` class (format should be `[Tool]::test<your objective name>()`)
 1. Add this to `[Tool]::runall()`
 1. Modify the `$objectives` parameter for each of the `[Tool]` constructors in the `tool_descriptors` array by adding the name of your objective to the objective lists as necessary
 

@@ -58,7 +58,7 @@ julia --project=/path/to/repo/JuliaProject.toml --optimize=3 Runner.jl test_type
     ```julia
     function load_t_input(fn::AbstractString)::TInput
     ```
-    Open input file `fn` and loads data to the structure of the TInput type.
+    Open input file `fn` and loads data to the structure of the `TInput` type.
 
 1. Add 
     ```julia
