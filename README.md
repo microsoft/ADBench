@@ -36,6 +36,8 @@ Refer to [PlotCreating](docs/PlotCreating.md) for the complete documentation.
 From time to time we run the benchmarks and publish the resulting plots here:
 https://adbenchwebviewer.azurewebsites.net/
 
+Cloud infrastructure that generates these plots is described [here](docs/AzureBatch.md).
+
 ## Contributing
 
 Contributions to fix bugs, test on new systems or add new tools are welcomed. See [Contributing](/CONTRIBUTING.md) for details on how to add new tools, and [Issues](/ISSUES.md) for known bugs and TODOs.
