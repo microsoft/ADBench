@@ -57,7 +57,7 @@
             ```  
             This command installs required pip packages on configure stage of CMake.
 
-5. Do not forget to add your module to the [global runner script](../Architecture.md#Global-Runner).
+5. Do not forget to add your module to the [global runner script](../GlobalRunner.md).
 
 ## Unit Tests
 
