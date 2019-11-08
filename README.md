@@ -21,15 +21,11 @@ The easiest way to build and run the benchmarks is to [use Docker](docs/Docker.m
 Use `ADBench/plot_graphs.py` script to plot graphs of the resulting timings.
 
 ```bash
-python ADBench/plot_graphs.py [--save] [--plotly] [--show]
+python ADBench/plot_graphs.py --save
 ```
-- `--save`: save graphs as .png files to `tmp/graphs/static/`
-- `--plotly`: save graphs as [Plot.ly](https://plot.ly/) .html files to `tmp/graphs/plotly/`
-- `--show`: display graphs in new windows.
+This will save graphs as .png files to `tmp/graphs/static/`
 
-If neither `--save` nor `--plotly` are included, `--show` will be `True` by default - otherwise, it must be manually enabled.
-
-Refer to [PlotCreating](docs/PlotCreating.md) for the complete documentation.
+Refer to [PlotCreating](docs/PlotCreating.md) for other possible command line arguments and the complete documentation.
 
 ## Graph Archive
 
