@@ -12,17 +12,18 @@ You may use docker images of the ADBench project without having to install depen
 ## Running docker image
 
 1. Create folder for results
-2. Run docker image with proper arguments  
-   - Option `-r|--run` to run benchmark (execute [global runner script](Architecture.md#Global-Runner))  
+2. Run docker image with proper arguments.  
+   At docker image startup, the `/ADBench/run-wrapper.sh` script is executed. The following are possible launch options:  
+   - Option `-r|--run` to run benchmark (execute [global runner script](./Architecture.md#Global-Runner))  
    e.g. `docker run -v /folder/for/results:/adb/tmp/ adb-docker -r -tools "Manual"`  
-   - Option `-p|--plot` to plot graphs (execute `plot_graphs.py`)  
+   - Option `-p|--plot` to plot graphs (execute [plot script](./PlotCreating.md#plot-script-definition))  
    e.g. `docker run -v /folder/for/results:/adb/tmp/ adb-docker -p --save`  
    - Option `-t|--ctest` to perform _GTEST_ (execute `ctest`)  
    e.g. `docker run adb-docker -t`
 
 Option `-v /folder/for/results:/adb/tmp/` means that `/folder/for/results` should be mount to `/adb/tmp/` directory inside docker image.
 
-Also you may want to use some `docker run` options:
+You can also use some `docker run` options:
 ```
 -t   : Allocate a pseudo-tty
 -i   : Keep STDIN open even if not attached
