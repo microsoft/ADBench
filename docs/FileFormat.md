@@ -9,9 +9,9 @@
   μ<sub>1,1</sub> ... μ<sub>D,1</sub></br>
     ...</br>
   μ<sub>1,k</sub> ... μ<sub>D,k</sub></br>
-  q<sub>1,1</sub> ... q<sub>D,1</sub> l<sub>1,1</sub> ... l<sub><sup>D(D-1)</sup>&frasl;<sub>2</sub>,1</sub></br>
+  q<sub>1,1</sub> ... q<sub>D,1</sub> l<sub>1,1</sub> ... l<sub>&frac12;D(D - 1),1</sub></br>
     ...</br>
-  q<sub>1,k</sub> ... q<sub>D,k</sub> l<sub>1,k</sub> ... l<sub><sup>D(D-1)</sup>&frasl;<sub>2</sub>,k</sub></br> 
+  q<sub>1,k</sub> ... q<sub>D,k</sub> l<sub>1,k</sub> ... l<sub>&frac12;D(D - 1),k</sub></br> 
   x<sub>1,1</sub> ... x<sub>D,1</sub></br>
     ...</br>
   x<sub>1,n</sub> ... x<sub>D,n</sub></br>
@@ -45,7 +45,7 @@ Definitions of all other variables are given in the  [srajer-autodiff-screen.pdf
     Reprojection error:</br>
     reproj_err<sub>1</sub></br>
     ...</br>
-    reproj_err<sub>2*p</sub></br>
+    reproj_err<sub>2p</sub></br>
     Zach weight error:</br>
     w_err<sub>1</sub></br>
     ...</br>
@@ -119,10 +119,10 @@ Definitions of all variables are given in the  [srajer-autodiff-screen.pdf](../D
 ## LSTM
 ### Input
   l c b</br>
-  main_param<sub>1</sub> ... main_param<sub>2l4b</sub></br>
+  main_param<sub>1</sub> ... main_param<sub>2l&centerdot;4b</sub></br>
   extra_param<sub>1</sub> ... extra_param<sub>3b</sub> </br>
-  state<sub>1</sub> ... state<sub>2lb</sub></br>
-  seq<sub>1</sub> ... seq<sub>cb</sub> </br>
+  state<sub>1</sub> ... state<sub>2l&centerdot;b</sub></br>
+  seq<sub>1</sub> ... seq<sub>c&centerdot;b</sub> </br>
 
 ### Output
 
