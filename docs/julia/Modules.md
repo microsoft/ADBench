@@ -64,12 +64,12 @@ Modules on the Julia platform are Julia modules that export one or more factory 
       function yourmodule_t_calculate_objective!(context::YourModuleTContext, times)
       ``` 
         Repeatedly computes the objective function `times` times for the input
-        stored in the context. Stores results in the context.
+        stored in the `context`. Stores results in the `context`.
     - ```julia
       function yourmodule_t_calculate_jacobian!(context::YourModuleTContext, times)
       ```
         Repeatedly computes the Jacobian of the objective function `times` times
-        for the input stored in the context. Stores results in the context.
+        for the input stored in the `context`. Stores results in the `context`.
     - ```julia
       function yourmodule_t_output!(out::TOutput, context::YourModuleTContext)
       ```
@@ -177,6 +177,6 @@ end
 end
 ```
 
-This boilerplate code defines a test suite that will be shared by all modules listed in `t_test_implementations`. It includes loading the `ADPerfTest.Test{TInput, TOutput}` object into variable `test.
+This boilerplate code defines a test suite that will be shared by all modules listed in `t_test_implementations`. It includes loading the `ADPerfTest.Test{TInput, TOutput}` object into variable `test`.
 
 Now you can add test cases with `@test` macro as usual.

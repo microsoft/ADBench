@@ -100,7 +100,7 @@ dotnet DotnetRunner.dll test_type module_path input_filepath output_dir minimum_
       protected override TInput ReadInputData(string inputFilePath, TParameters parameters)
       ```
           
-      Open input_file and loads data to the structure of the TInput type. 
+      Open the input file and load the data to the structure of the `TInput` type. 
       
       The format of the input file is specific for the objective type.
     - 

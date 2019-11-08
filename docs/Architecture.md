@@ -12,7 +12,7 @@ _Testing modules_ here are modules in terms of the platform they are developed f
 
 _Benchmark runners_ are console applications that load _testing modules_ and input data and measure the time modules take to compute the objective function and its considered derivative for the loaded input data. Then they write measured times and computed derivatives to files with standardized names. We have one benchmark runner per development platform, so that we can use the same time-measuring code for all frameworks supporting that platform.
 
-_Global runner_ is a script that is aware of all existing _benchmark runners_, _testing modules_, and sets of input parameters for the objective functions. It consecutively runs all benchmarks using corresponding _benchmark runners_ while enforcing specified hard time limits. After every benchmarks it checks the accuracy of the computed derivatives.
+_Global runner_ is a script that is aware of all existing _benchmark runners_, _testing modules_, and sets of input parameters for the objective functions. It consecutively runs all benchmarks using corresponding _benchmark runners_ while enforcing specified hard time limits. After every benchmark it checks the accuracy of the computed derivatives.
 
 _Result-processing scripts_ are the scripts that consume the outputs of the _benchmark runners_ and somehow process them, e.g.
 - Create visualizations
