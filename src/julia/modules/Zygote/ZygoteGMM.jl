@@ -112,12 +112,9 @@ function gmm_objective(alphas, means, Qs, x, wishart::Wishart)
 
     slse = 0.
     for ix=1:n
-        formula(ik) = -0.5 * sum(abs2, Qs[:, :, ik] * (x[:,ix] .- means[:, ik]))
-        sumexp = 0.
-        for ik=1:k
-            sumexp += exp(formula(ik) + alphas[ik] + sum_qs[ik])
-        end
-        slse += log(sumexp)
+        formula(ik) = -0.5 * sum(abs2, Qs[:, :, ik] * (x[:,ix] .- means[:, ik])) + alphas[ik] + sum_qs[ik]
+        terms = map(formula, 1:k)
+        slse += logsumexp(terms)
     end
 
     CONSTANT + slse - n * logsumexp(alphas) + log_wishart_prior(wishart, sum_qs, Qs, k)
