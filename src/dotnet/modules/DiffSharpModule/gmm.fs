@@ -18,6 +18,14 @@ let unpackQ (logdiag: DV) (lt: DV) : DM =
 let logGammaDistrib a p = 0.25 * float(p) * float(p - 1) * log System.Math.PI +
                             ([1..p] |> List.sumBy (fun j -> MathNet.Numerics.SpecialFunctions.GammaLn (a + 0.5 * float(1 - j))))
 
+// DV.LogSumExp tries to compute exp(logsumexp arr) in the adjoint,
+// which seem to overflow in some of our cases.
+// That does not happen when we simply AD an explicit implementation.
+let logsumexp_DArray (arr: D[]) =
+    let mx = Array.max arr
+    let sumShiftedExp = arr |> Array.sumBy (fun x -> exp (x - mx))
+    log sumShiftedExp + mx
+
 let logWishartPrior (qsAndSums: (DM * D) array) wishartGamma wishartM p =
     let k = qsAndSums.Length
     let n = p + wishartM + 1
@@ -40,11 +48,11 @@ let gmmObjective (alphas: DV) (means: DV[]) (icf: DV[]) (x: DM) (wishartGamma: f
 
     let slse = x.GetRows ()
                 |> Seq.sumBy (fun xi ->
-                    let sumexp = Array.fold2 (fun cursumexp qAndSum alphaAndMeans ->
+                    let term = Array.map2 (fun qAndSum alphaAndMeans ->
                         let q, sumQ = qAndSum
                         let alpha, meansk = alphaAndMeans
-                        cursumexp + exp (-0.5 * (DV.l2normSq (q * (xi - meansk))) + alpha + sumQ)) (D 0.) qsAndSums alphasAndMeans
-                    log sumexp)
+                        -0.5 * (DV.l2normSq (q * (xi - meansk))) + alpha + sumQ) qsAndSums alphasAndMeans
+                    logsumexp_DArray term)
 
     constant + slse  - float(n) * logsumexp alphas + logWishartPrior qsAndSums wishartGamma wishartM d
 
