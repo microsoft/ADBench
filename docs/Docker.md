@@ -4,19 +4,19 @@ You may use docker images of the ADBench project without having to install depen
 
 ## Building docker image
 
-1. Clone repository
-2. Add your AD tools if nessasary
-3. Run `docker build -f <dockerfile name> -t <docker image name> .` from root directory of ADBench project  
+1. Clone the repository
+2. Add your AD tools if necessary
+3. Run `docker build -f <dockerfile name> -t <docker image name> .` from the root directory of the ADBench project  
    e.g. `docker build -f some.Dockerfile -t adb-docker .`
 
 ## Running docker image
 
-1. Create folder for results
-2. Run docker image with proper arguments.  
-   At docker image startup, the `/ADBench/run-wrapper.sh` script is executed. The following are possible launch options:  
-   - Option `-r|--run` to run benchmark (execute [global runner script](./Architecture.md#Global-Runner))  
+1. Create a folder for results
+2. Run the docker image with proper arguments.  
+   At the docker image startup, the `/ADBench/run-wrapper.sh` script is executed. The following are possible launch options:  
+   - Option `-r|--run` to run benchmark (execute [global runner script](./GlobalRunner.md))  
    e.g. `docker run -v /folder/for/results:/adb/tmp/ adb-docker -r -tools "Manual"`  
-   - Option `-p|--plot` to plot graphs (execute [plot script](./PlotCreating.md#plot-script-definition))  
+   - Option `-p|--plot` to plot graphs (execute [plot script](./PlotCreating.md))  
    e.g. `docker run -v /folder/for/results:/adb/tmp/ adb-docker -p --save`  
    - Option `-t|--ctest` to perform _GTEST_ (execute `ctest`)  
    e.g. `docker run adb-docker -t`
@@ -33,9 +33,9 @@ E.g. `docker run -it --rm -v /folder/for/results:/adb/tmp/ adb-docker -r`
 
 You may find more information here: https://docs.docker.com/engine/reference/run/
 
-## Adding dependencies to docker
+## Adding dependencies
 
-If you need additional dependencies to be installed, you should add docker build steps before `COPY` stage, e.g.:
+If you need additional dependencies to be installed into the docker image, you should add docker build steps to the `/Dockerfile` before the `COPY` stage, e.g.:
 ```
 # other build steps
 
