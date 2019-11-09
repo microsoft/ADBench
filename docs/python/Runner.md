@@ -7,7 +7,7 @@ Every _testing module_ contains an implementation of some algorithm computing ob
 
 A module doesn't have to support all of the objective types. If a user asks the runner to benchmark an unsupported objective, the runner prints an error and stops.
 
-Every module, for every objective it supports, defines a class implementing abstract class `ITest`.
+Every module, for every objective it supports, defines a class implementing the abstract `ITest` class.
 
 ## Supported Objective Types
 Currently supported objective types:
@@ -26,7 +26,7 @@ Currently supported objective types:
 python3 /path/to/repo/src/python/runner/main.py test_type module_path input_filepath output_dir minimum_measurable_time nruns_F nruns_J time_limit [-rep]
 ```
 
- - `test_type` - The short type name of the objective function. It may also be equal to "Hand-Complicated" that designates the complicated case of the "Hand" objective, where the variable U is considered (see [srajer-autodiff-screen.pdf](../../Documents/srajer-autodiff-screen.pdf), page 5).
+ - `test_type` - the short type name of the objective function. It may also be equal to "Hand-Complicated" that designates the complicated case of the "Hand" objective, where the variable U is considered (see [srajer-autodiff-screen.pdf](../../Documents/srajer-autodiff-screen.pdf), page 5).
  - `module_path` - an absolute or relative path to a `.py` file containing the module to be benchmarked.
  - `input_filepath` - an absolute or relative path to the input file.
  - `output_dir` - a directory where the output files should be stored.
@@ -43,7 +43,7 @@ python3 /path/to/repo/src/python/runner/main.py test_type module_path input_file
 
 1. Define `TInput` and `TOutput` classes in the `/src/python/shared/TData.py` file where `T` is the name of a new objective. 
 
-    `TInput` is the data type for the new objective's inputs, `TOutput` is a structure that contains outputs of both new objective function and its target jacobian. Also `TOutput` contains `save_output_to_file` function
+    `TInput` is the data type for the new objective inputs, `TOutput` is a structure that contains outputs of both new objective function and its target jacobian. Also `TOutput` contains `save_output_to_file` function
 
     ```python
     def save_output_to_file(
@@ -54,18 +54,18 @@ python3 /path/to/repo/src/python/runner/main.py test_type module_path input_file
     )
     ```
 
-    Which saves results of computations stored in a structure of the TOutput type to the output files:
+    This function saves results of computations stored in a structure of the `TOutput` type to the output files:
 
     - `output_prefix + input_basename + "_F_" + module_basename + ".txt"` - stores the value of the objective function
     - `output_prefix + input_basename + "_J_" + module_basename + ".txt"` - stores the value of the objective function derivative
 
       The format of the output files is specific for each objective type.
 
-1. In the `input_utils` (`/src/python/shared/input_utils.py`) add the following function:
+1. Add the following function to the `/src/python/shared/input_utils.py` file:
     ```python
     def read_T_instance(fn):
     ```
-    It open input file `fn` and loads data to the structure of the `TInput` type.
+    It opens input file `fn` and loads data to the structure of the `TInput` type.
 
 1.  Add a new else-if branch to the `Runner` (`/src/python/runner/main.py`) as follows:
     ```python
@@ -82,4 +82,4 @@ python3 /path/to/repo/src/python/runner/main.py test_type module_path input_file
 
 ## Input/Output files format
 
-See [FileFormat.md](../FileFormat.md#input/output-files-format).
+See [FileFormat.md](../FileFormat.md).
