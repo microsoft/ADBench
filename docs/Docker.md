@@ -1,6 +1,6 @@
 # Docker
 
-You may use docker images of the ADBench project without having to install dependencies on your PC.
+You may use docker images of the ADBench project without having to install all the [prerequisites](./BuildAndTest.md#prerequisites) on your PC.
 
 ## Building docker image
 
