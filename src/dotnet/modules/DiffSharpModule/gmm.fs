@@ -48,11 +48,12 @@ let gmmObjective (alphas: DV) (means: DV[]) (icf: DV[]) (x: DM) (wishartGamma: f
 
     let slse = x.GetRows ()
                 |> Seq.sumBy (fun xi ->
-                    let term = Array.map2 (fun qAndSum alphaAndMeans ->
-                        let q, sumQ = qAndSum
-                        let alpha, meansk = alphaAndMeans
-                        -0.5 * (DV.l2normSq (q * (xi - meansk))) + alpha + sumQ) qsAndSums alphasAndMeans
-                    logsumexp_DArray term)
+                    logsumexp_DArray <| Array.map2
+                        (fun qAndSum alphaAndMeans ->
+                            let q, sumQ = qAndSum
+                            let alpha, meansk = alphaAndMeans
+                            -0.5 * (DV.l2normSq (q * (xi - meansk))) + alpha + sumQ
+                        ) qsAndSums alphasAndMeans)
 
     constant + slse  - float(n) * logsumexp alphas + logWishartPrior qsAndSums wishartGamma wishartM d
 
