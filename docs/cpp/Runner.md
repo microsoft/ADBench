@@ -28,7 +28,7 @@ Currently supported objective types and their factory functions:
 CPPRunner test_type module_path input_filepath output_dir minimum_measurable_time nruns_F nruns_J time_limit [-rep]
 ```
 
- - `test_type` - A short type name of a benchmarking objective function. It may also be equal to "Hand-Complicated" that designates the complicated case of the "Hand" objective, where the variable U is considered (see [srajer-autodiff-screen.pdf](../../Documents/srajer-autodiff-screen.pdf), page 5).
+ - `test_type` - the short type name of a benchmarking objective function. It may also be equal to "Hand-Complicated" that designates the complicated case of the "Hand" objective, where the variable U is considered (see [srajer-autodiff-screen.pdf](../../Documents/srajer-autodiff-screen.pdf), page 5).
  - `module_path` - an absolute or relative path to a .dll module responsible for testing algorithm of calculation.
  - `input_filepath` - an absolute or relative path to an input file.
  - `output_dir` - a directory where output files will be stored.

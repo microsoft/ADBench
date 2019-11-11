@@ -26,7 +26,7 @@ Currently supported objective types:
 dotnet DotnetRunner.dll test_type module_path input_filepath output_dir minimum_measurable_time nruns_F nruns_J time_limit [-rep]
 ```
 
- - `test_type` - The short type name of the objective function. It may also be equal to "Hand-Complicated" that designates the complicated case of the "Hand" objective, where the variable U is considered (see [srajer-autodiff-screen.pdf](../../Documents/srajer-autodiff-screen.pdf), page 5).
+ - `test_type` - the short type name of the objective function. It may also be equal to "Hand-Complicated" that designates the complicated case of the "Hand" objective, where the variable U is considered (see [srajer-autodiff-screen.pdf](../../Documents/srajer-autodiff-screen.pdf), page 5).
  - `module_path` - an absolute or relative path to an assembly containing the `ITest<>` implementation to be benchmarked.
  - `input_filepath` - an absolute or relative path to the input file.
  - `output_dir` - a directory where the output files should be stored.
