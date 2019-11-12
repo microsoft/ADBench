@@ -86,4 +86,4 @@ For the complete documentation refer to [GlobalRunner.md](./GlobalRunner.md).
 
 Scripts that consume the outputs of the _benchmark runners_ and process them.
 Currently we have the following scripts:
-- [ADBench/plot_graphs.py](.PlotCreating.md)
+- [ADBench/plot_graphs.py](./PlotCreating.md)
