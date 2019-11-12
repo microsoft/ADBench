@@ -16,7 +16,7 @@ The default set of _testing modules_ includes all testing modules [registered](#
 
 Unless excluded, `run-all.ps1` will run benchmarks on the `Manual` module first in order to produce the _golden Jacobians_, which will be used to check the correctness of the Jacobians produced by all other modules. See [Jacobian Correctness Verification](./JacobianCheck.md) for the details and the justification.
 
-Foe every specified _testing module_ `run-all.ps1` will run every specified benchmark that this module supports. So, e.g. if BA benchmarks were requested, but some of the requested modules don't support BA, then BA benchmarks won't be run on these modules and such behavior won't be considered an error.
+For every specified _testing module_ `run-all.ps1` will run every specified benchmark that this module supports. So, e.g. if BA benchmarks were requested, but some of the requested modules don't support BA, then BA benchmarks won't be run on these modules and such behavior won't be considered an error.
 
 The script will run benchmarks on _testing modules_ using the corresponding [_benchmark runners_](./Architecture.md#benchmark-runners). It will enforce the hard timeout (default - 5 minutes, overridable in the corresponding argument) by terminating the runner processes as necessary. It will check that the runner produces a file with timings and a file with the result Jacobian. Then it will compare the result Jacobian to the golden one and output the result of the comparison in JSON format. Unless overridden in the corresponding argument, `run-all.ps1` will delete files with Jacobians it considered correct during comparison.
 
