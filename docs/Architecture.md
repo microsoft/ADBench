@@ -14,8 +14,9 @@ _Benchmark runners_ are console applications that load _testing modules_ and inp
 
 _Global runner_ is a script that is aware of all existing _benchmark runners_, _testing modules_, and sets of input parameters for the objective functions. It consecutively runs all benchmarks using corresponding _benchmark runners_ while enforcing specified hard time limits. After every benchmark it checks the accuracy of the computed derivatives.
 
-_Result-processing scripts_ are the scripts that consume the outputs of the _benchmark runners_ and somehow process them, e.g.
-- Create visualizations
+_Result-processing scripts_ are the scripts that consume the outputs of the _benchmark runners_ and somehow process them, e.g. create visualizations.
+
+A diagram of relationships between the modules and the runners:
 
 <table>
   <tr>
