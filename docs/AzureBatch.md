@@ -2,20 +2,20 @@
 
 ## Description
 
-This document describes the all tool running process that is executed once a week and stores results to the Azure Blob container from which they can be observed by the [ADBench Web Viewer](#Web-viewer).
+This document describes the all tool running process that is executed once a week and stores the results to the Azure Blob container from which they can be observed by the [ADBench Web Viewer](#Web-viewer).
 
 ### General info
 The process is designed as an [Azure Batch](https://docs.microsoft.com/en-us/azure/batch/) job that is scheduled weekly. This job starts the script `/ADBench/AzureBatch/runallscript.sh` on the pool node. This script clones the repository from GitHub, creates a Docker container, and runs all tools. After run completion the script runs graph creating and then stores the result plots to the output directory from which they are uploaded to the [Azure Storage](https://docs.microsoft.com/en-us/azure/storage/).
 
 ### Recalculating check
-If graphs have been already created for the last commit, then the script finishes and does nothing. To check that the last commit has been handled, the process stores its hash to the file called `last_commit.txt` located in the blob container root. Before the script starting the job downloads this file to the pool node. The script compares the file content with the latest repository master branch commit hash. In case of equality it finishes. Exit code the script returns in such a case is not zero because zero exit code is a signal to the job to upload the result graphs to the storage. In case of hash difference the script writes the current handled comit hash to the file `last_commit.txt`, and then the job uploads this file to the blob container.
+If graphs have been already created for the last commit, then the script finishes and does nothing. To check that the last commit has been handled, the process stores its hash to the file called `last_commit.txt` located in the blob container root. Before the script starting, the job downloads this file to the pool node. The script compares the file content with the latest repository master branch commit hash. In case of equality it finishes. Exit code the script returns in such a case is not zero because zero exit code is a signal to the job to upload the result graphs to the storage. In case of hash difference the script writes the current handled commit hash to the file `last_commit.txt`, and then the job uploads this file to the blob container.
 
 ### The script
 `/ADBench/AzureBatch/runallscript.sh` is a bash script that is designed for *Ubuntu 18.04*. It has descriptive comments, so you can find more information about its behaviour in them. The script returns the following exit codes:
 
 | Exit code | The case when it is returned |
 | -- | -- |
-| 0 | Script run successfully and created all graphs |
+| 0 | Script ran successfully and created all graphs |
 | 1 | Graph creation is not needed becuase for the current commit it has been done |
 | 2 | Git problem |
 | 3 | Docker installation problem |
@@ -26,7 +26,7 @@ If graphs have been already created for the last commit, then the script finishe
 | 8 | Graph creation failure |
 
 ### Web viewer
-Special application is used for the process result browse. Its source is located in the directory `/ADBench/ADBenchWebViewer`. This application looks through the blob container, which URL is defined in its `appsettings.json` file, and creates HTML pages for the result observing. The viewer could be published in Azure as the hosted [Web Application](https://docs.microsoft.com/en-us/azure/app-service/) (see [instruction](https://docs.microsoft.com/en-us/azure/app-service/app-service-web-get-started-dotnet#publish-your-web-app)).
+The special application is used for the process result browsing. Its source is located in the directory `/ADBench/ADBenchWebViewer`. This application looks through the blob container, which URL is defined in its `appsettings.json` file, and creates HTML pages for the result observing. The viewer could be published in Azure as a hosted [Web Application](https://docs.microsoft.com/en-us/azure/app-service/) (see [instruction](https://docs.microsoft.com/en-us/azure/app-service/app-service-web-get-started-dotnet#publish-your-web-app)).
 
 ## Creating a new Azure Batch
 
@@ -47,4 +47,4 @@ If you want to deploy a new Azure Batch Job Schedule, that will execute the run 
     | jobSpecification.resourceFiles[0].httpUrl | URL of the file `last_commit.txt` in the blob container root |
     | jobSpecification.outputFiles[0].destination.container.containerUrl | URL of the blob container |
 
-6. If you want to see the results of the new process in the ADBench Web Viewer, set the value of the property `blobContainerUrl` in a JSON file `/ADBenchWebViewer/appsettings.json` to the URL of the blob container created in the step 1. Then web app will show info from your new container.
+6. If you want to see the results of the new process in the ADBench Web Viewer, set the value of the property `blobContainerUrl` in a JSON file `/ADBenchWebViewer/appsettings.json` to the URL of the blob container created in the step 1. Then the web app will show info from your new container.
