@@ -22,7 +22,7 @@ This is a list of known issues/TODOs for the project. Any fixes are welcomed.
 - Test building and running on non-windows platforms
     - Will need to produce alternatives to existing batch files (currently in ADOL-C, MuPad, Theano)
 - Matlab tools need testing properly
-    - `run-all.ps1` has Matlab tools commented out due to an issue with the trial version - it should be possible to remove these comments and run them with the full version
+    - `run-all.ps1` has Matlab tools commented out by default.  If Matlab is available on your system, uncomment.
 - ADiMat
     - `ADiMat_ba.m` - test seems to crash during Jacobian loop
 - ADOLC
