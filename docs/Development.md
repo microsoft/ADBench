@@ -4,7 +4,7 @@ This document provides some high-level guidelines on how to work with the ADBenc
 
 ## Setting Up the Development Environment
 
-Due to its nature, ADBench spans over many different technologies and programming languages. While the codebase can be edited with any text editor and built from command line, there's a bit of special support in form of checked in configurations for Visual Studio and Visual Studio Code.
+Due to its nature, ADBench spans many different technologies and programming languages. While the codebase can be edited with any text editor and built from command line, there's a bit of special support in form of checked in configurations for Visual Studio and Visual Studio Code.
 
 The requirements for development environment and for build environment are the same, so please, refer to the ["without Docker"](./BuildAndTest.md#without-docker) of the building guide for details.
 

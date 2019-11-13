@@ -32,7 +32,7 @@ Refer to [PlotCreating](docs/PlotCreating.md) for other possible command line ar
 From time to time we run the benchmarks and publish the resulting plots here:
 https://adbenchwebviewer.azurewebsites.net/
 
-Cloud infrastructure that generates these plots is described [here](docs/AzureBatch.md).
+The cloud infrastructure that generates these plots is described [here](docs/AzureBatch.md).
 
 ## Contributing
 
