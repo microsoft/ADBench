@@ -7,18 +7,18 @@ This is a PowerShell script to run all autodiff benchmarking tests.
 This script loops through each of a set of tools (defined using the Tool class) and runs a set of test functions on each of them.
 
 .EXAMPLE
-./run-all.ps1 -buildtype "Release" -minimum_measurable_time 0.5 -nruns_f 10 -nruns_J 10 -time_limit 180 -timeout 600 -tmpdir "C:/path/to/tmp/" -tools (echo Finite Manual Julia) -gmm_d_vals_param @(2,10)
+./run-all.ps1 -buildtype "Release" -minimum_measurable_time 0.5 -nruns_f 10 -nruns_J 10 -time_limit 180 -timeout 600 -tmpdir "C:/path/to/tmp/" -tools (echo Finite Manual Julia) -gmm_d_vals_param @(2,5,10,64)
 
 This will:
 - run only release builds
-- loop measured function while total calculation time less than 0.5 seconds
+- loop measured function while total calculation time is less than 0.5 seconds
 - aim to run 10 tests of each function, and 10 tests of the derivative of each function
 - stop (having completed a whole number of tests) at any point after 180 seconds
 - allow each program a maximum of 600 seconds to run all tests
 - output results to "C:/path/to/tmp/"
 - not repeat any tests for which there already exist a results file
 - run only Finite, Manual, and Julia
-- try GMM d values of 2,10
+- try GMM d values of 2, 5, 10, 64
 
 .NOTES
 See below for adding new tools or tests.
@@ -37,7 +37,8 @@ param(# Which build to test.
       
       # Estimated time of accurate result achievement. 
       # A runner cyclically reruns measured function until total time becomes more than that value. 
-      # Currently not supported by all runners. 
+      # Supported only by the benchmark runner-based tools
+      # (those with ToolType cpp, dotnet, julia, or python).
       [double]$minimum_measurable_time = 0.5,
 
       # Maximum number of times to run the function for timing                
