@@ -118,7 +118,7 @@ fi
 mkdir tmp
 
 # Run all tools.
-docker run -v $(pwd)/tmp:/adb/tmp/ adb-docker -r
+docker run -v $(pwd)/tmp:/adb/tmp/ adb-docker -r "-timeout 600"
 
 # Check tool running.
 # Note: run-all.ps1 script returns "8" in case of non-fatal errors.
