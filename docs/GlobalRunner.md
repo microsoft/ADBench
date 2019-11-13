@@ -38,7 +38,7 @@ Parameters:
     
 - `-minimum_measurable_time <Double>`
 
-    Estimated time of accurate result achievement. A runner cyclically reruns measured function until total time becomes more than that value. Currently not supported by all runners.
+    Estimated time of accurate result achievement. A runner cyclically reruns measured function until total time becomes more than that value. Supported only by benchmark the runner-based tools (those with ToolType `cpp`, `dotnet`, `julia`, or `python`).
     
 - `-nruns_f <Int32>`
 
@@ -118,19 +118,19 @@ Parameters:
 
 Example:
 ```powershell
-./run-all.ps1 -buildtype "Release" -minimum_measurable_time 0.5 -nruns_f 10 -nruns_J 10 -time_limit 180 -timeout 600 -tmpdir "C:/path/to/tmp/" -tools @("Finite", "Manual", "PyTorch") -gmm_d_vals_param @(2,10)
+./run-all.ps1 -buildtype "Release" -minimum_measurable_time 0.5 -nruns_f 10 -nruns_J 10 -time_limit 180 -timeout 600 -tmpdir "C:/path/to/tmp/" -tools @("Finite", "Manual", "PyTorch") -gmm_d_vals_param @(2,5,10,64)
 ```
 
 This will:
 - Run only release builds.
-- Loop measured function while total calculation time less than 0.5 seconds.
+- Loop measured function while total calculation time is less than 0.5 seconds.
 - Aim to run 10 tests of each function, and 10 tests of the derivative of each function.
 - Stop (having completed a whole number of tests) at any point after 180 seconds.
 - Allow each program a maximum of 600 seconds to run all tests.
 - Output results to `C:/path/to/tmp/`.
 - Not repeat any tests for which there already exist a results file.
 - Run only Finite, Manual, and PyTorch.
-- Try GMM d values of 2, 10.
+- Try GMM d values of 2, 5, 10, 64.
 
 ## Interfaces
 
