@@ -42,4 +42,4 @@ Contributions to fix bugs, test on new systems or add new tools are welcomed. Se
 
 See [Issues](/ISSUES.md) for a list of some of the known problems and TODOs.
 
-There's GitHub's issue page as well.
+There's [GitHub's issue](https://github.com/awf/ADBench/issues) page as well.
