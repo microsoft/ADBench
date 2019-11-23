@@ -510,10 +510,16 @@ Class Tool {
 
         Write-Host "  BA"
 
+        $was_timeout = $false
         for ($n = $script:ba_min_n; $n -le $script:ba_max_n; $n++) {
             $fn = (Get-ChildItem -Path $([Tool]::ba_dir_in) -Filter "ba${n}_*")[0].BaseName
             Write-Host "    $n"
-            $this.run("BA", [Tool]::ba_dir_in, $dir_out, $fn)
+
+            if ($was_timeout) {
+                $this.perform_certain_timeout_actions("BA", $dir_out, $fn)
+            } else {
+                $was_timeout = $this.run("BA", [Tool]::ba_dir_in, $dir_out, $fn)
+            }
         }
     }
 
