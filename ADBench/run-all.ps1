@@ -535,10 +535,16 @@ Class Tool {
                 $dir_out = "$script:tmpdir/hand/${type}_$sz/$($this.name)/"
                 mkdir_p $dir_out
 
+                $was_timeout = $false
                 for ($n = $script:hand_min_n; $n -le $script:hand_max_n; $n++) {
                     $fn = (Get-ChildItem -Path $dir_in -Filter "hand${n}_*")[0].BaseName
                     Write-Host "      $n"
-                    $this.run("Hand-${type}", $dir_in, $dir_out, $fn)
+
+                    if ($was_timeout) {
+                        $this.perform_certain_timeout_actions("Hand-${type}", $dir_out, $fn)
+                    } else {
+                        $was_timeout = $this.run("Hand-${type}", $dir_in, $dir_out, $fn)
+                    }
                 }
             }
         }
