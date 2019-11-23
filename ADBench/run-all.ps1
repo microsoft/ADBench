@@ -101,6 +101,14 @@ param(# Which build to test.
       [int[]]$lstm_c_vals = @(1024, 4096)
       )
 
+# Sort array parameters define test sizes ascending
+function sort_size_parameters() {
+    $script:gmm_d_vals = $script:gmm_d_vals | sort
+    $script:gmm_k_vals = $script:gmm_k_vals | sort
+    $script:lstm_l_vals = $script:lstm_l_vals | sort
+    $script:lstm_c_vals = $script:lstm_c_vals | sort
+}
+
 # Assert function
 function assert ($expr) {
     if (!(& $expr @args)) {
@@ -218,6 +226,10 @@ function New-JacobianComparison(
 # the ones CMake built with.
 if ($gmm_d_vals_param) { $gmm_d_vals = $gmm_d_vals_param }
 if ($gmm_k_vals_param) { $gmm_k_vals = $gmm_k_vals_param }
+
+# as far as script checks certain timeouts we need array parameters that
+# define test sizes to be sorted ascending
+sort_size_parameters
 
 # Set tmpdir default
 if (!$tmpdir) { $tmpdir = "$dir/tmp" }
