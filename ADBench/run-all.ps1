@@ -335,10 +335,8 @@ Class Tool {
     # Run a single test
     # Returns true if there was a timeout and false otherwise
     [bool] run ([string]$objective, [string]$dir_in, [string]$dir_out, [string]$fn) {
-        if ($objective.contains("Eigen")) { $out_name = "$($this.name)_Eigen" }
-        elseif ($objective.endswith("SPLIT")) { $out_name = "$($this.name)_split" }
-        else { $out_name = $this.name }
-        $output_file = "${dir_out}${fn}_times_${out_name}.txt"
+        $out_name_postfix = $this.get_out_name_postfix($objective)
+        $output_file = "${dir_out}${fn}_times_${out_name_postfix}.txt"
         if (!$script:repeat -and (Test-Path $output_file)) {
             if ($script:repeat_failures) {
                 $test_failed = Select-String -quiet '^inf inf$' $output_file
@@ -409,23 +407,41 @@ Class Tool {
         }
 
         if ($this.check_results -and (![string]::IsNullOrEmpty([Tool]::golden_tool_name))) {
-            $current_jacobian_path = "${dir_out}${fn}_J_${out_name}.txt"
-            $golden_jacobian_path = "${dir_out}../$([Tool]::golden_tool_name)/${fn}_J_$([Tool]::golden_tool_name).txt"
-            $comparison = New-JacobianComparison $this.result_check_tolerance
-            $comparison.CompareFiles($current_jacobian_path, $golden_jacobian_path)
-            $comparison.ToJsonString() | Out-File "${dir_out}${fn}_correctness_${out_name}.txt" -encoding ASCII
-            if ($comparison.ViolationsHappened()) {
-                Report-NonFatalError "Discrepancies with the correct jacobian found. See ${dir_out}${fn}_correctness_${out_name}.txt for details."
-            } else {
-                if (-not $script:keep_correct_jacobians) {
-                    $current_objective_path = "${dir_out}${fn}_F_${out_name}.txt"
-                    if (Test-Path $current_objective_path) { Remove-Item $current_objective_path }
-                    if (Test-Path $current_jacobian_path) { Remove-Item $current_jacobian_path }
-                }
-            }
+            $this.check_correctness($dir_out, $out_name_postfix, $fn)
         }
 
         return $timeout_happened
+    }
+
+    # Get postfix for tool output file name 
+    [string] get_out_name_postfix([string]$objective) {
+        $postfix = $this.name
+
+        if ($objective.contains("Eigen")) {
+            $postfix = "$($this.name)_Eigen"
+        } elseif ($objective.endswith("SPLIT")) {
+            $postfix = "$($this.name)_split"
+        }
+
+        return $postfix
+    }
+
+    # Check correctness of the tool run results creating respective correctness file
+    [void] check_correctness([string]$dir_out, [string]$out_name_postfix, [string]$fn) {
+        $current_jacobian_path = "${dir_out}${fn}_J_${out_name_postfix}.txt"
+        $golden_jacobian_path = "${dir_out}../$([Tool]::golden_tool_name)/${fn}_J_$([Tool]::golden_tool_name).txt"
+        $comparison = New-JacobianComparison $this.result_check_tolerance
+        $comparison.CompareFiles($current_jacobian_path, $golden_jacobian_path)
+        $comparison.ToJsonString() | Out-File "${dir_out}${fn}_correctness_${out_name_postfix}.txt" -encoding ASCII
+        if ($comparison.ViolationsHappened()) {
+            Report-NonFatalError "Discrepancies with the correct jacobian found. See ${dir_out}${fn}_correctness_${out_name_postfix}.txt for details."
+        } else {
+            if (-not $script:keep_correct_jacobians) {
+                $current_objective_path = "${dir_out}${fn}_F_${out_name_postfix}.txt"
+                if (Test-Path $current_objective_path) { Remove-Item $current_objective_path }
+                if (Test-Path $current_jacobian_path) { Remove-Item $current_jacobian_path }
+            }
+        }
     }
 
     # Run all gmm tests for this tool
