@@ -555,12 +555,21 @@ Class Tool {
         $dir_out = "$script:tmpdir/lstm/$($this.name)/"
         mkdir_p $dir_out
 
+        $first_timeout_c = $script:lstm_c_vals[-1] + 1
         foreach ($l in $script:lstm_l_vals) {
             Write-Host "    l=$l"
+
             foreach ($c in $script:lstm_c_vals) {
                 Write-Host "      c=$c"
 
-                $this.run("LSTM", [Tool]::lstm_dir_in, $dir_out, "lstm_l${l}_c$c")
+                if ($c -ge $first_timeout_c) {
+                    $this.perform_certain_timeout_actions("LSTM", $dir_out, "lstm_l${l}_c$c")
+                } else {
+                    $was_timeout = $this.run("LSTM", [Tool]::lstm_dir_in, $dir_out, "lstm_l${l}_c$c")
+                    if ($was_timeout) {
+                        $first_timeout_c = $c
+                    }
+                }
             }
         }
     }
