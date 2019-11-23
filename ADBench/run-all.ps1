@@ -456,6 +456,7 @@ Class Tool {
 
     # Perform actions in case of certain timeout (e.g. create time file with timeout content)
     [void] perform_certain_timeout_actions([string]$run_obj, [string]$dir_out, [string]$fn) {
+        Store-NonFatalError "Test didn't run due to certain timeout`nObjective: $run_obj`nTest file name: $fn"
         $postfix = $this.get_out_name_postfix($run_obj)
         $time_file_name = $this.get_time_output_file_name($dir_out, $fn, $postfix)
         create_timeout_file $time_file_name
@@ -490,6 +491,7 @@ Class Tool {
                         if ($this.gmm_use_defs) { $run_obj += "-d$d-K$k" }
 
                         if ($k -ge $first_timeout_k) {
+                            Write-Host "          Didn't run due to certain timeout"
                             $this.perform_certain_timeout_actions($run_obj, $dir_out, $fn)
                         } else {
                             $was_timeout = $this.run($run_obj, $dir_in, $dir_out, $fn)
@@ -516,6 +518,7 @@ Class Tool {
             Write-Host "    $n"
 
             if ($was_timeout) {
+                Write-Host "      Didn't run due to certain timeout"
                 $this.perform_certain_timeout_actions("BA", $dir_out, $fn)
             } else {
                 $was_timeout = $this.run("BA", [Tool]::ba_dir_in, $dir_out, $fn)
@@ -541,6 +544,7 @@ Class Tool {
                     Write-Host "      $n"
 
                     if ($was_timeout) {
+                        Write-Host "        Didn't run due to certain timeout"
                         $this.perform_certain_timeout_actions("Hand-${type}", $dir_out, $fn)
                     } else {
                         $was_timeout = $this.run("Hand-${type}", $dir_in, $dir_out, $fn)
@@ -563,6 +567,7 @@ Class Tool {
                 Write-Host "      c=$c"
 
                 if ($c -ge $first_timeout_c) {
+                    Write-Host "        Didn't run due to certain timeout"
                     $this.perform_certain_timeout_actions("LSTM", $dir_out, "lstm_l${l}_c$c")
                 } else {
                     $was_timeout = $this.run("LSTM", [Tool]::lstm_dir_in, $dir_out, "lstm_l${l}_c$c")
