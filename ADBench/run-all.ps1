@@ -159,7 +159,6 @@ function mkdir_p($path) {
 enum RunCommandStatus { Finished; Timeout }
 
 # Run command and (reliably) get output
-# Returns true if there was a timeout and false otherwise
 function run_command ($indent, $outfile, $timeout, $cmd) {
     write-host "Run [$cmd $args]"
     $ProcessInfo = New-Object System.Diagnostics.ProcessStartInfo
