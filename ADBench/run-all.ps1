@@ -155,6 +155,9 @@ function mkdir_p($path) {
    }
 }
 
+# Type of run command function returning value
+enum RunCommandStatus { Finished; Timeout }
+
 # Run command and (reliably) get output
 # Returns true if there was a timeout and false otherwise
 function run_command ($indent, $outfile, $timeout, $cmd) {
@@ -179,15 +182,14 @@ function run_command ($indent, $outfile, $timeout, $cmd) {
         $stderr = $Process.StandardError.ReadToEnd().Trim().Replace("`n", "`n${indent}stderr> ")
         $allOutput = "${indent}stdout> " + $stdout + "`n${indent}stderr> " + $stderr
         Write-Host "$allOutput"
+        return [RunCommandStatus]::Finished
     } else {
         $Process.Kill()
         Write-Host "${indent}Killed after $timeout seconds"
         Store-NonFatalError "Process killed after $timeout seconds`n[$cmd $args]"
         create_timeout_file $outfile $timeout
-        return $true
+        return [RunCommandStatus]::Timeout
     }
-
-    return $false
 }
 
 # Create result time file with timeout content
@@ -259,6 +261,8 @@ enum ToolType
     Hand = 4
     LSTM = 8
 }
+
+enum RunTestStatus { Success; Timeout; Skipped }   # run benchmark statuses
 
 # Custom Tool class
 Class Tool {
@@ -350,8 +354,7 @@ Class Tool {
     }
 
     # Run a single test
-    # Returns true if there was a timeout and false otherwise
-    [bool] run ([string]$objective, [string]$dir_in, [string]$dir_out, [string]$fn) {
+    [RunTestStatus] run ([string]$objective, [string]$dir_in, [string]$dir_out, [string]$fn) {
         $out_name_postfix = $this.get_out_name_postfix($objective)
         $output_file = $this.get_time_output_file_name($dir_out, $fn, $out_name_postfix)
 
@@ -360,11 +363,11 @@ Class Tool {
                 $test_failed = Select-String -quiet '^inf inf$' $output_file
                 if (!$test_failed) {
                     Write-Host "          Skipped test (already completed, and wasn't a fail)"
-                    return $false
+                    return [RunTestStatus]::Skipped
                 }
             } else {
                 Write-Host "          Skipped test (already completed)"
-                return $false
+                return [RunTestStatus]::Skipped
             }
         }
 
@@ -418,7 +421,7 @@ Class Tool {
             $cmdargs = @("-wait", "-nosplash", "-nodesktop", "-r", "cd '$script:dir/tools/$($this.name)/'; addpath('$script:bindir/tools/$($this.name)/'); $($this.name)_$objective $cmdargs; quit")
         }
 
-        $timeout_happened = run_command "          " $output_file $script:timeout $cmd @cmdargs
+        $run_command_status = run_command "          " $output_file $script:timeout $cmd @cmdargs
 
         if (!(test-path $output_file)) {
             Report-NonFatalError "Command ran, but did not produce output file [$output_file]"
@@ -428,7 +431,11 @@ Class Tool {
             $this.check_correctness($dir_out, $out_name_postfix, $fn)
         }
 
-        return $timeout_happened
+        if ($run_command_status -eq [RunCommandStatus]::Timeout) {
+            return [RunTestStatus]::Timeout
+        }
+        
+        return [RunTestStatus]::Success
     }
 
     # Get postfix for tool output file name 
@@ -506,8 +513,8 @@ Class Tool {
                             Write-Host "          Didn't run due to certain timeout"
                             $this.perform_certain_timeout_actions($run_obj, $dir_out, $fn)
                         } else {
-                            $was_timeout = $this.run($run_obj, $dir_in, $dir_out, $fn)
-                            if ($was_timeout) {
+                            $status = $this.run($run_obj, $dir_in, $dir_out, $fn)
+                            if ($status -eq [RunTestStatus]::Timeout) {
                                 $first_timeout_k = $k
                             }
                         }
@@ -524,16 +531,16 @@ Class Tool {
 
         Write-Host "  BA"
 
-        $was_timeout = $false
+        $status = [RunTestStatus]::Success
         for ($n = $script:ba_min_n; $n -le $script:ba_max_n; $n++) {
             $fn = (Get-ChildItem -Path $([Tool]::ba_dir_in) -Filter "ba${n}_*")[0].BaseName
             Write-Host "    $n"
 
-            if ($was_timeout) {
+            if ($status -eq [RunTestStatus]::Timeout) {
                 Write-Host "      Didn't run due to certain timeout"
                 $this.perform_certain_timeout_actions("BA", $dir_out, $fn)
             } else {
-                $was_timeout = $this.run("BA", [Tool]::ba_dir_in, $dir_out, $fn)
+                $status = $this.run("BA", [Tool]::ba_dir_in, $dir_out, $fn)
             }
         }
     }
@@ -550,16 +557,16 @@ Class Tool {
                 $dir_out = "$script:tmpdir/hand/${type}_$sz/$($this.name)/"
                 mkdir_p $dir_out
 
-                $was_timeout = $false
+                $status = [RunTestStatus]::Success
                 for ($n = $script:hand_min_n; $n -le $script:hand_max_n; $n++) {
                     $fn = (Get-ChildItem -Path $dir_in -Filter "hand${n}_*")[0].BaseName
                     Write-Host "      $n"
 
-                    if ($was_timeout) {
+                    if ($status -eq [RunTestStatus]::Timeout) {
                         Write-Host "        Didn't run due to certain timeout"
                         $this.perform_certain_timeout_actions("Hand-${type}", $dir_out, $fn)
                     } else {
-                        $was_timeout = $this.run("Hand-${type}", $dir_in, $dir_out, $fn)
+                        $status = $this.run("Hand-${type}", $dir_in, $dir_out, $fn)
                     }
                 }
             }
@@ -582,8 +589,8 @@ Class Tool {
                     Write-Host "        Didn't run due to certain timeout"
                     $this.perform_certain_timeout_actions("LSTM", $dir_out, "lstm_l${l}_c$c")
                 } else {
-                    $was_timeout = $this.run("LSTM", [Tool]::lstm_dir_in, $dir_out, "lstm_l${l}_c$c")
-                    if ($was_timeout) {
+                    $status = $this.run("LSTM", [Tool]::lstm_dir_in, $dir_out, "lstm_l${l}_c$c")
+                    if ($status -eq [RunTestStatus]::Timeout) {
                         $first_timeout_c = $c
                     }
                 }
