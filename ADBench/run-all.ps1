@@ -228,8 +228,8 @@ function New-JacobianComparison(
 if ($gmm_d_vals_param) { $gmm_d_vals = $gmm_d_vals_param }
 if ($gmm_k_vals_param) { $gmm_k_vals = $gmm_k_vals_param }
 
-# as far as script checks certain timeouts we need array parameters that
-# define test sizes to be sorted ascending
+# as far as the script checks guaranteed timeouts, we need array parameters, that
+# define test sizes, to be sorted ascending
 sort_size_parameters
 
 # Set tmpdir default
@@ -479,15 +479,15 @@ Class Tool {
         return $true
     }
 
-    # Perform actions in case of certain timeout (e.g. create time file with timeout content)
-    [void] perform_certain_timeout_actions([string]$run_obj, [string]$dir_out, [string]$fn) {
-        Store-NonFatalError "Test didn't run due to certain timeout`nObjective: $run_obj`nTest file name: $fn"
+    # Perform actions in case of guaranteed timeout (e.g. create time file with timeout content)
+    [void] perform_guaranteed_timeout_actions([string]$run_obj, [string]$dir_out, [string]$fn) {
+        Store-NonFatalError "Test didn't run due to guaranteed timeout`nObjective: $run_obj`nTest file name: $fn"
         $postfix = $this.get_out_name_postfix($run_obj)
         $time_file_name = $this.get_time_output_file_name($dir_out, $fn, $postfix)
         create_timeout_file $time_file_name
 
         # this is made for the result consistency, because in case of timeout
-        # in usual case correctness checking is performed
+        # correctness checking is performed
         $this.check_correctness($dir_out, $postfix, $fn)
     }
 
@@ -516,8 +516,8 @@ Class Tool {
                         if ($this.gmm_use_defs) { $run_obj += "-d$d-K$k" }
 
                         if ($k -ge $first_timeout_k) {
-                            Write-Host "          Didn't run due to certain timeout"
-                            $this.perform_certain_timeout_actions($run_obj, $dir_out, $fn)
+                            Write-Host "          Didn't run due to guaranteed timeout"
+                            $this.perform_guaranteed_timeout_actions($run_obj, $dir_out, $fn)
                         } else {
                             $status = $this.run($run_obj, $dir_in, $dir_out, $fn)
                             if ($status -eq [RunTestStatus]::Timeout) {
@@ -543,8 +543,8 @@ Class Tool {
             Write-Host "    $n"
 
             if ($status -eq [RunTestStatus]::Timeout) {
-                Write-Host "      Didn't run due to certain timeout"
-                $this.perform_certain_timeout_actions("BA", $dir_out, $fn)
+                Write-Host "      Didn't run due to guaranteed timeout"
+                $this.perform_guaranteed_timeout_actions("BA", $dir_out, $fn)
             } else {
                 $status = $this.run("BA", [Tool]::ba_dir_in, $dir_out, $fn)
             }
@@ -569,8 +569,8 @@ Class Tool {
                     Write-Host "      $n"
 
                     if ($status -eq [RunTestStatus]::Timeout) {
-                        Write-Host "        Didn't run due to certain timeout"
-                        $this.perform_certain_timeout_actions("Hand-${type}", $dir_out, $fn)
+                        Write-Host "        Didn't run due to guaranteed timeout"
+                        $this.perform_guaranteed_timeout_actions("Hand-${type}", $dir_out, $fn)
                     } else {
                         $status = $this.run("Hand-${type}", $dir_in, $dir_out, $fn)
                     }
@@ -592,8 +592,8 @@ Class Tool {
                 Write-Host "      c=$c"
 
                 if ($c -ge $first_timeout_c) {
-                    Write-Host "        Didn't run due to certain timeout"
-                    $this.perform_certain_timeout_actions("LSTM", $dir_out, "lstm_l${l}_c$c")
+                    Write-Host "        Didn't run due to guaranteed timeout"
+                    $this.perform_guaranteed_timeout_actions("LSTM", $dir_out, "lstm_l${l}_c$c")
                 } else {
                     $status = $this.run("LSTM", [Tool]::lstm_dir_in, $dir_out, "lstm_l${l}_c$c")
                     if ($status -eq [RunTestStatus]::Timeout) {
