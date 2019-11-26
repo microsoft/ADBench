@@ -3,10 +3,10 @@ from __future__ import absolute_import, division, print_function, \
 
 import tensorflow as tf
 
-from modules.Tensorflow.utils import to_tf_tensor, flatten
+from modules.TensorflowCommon.utils import to_tf_tensor, flatten
 from shared.ITest import ITest
 from shared.LSTMData import LSTMInput, LSTMOutput
-from modules.Tensorflow.lstm_objective import lstm_objective
+from modules.TensorflowCommon.lstm_objective import lstm_objective
 
 
 

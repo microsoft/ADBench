@@ -4,10 +4,10 @@ from __future__ import absolute_import, division, print_function, \
 import tensorflow as tf
 import numpy as np
 
-from modules.Tensorflow.utils import to_tf_tensor, flatten, shape
+from modules.TensorflowCommon.utils import to_tf_tensor, flatten, shape
 from shared.ITest import ITest
 from shared.HandData import HandInput, HandOutput
-from modules.Tensorflow.hand_objective import hand_objective, \
+from modules.TensorflowCommon.hand_objective import hand_objective, \
                                               hand_objective_complicated
 
 

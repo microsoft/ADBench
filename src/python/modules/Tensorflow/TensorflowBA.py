@@ -3,11 +3,11 @@ from __future__ import absolute_import, division, print_function, \
 
 import tensorflow as tf
 
-from modules.Tensorflow.utils import to_tf_tensor, flatten
+from modules.TensorflowCommon.utils import to_tf_tensor, flatten
 from shared.ITest import ITest
 from shared.BAData import BAInput, BAOutput
 from shared.BASparseMat import BASparseMat
-from modules.Tensorflow.ba_objective import compute_reproj_err, compute_w_err
+from modules.TensorflowCommon.ba_objective import compute_reproj_err, compute_w_err
 
 
 
