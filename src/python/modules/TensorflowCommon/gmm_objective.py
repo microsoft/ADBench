@@ -2,7 +2,7 @@ import math
 from scipy import special
 import tensorflow as tf
 
-from modules.Tensorflow.utils import shape
+from modules.TensorflowCommon.utils import shape
 
 
 

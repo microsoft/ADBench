@@ -1,5 +1,5 @@
 import tensorflow as tf
-from modules.Tensorflow.utils import shape
+from modules.TensorflowCommon.utils import shape
 
 def lstm_model(weight, bias, hidden, cell, inp):
     '''The LSTM model.'''
