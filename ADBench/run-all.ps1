@@ -262,7 +262,7 @@ enum ToolType
     LSTM = 8
 }
 
-enum RunTestStatus { Success; Timeout; Skipped }   # run benchmark statuses
+enum RunTestStatus { Success; Timeout; Skipped; IncorrectResults }   # run benchmark statuses
 
 # Custom Tool class
 Class Tool {
@@ -422,20 +422,24 @@ Class Tool {
         }
 
         $run_command_status = run_command "          " $output_file $script:timeout $cmd @cmdargs
+        $status = [RunTestStatus]::Success
 
         if (!(test-path $output_file)) {
             Report-NonFatalError "Command ran, but did not produce output file [$output_file]"
         }
 
         if ($this.check_results -and (![string]::IsNullOrEmpty([Tool]::golden_tool_name))) {
-            $this.check_correctness($dir_out, $out_name_postfix, $fn)
+            $is_correct = $this.check_correctness($dir_out, $out_name_postfix, $fn)
+            if (-not $is_correct) {
+                $status = [RunTestStatus]::IncorrectResults
+            }
         }
 
         if ($run_command_status -eq [RunCommandStatus]::Timeout) {
-            return [RunTestStatus]::Timeout
+            $status = [RunTestStatus]::Timeout
         }
         
-        return [RunTestStatus]::Success
+        return $status
     }
 
     # Get postfix for tool output file name 
@@ -456,7 +460,7 @@ Class Tool {
     }
 
     # Check correctness of the tool run results creating respective correctness file
-    [void] check_correctness([string]$dir_out, [string]$out_name_postfix, [string]$fn) {
+    [bool] check_correctness([string]$dir_out, [string]$out_name_postfix, [string]$fn) {
         $current_jacobian_path = "${dir_out}${fn}_J_${out_name_postfix}.txt"
         $golden_jacobian_path = "${dir_out}../$([Tool]::golden_tool_name)/${fn}_J_$([Tool]::golden_tool_name).txt"
         $comparison = New-JacobianComparison $this.result_check_tolerance
@@ -464,6 +468,7 @@ Class Tool {
         $comparison.ToJsonString() | Out-File "${dir_out}${fn}_correctness_${out_name_postfix}.txt" -encoding ASCII
         if ($comparison.ViolationsHappened()) {
             Report-NonFatalError "Discrepancies with the correct jacobian found. See ${dir_out}${fn}_correctness_${out_name_postfix}.txt for details."
+            return $false
         } else {
             if (-not $script:keep_correct_jacobians) {
                 $current_objective_path = "${dir_out}${fn}_F_${out_name_postfix}.txt"
@@ -471,6 +476,8 @@ Class Tool {
                 if (Test-Path $current_jacobian_path) { Remove-Item $current_jacobian_path }
             }
         }
+
+        return $true
     }
 
     # Perform actions in case of certain timeout (e.g. create time file with timeout content)
