@@ -13,7 +13,8 @@ from modules.TensorflowCommon.hand_objective import hand_objective, \
 
 
 class TensorflowHand(ITest):
-    '''Test class for hand tracking function differentiation by Tensorflow.'''
+    '''Test class for hand tracking function differentiation by Tensorflow
+    using eager execution.'''
 
     def prepare(self, input):
         '''Prepares calculating. This function must be run before

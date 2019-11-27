@@ -11,7 +11,8 @@ from modules.TensorflowCommon.gmm_objective import gmm_objective
 
 
 class TensorflowGMM(ITest):
-    '''Test class for GMM differentiation by Tensorflow.'''
+    '''Test class for GMM differentiation by Tensorflow using eager
+    execution.'''
 
     def prepare(self, input):
         '''Prepares calculating. This function must be run before
