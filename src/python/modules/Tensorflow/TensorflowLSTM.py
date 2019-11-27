@@ -11,7 +11,8 @@ from modules.TensorflowCommon.lstm_objective import lstm_objective
 
 
 class TensorflowLSTM(ITest):
-    '''Test class for LSTM diferentiation by Tensorflow.'''
+    '''Test class for LSTM diferentiation by Tensorflow using eager
+    execution.'''
 
     def prepare(self, input):
         '''Prepares calculating. This function must be run before any others.'''

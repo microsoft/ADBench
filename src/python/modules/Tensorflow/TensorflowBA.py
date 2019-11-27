@@ -12,7 +12,7 @@ from modules.TensorflowCommon.ba_objective import compute_reproj_err, compute_w_
 
 
 class TensorflowBA(ITest):
-    '''Test class for BA diferentiation by Tensorflow.'''
+    '''Test class for BA diferentiation by Tensorflow using eager execution.'''
 
     def prepare(self, input):
         '''Prepares calculating. This function must be run before
