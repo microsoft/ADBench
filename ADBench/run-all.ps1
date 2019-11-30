@@ -103,10 +103,10 @@ param(# Which build to test.
 
 # Sort array parameters define test sizes ascending
 function sort_size_parameters() {
-    $script:gmm_d_vals = $script:gmm_d_vals | sort
-    $script:gmm_k_vals = $script:gmm_k_vals | sort
-    $script:lstm_l_vals = $script:lstm_l_vals | sort
-    $script:lstm_c_vals = $script:lstm_c_vals | sort
+    $script:gmm_d_vals = $script:gmm_d_vals | Sort-Object
+    $script:gmm_k_vals = $script:gmm_k_vals | Sort-Object
+    $script:lstm_l_vals = $script:lstm_l_vals | Sort-Object
+    $script:lstm_c_vals = $script:lstm_c_vals | Sort-Object
 }
 
 # Assert function
