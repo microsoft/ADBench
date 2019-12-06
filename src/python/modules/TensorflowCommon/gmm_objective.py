@@ -36,7 +36,7 @@ def log_wishart_prior(p, wishart_gamma, wishart_m, sum_qs, Qdiags, icf):
         for ik in range(k)
     ])
     
-    C = n * p * (tf.math.log(wishart_gamma) - 0.5 * log2) - \
+    C = n * p * (math.log(wishart_gamma) - 0.5 * log2) - \
         log_gamma_distrib(0.5 * n, p)
 
     return out - k * C
@@ -80,7 +80,8 @@ def gmm_objective(alphas, means, icf, x, wishart_gamma, wishart_m):
     Qdiags = tf.stack([ (tf.exp(icf[ik, :d])) for ik in range(k) ])
     sum_qs = tf.stack([ (tf.reduce_sum(icf[ik, :d])) for ik in range(k) ])
 
-    Ls = tf.stack([ constructL(d, curr_icf) for curr_icf in icf ])
+    icf_sz = shape(icf)[0]
+    Ls = tf.stack([ constructL(d, icf[i]) for i in range(icf_sz) ])
     slse = tf.reduce_sum([
         logsumexp(lse)
         for lse in [
