@@ -138,10 +138,11 @@ def angle_axis_to_rotation_matrix(angle_axis):
 
         return R
 
-    if n < 0.0001:
-        return tf.eye(3, dtype=tf.float64)
-    else:
-        return aa2R()
+    return tf.cond(
+        n < 0.0001,
+        lambda: tf.eye(3, dtype = tf.float64),
+        aa2R
+    )
 
 
 
@@ -167,7 +168,7 @@ def get_skinned_vertex_positions(
     absolutes = relatives_to_absolutes(relatives, parents)
     transforms = tf.stack([
         (absolutes[i] @ inverse_base_absolutes[i])
-        for i in range(len(absolutes))
+        for i in range(shape(absolutes)[0])
     ])
 
     positions = tf.transpose(
@@ -212,8 +213,8 @@ def hand_objective(
     )
 
     err = tf.stack([
-        points[i] - vertex_positions[int(correspondences[i])]
-        for i in range(points.shape[0])
+        points[i] - vertex_positions[correspondences[i]]
+        for i in range(shape(points)[0])
     ])
 
     return err
@@ -254,7 +255,7 @@ def hand_objective_complicated(
             (1. - u[0] - u[1]) * vertex_positions[int(triangle[2])]
 
     err = tf.stack([
-        points[i] - get_hand_pt(us[i], triangles[int(correspondences[i])])
+        points[i] - get_hand_pt(us[i], triangles[correspondences[i]])
         for i in range(points.shape[0])
     ])
 
