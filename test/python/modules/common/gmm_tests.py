@@ -45,6 +45,10 @@ test_params = [
     {
         "path": os.path.join("Tensorflow", "TensorflowGMM.py"),
         "tolerance": 1e-8
+    },
+    {
+        "path": os.path.join("TensorflowGraph", "TensorflowGraphGMM.py"),
+        "tolerance": 1e-8
     }
 ]
 
