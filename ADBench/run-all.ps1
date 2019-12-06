@@ -484,7 +484,7 @@ Class Tool {
         Store-NonFatalError "Test didn't run due to guaranteed timeout`nObjective: $run_obj`nTest file name: $fn"
         $postfix = $this.get_out_name_postfix($run_obj)
         $time_file_name = $this.get_time_output_file_name($dir_out, $fn, $postfix)
-        create_timeout_file $time_file_name
+        create_timeout_file $time_file_name $script:timeout
 
         # this is made for the result consistency, because in case of timeout
         # correctness checking is performed
