@@ -4,18 +4,23 @@ from shared.defs import BA_NCAMPARAMS, ROT_IDX, C_IDX, F_IDX, X0_IDX, RAD_IDX
 
 
 def rodrigues_rotate_point(rot, X):
-    sqtheta = tf.reduce_sum(rot ** 2)
-    if sqtheta != 0.0:
+    def rotate():
         theta = tf.math.sqrt(sqtheta)
         costheta = tf.math.cos(theta)
         sintheta = tf.math.sin(theta)
+        
         w = rot / theta
         w_cross_X = tf.linalg.cross(w, X)
         tmp = tf.tensordot(w, X, 1) * (1.0 - costheta)
 
         return X * costheta + w_cross_X * sintheta + w * tmp
-    else:
-        return X + tf.linalg.cross(rot, X)
+
+    sqtheta = tf.reduce_sum(rot ** 2)
+    return tf.cond(
+        tf.not_equal(sqtheta, 0.0),
+        rotate,
+        lambda: X + tf.linalg.cross(rot, X)
+    )
 
 
 
