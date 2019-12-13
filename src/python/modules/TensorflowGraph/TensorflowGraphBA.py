@@ -32,147 +32,139 @@ class TensorflowGraphBA(ITest):
 
         self.prepare_operations()
 
-        self.reproj_error = np.zeros(2 * self.p, dtype = np.float64)
+        self.r_err = np.zeros(2 * self.p, dtype = np.float64)
         self.w_err = np.zeros(len(input.w))
         self.jacobian = BASparseMat(len(input.cams), len(input.x), self.p)
     
     def prepare_operations(self):
         '''Prepares computational graph for needed operations.'''
 
-        self.create_placeholders()
+        # creating holders for storing needed input for calculating a part of
+        # the BA objective and its derivative (the current camera, point,
+        # weight, and feat)
+        self.cam_holder = tf.compat.v1.placeholder(
+            dtype = tf.float64,
+            shape = self.cams[0].shape
+        )
+
+        self.x_holder = tf.compat.v1.placeholder(
+            dtype = tf.float64,
+            shape = self.x[0].shape
+        )
+
+        self.w_holder = tf.compat.v1.placeholder(
+            dtype = tf.float64,
+            shape = self.w[0].shape
+        )
+
+        self.feat_holder = tf.compat.v1.placeholder(
+            dtype = tf.float64,
+            shape = self.feats[0].shape
+        )
+
         self.create_operations()
-        self.create_feed_dict()
-
-    def create_placeholders(self):
-        '''Creates placeholders for inputs.'''
-
-        self.cam_holders = tuple(
-            tf.compat.v1.placeholder(dtype = tf.float64, shape = cam.shape)
-            for cam in self.cams
-        )
-
-        self.x_holders = tuple(
-            tf.compat.v1.placeholder(dtype = tf.float64, shape = x.shape)
-            for x in self.x
-        )
-
-        self.w_holders = tuple(
-            tf.compat.v1.placeholder(dtype = tf.float64, shape = w.shape)
-            for w in self.w
-        )
 
     def create_operations(self):
-        '''Creates operations for calculating the objective and its
+        '''Creates operations for calculating the part of the objective and its
         derivative.'''
 
-        r_err_operations = []
-        w_err_operations = []
-        self.r_err_grad_operations = []
-        self.w_err_grad_operations = []
-
         with tf.GradientTape(persistent = True) as grad_tape:
-            for i in range(self.p):
-                camIdx = self.obs[i, 0]
-                ptIdx = self.obs[i, 1]
+            grad_tape.watch(self.cam_holder)
+            grad_tape.watch(self.x_holder)
+            grad_tape.watch(self.w_holder)
 
-                grad_tape.watch(self.cam_holders[camIdx])
-                grad_tape.watch(self.x_holders[ptIdx])
-                grad_tape.watch(self.w_holders[i])
-
-                reproj_err = compute_reproj_err(
-                    self.cam_holders[camIdx],
-                    self.x_holders[ptIdx],
-                    self.w_holders[i],
-                    self.feats[i]
-                )
-
-                w_err = compute_w_err(self.w_holders[i])
-
-                r_err_operations.append(reproj_err)
-                w_err_operations.append(w_err)
-
-        for i in range(self.p):
-            camIdx = self.obs[i, 0]
-            ptIdx = self.obs[i, 1]
-            dc, dx, dw = grad_tape.jacobian(
-                r_err_operations[i],
-                (
-                    self.cam_holders[camIdx],
-                    self.x_holders[ptIdx],
-                    self.w_holders[i]
-                ),
-                experimental_use_pfor = False
+            self.w_err_operation = compute_w_err(self.w_holder)
+            self.r_err_operation = compute_reproj_err(
+                self.cam_holder,
+                self.x_holder,
+                self.w_holder,
+                self.feat_holder
             )
 
-            J = tf.concat(( dc, dx, tf.reshape(dw, [2, 1]) ), axis = 1)
-            self.r_err_grad_operations.append(flatten(J, column_major = True))
-
-            dw_err = grad_tape.gradient(
-                w_err_operations[i],
-                self.w_holders[i]
-            )
-
-            self.w_err_grad_operations.append(dw_err)
-
-        self.reproj_err_operations = tf.concat(r_err_operations, 0)
-        self.w_err_operations = tf.stack(w_err_operations, 0)
-
-    def create_feed_dict(self):
-        '''Creates feed dictionary for the session.'''
-
-        self.feed_dict = {
-            self.cam_holders[i]: self.cams[i]
-            for i in range(len(self.cams))
-        }
-
-        self.feed_dict.update(
-            (self.x_holders[i], self.x[i])
-            for i in range(len(self.x))
+        dc, dx, dw = grad_tape.jacobian(
+            self.r_err_operation,
+            (
+                self.cam_holder,
+                self.x_holder,
+                self.w_holder
+            ),
+            experimental_use_pfor = False
         )
 
-        self.feed_dict.update(
-            (self.w_holders[i], self.w[i])
-            for i in range(len(self.w))
+        self.r_err_grad_operation = flatten(
+            tf.concat(( dc, dx, tf.reshape(dw, [2, 1]) ), axis = 1),
+            column_major = True
+        )
+
+        self.w_err_grad_operation = grad_tape.gradient(
+            self.w_err_operation,
+            self.w_holder
         )
 
     def output(self):
         '''Returns calculation result.'''
 
-        return BAOutput(self.reproj_error, self.w_err, self.jacobian)
+        return BAOutput(self.r_err, self.w_err, self.jacobian)
+
+    def get_feed_dict(self, i):
+        '''Returns feed dictionary for the needed jacobian part calculation.'''
+
+        return {
+            self.cam_holder: self.cams[self.obs[i, 0]],
+            self.x_holder: self.x[self.obs[i, 1]],
+            self.w_holder: self.w[i],
+            self.feat_holder: self.feats[i]
+        }
 
     def calculate_objective(self, times):
         '''Calculates objective function many times.'''
 
         with tf.compat.v1.Session() as session:
             for _ in range(times):
-                self.reproj_error, self.w_err = session.run(
-                    (
-                        self.reproj_err_operations,
-                        self.w_err_operations
-                    ),
-                    feed_dict = self.feed_dict
+                # calculate reprojection and weight error part by part and
+                # then combine the parts together
+                result = tuple(
+                    session.run(
+                        (
+                            self.r_err_operation,
+                            self.w_err_operation
+                        ),
+                        feed_dict = self.get_feed_dict(i)
+                    )
+                    for i in range(self.p)
                 )
+
+                result = zip(*result)
+                self.r_err = np.concatenate(result.__next__(), 0)
+                self.w_err = np.stack(result.__next__(), 0)
 
     def calculate_jacobian(self, times):
         ''' Calculates objective function jacobian many times.'''
 
         with tf.compat.v1.Session() as session:
             for _ in range(times):
-                dr, dw = session.run(
-                    (
-                        self.r_err_grad_operations,
-                        self.w_err_grad_operations
-                    ),
-                    feed_dict = self.feed_dict
-                )
-
+                # calculate reprojection and weight error derivatives part by
+                # part. Note, that weight error should be added to the sparse
+                # matrix only after the last reprojection error jacobian part
+                # adding, otherwise the result will be wrong
+                dws = []
                 for i in range(self.p):
+                    dr, dw = session.run(
+                        (
+                            self.r_err_grad_operation,
+                            self.w_err_grad_operation
+                        ),
+                        feed_dict = self.get_feed_dict(i)
+                    )
+
                     self.jacobian.insert_reproj_err_block(
                         i,
                         self.obs[i, 0],
                         self.obs[i, 1],
-                        dr[i]
+                        dr
                     )
 
+                    dws.append(dw)
+
                 for i in range(self.p):
-                    self.jacobian.insert_w_err_block(i, dw[i])
+                    self.jacobian.insert_w_err_block(i, dws[i])
