@@ -34,7 +34,7 @@ class TensorflowHand(ITest):
                 to_tf_tensor(input.data.model.base_relatives),
                 to_tf_tensor(input.data.model.inverse_base_absolutes),
                 to_tf_tensor(input.data.model.base_positions),
-                to_tf_tensor(input.data.model.weights),
+                tf.transpose(to_tf_tensor(input.data.model.weights)),
                 input.data.model.is_mirrored,
                 to_tf_tensor(input.data.points),
                 to_tf_tensor(
@@ -54,7 +54,7 @@ class TensorflowHand(ITest):
                 to_tf_tensor(input.data.model.base_relatives),
                 to_tf_tensor(input.data.model.inverse_base_absolutes),
                 to_tf_tensor(input.data.model.base_positions),
-                to_tf_tensor(input.data.model.weights),
+                tf.transpose(to_tf_tensor(input.data.model.weights)),
                 input.data.model.is_mirrored,
                 to_tf_tensor(input.data.points),
                 to_tf_tensor(input.data.correspondences, dtype = tf.int32)
