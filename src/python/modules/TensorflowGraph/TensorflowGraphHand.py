@@ -21,45 +21,48 @@ class TensorflowGraphHand(ITest):
 
     def prepare(self, input):
         '''Prepares calculating. This function must be run before any others.'''
+        
+        self.graph = tf.compat.v1.Graph()
 
         self.complicated = len(input.us) > 0
         self.nrows = 3 * len(input.data.correspondences)
 
-        if self.complicated:
-            self.variables = np.append(input.us.flatten(), input.theta)
-            self.params = (
-                input.data.model.bone_count,
-                input.data.model.parents,
-                to_tf_tensor(input.data.model.base_relatives),
-                to_tf_tensor(input.data.model.inverse_base_absolutes),
-                to_tf_tensor(input.data.model.base_positions),
-                tf.transpose(to_tf_tensor(input.data.model.weights)),
-                input.data.model.is_mirrored,
-                to_tf_tensor(input.data.points),
-                input.data.correspondences,
-                input.data.model.triangles
-            )
+        with self.graph.as_default():
+            if self.complicated:
+                self.variables = np.append(input.us.flatten(), input.theta)
+                self.params = (
+                    input.data.model.bone_count,
+                    input.data.model.parents,
+                    to_tf_tensor(input.data.model.base_relatives),
+                    to_tf_tensor(input.data.model.inverse_base_absolutes),
+                    to_tf_tensor(input.data.model.base_positions),
+                    tf.transpose(to_tf_tensor(input.data.model.weights)),
+                    input.data.model.is_mirrored,
+                    to_tf_tensor(input.data.points),
+                    input.data.correspondences,
+                    input.data.model.triangles
+                )
 
-            self.objective_function = hand_objective_complicated
-            self.ncols = len(input.theta) + 2
-        else:
-            self.variables = input.theta
-            self.params = (
-                input.data.model.bone_count,
-                input.data.model.parents,
-                to_tf_tensor(input.data.model.base_relatives),
-                to_tf_tensor(input.data.model.inverse_base_absolutes),
-                to_tf_tensor(input.data.model.base_positions),
-                tf.transpose(to_tf_tensor(input.data.model.weights)),
-                input.data.model.is_mirrored,
-                to_tf_tensor(input.data.points),
-                input.data.correspondences
-            )
+                self.objective_function = hand_objective_complicated
+                self.ncols = len(input.theta) + 2
+            else:
+                self.variables = input.theta
+                self.params = (
+                    input.data.model.bone_count,
+                    input.data.model.parents,
+                    to_tf_tensor(input.data.model.base_relatives),
+                    to_tf_tensor(input.data.model.inverse_base_absolutes),
+                    to_tf_tensor(input.data.model.base_positions),
+                    tf.transpose(to_tf_tensor(input.data.model.weights)),
+                    input.data.model.is_mirrored,
+                    to_tf_tensor(input.data.points),
+                    input.data.correspondences
+                )
 
-            self.objective_function = hand_objective
-            self.ncols = len(input.theta)
+                self.objective_function = hand_objective
+                self.ncols = len(input.theta)
 
-        self.prepare_operations()
+            self.prepare_operations()
 
         self.objective = None
         self.jacobian = None
@@ -122,7 +125,7 @@ class TensorflowGraphHand(ITest):
     def calculate_objective(self, times):
         '''Calculates objective function many times.'''
 
-        with tf.compat.v1.Session() as session:
+        with tf.compat.v1.Session(graph = self.graph) as session:
             for _ in range(times):
                 self.objective = session.run(
                     self.objective_operation,
@@ -132,7 +135,7 @@ class TensorflowGraphHand(ITest):
     def calculate_jacobian(self, times):
         '''Calculates objective function jacobian many times.'''
 
-        with tf.compat.v1.Session() as session:
+        with tf.compat.v1.Session(graph = self.graph) as session:
             for _ in range(times):
                 self.jacobian = session.run(
                     self.jacobian_operation,
