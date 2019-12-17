@@ -21,12 +21,15 @@ class TensorflowGraphLSTM(ITest):
     def prepare(self, input):
         '''Prepares calculating. This function must be run before any others.'''
 
-        self.main_params = input.main_params
-        self.extra_params = input.extra_params
-        self.state = to_tf_tensor(input.state)
-        self.sequence = to_tf_tensor(input.sequence)
+        self.graph = tf.compat.v1.Graph()
 
-        self.prepare_operations()
+        with self.graph.as_default():
+            self.main_params = input.main_params
+            self.extra_params = input.extra_params
+            self.state = to_tf_tensor(input.state)
+            self.sequence = to_tf_tensor(input.sequence)
+
+            self.prepare_operations()
 
         self.gradient = np.zeros(0)
         self.objective = np.zeros(1)
@@ -75,7 +78,7 @@ class TensorflowGraphLSTM(ITest):
     def calculate_objective(self, times):
         '''Calculates objective function many times.'''
 
-        with tf.compat.v1.Session() as session:
+        with tf.compat.v1.Session(graph = self.graph) as session:
             for _ in range(times):
                 self.objective = session.run(
                     self.objective_operation,
@@ -85,7 +88,7 @@ class TensorflowGraphLSTM(ITest):
     def calculate_jacobian(self, times):
         '''Calculates objective function jacobian many times.'''
 
-        with tf.compat.v1.Session() as session:
+        with tf.compat.v1.Session(graph = self.graph) as session:
             for _ in range(times):
                 self.gradient = session.run(
                     self.gradient_operation,
