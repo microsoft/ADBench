@@ -166,26 +166,13 @@ def get_skinned_vertex_positions(
 ):
     relatives = get_posed_relatives(pose_params, base_relatives)
     absolutes = relatives_to_absolutes(relatives, parents)
-    transforms = tf.stack([
-        (absolutes[i] @ inverse_base_absolutes[i])
-        for i in range(shape(absolutes)[0])
-    ])
+    transforms = absolutes @ inverse_base_absolutes
 
-    positions = tf.transpose(
-        tf.transpose(
-            tf.stack([
-                transforms[i, :, :] @ tf.transpose(base_positions)
-                for i in range(transforms.shape[0])
-            ]),
-            perm = [2, 1, 0]
-        ),
-        perm = [0, 2, 1]
-    )
+    positions = base_positions @ tf.transpose(transforms, perm = [ 0, 2, 1 ])
+    positions = tf.reduce_sum(positions * tf.reshape(weights, (shape(weights) + [1])), 0)
+    positions = apply_global_transform(pose_params, positions[:, :3])
 
-    positions2 = tf.reduce_sum(positions * tf.reshape(weights, (shape(weights) + [1])), 1)[:, :3]
-    positions3 = apply_global_transform(pose_params, positions2)
-
-    return positions3
+    return positions
 
 
 
@@ -212,12 +199,7 @@ def hand_objective(
         mirror_factor
     )
 
-    err = tf.stack([
-        points[i] - vertex_positions[correspondences[i]]
-        for i in range(shape(points)[0])
-    ])
-
-    return err
+    return points - tf.gather(vertex_positions, correspondences)
 
 
 
@@ -248,15 +230,13 @@ def hand_objective_complicated(
         mirror_factor
     )
 
-    def get_hand_pt(u, triangle):
+    def get_hand_pt(us, triangles):
         return \
-            u[0] * vertex_positions[int(triangle[0])] + \
-            u[1] * vertex_positions[int(triangle[1])] + \
-            (1. - u[0] - u[1]) * vertex_positions[int(triangle[2])]
+            us[:, 0] * tf.gather(vertex_positions, triangles[:, 0]) + \
+            us[:, 1] * tf.gather(vertex_positions, triangles[:, 1]) + \
+            (1. - us[:, 0] - us[:, 1]) * tf.gather(vertex_positions, triangles[:, 2])
 
-    err = tf.stack([
-        points[i] - get_hand_pt(us[i], triangles[correspondences[i]])
-        for i in range(points.shape[0])
-    ])
+    us = tf.reshape(us, us.shape + [1])
+    err = points - get_hand_pt(us, tf.gather(triangles, correspondences))
 
     return err
