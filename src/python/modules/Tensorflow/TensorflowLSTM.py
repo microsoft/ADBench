@@ -6,7 +6,7 @@ import tensorflow as tf
 from modules.TensorflowCommon.utils import to_tf_tensor, flatten
 from shared.ITest import ITest
 from shared.LSTMData import LSTMInput, LSTMOutput
-from modules.TensorflowCommon.lstm_objective import lstm_objective
+from modules.Tensorflow.lstm_objective import lstm_objective
 
 
 

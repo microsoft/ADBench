@@ -10,7 +10,7 @@ disable_eager_execution()   # turn eager execution off
 from modules.TensorflowCommon.utils import to_tf_tensor, flatten
 from shared.ITest import ITest
 from shared.LSTMData import LSTMInput, LSTMOutput
-from modules.TensorflowCommon.lstm_objective import lstm_objective
+from modules.TensorflowGraph.lstm_objective import lstm_objective
 
 
 
@@ -64,6 +64,7 @@ class TensorflowGraphLSTM(ITest):
         )
         
         self.gradient_operation = tf.concat([ flatten(d) for d in J ], 0)
+        self.variables_init = tf.compat.v1.global_variables_initializer()
 
         self.feed_dict = {
             self.main_params_placeholder: self.main_params,
@@ -80,6 +81,7 @@ class TensorflowGraphLSTM(ITest):
 
         with tf.compat.v1.Session(graph = self.graph) as session:
             for _ in range(times):
+                session.run(self.variables_init)
                 self.objective = session.run(
                     self.objective_operation,
                     feed_dict = self.feed_dict
@@ -90,6 +92,7 @@ class TensorflowGraphLSTM(ITest):
 
         with tf.compat.v1.Session(graph = self.graph) as session:
             for _ in range(times):
+                session.run(self.variables_init)
                 self.gradient = session.run(
                     self.gradient_operation,
                     feed_dict = self.feed_dict
