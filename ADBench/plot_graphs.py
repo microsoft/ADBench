@@ -47,6 +47,7 @@ tool_styles = {
     # Python tools
     "PyTorch": ("g", "s", "Python, PyTorch"),
     "Tensorflow": ("r", "s", "Python, Tensorflow"),
+    "TensorflowGraph": ("purple", "s", "Python, Tensorflow (graph mode)"),
     "Autograd": ("c", "s", "Python, Autograd"),
     "Autograd_split": ("grey", "*", "Python, Autograd (Split)"),
 
