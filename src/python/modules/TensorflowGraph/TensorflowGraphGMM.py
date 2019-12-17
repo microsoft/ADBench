@@ -22,15 +22,18 @@ class TensorflowGraphGMM(ITest):
         '''Prepares calculating. This function must be run before
         any others.'''
 
+        self.graph = tf.compat.v1.Graph()
+
         self.alphas = input.alphas
         self.means = input.means
         self.icf = input.icf
 
-        self.x = to_tf_tensor(input.x)
-        self.wishart_gamma = input.wishart.gamma
-        self.wishart_m = input.wishart.m
+        with self.graph.as_default():
+            self.x = to_tf_tensor(input.x)
+            self.wishart_gamma = input.wishart.gamma
+            self.wishart_m = input.wishart.m
 
-        self.prepare_operations()
+            self.prepare_operations()
 
         self.objective = np.zeros(1)
         self.gradient = np.zeros(0)
@@ -92,7 +95,7 @@ class TensorflowGraphGMM(ITest):
     def calculate_objective(self, times):
         '''Calculates objective function many times.'''
 
-        with tf.compat.v1.Session() as session:
+        with tf.compat.v1.Session(graph = self.graph) as session:
             for _ in range(times):
                 self.objective = session.run(
                     self.objective_operation,
@@ -103,7 +106,7 @@ class TensorflowGraphGMM(ITest):
     def calculate_jacobian(self, times):
         '''Calculates objective function jacobian many times.'''
 
-        with tf.compat.v1.Session() as session:
+        with tf.compat.v1.Session(graph = self.graph) as session:
             for _ in range(times):
                 self.gradient = session.run(
                     self.gradient_operation,
