@@ -22,6 +22,7 @@ class TensorflowGraphBA(ITest):
     def prepare(self, input):
         '''Prepares calculating. This function must be run before any others.'''
 
+        self.graph = tf.compat.v1.Graph()
         self.p = len(input.obs)
 
         self.cams = input.cams
@@ -30,7 +31,8 @@ class TensorflowGraphBA(ITest):
         self.obs = input.obs
         self.feats = input.feats
 
-        self.prepare_operations()
+        with self.graph.as_default():
+            self.prepare_operations()
 
         self.r_err = np.zeros(2 * self.p, dtype = np.float64)
         self.w_err = np.zeros(len(input.w))
@@ -119,7 +121,7 @@ class TensorflowGraphBA(ITest):
     def calculate_objective(self, times):
         '''Calculates objective function many times.'''
 
-        with tf.compat.v1.Session() as session:
+        with tf.compat.v1.Session(graph = self.graph) as session:
             for _ in range(times):
                 # calculate reprojection and weight error part by part and
                 # then combine the parts together
@@ -141,7 +143,7 @@ class TensorflowGraphBA(ITest):
     def calculate_jacobian(self, times):
         ''' Calculates objective function jacobian many times.'''
 
-        with tf.compat.v1.Session() as session:
+        with tf.compat.v1.Session(graph = self.graph) as session:
             for _ in range(times):
                 # calculate reprojection and weight error derivatives part by
                 # part. Note, that weight error should be added to the sparse
