@@ -65,7 +65,6 @@ class TensorflowGraphLSTM(ITest):
         )
         
         self.gradient_operation = tf.concat([ flatten(d) for d in J ], 0)
-        self.variables_init = tf.compat.v1.global_variables_initializer()
 
         self.feed_dict = {
             self.main_params_placeholder: self.main_params,
@@ -81,7 +80,6 @@ class TensorflowGraphLSTM(ITest):
         '''Calculates objective function many times.'''
 
         for _ in range(times):
-            self.session.run(self.variables_init)
             self.objective = self.session.run(
                 self.objective_operation,
                 feed_dict = self.feed_dict
@@ -91,7 +89,6 @@ class TensorflowGraphLSTM(ITest):
         '''Calculates objective function jacobian many times.'''
 
         for _ in range(times):
-            self.session.run(self.variables_init)
             self.gradient = self.session.run(
                 self.gradient_operation,
                 feed_dict = self.feed_dict
