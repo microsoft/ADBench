@@ -22,7 +22,6 @@ class TensorflowGraphBA(ITest):
     def prepare(self, input):
         '''Prepares calculating. This function must be run before any others.'''
 
-        self.graph = tf.compat.v1.Graph()
         self.p = len(input.obs)
 
         self.cams = input.cams
@@ -31,8 +30,11 @@ class TensorflowGraphBA(ITest):
         self.obs = input.obs
         self.feats = input.feats
 
-        with self.graph.as_default():
+        graph = tf.compat.v1.Graph()
+        with graph.as_default():
             self.prepare_operations()
+
+        self.session = tf.compat.v1.Session(graph = graph)
 
         self.r_err = np.zeros(2 * self.p, dtype = np.float64)
         self.w_err = np.zeros(len(input.w))
@@ -121,52 +123,50 @@ class TensorflowGraphBA(ITest):
     def calculate_objective(self, times):
         '''Calculates objective function many times.'''
 
-        with tf.compat.v1.Session(graph = self.graph) as session:
-            for _ in range(times):
-                # calculate reprojection and weight error part by part and
-                # then combine the parts together
-                result = tuple(
-                    session.run(
-                        (
-                            self.r_err_operation,
-                            self.w_err_operation
-                        ),
-                        feed_dict = self.get_feed_dict(i)
-                    )
-                    for i in range(self.p)
+        for _ in range(times):
+            # calculate reprojection and weight error part by part and
+            # then combine the parts together
+            result = tuple(
+                self.session.run(
+                    (
+                        self.r_err_operation,
+                        self.w_err_operation
+                    ),
+                    feed_dict = self.get_feed_dict(i)
                 )
+                for i in range(self.p)
+            )
 
-                result = zip(*result)
-                self.r_err = np.concatenate(result.__next__(), 0)
-                self.w_err = np.stack(result.__next__(), 0)
+            result = zip(*result)
+            self.r_err = np.concatenate(result.__next__(), 0)
+            self.w_err = np.stack(result.__next__(), 0)
 
     def calculate_jacobian(self, times):
         ''' Calculates objective function jacobian many times.'''
 
-        with tf.compat.v1.Session(graph = self.graph) as session:
-            for _ in range(times):
-                # calculate reprojection and weight error derivatives part by
-                # part. Note, that weight error should be added to the sparse
-                # matrix only after the last reprojection error jacobian part
-                # adding, otherwise the result will be wrong
-                dws = []
-                for i in range(self.p):
-                    dr, dw = session.run(
-                        (
-                            self.r_err_grad_operation,
-                            self.w_err_grad_operation
-                        ),
-                        feed_dict = self.get_feed_dict(i)
-                    )
+        for _ in range(times):
+            # calculate reprojection and weight error derivatives part by
+            # part. Note, that weight error should be added to the sparse
+            # matrix only after the last reprojection error jacobian part
+            # adding, otherwise the result will be wrong
+            dws = []
+            for i in range(self.p):
+                dr, dw = self.session.run(
+                    (
+                        self.r_err_grad_operation,
+                        self.w_err_grad_operation
+                    ),
+                    feed_dict = self.get_feed_dict(i)
+                )
 
-                    self.jacobian.insert_reproj_err_block(
-                        i,
-                        self.obs[i, 0],
-                        self.obs[i, 1],
-                        dr
-                    )
+                self.jacobian.insert_reproj_err_block(
+                    i,
+                    self.obs[i, 0],
+                    self.obs[i, 1],
+                    dr
+                )
 
-                    dws.append(dw)
+                dws.append(dw)
 
-                for i in range(self.p):
-                    self.jacobian.insert_w_err_block(i, dws[i])
+            for i in range(self.p):
+                self.jacobian.insert_w_err_block(i, dws[i])
