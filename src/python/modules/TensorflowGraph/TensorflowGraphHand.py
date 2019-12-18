@@ -22,12 +22,11 @@ class TensorflowGraphHand(ITest):
     def prepare(self, input):
         '''Prepares calculating. This function must be run before any others.'''
         
-        self.graph = tf.compat.v1.Graph()
-
         self.complicated = len(input.us) > 0
         self.nrows = 3 * len(input.data.correspondences)
 
-        with self.graph.as_default():
+        graph = tf.compat.v1.Graph()
+        with graph.as_default():
             if self.complicated:
                 self.variables = np.append(input.us.flatten(), input.theta)
                 self.params = (
@@ -63,6 +62,8 @@ class TensorflowGraphHand(ITest):
                 self.ncols = len(input.theta)
 
             self.prepare_operations()
+
+        self.session = tf.compat.v1.Session(graph = graph)
 
         self.objective = None
         self.jacobian = None
@@ -125,19 +126,17 @@ class TensorflowGraphHand(ITest):
     def calculate_objective(self, times):
         '''Calculates objective function many times.'''
 
-        with tf.compat.v1.Session(graph = self.graph) as session:
-            for _ in range(times):
-                self.objective = session.run(
-                    self.objective_operation,
-                    feed_dict = self.feed_dict
-                )
+        for _ in range(times):
+            self.objective = self.session.run(
+                self.objective_operation,
+                feed_dict = self.feed_dict
+            )
 
     def calculate_jacobian(self, times):
         '''Calculates objective function jacobian many times.'''
 
-        with tf.compat.v1.Session(graph = self.graph) as session:
-            for _ in range(times):
-                self.jacobian = session.run(
-                    self.jacobian_operation,
-                    feed_dict = self.feed_dict
-                )
+        for _ in range(times):
+            self.jacobian = self.session.run(
+                self.jacobian_operation,
+                feed_dict = self.feed_dict
+            )
