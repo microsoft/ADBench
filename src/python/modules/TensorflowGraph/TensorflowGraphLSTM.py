@@ -31,6 +31,7 @@ class TensorflowGraphLSTM(ITest):
             self.prepare_operations()
 
         self.session = tf.compat.v1.Session(graph = graph)
+        self.first_running()
 
         self.gradient = np.zeros(0)
         self.objective = np.zeros(1)
@@ -70,6 +71,19 @@ class TensorflowGraphLSTM(ITest):
             self.main_params_placeholder: self.main_params,
             self.extra_params_placeholder: self.extra_params
         }
+
+    def first_running(self):
+        '''Performs the first session running.'''
+
+        self.session.run(
+            self.objective_operation,
+            feed_dict = self.feed_dict
+        )
+
+        self.session.run(
+            self.gradient_operation,
+            feed_dict = self.feed_dict
+        )
 
     def output(self):
         '''Returns calculation result.'''

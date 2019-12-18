@@ -64,6 +64,7 @@ class TensorflowGraphHand(ITest):
             self.prepare_operations()
 
         self.session = tf.compat.v1.Session(graph = graph)
+        self.first_running()
 
         self.objective = None
         self.jacobian = None
@@ -92,6 +93,19 @@ class TensorflowGraphHand(ITest):
         )
 
         self.feed_dict = { self.variables_holder: self.variables }
+
+    def first_running(self):
+        '''Performs the first session running.'''
+
+        self.session.run(
+            self.objective_operation,
+            feed_dict = self.feed_dict
+        )
+
+        self.session.run(
+            self.jacobian_operation,
+            feed_dict = self.feed_dict
+        )
 
     def output(self):
         '''Returns calculation result.'''

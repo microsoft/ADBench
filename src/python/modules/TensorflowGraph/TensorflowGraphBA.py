@@ -35,6 +35,7 @@ class TensorflowGraphBA(ITest):
             self.prepare_operations()
 
         self.session = tf.compat.v1.Session(graph = graph)
+        self.first_running()
 
         self.r_err = np.zeros(2 * self.p, dtype = np.float64)
         self.w_err = np.zeros(len(input.w))
@@ -103,6 +104,25 @@ class TensorflowGraphBA(ITest):
         self.w_err_grad_operation = grad_tape.gradient(
             self.w_err_operation,
             self.w_holder
+        )
+
+    def first_running(self):
+        '''Performs the first session running.'''
+
+        self.session.run(
+            (
+                self.w_err_operation,
+                self.r_err_operation
+            ),
+            feed_dict = self.get_feed_dict(0)
+        )
+
+        self.session.run(
+            (
+                self.w_err_grad_operation,
+                self.r_err_grad_operation
+            ),
+            feed_dict = self.get_feed_dict(0)
         )
 
     def output(self):
