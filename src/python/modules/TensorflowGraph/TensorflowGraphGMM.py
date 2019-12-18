@@ -35,7 +35,8 @@ class TensorflowGraphGMM(ITest):
             self.prepare_operations()
 
         self.session = tf.compat.v1.Session(graph = graph)
-        
+        self.first_running()
+
         self.objective = np.zeros(1)
         self.gradient = np.zeros(0)
 
@@ -87,6 +88,19 @@ class TensorflowGraphGMM(ITest):
             self.means_placeholder: self.means,
             self.icf_placeholder: self.icf
         }
+
+    def first_running(self):
+        '''Performs the first session running.'''
+
+        self.session.run(
+            self.objective_operation,
+            feed_dict = self.feed_dict
+        )
+
+        self.session.run(
+            self.gradient_operation,
+            feed_dict = self.feed_dict
+        )
 
     def output(self):
         '''Returns calculation result.'''
