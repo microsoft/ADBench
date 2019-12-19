@@ -6,8 +6,7 @@
     "recommendations": [
         "ms-vscode.cpptools",                   // C/C++ language support
         "twxs.cmake",                           // CMake language support
-        "vector-of-bool.cmake-tools",           // configure + build workflow for CMake-based projects
-        "maddouri.cmake-tools-helper",          // interop between ms-vscode.cpptools & vector-of-bool.cmake-tools
+        "ms-vscode.cmake-tools",                // configure + build workflow for CMake-based projects
         "hbenl.vscode-test-explorer",           // Test Explorer UI
         "matepek.vscode-catch2-test-adapter",   // Google Test adapter
         "austin.code-gnu-global",               // C++ Intellisense
