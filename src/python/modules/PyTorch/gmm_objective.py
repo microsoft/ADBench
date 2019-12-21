@@ -58,7 +58,7 @@ def constructL(d, icf):
 
 def Qtimesx(Qdiag, L, x):
 
-    f = torch.einsum('rbq,prq->prb', L, x)
+    f = torch.einsum('ijk,mik->mij', L, x)
     return Qdiag * x + f
 
 
