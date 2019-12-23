@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 import os
 import sys
 sys.path.append(sys.path[0] + ("/" if sys.path[0] else None) + "..")

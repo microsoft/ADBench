@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 // ManualHand.h - Contains declarations of GMM tester functions
 #pragma once
 

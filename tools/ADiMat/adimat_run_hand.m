@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function [J, fval] = adimat_run_hand(do_F_mode, params, data, us)
 
 if ~do_F_mode

@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function save_ba_instance( fn, cams, X, w, obs, n, m, p )
 %SAVE_BA_INSTANCE format:
 %           n m p

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 #include "Filepaths.h"
 
 std::string::size_type find_last_slash(const std::string& filepath)

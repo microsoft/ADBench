@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function out = is_up_to_date(results_fn,tool_fn)
 
 if ~exist(results_fn,'file')

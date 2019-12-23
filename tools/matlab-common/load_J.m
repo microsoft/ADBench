@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function [ J ] = load_J( fn )
 %LOAD_J Summary of this function goes here
 %   Detailed explanation goes here

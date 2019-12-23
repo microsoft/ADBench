@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function [times_f, times_J] = ...
     adimat_run_gmm_tests(do_adimat_vector,params,data_dir,task_fns,...
     nruns_f,nruns_J,J_file,times_file,replicate_point)

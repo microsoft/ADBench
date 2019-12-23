@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function [cams, X, w, obs] = load_ba_instance( fn )
 %LOAD_BA_INSTANCE format:
 %           n m p

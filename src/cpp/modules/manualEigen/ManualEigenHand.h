@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 // ManualEigenHand.h - Contains declarations of tester functions
 #pragma once
 

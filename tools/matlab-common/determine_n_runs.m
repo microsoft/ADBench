@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function nruns = determine_n_runs(times_est)
 
 nruns = zeros(size(times_est));

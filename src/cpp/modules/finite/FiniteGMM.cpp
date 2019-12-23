@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 // FiniteGMM.cpp : Defines the exported functions for the DLL.
 #include "FiniteGMM.h"
 #include "../../shared/gmm.h"

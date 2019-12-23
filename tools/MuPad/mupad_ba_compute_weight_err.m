@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function err = mupad_ba_compute_weight_err(w, data)
 
 if nargin == 0

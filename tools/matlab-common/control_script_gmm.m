@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 %% set paths and get tools struct array
 root_dir = 'C:/Users/Filip/Dropbox/MSR/autodiff/';
 exe_dir = [root_dir 'Release/gmm/'];

@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 function write_J(fn,J)
   println("Writing to $(fn)")
   fid = open(fn,"w")

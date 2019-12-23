@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 #Pkg.add("ReverseDiffSource")
 #Pkg.update()
 #Pkg.checkout("ReverseDiffSource","devl")

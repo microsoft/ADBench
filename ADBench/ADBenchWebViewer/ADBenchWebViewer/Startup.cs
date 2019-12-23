@@ -1,4 +1,7 @@
-﻿using ADBenchWebViewer.Controllers;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using ADBenchWebViewer.Controllers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;

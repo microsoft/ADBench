@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function err = mupad_ba_compute_reproj_err(params, data)
 
 if nargin == 0

@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 module Benchmark
 include("load.jl")
 include("../shared/load.jl")

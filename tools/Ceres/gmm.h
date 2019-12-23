@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 // This is the same version as for ADOLC but
 // constants are casted to T before using with Ts
 #pragma once

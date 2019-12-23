@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 #include "TapenadeBA.h"
 
 // This function must be called before any other function.

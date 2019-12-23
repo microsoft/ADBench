@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function [J, fval] = adimat_run_ba(do_F_mode,...
     cams,X,w,obs)
 %adimat_run_ba Call already translated function 

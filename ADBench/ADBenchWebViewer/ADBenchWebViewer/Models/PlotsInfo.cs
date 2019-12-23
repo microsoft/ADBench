@@ -1,4 +1,7 @@
-﻿namespace ADBenchWebViewer.Models
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+namespace ADBenchWebViewer.Models
 {
     /// <summary>
     /// Contatins information about single plot of the run.

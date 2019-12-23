@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 // ManualLSTM.cpp : Defines the exported functions for the DLL.
 #include "ManualLSTM.h"
 #include "../../shared/lstm.h"

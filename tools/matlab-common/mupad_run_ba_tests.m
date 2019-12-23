@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function [times_f, times_J] = ...
     mupad_run_ba_tests(params,data_dir,task_fns,...
     nruns_f,nruns_J,out_file)

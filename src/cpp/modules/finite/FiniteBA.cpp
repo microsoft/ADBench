@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 // FiniteBA.cpp : Defines the exported functions for the DLL.
 #include "FiniteBA.h"
 #include "../../shared/ba.h"

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 #include "lstm_d.h"
 #include "lstm_d_structures.h"
 #include "../../shared/lstm.h"

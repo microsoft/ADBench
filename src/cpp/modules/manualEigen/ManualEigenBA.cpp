@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 // ManualEigenBA.cpp : Defines the exported functions for the DLL.
 #include "ManualEigenBA.h"
 #include "../../shared/ba_eigen.h"

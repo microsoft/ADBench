@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function tools = get_tools_gmm(exe_dir,python_dir,julia_dir)
 % call_type:
 %   0 standard - tools(id).run_cmd

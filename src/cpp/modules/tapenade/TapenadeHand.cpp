@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 #include "TapenadeHand.h"
 
 void TapenadeHand::prepare(HandInput&& input)

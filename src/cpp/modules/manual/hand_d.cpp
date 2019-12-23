@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 /*
  * Manual differentiation of the hand tracking problem.
  * Adapted from the Eigen-based version.

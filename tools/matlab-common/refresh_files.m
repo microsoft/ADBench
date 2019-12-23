@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function refresh_files(data_dir,tool,fns)
 
 ntasks = numel(fns);

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 // FiniteLSTM.cpp : Defines the exported functions for the DLL.
 #include "FiniteLSTM.h"
 #include "../../shared/lstm.h"

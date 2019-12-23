@@ -1,4 +1,7 @@
-﻿using ADBenchWebViewer.Models;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using ADBenchWebViewer.Models;
 using System.Collections.Generic;
 
 namespace ADBenchWebViewer.Controllers

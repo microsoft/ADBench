@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function [tf, tJ] = ...
     ADiMat_ba(dir_in, dir_out, fn, nruns_f, nruns_J, time_limit, do_adimat_sparse)
 %adimat_ba

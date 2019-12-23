@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 #Pkg.add("ForwardDiff")
 #Pkg.add("SpecialFunctions")
 #Pkg.update()

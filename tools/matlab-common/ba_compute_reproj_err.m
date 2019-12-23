@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function err = ba_compute_reproj_err(cam,X,w,feat)
 
 i_rot = 1:3;
