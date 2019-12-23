@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 using DotnetRunner;
 using DotnetRunner.Data;
 using System.Collections.Generic;

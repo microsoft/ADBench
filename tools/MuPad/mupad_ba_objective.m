@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function [compressedJ,reproj_err,w_err] = ...
     mupad_ba_objective(cams, X, w, obs,do_jac)
 %         CAMERAS c x n 

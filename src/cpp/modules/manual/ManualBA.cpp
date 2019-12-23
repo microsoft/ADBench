@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 // ManualBA.cpp : Defines the exported functions for the DLL.
 #include "ManualBA.h"
 #include "../../shared/ba.h"

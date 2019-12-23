@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function [cams,X,w,obs] = generate_random_ba_instance(n,m,p)
 %GENERATE_RANDOM_BA_INSTANCE
 %         N is the number of cameras

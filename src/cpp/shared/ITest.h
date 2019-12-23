@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 #pragma once 
 
 #if defined _WIN32 || defined __CYGWIN__

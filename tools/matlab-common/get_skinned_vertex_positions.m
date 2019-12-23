@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function positions = get_skinned_vertex_positions(model, pose_params)
 relatives = get_posed_relatives(model, pose_params);
 

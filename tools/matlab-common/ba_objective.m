@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function [reproj_err, w_error] = ba_objective( cams, X, w, obs )
 %BA_OBJECTIVE Bundle adjustment objective function
 %         CAMERAS c x n 

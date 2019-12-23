@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 using ForwardDiff
 using Printf
 using LinearAlgebra

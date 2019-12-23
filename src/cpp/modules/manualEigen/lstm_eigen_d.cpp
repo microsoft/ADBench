@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 #include "lstm_eigen_d.h"
 #include "lstm_eigen_d_structures.h"
 #include "../../shared/lstm_eigen.h"

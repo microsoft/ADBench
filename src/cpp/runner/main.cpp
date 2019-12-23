@@ -1,4 +1,7 @@
-﻿#include <iostream>
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+#include <iostream>
 #include <string>
 #include <cctype>
 

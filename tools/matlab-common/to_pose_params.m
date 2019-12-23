@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function pose_params = to_pose_params(theta,n_bones)
 % to_pose_params !!!!!!!!!!!!!!! fixed order pose_params !!!!!
 %       1) global_rotation 2) scale 3) global_translation

@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 module TestUtils
 include("../../../../src/julia/shared/load.jl")
 include("../../../../src/julia/runner/load.jl")

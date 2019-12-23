@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 module LSTMData
 
 export LSTMInput, LSTMOutput, empty_lstm_output, load_lstm_input

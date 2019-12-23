@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function err = mupad_hand_objective(params, data)
 %HAND_OBJECTIVE 
 

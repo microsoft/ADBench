@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function P = create_nonzero_pattern_hand(data)
 
 weights = data.model.weights;

@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function err = example_gmm_objective(params, data, get_lse_offset)
 % EXAMPLE_GMM_OBJECTIVE  Evaluate GMM negative log likelihood for one point
 %         First argument PARAMS stores GMM

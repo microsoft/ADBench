@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function err = gmm_objective(alphas,means,inv_cov_factors,x,hparams)
 % GMM_OBJECTIVE  Evaluate GMM negative log likelihood for one point
 %             ALPHAS 

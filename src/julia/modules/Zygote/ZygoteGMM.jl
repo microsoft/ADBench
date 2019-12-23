@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 module ZygoteGMM
 include("../../shared/load.jl")
 using ADPerfTest

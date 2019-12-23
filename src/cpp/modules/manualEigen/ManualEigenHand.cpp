@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 // ManualEigenHand.cpp : Defines the exported functions for the DLL.
 #include "ManualEigenHand.h"
 #include "../../shared/hand_eigen.h"

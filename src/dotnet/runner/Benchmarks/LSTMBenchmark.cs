@@ -1,4 +1,7 @@
-﻿using DotnetRunner.Data;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using DotnetRunner.Data;
 
 namespace DotnetRunner.Benchmarks
 {

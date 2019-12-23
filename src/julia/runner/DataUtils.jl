@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 module DataUtils
 include("../shared/load.jl")
 using GMMData

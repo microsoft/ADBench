@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 %% startup
 addpath('adimat-0.6.0-4971');
 start_adimat

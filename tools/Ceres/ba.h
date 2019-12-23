@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 #ifndef TEST_CERES_BA
 #define TEST_CERES_BA
 

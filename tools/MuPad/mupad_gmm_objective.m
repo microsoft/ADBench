@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function [ J, err ] = mupad_gmm_objective( nruns, params,...
     x,hparams,do_jacobian)
 %mupad_gmm_objective Use mexed files

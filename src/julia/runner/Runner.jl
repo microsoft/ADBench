@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 module Runner
 include("load.jl")
 include("../shared/load.jl")

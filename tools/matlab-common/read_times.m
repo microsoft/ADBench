@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function [times_f,times_J,up_to_date_mask] = ...
     read_times(data_dir,data_dir_est,fns,tools,problem_name)
 

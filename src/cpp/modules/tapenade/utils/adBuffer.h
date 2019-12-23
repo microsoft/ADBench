@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 // Added from Tapenade AdFirstAidKit (PUSH/POP) (see https://www-sop.inria.fr/tropics/tapenade.html)
 // Some changes in header files are performed to let a compiler to link C code with C++ one.
 

@@ -1,4 +1,7 @@
-﻿import math
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+import math
 from scipy import special as scipy_special
 import torch
 

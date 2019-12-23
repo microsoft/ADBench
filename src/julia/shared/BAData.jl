@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 module BAData
 
 export BAInput, BASparseMatrix, BAOutput, insert_reproj_err_block!, insert_w_err_block!, empty_ba_output, load_ba_input,

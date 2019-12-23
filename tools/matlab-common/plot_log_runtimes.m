@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function plot_log_runtimes( tools, times, xvals, title_, ylabel_,xlabel_)
 
 lw = 2;

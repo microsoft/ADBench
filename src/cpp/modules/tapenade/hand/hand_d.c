@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 /*
  *   This file is a repaired version of the file "hand_d_tapenade_generated.c"
  *   Fixing list (all fixings are marked by the comment TFIX):

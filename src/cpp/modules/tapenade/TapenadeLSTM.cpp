@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 #include "TapenadeLSTM.h"
 
 void TapenadeLSTM::prepare(LSTMInput&& input)

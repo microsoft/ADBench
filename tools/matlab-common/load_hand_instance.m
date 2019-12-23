@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function [params, data, us] = load_hand_instance(model_dir,fn)
 
 bones_fn = fullfile(model_dir,'bones.txt');

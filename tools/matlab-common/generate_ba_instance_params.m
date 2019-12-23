@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function params_final = generate_ba_instance_params
 % generate_ba_instance_params:
 %       assuming 11 camera parameters and zach robustifier

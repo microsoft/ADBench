@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 // Added from Tapenade AdFirstAidKit (PUSH/POP) (see https://www-sop.inria.fr/tropics/tapenade.html)
 
 #include <stdlib.h>

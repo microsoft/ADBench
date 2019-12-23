@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function save_gmm_instance(fn, params, x, hparams, n)
 %SAVE_GMM_INSTANCE 
 %       format:

@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function write_script(script_fn,params,dir_in,dir_out,...
     fns,tools,nruns_f,nruns_J,replicate_point)
 

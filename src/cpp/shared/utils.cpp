@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 #include "utils.h"
 
 #pragma warning (disable : 4996) // fopen

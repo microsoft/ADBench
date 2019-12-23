@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function [times_f, times_J, times_sparse] = ...
     adimat_run_tests(problem_name,do_adimat_sparse,data_dir,task_fns,...
     nruns_f,nruns_J,times_file)

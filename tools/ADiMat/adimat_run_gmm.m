@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function [J, fval] = adimat_run_gmm(do_F_mode,do_adimat_vector,...
     alphas,means,inv_cov_factors,x,hparams)
 %adimat_run_gmm Call already translated function 

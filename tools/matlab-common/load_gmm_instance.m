@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function [params, x, hparams] = load_gmm_instance( fn, replicate_point )
 %LOAD_GMM_INSTANCE 
 %       format:

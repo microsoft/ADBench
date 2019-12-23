@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 #include "ModuleLoader.h"
 
 FUNCTION_PTR ModuleLoader::load_function(const std::string& symbol_name) const

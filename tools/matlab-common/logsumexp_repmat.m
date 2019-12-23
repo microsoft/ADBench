@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function out = logsumexp_repmat(x)
 % LOGSUMEXP  Compute log(sum(exp(x))) stably.
 %               X is k x n

@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 module MockGMM
 
 include("../../../src/julia/shared/load.jl")

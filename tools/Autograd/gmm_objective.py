@@ -1,4 +1,7 @@
-﻿import sys
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+import sys
 import time as t
 
 from scipy import special as scipy_special

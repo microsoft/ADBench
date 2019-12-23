@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function err = hand_objective_complicated(theta, us, data)
 %HAND_OBJECTIVE 
 

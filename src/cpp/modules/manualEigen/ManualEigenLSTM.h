@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 // ManualEigenLSTM.h - Contains declarations of LSTM tester functions
 #pragma once
 

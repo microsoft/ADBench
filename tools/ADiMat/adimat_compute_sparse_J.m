@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function [Jacobian, fval] = adimat_compute_sparse_J(diffFunction, funcArgs,...
     fNargout, independents, nzpattern, coloring, compressedSeedMatrix)
 

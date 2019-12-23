@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function [tf, tJ] = ...
     ADiMat_gmm(dir_in, dir_out, fn, nruns_f, nruns_J, time_limit, replicate_point,do_adimat_vector)
 %adimat_run_gmm_tests

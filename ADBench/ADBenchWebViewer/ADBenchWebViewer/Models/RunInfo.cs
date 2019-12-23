@@ -1,4 +1,7 @@
-﻿using Microsoft.Azure.Storage.Blob;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+using Microsoft.Azure.Storage.Blob;
 
 namespace ADBenchWebViewer.Models
 {

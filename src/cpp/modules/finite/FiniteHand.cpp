@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 // FiniteHand.cpp : Defines the exported functions for the DLL.
 #include "FiniteHand.h"
 

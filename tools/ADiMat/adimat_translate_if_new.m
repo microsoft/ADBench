@@ -1,3 +1,6 @@
+% Copyright (c) Microsoft Corporation.
+% Licensed under the MIT license.
+
 function adimat_translate_if_new(func,independents,do_forward_mode)
 
 addpath('../../submodules/adimat-0.6.2-5288');

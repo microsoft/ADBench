@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 #line 2 "au_autodiff_generate_template.cpp"
 #include <math.h>
 
