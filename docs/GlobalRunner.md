@@ -29,7 +29,7 @@ Timeouts, out of memory, missing output files, and failed comparisons to the gol
 Run from PowerShell command prompt. Syntax:
 
 ```powershell
-    ./run-all.ps1 [[-buildtype] <String>] [[-minimum_measurable_time] <Double>] [[-nruns_f] <Int32>] [[-nruns_J] <Int32>] [[-time_limit] <Double>] [[-timeout] <Double>] [[-max_memory_amount] <Double>] [[-tmpdir] <String>] [-repeat] [-repeat_failures] [[-tools] <String[]>] [-keep_correct_jacobians] [[-gmm_d_vals_param] <Int32[]>] [[-gmm_k_vals_param] <Int32[]>] [[-gmm_sizes] <String[]>] [[-hand_sizes] <String[]>] [[-ba_min_n] <Int32>] [[-ba_max_n] <Int32>] [[-hand_min_n] <Int32>] [[-hand_max_n] <Int32>] [[-lstm_l_vals] <Int32[]>] [[-lstm_c_vals] <Int32[]>]
+    ./run-all.ps1 [[-buildtype] <String>] [[-minimum_measurable_time] <Double>] [[-nruns_f] <Int32>] [[-nruns_J] <Int32>] [[-time_limit] <Double>] [[-timeout] <Double>] [[-max_memory_amount_in_gb] <Double>] [[-tmpdir] <String>] [-repeat] [-repeat_failures] [[-tools] <String[]>] [-keep_correct_jacobians] [[-gmm_d_vals_param] <Int32[]>] [[-gmm_k_vals_param] <Int32[]>] [[-gmm_sizes] <String[]>] [[-hand_sizes] <String[]>] [[-ba_min_n] <Int32>] [[-ba_max_n] <Int32>] [[-hand_min_n] <Int32>] [[-hand_max_n] <Int32>] [[-lstm_l_vals] <Int32[]>] [[-lstm_c_vals] <Int32[]>]
 ```    
 
 Parameters:
@@ -58,7 +58,7 @@ Parameters:
 
     Kill the test after this many seconds.
 
-- `-max_memory_amount <Double>`
+- `-max_memory_amount_in_gb <Double>`
 
     Kill the test if it consumes more than this amount of gigabytes of RAM.
     

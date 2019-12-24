@@ -54,7 +54,7 @@ param(# Which build to test.
       [double]$timeout=300,
 
       # Kill the test if it consumes more than this many gigabytes of RAM
-      [double]$max_memory_amount=8,
+      [double]$max_memory_amount_in_gb=8,
       
       # Where to store the ouput, defaults to tmp/ in the project root 
       [string]$tmpdir="",
@@ -259,7 +259,7 @@ if ($gmm_k_vals_param) { $gmm_k_vals = $gmm_k_vals_param }
 sort_size_parameters
 
 # convert max memory amount parameter info to bytes
-$max_memory_amount_in_bytes = $max_memory_amount * 1024 * 1024 * 1024
+$max_memory_amount_in_bytes = $max_memory_amount_in_gb * 1024 * 1024 * 1024
 
 # Set tmpdir default
 if (!$tmpdir) { $tmpdir = "$dir/tmp" }
