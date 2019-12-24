@@ -206,8 +206,9 @@ function run_command ($indent, $outfile, $timeout, $cmd) {
                 break
             } elseif ($mem -ge $max_memory_amount_in_bytes) {
                 $Process.Kill()
-                Write-Host "${indent}Killed due to consuming $mem bytes of operating memory"
-                Store-NonFatalError "Process killed due to consuming $mem bytes of operating memory`n[$cmd $args]"
+                $mem = [math]::round($mem / (1024 * 1024 * 1024), 2)
+                Write-Host "${indent}Killed due to consuming $mem GB of operating memory"
+                Store-NonFatalError "Process killed due to consuming $mem GB of operating memory`n[$cmd $args]"
                 
                 $status = [RunCommandStatus]::OutOfMemory
                 break
