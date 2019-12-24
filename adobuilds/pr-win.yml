@@ -21,6 +21,14 @@ jobs:
         architecture: x64
 
     - script: |
+        python -m pip install --upgrade pip
+      displayName: Upgrade pip
+
+    - script: |
+        python -m pip install pip setuptools>=41.0.0
+      displayName: Install setuptools
+
+    - script: |
         choco install --limit-output julia
       displayName: Install Julia
 
