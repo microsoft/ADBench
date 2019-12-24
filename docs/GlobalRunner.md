@@ -60,7 +60,7 @@ Parameters:
 
 - `-max_memory_amount_in_gb <Double>`
 
-    Kill the test if it consumes more than this amount of gigabytes of RAM. Parameter value less or equal to zero, then RAM checking isn't performed.
+    Kill the test if it consumes more than this amount of gigabytes of RAM. If parameter value less or equal to zero, then RAM checking isn't performed.
     
 - `-tmpdir <String>`
 
