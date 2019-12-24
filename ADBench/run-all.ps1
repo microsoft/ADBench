@@ -165,6 +165,8 @@ enum RunCommandStatus { Finished; Timeout; OutOfMemory }
 function run_command ($indent, $outfile, $timeout, $cmd) {
     write-host "Run [$cmd $args]"
 
+    $status = [RunCommandStatus]::Finished
+
     $ProcessInfo = New-Object System.Diagnostics.ProcessStartInfo
     $ProcessInfo.FileName = $cmd
     $ProcessInfo.RedirectStandardError = $true
@@ -199,12 +201,16 @@ function run_command ($indent, $outfile, $timeout, $cmd) {
                 Write-Host "${indent}Killed after $timeout seconds"
                 Store-NonFatalError "Process killed after $timeout seconds`n[$cmd $args]"
                 create_timeout_file $outfile $timeout
-                return [RunCommandStatus]::Timeout
+
+                $status = [RunCommandStatus]::Timeout
+                break
             } elseif ($mem -ge $max_memory_amount_in_bytes) {
                 $Process.Kill()
                 Write-Host "${indent}Killed due to consuming $mem bytes of operating memory"
                 Store-NonFatalError "Process killed due to consuming $mem bytes of operating memory`n[$cmd $args]"
-                return [RunCommandStatus]::OutOfMemory
+                
+                $status = [RunCommandStatus]::OutOfMemory
+                break
             }
         }
     }
@@ -214,7 +220,7 @@ function run_command ($indent, $outfile, $timeout, $cmd) {
     $allOutput = "${indent}stdout> " + $stdout + "`n${indent}stderr> " + $stderr
     Write-Host "$allOutput"
 
-    return [RunCommandStatus]::Finished
+    return $status
 }
 
 # Create result time file with timeout content
