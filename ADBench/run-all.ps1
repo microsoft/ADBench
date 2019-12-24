@@ -53,8 +53,9 @@ param(# Which build to test.
       # Kill the test after this many seconds 
       [double]$timeout=300,
 
-      # Kill the test if it consumes more than this many gigabytes of RAM
-      [double]$max_memory_amount_in_gb=8,
+      # Kill the test if it consumes more than this many gigabytes of RAM.
+      # If parameter value is less or equal to zero, RAM checking isn't performed.
+      [double]$max_memory_amount_in_gb=-1,
       
       # Where to store the ouput, defaults to tmp/ in the project root 
       [string]$tmpdir="",
@@ -204,7 +205,7 @@ function run_command ($indent, $outfile, $timeout, $cmd) {
 
                 $status = [RunCommandStatus]::Timeout
                 break
-            } elseif ($mem -ge $max_memory_amount_in_bytes) {
+            } elseif (($max_memory_amount_in_gb -gt 0) -and ($mem -ge $max_memory_amount_in_bytes)) {
                 $Process.Kill()
                 $mem = [math]::round($mem / (1024 * 1024 * 1024), 2)
                 Write-Host "${indent}Killed due to consuming $mem GB of operating memory"
@@ -265,7 +266,7 @@ if ($gmm_k_vals_param) { $gmm_k_vals = $gmm_k_vals_param }
 # define test sizes, to be sorted ascending
 sort_size_parameters
 
-# convert max memory amount parameter info to bytes
+# convert max memory amount parameter to bytes
 $max_memory_amount_in_bytes = $max_memory_amount_in_gb * 1024 * 1024 * 1024
 
 # Set tmpdir default

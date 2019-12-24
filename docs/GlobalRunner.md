@@ -18,7 +18,7 @@ Unless excluded, `run-all.ps1` will run benchmarks on the `Manual` module first 
 
 For every specified _testing module_ `run-all.ps1` will run every specified benchmark that this module supports. So, e.g. if BA benchmarks were requested, but some of the requested modules don't support BA, then BA benchmarks won't be run on these modules and such behavior won't be considered an error.
 
-The script will run benchmarks on _testing modules_ using the corresponding [_benchmark runners_](./Architecture.md#benchmark-runners). It will enforce the hard timeout (default - 5 minutes, overridable in the corresponding argument) and RAM consuming control (default - 8 gigabytes are available for the test, overridable in the corresponding argument) by terminating the runner processes as necessary. It will check that the runner produces a file with timings and a file with the result Jacobian. Then it will compare the result Jacobian to the golden one and output the result of the comparison in JSON format. Unless overridden in the corresponding argument, `run-all.ps1` will delete files with Jacobians it considered correct during comparison.
+The script will run benchmarks on _testing modules_ using the corresponding [_benchmark runners_](./Architecture.md#benchmark-runners). It will enforce the hard timeout (default - 5 minutes, overridable in the corresponding argument) and RAM consuming control (doesn't perform by default, overridable in the corresponding argument) by terminating the runner processes as necessary. It will check that the runner produces a file with timings and a file with the result Jacobian. Then it will compare the result Jacobian to the golden one and output the result of the comparison in JSON format. Unless overridden in the corresponding argument, `run-all.ps1` will delete files with Jacobians it considered correct during comparison.
 
 The script checks guaranteed timeouts. This means that the benchmark for the bigger test will not be run if the run test for the smaller size finishes with timeout. Thus, a GMM objective test will not be run in any case where the `d` and `K` values are both greater than or equal to the `d` and `K` values of a previously timed-out test (of the same count of points). For LSTM such a timeout checking is the same (but for `l` and `c` instead of `d` and `K` respectively). BA and Hand tests with the bigger order number will not be run if any test with the less number is terminated due to timeout. So, for them tests are expected to be sorted respective their sizes. Guaranted out of memory checking, that is also performed by the script, has the same scenario.
 
@@ -60,7 +60,7 @@ Parameters:
 
 - `-max_memory_amount_in_gb <Double>`
 
-    Kill the test if it consumes more than this amount of gigabytes of RAM.
+    Kill the test if it consumes more than this amount of gigabytes of RAM. Parameter value less or equal to zero, then RAM checking isn't performed.
     
 - `-tmpdir <String>`
 
