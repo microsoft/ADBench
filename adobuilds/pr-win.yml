@@ -15,6 +15,7 @@ jobs:
 
   steps:
     - task: UsePythonVersion@0
+      name: UsePython
       inputs:
         versionSpec: 3.7
         addToPath: true
@@ -40,7 +41,7 @@ jobs:
     - task: CMake@1
       inputs:
         workingDirectory: '$(Build.SourcesDirectory)/build'
-        cmakeArgs: '-DCMAKE_BUILD_TYPE=release ..'
+        cmakeArgs: '-DPython3_EXECUTABLE=$(UsePython.pythonLocation)/python.exe -DCMAKE_BUILD_TYPE=release ..'
       displayName: Configure
 
     - task: CMake@1
