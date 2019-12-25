@@ -15,6 +15,7 @@ import utils
 rcParams.update({"figure.max_open_warning": 0})
 
 # Script arguments
+use_file = "--use-file" in sys.argv
 do_save = "--save" in sys.argv
 do_plotly = "--plotly" in sys.argv
 do_help = any(help in sys.argv for help in ["--help", "-h", "-?"])
@@ -68,12 +69,13 @@ static_out_dir = os.path.join(out_dir, static_out_dir_rel)
 plotly_out_dir = os.path.join(out_dir, plotly_out_dir_rel)
 
 # Scan folder for all files, and determine which graphs to create
-all_files = [path for path in utils._scandir_rec(in_dir) if TIMES_SUBSTRING in path[-1]]
-all_graphs = [path.split("/") for path in set(["/".join(path[:-2]) for path in all_files])]
-function_types = ["objective ÷ Manual", "objective", "jacobian", "jacobian ÷ objective"]
-all_graphs = [(path, function_type) for function_type in function_types for path in all_graphs]
-all_graph_dict = {}
+if not use_file:
+    all_files = [path for path in utils._scandir_rec(in_dir) if TIMES_SUBSTRING in path[-1]]
+    all_graphs = [path.split("/") for path in set(["/".join(path[:-2]) for path in all_files])]
+    function_types = ["objective ÷ Manual", "objective", "jacobian", "jacobian ÷ objective"]
+    all_graphs = [(path, function_type) for function_type in function_types for path in all_graphs]
 
+all_graph_dict = {}
 
 def graph_data(figure_info):
     '''Creates graph name and graph saving location.'''
@@ -231,17 +233,20 @@ This script produces graphs that visualize benchmark. Also, it saves time info
 that is used for graph creating.
 CMD arguments:
     --save
-            if specified then script saves produced graphs to
+            if specified then the script saves produced graphs to
             {static_out_dir}
 
     --plotly
-            if specified then script saves graphs in plotly format to
+            if specified then the script saves graphs in plotly format to
             {plotly_out_dir}
 
     --show
-            if specified then script shows produced graphs on the
+            if specified then the script shows produced graphs on the
             screen. Note, that this is default option if --save or
             --plotly are not defined.
+
+    --use-data-file <file>
+            if specified then the script uses the given file as input plot data.
 
     --help, -h, -?
             show this message
@@ -488,27 +493,59 @@ def get_plot_data(figure_info, sorted_vals_by_tool):
         ]
     }
 
+def extract_vals_and_figure_info_from_plot_data(data):
+    '''Extracts vals sorted by the tool and the figure info from the plot
+    data.'''
+
+    sorted_vals_by_tool = [
+        (val["tool"], val["variable_count"], val["time"], val["violations"])
+        for val in data["values"]
+    ]
+
+    figure_info = namedtuple(
+        "figure_info",
+        "idx, build_type, objective, maybe_test_size, function_type"
+    )
+
+    figure_info.build_type = data["build"]
+    figure_info.objective = data["objective"]
+    figure_info.maybe_test_size = data["test_size"]
+    figure_info.function_type = data["function_type"]
+
+    return sorted_vals_by_tool, figure_info
+
 def main():
     print_messages()
 
     plot_data = []      # holds all the data that is plotted in the graph
+    if use_file:
+        arg_idx = sys.argv.index("--use-file") + 1
+        with open(sys.argv[arg_idx], "r") as plot_data_file:
+            plot_data = json.load(plot_data_file)
 
     # Loop through each of graphs to be created
-    for (figure_idx, t) in enumerate(all_graphs, start=1):
-        figure_info = namedtuple(
-            "figure_info",
-            "idx, build_type, objective, maybe_test_size, function_type"
-        )
+    if use_file:
+        for (figure_idx, data) in enumerate(plot_data, start=1):
+            sorted_vals_by_tool, figure_info = extract_vals_and_figure_info_from_plot_data(data)
+            figure_info.idx = figure_idx
+            generate_graph(figure_info, sorted_vals_by_tool)
+    else:
+        for (figure_idx, t) in enumerate(all_graphs, start=1):
+            figure_info = namedtuple(
+                "figure_info",
+                "idx, build_type, objective, maybe_test_size, function_type"
+            )
 
-        (graph, figure_info.function_type) = t
-        figure_info.build_type = graph[0]
-        figure_info.objective = graph[1]
-        figure_info.maybe_test_size = graph[2:]
-        figure_info.idx = figure_idx
+            (graph, figure_info.function_type) = t
+            figure_info.build_type = graph[0]
+            figure_info.objective = graph[1]
+            figure_info.maybe_test_size = graph[2:]
+            figure_info.idx = figure_idx
 
-        sorted_vals_by_tool = get_sorted_vals_by_tool(figure_info.objective, graph, figure_info.function_type)
-        generate_graph(figure_info, sorted_vals_by_tool)
-        plot_data.append(get_plot_data(figure_info, sorted_vals_by_tool))
+            sorted_vals_by_tool = get_sorted_vals_by_tool(figure_info.objective, graph, figure_info.function_type)
+            plot_data.append(get_plot_data(figure_info, sorted_vals_by_tool))
+
+            generate_graph(figure_info, sorted_vals_by_tool)
 
     print(f"\nPlotted {figure_idx} graphs")
 
@@ -516,9 +553,10 @@ def main():
     with open(os.path.join(out_dir, "graphs_index.json"), "w") as index_file:
         index_file.write(json.dumps(all_graph_dict, indent = 2))
 
-    print("\nSaving plot data...")
-    with open(os.path.join(out_dir, "plot_data.json"), "w") as plot_data_file:
-        plot_data_file.write(json.dumps(plot_data, indent = 2))
+    if not use_file:
+        print("\nSaving plot data...")
+        with open(os.path.join(out_dir, "plot_data.json"), "w") as plot_data_file:
+            plot_data_file.write(json.dumps(plot_data, indent = 2))
 
     if do_show:
         print("\nDisplaying graphs...\n")
