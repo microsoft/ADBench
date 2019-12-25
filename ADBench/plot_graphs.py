@@ -5,6 +5,7 @@ import os
 import sys
 import copy
 import json
+from collections import namedtuple
 # import numpy
 import matplotlib
 matplotlib.use('Agg')
@@ -336,17 +337,22 @@ def values_and_styles(sorted_vals_by_tool):
 
         yield item, style[0: 2], display_name
 
-def generate_graph(figure_idx, graph_function_type):
-    '''Generates the graph for the pair graph_function_type of graph and function_type'''
-
-    (graph, function_type) = graph_function_type
-
-    objective = graph[1]
+def generate_graph(figure_info, sorted_vals_by_tool):
+    '''Generates the graph for the given figure.
+    
+    Args:
+        figure_info (named tuple): information of the figure.
+            idx: index of the figure.
+            build_type: the type of the tool build.
+            objective: the name of the objective, the graph is plotted.
+            maybe_test_size: prospective test size.
+            function_type: type of the current graph (e.g. "Jacobian",
+                "Objective" etc.)
+        sorted_vals_by_tool: values for plotting, sorted by tool name.
+    '''
 
     # Create figure
-    figure = pyplot.figure(figure_idx, figsize=figure_size, dpi=fig_dpi)
-
-    sorted_vals_by_tool = get_sorted_vals_by_tool(objective, graph, function_type)
+    figure = pyplot.figure(figure_info.idx, figsize=figure_size, dpi=fig_dpi)
 
     handles, labels = [], []
     non_timeout_violation_x, non_timeout_violation_y = [], []
@@ -390,14 +396,17 @@ def generate_graph(figure_idx, graph_function_type):
 
         labels.append(VIOLATION_LABEL)
 
-    build_type = graph[0]
-    maybe_test_size = graph[2:]
-    (graph_name, graph_save_location) = graph_data(build_type, objective, maybe_test_size, function_type)
+    (graph_name, graph_save_location) = graph_data(figure_info.build_type, figure_info.objective,
+        figure_info.maybe_test_size, figure_info.function_type)
 
     # Setup graph attributes
+    xlabel = "No. independent variables"
+    if "hand" == figure_info.objective or "hand" in figure_info.maybe_test_size:
+        xlabel = "No. correspondencies"
+        
     pyplot.title(graph_name)
-    pyplot.xlabel("No. correspondencies" if "hand" in graph else "No. independent variables")
-    pyplot.ylabel(f"Running time (s) for [{function_type.capitalize()}]")
+    pyplot.xlabel(xlabel)
+    pyplot.ylabel(f"Running time (s) for [{figure_info.function_type.capitalize()}]")
     pyplot.xscale("log")
     pyplot.yscale("log")
 
@@ -454,7 +463,19 @@ def main():
 
     # Loop through each of graphs to be created
     for (figure_idx, t) in enumerate(all_graphs, start=1):
-        generate_graph(figure_idx, t)
+        figure_info = namedtuple(
+            "figure_info",
+            "idx, build_type, objective, maybe_test_size, function_type"
+        )
+
+        (graph, figure_info.function_type) = t
+        figure_info.build_type = graph[0]
+        figure_info.objective = graph[1]
+        figure_info.maybe_test_size = graph[2:]
+        figure_info.idx = figure_idx
+
+        sorted_vals_by_tool = get_sorted_vals_by_tool(figure_info.objective, graph, figure_info.function_type)
+        generate_graph(figure_info, sorted_vals_by_tool)
 
     print(f"\nPlotted {figure_idx} graphs")
 
