@@ -2,6 +2,7 @@ import os
 import sys
 import copy
 import json
+from collections import namedtuple
 # import numpy
 import matplotlib
 matplotlib.use('Agg')
@@ -74,16 +75,30 @@ all_graphs = [(path, function_type) for function_type in function_types for path
 all_graph_dict = {}
 
 
-def graph_data(build_type, objective, maybe_test_size, function_type):
+def graph_data(figure_info):
     '''Creates graph name and graph saving location.'''
 
-    test_size = ", ".join([utils.cap_str(s) for s in maybe_test_size[0].split("_")]) if len(maybe_test_size) == 1 else None
+    test_size = None
+    if len(figure_info.maybe_test_size):
+        test_size = ", ".join([utils.cap_str(s) for s in figure_info.maybe_test_size[0].split("_")])
+
     has_ts = test_size is not None
-    graph_name = (f"{objective_display_name(objective)}" +
-                  (f" ({test_size})" if has_ts else "") +
-                  f" [{function_type.capitalize()}] - {build_type}")
-    graph_save_location = os.path.join(build_type, function_type, f"{graph_name} Graph")
-    utils._set_rec(all_graph_dict, [build_type, function_type, objective.upper()], test_size if has_ts else "", True)
+    graph_name = (f"{objective_display_name(figure_info.objective)}" +
+                 (f" ({test_size})" if has_ts else "") +
+                  f" [{figure_info.function_type.capitalize()}] - {figure_info.build_type}")
+
+    graph_save_location = os.path.join(figure_info.build_type, figure_info.function_type, f"{graph_name} Graph")
+    utils._set_rec(
+        all_graph_dict,
+        [
+            figure_info.build_type,
+            figure_info.function_type,
+            figure_info.objective.upper()
+        ],
+        test_size if has_ts else "",
+        True
+    )
+
     print(f"\n  {graph_name}")
 
     return (graph_name, graph_save_location)
@@ -333,17 +348,22 @@ def values_and_styles(sorted_vals_by_tool):
 
         yield item, style[0: 2], display_name
 
-def generate_graph(figure_idx, graph_function_type):
-    '''Generates the graph for the pair graph_function_type of graph and function_type'''
-
-    (graph, function_type) = graph_function_type
-
-    objective = graph[1]
+def generate_graph(figure_info, sorted_vals_by_tool):
+    '''Generates the graph for the given figure.
+    
+    Args:
+        figure_info (named tuple): information of the figure.
+            idx: index of the figure.
+            build_type: the type of the tool build.
+            objective: the name of the objective, the graph is plotted.
+            maybe_test_size: prospective test size.
+            function_type: type of the current graph (e.g. "Jacobian",
+                "Objective" etc.)
+        sorted_vals_by_tool: values for plotting, sorted by tool name.
+    '''
 
     # Create figure
-    figure = pyplot.figure(figure_idx, figsize=figure_size, dpi=fig_dpi)
-
-    sorted_vals_by_tool = get_sorted_vals_by_tool(objective, graph, function_type)
+    figure = pyplot.figure(figure_info.idx, figsize=figure_size, dpi=fig_dpi)
 
     handles, labels = [], []
     non_timeout_violation_x, non_timeout_violation_y = [], []
@@ -387,14 +407,16 @@ def generate_graph(figure_idx, graph_function_type):
 
         labels.append(VIOLATION_LABEL)
 
-    build_type = graph[0]
-    maybe_test_size = graph[2:]
-    (graph_name, graph_save_location) = graph_data(build_type, objective, maybe_test_size, function_type)
+    (graph_name, graph_save_location) = graph_data(figure_info)
 
     # Setup graph attributes
+    xlabel = "No. independent variables"
+    if "hand" == figure_info.objective or "hand" in figure_info.maybe_test_size:
+        xlabel = "No. correspondencies"
+        
     pyplot.title(graph_name)
-    pyplot.xlabel("No. correspondencies" if "hand" in graph else "No. independent variables")
-    pyplot.ylabel(f"Running time (s) for [{function_type.capitalize()}]")
+    pyplot.xlabel(xlabel)
+    pyplot.ylabel(f"Running time (s) for [{figure_info.function_type.capitalize()}]")
     pyplot.xscale("log")
     pyplot.yscale("log")
 
@@ -451,7 +473,19 @@ def main():
 
     # Loop through each of graphs to be created
     for (figure_idx, t) in enumerate(all_graphs, start=1):
-        generate_graph(figure_idx, t)
+        figure_info = namedtuple(
+            "figure_info",
+            "idx, build_type, objective, maybe_test_size, function_type"
+        )
+
+        (graph, figure_info.function_type) = t
+        figure_info.build_type = graph[0]
+        figure_info.objective = graph[1]
+        figure_info.maybe_test_size = graph[2:]
+        figure_info.idx = figure_idx
+
+        sorted_vals_by_tool = get_sorted_vals_by_tool(figure_info.objective, graph, figure_info.function_type)
+        generate_graph(figure_info, sorted_vals_by_tool)
 
     print(f"\nPlotted {figure_idx} graphs")
 
