@@ -58,10 +58,15 @@ tool_styles = {
     "Zygote": ("y", "v", "Julia, Zygote")
 }
 
+# File with input data if specified
+if use_file:
+    arg_idx = sys.argv.index("--use-file") + 1
+    input_file_path = sys.argv[arg_idx]
+
 # Folders
 adbench_dir = os.path.dirname(os.path.realpath(__file__))
 ad_root_dir = os.path.dirname(adbench_dir)
-in_dir = os.path.join(ad_root_dir, "tmp")
+in_dir = os.path.join(ad_root_dir, "tmp") if not use_file else os.path.dirname(input_file_path)
 out_dir = os.path.join(in_dir, "graphs")
 static_out_dir_rel = "static"
 plotly_out_dir_rel = "plotly"
@@ -246,7 +251,8 @@ CMD arguments:
             --plotly are not defined.
 
     --use-data-file <file>
-            if specified then the script uses the given file as input plot data.
+            if specified then the script uses the given file as input plot data
+            and saves outputs in the directory where the input file is located.
 
     --help, -h, -?
             show this message
@@ -257,6 +263,9 @@ CMD arguments:
     if do_show:
         print("WARNING: `--show` enabled. This script can produce a lot of "
               "graphs and you may not wish to display all of them.\n")
+
+    if use_file:
+        print(f"The script uses specified plot data file: {input_file_path}\n")
 
     if do_save or do_plotly:
         print(f"Output directory is: {out_dir}\n")
@@ -519,8 +528,7 @@ def main():
 
     plot_data = []      # holds all the data that is plotted in the graph
     if use_file:
-        arg_idx = sys.argv.index("--use-file") + 1
-        with open(sys.argv[arg_idx], "r") as plot_data_file:
+        with open(input_file_path, "r") as plot_data_file:
             plot_data = json.load(plot_data_file)
 
     # Loop through each of graphs to be created
