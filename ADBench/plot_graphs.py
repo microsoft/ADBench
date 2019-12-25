@@ -227,7 +227,8 @@ def print_messages():
 
     if do_help:
         ref_msg = f'''
-This script produces graphs that visualize benchmark.
+This script produces graphs that visualize benchmark. Also, it saves time info
+that is used for graph creating.
 CMD arguments:
     --save
             if specified then script saves produced graphs to
@@ -413,7 +414,7 @@ def generate_graph(figure_info, sorted_vals_by_tool):
     xlabel = "No. independent variables"
     if "hand" == figure_info.objective or "hand" in figure_info.maybe_test_size:
         xlabel = "No. correspondencies"
-        
+
     pyplot.title(graph_name)
     pyplot.xlabel(xlabel)
     pyplot.ylabel(f"Running time (s) for [{figure_info.function_type.capitalize()}]")
@@ -468,8 +469,29 @@ def generate_graph(figure_info, sorted_vals_by_tool):
     if not do_show:
         pyplot.close(figure)
 
+def get_plot_data(figure_info, sorted_vals_by_tool):
+    '''Adds information to the plot data.'''
+
+    return {
+        "build": figure_info.build_type,
+        "objective": figure_info.objective,
+        "function_type": figure_info.function_type,
+        "test_size": figure_info.maybe_test_size,
+        "values": [
+            {
+                "tool": tool_name,
+                "time": time_vals,
+                "variable_count": var_count_vals,
+                "violations": violation_vals
+            }
+            for tool_name, var_count_vals, time_vals, violation_vals in sorted_vals_by_tool
+        ]
+    }
+
 def main():
     print_messages()
+
+    plot_data = []      # holds all the data that is plotted in the graph
 
     # Loop through each of graphs to be created
     for (figure_idx, t) in enumerate(all_graphs, start=1):
@@ -486,13 +508,17 @@ def main():
 
         sorted_vals_by_tool = get_sorted_vals_by_tool(figure_info.objective, graph, figure_info.function_type)
         generate_graph(figure_info, sorted_vals_by_tool)
+        plot_data.append(get_plot_data(figure_info, sorted_vals_by_tool))
 
     print(f"\nPlotted {figure_idx} graphs")
 
     print("\nWriting graphs index...")
-
     with open(os.path.join(out_dir, "graphs_index.json"), "w") as index_file:
-        index_file.write(json.dumps(all_graph_dict))
+        index_file.write(json.dumps(all_graph_dict, indent = 2))
+
+    print("\nSaving plot data...")
+    with open(os.path.join(out_dir, "plot_data.json"), "w") as plot_data_file:
+        plot_data_file.write(json.dumps(plot_data, indent = 2))
 
     if do_show:
         print("\nDisplaying graphs...\n")
