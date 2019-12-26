@@ -459,31 +459,79 @@ def generate_graph(figure_info, sorted_vals_by_tool):
     if not do_show:
         pyplot.close(figure)
 
+def get_plot_data(all_graphs):
+    '''Creates a plot data from the files, produced by the global runner.'''
+
+    plot_data = []
+
+    for graph_info in all_graphs:
+        (graph, function_type) = graph_info
+        build_type = graph[0]
+        objective = graph[1]
+        maybe_test_size = graph[2] if len(graph) == 3 else ""
+        sorted_vals_by_tool = get_sorted_vals_by_tool(objective, graph, function_type)
+
+        plot_data.append({
+            "build": build_type,
+            "objective": objective,
+            "function_type": function_type,
+            "test_size": maybe_test_size,
+            "values": [
+                {
+                    "tool": tool_name,
+                    "time": time_vals,
+                    "variable_count": var_count_vals,
+                    "violations": violation_vals
+                }
+                for tool_name, var_count_vals, time_vals, violation_vals in sorted_vals_by_tool
+            ]
+        })
+
+    return plot_data
+
+def extract_vals_and_figure_info_from_plot_data(data):
+    '''Extracts vals sorted by the tool and the figure info from the plot
+    data for the single figure.'''
+
+    sorted_vals_by_tool = [
+        (val["tool"], val["variable_count"], val["time"], val["violations"])
+        for val in data["values"]
+    ]
+
+    figure_info = namedtuple(
+        "figure_info",
+        "idx, build_type, objective, maybe_test_size, function_type"
+    )
+
+    figure_info.build_type = data["build"]
+    figure_info.objective = data["objective"]
+    figure_info.maybe_test_size = data["test_size"]
+    figure_info.function_type = data["function_type"]
+
+    return sorted_vals_by_tool, figure_info
+
 def main():
     print_messages()
 
+    print("\nGetting plot data...\n")
+    plot_data = get_plot_data(all_graphs)
+
     # Loop through each of graphs to be created
-    for (figure_idx, t) in enumerate(all_graphs, start=1):
-        figure_info = namedtuple(
-            "figure_info",
-            "idx, build_type, objective, maybe_test_size, function_type"
-        )
-
-        (graph, figure_info.function_type) = t
-        figure_info.build_type = graph[0]
-        figure_info.objective = graph[1]
-        figure_info.maybe_test_size = graph[2] if len(graph) == 3 else ""
+    print("\nGenerating graphs...\n")
+    for (figure_idx, data) in enumerate(plot_data, start=1):
+        sorted_vals_by_tool, figure_info = extract_vals_and_figure_info_from_plot_data(data)
         figure_info.idx = figure_idx
-
-        sorted_vals_by_tool = get_sorted_vals_by_tool(figure_info.objective, graph, figure_info.function_type)
         generate_graph(figure_info, sorted_vals_by_tool)
 
     print(f"\nPlotted {figure_idx} graphs")
 
     print("\nWriting graphs index...")
-
     with open(os.path.join(out_dir, "graphs_index.json"), "w") as index_file:
         index_file.write(json.dumps(all_graph_dict))
+
+    print("\nWriting plot data...")
+    with open(os.path.join(out_dir, "plot_data.json"), "w") as plot_data_file:
+        plot_data_file.write(json.dumps(plot_data))
 
     if do_show:
         print("\nDisplaying graphs...\n")
