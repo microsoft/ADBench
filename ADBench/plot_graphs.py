@@ -81,7 +81,7 @@ all_graph_dict = {}
 def graph_data(build_type, objective, maybe_test_size, function_type):
     '''Creates graph name and graph saving location.'''
 
-    test_size = ", ".join([utils.cap_str(s) for s in maybe_test_size[0].split("_")]) if len(maybe_test_size) == 1 else None
+    test_size = ", ".join([utils.cap_str(s) for s in maybe_test_size.split("_")]) if len(maybe_test_size) > 0 else None
     has_ts = test_size is not None
     graph_name = (f"{objective_display_name(objective)}" +
                   (f" ({test_size})" if has_ts else "") +
@@ -345,7 +345,8 @@ def generate_graph(figure_info, sorted_vals_by_tool):
             idx: index of the figure.
             build_type: the type of the tool build.
             objective: the name of the objective, the graph is plotted.
-            maybe_test_size: prospective test size.
+            maybe_test_size: test size or empty string if the test can not have
+                a size.
             function_type: type of the current graph (e.g. "Jacobian",
                 "Objective" etc.)
         sorted_vals_by_tool: values for plotting, sorted by tool name.
@@ -471,7 +472,7 @@ def main():
         (graph, figure_info.function_type) = t
         figure_info.build_type = graph[0]
         figure_info.objective = graph[1]
-        figure_info.maybe_test_size = graph[2:]
+        figure_info.maybe_test_size = graph[2] if len(graph) == 3 else ""
         figure_info.idx = figure_idx
 
         sorted_vals_by_tool = get_sorted_vals_by_tool(figure_info.objective, graph, figure_info.function_type)
