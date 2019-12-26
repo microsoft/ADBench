@@ -427,7 +427,7 @@ def generate_graph(figure_info, sorted_vals_by_tool):
     # Setup graph attributes
     xlabel = "No. independent variables"
     if "hand" == figure_info.objective or "hand" in figure_info.maybe_test_size:
-        xlabel = "No. correspondencies"
+        xlabel = "No. correspondences"
 
     pyplot.title(graph_name)
     pyplot.xlabel(xlabel)
