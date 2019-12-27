@@ -414,7 +414,7 @@ def generate_graph(idx, data, static_out_dir, plotly_out_dir):
     # Setup graph attributes
     xlabel = "No. independent variables"
     if "hand" == figure_info["objective"] or "hand" in figure_info["test_size"]:
-        xlabel = "No. correspondencies"
+        xlabel = "No. correspondences"
         
     pyplot.title(graph_name)
     pyplot.xlabel(xlabel)
