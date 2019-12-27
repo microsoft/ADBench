@@ -17,6 +17,7 @@ import utils
 rcParams.update({"figure.max_open_warning": 0})
 
 # Script arguments
+use_file = "--use-file" in sys.argv
 do_save = "--save" in sys.argv
 do_plotly = "--plotly" in sys.argv
 do_help = any(help in sys.argv for help in ["--help", "-h", "-?"])
@@ -502,20 +503,42 @@ def get_all_graphs(in_dir):
 
     return all_graphs, all_files
 
-def main():
-    print_messages()
+def get_out_dir_and_plot_data():
+    if use_file:
+        input_file_arg_idx = sys.argv.index("--use-file") + 1
+        if input_file_arg_idx >= len(sys.argv):
+            print("ERROR: the value of '--use-file' parameter is not specified! Stopping the script.")
+            sys.exit(1)
 
+        input_file_path = sys.argv[input_file_arg_idx]
+        out_dir = os.path.dirname(input_file_path)
+        
+        print("\nLoading plot data...\n"
+             f"\nInput file: {input_file_path}\n")
+
+        with open(input_file_path, "r") as input_file:
+            plot_data = json.load(input_file)
+
+        return out_dir, plot_data
+    
     adbench_dir = os.path.dirname(os.path.realpath(__file__))
     ad_root_dir = os.path.dirname(adbench_dir)
     in_dir = os.path.join(ad_root_dir, "tmp")
     out_dir = os.path.join(in_dir, "graphs")
-    static_out_dir = os.path.join(out_dir, static_out_dir_rel)
-    plotly_out_dir = os.path.join(out_dir, plotly_out_dir_rel)
 
     print("\nGetting plot data...\n"
          f"\nInput directory: {in_dir}\n")
     all_graphs, all_files = get_all_graphs(in_dir)
     plot_data = get_plot_data(all_graphs, all_files, in_dir)
+
+    return out_dir, plot_data
+
+def main():
+    print_messages()
+
+    out_dir, plot_data = get_out_dir_and_plot_data()
+    static_out_dir = os.path.join(out_dir, static_out_dir_rel)
+    plotly_out_dir = os.path.join(out_dir, plotly_out_dir_rel)
 
     print("\nGenerating graphs...\n")
     if do_save or do_plotly:
@@ -531,9 +554,10 @@ def main():
     with open(os.path.join(out_dir, "graphs_index.json"), "w") as index_file:
         index_file.write(json.dumps(all_graph_dict))
 
-    print("\nWriting plot data...")
-    with open(os.path.join(out_dir, "plot_data.json"), "w") as plot_data_file:
-        plot_data_file.write(json.dumps(plot_data))
+    if not use_file:
+        print("\nWriting plot data...")
+        with open(os.path.join(out_dir, "plot_data.json"), "w") as plot_data_file:
+            plot_data_file.write(json.dumps(plot_data))
 
     if do_show:
         print("\nDisplaying graphs...\n")
