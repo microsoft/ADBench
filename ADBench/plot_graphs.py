@@ -334,7 +334,7 @@ def values_and_styles(sorted_vals_by_tool):
 
         display_name = utils.format_tool(tool) if len(style) == 2 else style[2]
 
-        yield item.values(), style[0: 2], display_name
+        yield item, style[0: 2], display_name
 
 def generate_graph(idx, data):
     '''Generates the graph from the given data.
@@ -366,9 +366,9 @@ def generate_graph(idx, data):
     additional = []
 
     # Plot results
-    for ((tool, t_vals, n_vals, violations), style, disp_name) in values_and_styles(data["values"]):
-        (label, handle) = label_and_handle(tool, n_vals, t_vals, style, disp_name)
-        (together, additionals) = together_and_additionals(n_vals, t_vals, violations)
+    for (item, style, disp_name) in values_and_styles(data["values"]):
+        (label, handle) = label_and_handle(item["tool"], item["variable_count"], item["time"], style, disp_name)
+        (together, additionals) = together_and_additionals(item["variable_count"], item["time"], item["violations"])
 
         labels.append(label)
         handles += handle
