@@ -113,8 +113,8 @@ def tool_names(graph_files):
 
     # Sort "Manual" to the front
     tool_names_ = sorted(tool_names_, key=lambda x: (not has_manual(x), x))
-
-    print(tool_names_)
+    
+    print(f"    Tools: {tool_names_}\n")
 
     return tool_names_
 
@@ -469,6 +469,11 @@ def get_plot_data(all_graphs):
         build_type = graph[0]
         objective = graph[1]
         maybe_test_size = graph[2] if len(graph) == 3 else ""
+
+        print(f"\n    Build type: {build_type}\n"
+              f"    Function type: {function_type}\n"
+              f"    Objective: {objective}\n"
+              f"    Test size: {maybe_test_size}")
         sorted_vals_by_tool = get_sorted_vals_by_tool(objective, graph, function_type)
 
         plot_data.append({
