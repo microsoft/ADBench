@@ -200,7 +200,7 @@ def draw_vertical_lines(vals_by_tool):
     for n in all_n_vals:
         pyplot.axvline(n, ls = '-', color = "lightgrey", zorder = 0.0, lw = 0.5)
 
-def print_messages(out_dir):
+def print_messages():
     '''Prints messages and exits the program if --help were specified'''
 
     if do_help:
@@ -227,9 +227,6 @@ CMD arguments:
     if do_show:
         print("WARNING: `--show` enabled. This script can produce a lot of "
               "graphs and you may not wish to display all of them.\n")
-
-    if do_save or do_plotly:
-        print(f"Output directory is: {out_dir}\n")
 
 def get_sorted_vals_by_tool(objective, graph, function_type, all_files, in_dir):
     # Extract file details
@@ -506,6 +503,8 @@ def get_all_graphs(in_dir):
     return all_graphs, all_files
 
 def main():
+    print_messages()
+
     adbench_dir = os.path.dirname(os.path.realpath(__file__))
     ad_root_dir = os.path.dirname(adbench_dir)
     in_dir = os.path.join(ad_root_dir, "tmp")
@@ -513,14 +512,16 @@ def main():
     static_out_dir = os.path.join(out_dir, static_out_dir_rel)
     plotly_out_dir = os.path.join(out_dir, plotly_out_dir_rel)
 
-    print_messages(out_dir)
-
-    print("\nGetting plot data...\n")
+    print("\nGetting plot data...\n"
+         f"\nInput directory: {in_dir}\n")
     all_graphs, all_files = get_all_graphs(in_dir)
     plot_data = get_plot_data(all_graphs, all_files, in_dir)
 
-    # Loop through each of graphs to be created
     print("\nGenerating graphs...\n")
+    if do_save or do_plotly:
+        print(f"Output directory: {out_dir}")
+
+    # Loop through each of graphs to be created
     for (figure_idx, data) in enumerate(plot_data, start=1):
         generate_graph(figure_idx, data, static_out_dir, plotly_out_dir)
 
