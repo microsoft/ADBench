@@ -59,6 +59,8 @@ tool_styles = {
     "Zygote": ("y", "v", "Julia, Zygote")
 }
 
+function_types = ["objective ÷ Manual", "objective", "jacobian", "jacobian ÷ objective"]
+
 # Folders
 adbench_dir = os.path.dirname(os.path.realpath(__file__))
 ad_root_dir = os.path.dirname(adbench_dir)
@@ -69,11 +71,6 @@ plotly_out_dir_rel = "plotly"
 static_out_dir = os.path.join(out_dir, static_out_dir_rel)
 plotly_out_dir = os.path.join(out_dir, plotly_out_dir_rel)
 
-# Scan folder for all files, and determine which graphs to create
-all_files = [path for path in utils._scandir_rec(in_dir) if TIMES_SUBSTRING in path[-1]]
-all_graphs = [path.split("/") for path in set(["/".join(path[:-2]) for path in all_files])]
-function_types = ["objective ÷ Manual", "objective", "jacobian", "jacobian ÷ objective"]
-all_graphs = [(path, function_type) for function_type in function_types for path in all_graphs]
 all_graph_dict = {}
 
 
@@ -243,7 +240,7 @@ CMD arguments:
     if do_save or do_plotly:
         print(f"Output directory is: {out_dir}\n")
 
-def get_sorted_vals_by_tool(objective, graph, function_type):
+def get_sorted_vals_by_tool(objective, graph, function_type, all_files):
     # Extract file details
     graph_files = [path for path in all_files if path[:len(graph)] == graph]
 
@@ -470,7 +467,7 @@ def generate_graph(idx, data):
     if not do_show:
         pyplot.close(figure)
 
-def get_plot_data(all_graphs):
+def get_plot_data(all_graphs, all_files):
     '''Creates a plot data from the files, produced by the global runner.'''
 
     plot_data = []
@@ -485,7 +482,7 @@ def get_plot_data(all_graphs):
               f"    Function type: {function_type}\n"
               f"    Objective: {objective}\n"
               f"    Test size: {test_size}")
-        sorted_vals_by_tool = get_sorted_vals_by_tool(objective, graph, function_type)
+        sorted_vals_by_tool = get_sorted_vals_by_tool(objective, graph, function_type, all_files)
 
         plot_data.append({
             "figure_info": {
@@ -507,11 +504,21 @@ def get_plot_data(all_graphs):
 
     return plot_data
 
+def get_all_graphs(in_dir):
+    '''Scans input folder for all files and determine which graphs to create.'''
+
+    all_files = [ path for path in utils._scandir_rec(in_dir) if TIMES_SUBSTRING in path[-1] ]
+    all_graphs = [ path.split("/") for path in set(["/".join(path[:-2]) for path in all_files]) ]
+    all_graphs = [ (path, function_type) for function_type in function_types for path in all_graphs ]
+
+    return all_graphs, all_files
+
 def main():
     print_messages()
 
     print("\nGetting plot data...\n")
-    plot_data = get_plot_data(all_graphs)
+    all_graphs, all_files = get_all_graphs(in_dir)
+    plot_data = get_plot_data(all_graphs, all_files)
 
     # Loop through each of graphs to be created
     print("\nGenerating graphs...\n")
