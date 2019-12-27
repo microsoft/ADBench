@@ -5,7 +5,6 @@ import os
 import sys
 import copy
 import json
-from collections import namedtuple
 # import numpy
 import matplotlib
 matplotlib.use('Agg')
@@ -342,13 +341,13 @@ def generate_graph(idx, figure_info, sorted_vals_by_tool):
     
     Args:
         idx: index of the figure.
-        figure_info (named tuple): information of the figure.
-            build_type: the type of the tool build.
+        figure_info (dictionary): information of the figure.
+            build: the type of the tool build.
             objective: the name of the objective, the graph is plotted.
-            maybe_test_size: test size or empty string if the test can not have
-                a size.
             function_type: type of the current graph (e.g. "Jacobian",
                 "Objective" etc.)
+            test_size: test size or empty string if the test can not have
+                a size.
         sorted_vals_by_tool: values for plotting, sorted by tool name.
     '''
 
@@ -397,17 +396,21 @@ def generate_graph(idx, figure_info, sorted_vals_by_tool):
 
         labels.append(VIOLATION_LABEL)
 
-    (graph_name, graph_save_location) = graph_data(figure_info.build_type, figure_info.objective,
-        figure_info.maybe_test_size, figure_info.function_type)
+    (graph_name, graph_save_location) = graph_data(
+        figure_info["build"],
+        figure_info["objective"],
+        figure_info["test_size"],
+        figure_info["function_type"]
+    )
 
     # Setup graph attributes
     xlabel = "No. independent variables"
-    if "hand" == figure_info.objective or "hand" in figure_info.maybe_test_size:
+    if "hand" == figure_info["objective"] or "hand" in figure_info["test_size"]:
         xlabel = "No. correspondencies"
         
     pyplot.title(graph_name)
     pyplot.xlabel(xlabel)
-    pyplot.ylabel(f"Running time (s) for [{figure_info.function_type.capitalize()}]")
+    pyplot.ylabel(f"Running time (s) for [{figure_info['function_type'].capitalize()}]")
     pyplot.xscale("log")
     pyplot.yscale("log")
 
@@ -466,21 +469,23 @@ def get_plot_data(all_graphs):
 
     for graph_info in all_graphs:
         (graph, function_type) = graph_info
-        build_type = graph[0]
+        build = graph[0]
         objective = graph[1]
-        maybe_test_size = graph[2] if len(graph) == 3 else ""
+        test_size = graph[2] if len(graph) == 3 else ""
 
-        print(f"\n    Build type: {build_type}\n"
+        print(f"\n    Build type: {build}\n"
               f"    Function type: {function_type}\n"
               f"    Objective: {objective}\n"
-              f"    Test size: {maybe_test_size}")
+              f"    Test size: {test_size}")
         sorted_vals_by_tool = get_sorted_vals_by_tool(objective, graph, function_type)
 
         plot_data.append({
-            "build": build_type,
-            "objective": objective,
-            "function_type": function_type,
-            "test_size": maybe_test_size,
+            "figure_info": {
+                "build": build,
+                "objective": objective,
+                "function_type": function_type,
+                "test_size": test_size
+            },
             "values": [
                 {
                     "tool": tool_name,
@@ -503,17 +508,7 @@ def extract_vals_and_figure_info_from_plot_data(data):
         for val in data["values"]
     ]
 
-    figure_info = namedtuple(
-        "figure_info",
-        "build_type, objective, maybe_test_size, function_type"
-    )
-
-    figure_info.build_type = data["build"]
-    figure_info.objective = data["objective"]
-    figure_info.maybe_test_size = data["test_size"]
-    figure_info.function_type = data["function_type"]
-
-    return sorted_vals_by_tool, figure_info
+    return sorted_vals_by_tool, data["figure_info"]
 
 def main():
     print_messages()
