@@ -205,7 +205,7 @@ def vals_by_tool(objective, graph_files, function_type):
 def draw_vertical_lines(vals_by_tool):
     '''Adds vertical lines to the figure for clarifying results.'''
 
-    all_n_vals = set.union(*(set(n_vals) for _, n_vals, _, _ in vals_by_tool))
+    all_n_vals = set.union(*(set(values["variable_count"]) for values in vals_by_tool))
 
     for n in all_n_vals:
         pyplot.axvline(n, ls = '-', color = "lightgrey", zorder = 0.0, lw = 0.5)
@@ -324,7 +324,7 @@ def values_and_styles(sorted_vals_by_tool):
 
     next_default = 0
     for item in sorted_vals_by_tool:
-        tool = item[0]
+        tool = item["tool"]
         if tool in tool_styles:
             style = tool_styles[tool]
         else:
@@ -334,21 +334,28 @@ def values_and_styles(sorted_vals_by_tool):
 
         display_name = utils.format_tool(tool) if len(style) == 2 else style[2]
 
-        yield item, style[0: 2], display_name
+        yield item.values(), style[0: 2], display_name
 
-def generate_graph(idx, figure_info, sorted_vals_by_tool):
-    '''Generates the graph for the given figure.
+def generate_graph(idx, data):
+    '''Generates the graph from the given data.
     
     Args:
         idx: index of the figure.
-        figure_info (dictionary): information of the figure.
-            build: the type of the tool build.
-            objective: the name of the objective, the graph is plotted.
-            function_type: type of the current graph (e.g. "Jacobian",
-                "Objective" etc.)
-            test_size: test size or empty string if the test can not have
-                a size.
-        sorted_vals_by_tool: values for plotting, sorted by tool name.
+        data (dictionary): plot data and information of the figure.
+            figure_info:
+                build: the type of the tool build.
+                objective: the name of the objective, the graph is plotted.
+                function_type: type of the current graph (e.g. "Jacobian",
+                    "Objective" etc.)
+                test_size: test size or empty string if the test can not have
+                    a size.
+            values:
+                tool: name of the tool.
+                time: array of time values.
+                variable_count: array of variable count, respective to "time".
+                violations: array of bool, determining whether the calculation
+                    was correct or not for each test, respecive to "time".
+                
     '''
 
     # Create figure
@@ -359,7 +366,7 @@ def generate_graph(idx, figure_info, sorted_vals_by_tool):
     additional = []
 
     # Plot results
-    for ((tool, n_vals, t_vals, violations), style, disp_name) in values_and_styles(sorted_vals_by_tool):
+    for ((tool, t_vals, n_vals, violations), style, disp_name) in values_and_styles(data["values"]):
         (label, handle) = label_and_handle(tool, n_vals, t_vals, style, disp_name)
         (together, additionals) = together_and_additionals(n_vals, t_vals, violations)
 
@@ -396,6 +403,7 @@ def generate_graph(idx, figure_info, sorted_vals_by_tool):
 
         labels.append(VIOLATION_LABEL)
 
+    figure_info = data["figure_info"]
     (graph_name, graph_save_location) = graph_data(
         figure_info["build"],
         figure_info["objective"],
@@ -414,7 +422,7 @@ def generate_graph(idx, figure_info, sorted_vals_by_tool):
     pyplot.xscale("log")
     pyplot.yscale("log")
 
-    draw_vertical_lines(sorted_vals_by_tool)
+    draw_vertical_lines(data["values"])
 
     # Export to plotly (if selected)
     if do_plotly:
@@ -499,17 +507,6 @@ def get_plot_data(all_graphs):
 
     return plot_data
 
-def extract_vals_and_figure_info_from_plot_data(data):
-    '''Extracts vals sorted by the tool and the figure info from the plot
-    data for the single figure.'''
-
-    sorted_vals_by_tool = [
-        (val["tool"], val["variable_count"], val["time"], val["violations"])
-        for val in data["values"]
-    ]
-
-    return sorted_vals_by_tool, data["figure_info"]
-
 def main():
     print_messages()
 
@@ -519,8 +516,7 @@ def main():
     # Loop through each of graphs to be created
     print("\nGenerating graphs...\n")
     for (figure_idx, data) in enumerate(plot_data, start=1):
-        sorted_vals_by_tool, figure_info = extract_vals_and_figure_info_from_plot_data(data)
-        generate_graph(figure_idx, figure_info, sorted_vals_by_tool)
+        generate_graph(figure_idx, data)
 
     print(f"\nPlotted {figure_idx} graphs")
 
