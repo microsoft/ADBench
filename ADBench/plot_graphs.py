@@ -337,12 +337,12 @@ def values_and_styles(sorted_vals_by_tool):
 
         yield item, style[0: 2], display_name
 
-def generate_graph(figure_info, sorted_vals_by_tool):
+def generate_graph(idx, figure_info, sorted_vals_by_tool):
     '''Generates the graph for the given figure.
     
     Args:
+        idx: index of the figure.
         figure_info (named tuple): information of the figure.
-            idx: index of the figure.
             build_type: the type of the tool build.
             objective: the name of the objective, the graph is plotted.
             maybe_test_size: test size or empty string if the test can not have
@@ -353,7 +353,7 @@ def generate_graph(figure_info, sorted_vals_by_tool):
     '''
 
     # Create figure
-    figure = pyplot.figure(figure_info.idx, figsize=figure_size, dpi=fig_dpi)
+    figure = pyplot.figure(idx, figsize=figure_size, dpi=fig_dpi)
 
     handles, labels = [], []
     non_timeout_violation_x, non_timeout_violation_y = [], []
@@ -505,7 +505,7 @@ def extract_vals_and_figure_info_from_plot_data(data):
 
     figure_info = namedtuple(
         "figure_info",
-        "idx, build_type, objective, maybe_test_size, function_type"
+        "build_type, objective, maybe_test_size, function_type"
     )
 
     figure_info.build_type = data["build"]
@@ -525,8 +525,7 @@ def main():
     print("\nGenerating graphs...\n")
     for (figure_idx, data) in enumerate(plot_data, start=1):
         sorted_vals_by_tool, figure_info = extract_vals_and_figure_info_from_plot_data(data)
-        figure_info.idx = figure_idx
-        generate_graph(figure_info, sorted_vals_by_tool)
+        generate_graph(figure_idx, figure_info, sorted_vals_by_tool)
 
     print(f"\nPlotted {figure_idx} graphs")
 
