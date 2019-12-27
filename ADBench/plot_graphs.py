@@ -508,40 +508,64 @@ def get_all_graphs(in_dir):
 
     return all_graphs, all_files
 
-def get_out_dir_and_plot_data():
-    if use_file:
-        input_file_arg_idx = sys.argv.index("--use-file") + 1
-        if input_file_arg_idx >= len(sys.argv):
-            print("ERROR: the value of '--use-file' parameter is not specified! Stopping the script.")
-            sys.exit(1)
+def get_argument_value(arg_name):
+    '''Extracts cmd argument value. Note: we assume that the argument is present
+    in the cmd args.'''
+    
+    idx = sys.argv.index(arg_name) + 1
+    if idx >= len(sys.argv):
+        print(f"ERROR: the value of '{arg_name}' parameter is not specified! Stopping the script.")
+        sys.exit(1)
 
-        input_file_path = sys.argv[input_file_arg_idx]
-        out_dir = os.path.dirname(input_file_path)
-        
+    return sys.argv[idx]
+
+def get_default_input_directory():
+    '''Returns default input directory for the global runner data.'''
+
+    adbench_dir = os.path.dirname(os.path.realpath(__file__))
+    ad_root_dir = os.path.dirname(adbench_dir)
+    in_dir = os.path.join(ad_root_dir, "tmp")
+
+    return in_dir
+
+def get_out_dir():
+    '''Returns output directory.'''
+
+    if use_file:
+        return os.path.dirname(get_argument_value("--use-file"))
+
+    in_dir = get_default_input_directory()
+    out_dir = os.path.join(in_dir, "graphs")
+
+    return out_dir
+
+def create_plot_data():
+    '''Returns the data for plotting.'''
+
+    if use_file:
+        input_file_path = get_argument_value("--use-file")
         print("\nLoading plot data...\n"
              f"\nInput file: {input_file_path}\n")
 
         with open(input_file_path, "r") as input_file:
             plot_data = json.load(input_file)
 
-        return out_dir, plot_data
-    
-    adbench_dir = os.path.dirname(os.path.realpath(__file__))
-    ad_root_dir = os.path.dirname(adbench_dir)
-    in_dir = os.path.join(ad_root_dir, "tmp")
-    out_dir = os.path.join(in_dir, "graphs")
+        return plot_data
 
+    in_dir = get_default_input_directory()
     print("\nGetting plot data...\n"
          f"\nInput directory: {in_dir}\n")
+
     all_graphs, all_files = get_all_graphs(in_dir)
     plot_data = get_plot_data(all_graphs, all_files, in_dir)
 
-    return out_dir, plot_data
+    return plot_data
 
 def main():
     print_messages()
 
-    out_dir, plot_data = get_out_dir_and_plot_data()
+    out_dir = get_out_dir()
+    plot_data = create_plot_data()
     static_out_dir = os.path.join(out_dir, static_out_dir_rel)
     plotly_out_dir = os.path.join(out_dir, plotly_out_dir_rel)
 
