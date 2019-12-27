@@ -5,7 +5,6 @@ import os
 import sys
 import copy
 import json
-from collections import namedtuple
 # import numpy
 import matplotlib
 matplotlib.use('Agg')
@@ -113,8 +112,8 @@ def tool_names(graph_files):
 
     # Sort "Manual" to the front
     tool_names_ = sorted(tool_names_, key=lambda x: (not has_manual(x), x))
-
-    print(tool_names_)
+    
+    print(f"    Tools: {tool_names_}\n")
 
     return tool_names_
 
@@ -206,7 +205,7 @@ def vals_by_tool(objective, graph_files, function_type):
 def draw_vertical_lines(vals_by_tool):
     '''Adds vertical lines to the figure for clarifying results.'''
 
-    all_n_vals = set.union(*(set(n_vals) for _, n_vals, _, _ in vals_by_tool))
+    all_n_vals = set.union(*(set(values["variable_count"]) for values in vals_by_tool))
 
     for n in all_n_vals:
         pyplot.axvline(n, ls = '-', color = "lightgrey", zorder = 0.0, lw = 0.5)
@@ -325,7 +324,7 @@ def values_and_styles(sorted_vals_by_tool):
 
     next_default = 0
     for item in sorted_vals_by_tool:
-        tool = item[0]
+        tool = item["tool"]
         if tool in tool_styles:
             style = tool_styles[tool]
         else:
@@ -337,32 +336,39 @@ def values_and_styles(sorted_vals_by_tool):
 
         yield item, style[0: 2], display_name
 
-def generate_graph(figure_info, sorted_vals_by_tool):
-    '''Generates the graph for the given figure.
+def generate_graph(idx, data):
+    '''Generates the graph from the given data.
     
     Args:
-        figure_info (named tuple): information of the figure.
-            idx: index of the figure.
-            build_type: the type of the tool build.
-            objective: the name of the objective, the graph is plotted.
-            maybe_test_size: test size or empty string if the test can not have
-                a size.
-            function_type: type of the current graph (e.g. "Jacobian",
-                "Objective" etc.)
-        sorted_vals_by_tool: values for plotting, sorted by tool name.
+        idx: index of the figure.
+        data (dictionary): plot data and information of the figure.
+            figure_info:
+                build: the type of the tool build.
+                objective: the name of the objective, the graph is plotted.
+                function_type: type of the current graph (e.g. "Jacobian",
+                    "Objective" etc.)
+                test_size: test size or empty string if the test can not have
+                    a size.
+            values:
+                tool: name of the tool.
+                time: array of time values.
+                variable_count: array of variable count, respective to "time".
+                violations: array of bool, determining whether the calculation
+                    was correct or not for each test, respecive to "time".
+                
     '''
 
     # Create figure
-    figure = pyplot.figure(figure_info.idx, figsize=figure_size, dpi=fig_dpi)
+    figure = pyplot.figure(idx, figsize=figure_size, dpi=fig_dpi)
 
     handles, labels = [], []
     non_timeout_violation_x, non_timeout_violation_y = [], []
     additional = []
 
     # Plot results
-    for ((tool, n_vals, t_vals, violations), style, disp_name) in values_and_styles(sorted_vals_by_tool):
-        (label, handle) = label_and_handle(tool, n_vals, t_vals, style, disp_name)
-        (together, additionals) = together_and_additionals(n_vals, t_vals, violations)
+    for (item, style, disp_name) in values_and_styles(data["values"]):
+        (label, handle) = label_and_handle(item["tool"], item["variable_count"], item["time"], style, disp_name)
+        (together, additionals) = together_and_additionals(item["variable_count"], item["time"], item["violations"])
 
         labels.append(label)
         handles += handle
@@ -397,21 +403,26 @@ def generate_graph(figure_info, sorted_vals_by_tool):
 
         labels.append(VIOLATION_LABEL)
 
-    (graph_name, graph_save_location) = graph_data(figure_info.build_type, figure_info.objective,
-        figure_info.maybe_test_size, figure_info.function_type)
+    figure_info = data["figure_info"]
+    (graph_name, graph_save_location) = graph_data(
+        figure_info["build"],
+        figure_info["objective"],
+        figure_info["test_size"],
+        figure_info["function_type"]
+    )
 
     # Setup graph attributes
     xlabel = "No. independent variables"
-    if "hand" == figure_info.objective or "hand" in figure_info.maybe_test_size:
+    if "hand" == figure_info["objective"] or "hand" in figure_info["test_size"]:
         xlabel = "No. correspondencies"
         
     pyplot.title(graph_name)
     pyplot.xlabel(xlabel)
-    pyplot.ylabel(f"Running time (s) for [{figure_info.function_type.capitalize()}]")
+    pyplot.ylabel(f"Running time (s) for [{figure_info['function_type'].capitalize()}]")
     pyplot.xscale("log")
     pyplot.yscale("log")
 
-    draw_vertical_lines(sorted_vals_by_tool)
+    draw_vertical_lines(data["values"])
 
     # Export to plotly (if selected)
     if do_plotly:
@@ -459,31 +470,63 @@ def generate_graph(figure_info, sorted_vals_by_tool):
     if not do_show:
         pyplot.close(figure)
 
+def get_plot_data(all_graphs):
+    '''Creates a plot data from the files, produced by the global runner.'''
+
+    plot_data = []
+
+    for graph_info in all_graphs:
+        (graph, function_type) = graph_info
+        build = graph[0]
+        objective = graph[1]
+        test_size = graph[2] if len(graph) == 3 else ""
+
+        print(f"\n    Build type: {build}\n"
+              f"    Function type: {function_type}\n"
+              f"    Objective: {objective}\n"
+              f"    Test size: {test_size}")
+        sorted_vals_by_tool = get_sorted_vals_by_tool(objective, graph, function_type)
+
+        plot_data.append({
+            "figure_info": {
+                "build": build,
+                "objective": objective,
+                "function_type": function_type,
+                "test_size": test_size
+            },
+            "values": [
+                {
+                    "tool": tool_name,
+                    "time": time_vals,
+                    "variable_count": var_count_vals,
+                    "violations": violation_vals
+                }
+                for tool_name, var_count_vals, time_vals, violation_vals in sorted_vals_by_tool
+            ]
+        })
+
+    return plot_data
+
 def main():
     print_messages()
 
+    print("\nGetting plot data...\n")
+    plot_data = get_plot_data(all_graphs)
+
     # Loop through each of graphs to be created
-    for (figure_idx, t) in enumerate(all_graphs, start=1):
-        figure_info = namedtuple(
-            "figure_info",
-            "idx, build_type, objective, maybe_test_size, function_type"
-        )
-
-        (graph, figure_info.function_type) = t
-        figure_info.build_type = graph[0]
-        figure_info.objective = graph[1]
-        figure_info.maybe_test_size = graph[2] if len(graph) == 3 else ""
-        figure_info.idx = figure_idx
-
-        sorted_vals_by_tool = get_sorted_vals_by_tool(figure_info.objective, graph, figure_info.function_type)
-        generate_graph(figure_info, sorted_vals_by_tool)
+    print("\nGenerating graphs...\n")
+    for (figure_idx, data) in enumerate(plot_data, start=1):
+        generate_graph(figure_idx, data)
 
     print(f"\nPlotted {figure_idx} graphs")
 
     print("\nWriting graphs index...")
-
     with open(os.path.join(out_dir, "graphs_index.json"), "w") as index_file:
         index_file.write(json.dumps(all_graph_dict))
+
+    print("\nWriting plot data...")
+    with open(os.path.join(out_dir, "plot_data.json"), "w") as plot_data_file:
+        plot_data_file.write(json.dumps(plot_data))
 
     if do_show:
         print("\nDisplaying graphs...\n")
