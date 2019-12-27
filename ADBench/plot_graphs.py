@@ -61,15 +61,8 @@ tool_styles = {
 
 function_types = ["objective ÷ Manual", "objective", "jacobian", "jacobian ÷ objective"]
 
-# Folders
-adbench_dir = os.path.dirname(os.path.realpath(__file__))
-ad_root_dir = os.path.dirname(adbench_dir)
-in_dir = os.path.join(ad_root_dir, "tmp")
-out_dir = os.path.join(in_dir, "graphs")
 static_out_dir_rel = "static"
 plotly_out_dir_rel = "plotly"
-static_out_dir = os.path.join(out_dir, static_out_dir_rel)
-plotly_out_dir = os.path.join(out_dir, plotly_out_dir_rel)
 
 all_graph_dict = {}
 
@@ -114,7 +107,7 @@ def tool_names(graph_files):
 
     return tool_names_
 
-def read_vals(objective, graph_files, tool):
+def read_vals(objective, graph_files, tool, in_dir):
     '''Extracts data for files of the specified tool.'''
 
     def get_violations(file_name):
@@ -164,7 +157,7 @@ def read_vals(objective, graph_files, tool):
 
     return (n_vals, t_objective_vals, t_jacobian_vals, violation_vals)
 
-def vals_by_tool(objective, graph_files, function_type):
+def vals_by_tool(objective, graph_files, function_type, in_dir):
     '''Classifies file values by tools'''
 
     def div_lists(alist, blist):
@@ -178,7 +171,7 @@ def vals_by_tool(objective, graph_files, function_type):
     manual_times = None
 
     for tool in tool_names(graph_files):
-        (n_vals, t_objective_vals, t_jacobian_vals, violation) = read_vals(objective, graph_files, tool)
+        (n_vals, t_objective_vals, t_jacobian_vals, violation) = read_vals(objective, graph_files, tool, in_dir)
 
         if manual_times is None and has_manual(tool):
             manual_times = t_objective_vals
@@ -207,7 +200,7 @@ def draw_vertical_lines(vals_by_tool):
     for n in all_n_vals:
         pyplot.axvline(n, ls = '-', color = "lightgrey", zorder = 0.0, lw = 0.5)
 
-def print_messages():
+def print_messages(out_dir):
     '''Prints messages and exits the program if --help were specified'''
 
     if do_help:
@@ -215,12 +208,10 @@ def print_messages():
 This script produces graphs that visualize benchmark.
 CMD arguments:
     --save
-            if specified then script saves produced graphs to
-            {static_out_dir}
+            if specified then script saves produced graphs in PNG.
 
     --plotly
-            if specified then script saves graphs in plotly format to
-            {plotly_out_dir}
+            if specified then script saves graphs in the plotly format.
 
     --show
             if specified then script shows produced graphs on the
@@ -240,7 +231,7 @@ CMD arguments:
     if do_save or do_plotly:
         print(f"Output directory is: {out_dir}\n")
 
-def get_sorted_vals_by_tool(objective, graph, function_type, all_files):
+def get_sorted_vals_by_tool(objective, graph, function_type, all_files, in_dir):
     # Extract file details
     graph_files = [path for path in all_files if path[:len(graph)] == graph]
 
@@ -250,7 +241,7 @@ def get_sorted_vals_by_tool(objective, graph, function_type, all_files):
             return sum(y_list) / len(y_list)
         else:
             return 1e9
-    sorted_vals_by_tool = sorted(vals_by_tool(objective, graph_files, function_type),
+    sorted_vals_by_tool = sorted(vals_by_tool(objective, graph_files, function_type, in_dir),
                                  key=sorting_key_fun,
                                  reverse=True)
 
@@ -333,7 +324,7 @@ def values_and_styles(sorted_vals_by_tool):
 
         yield item, style[0: 2], display_name
 
-def generate_graph(idx, data):
+def generate_graph(idx, data, static_out_dir, plotly_out_dir):
     '''Generates the graph from the given data.
     
     Args:
@@ -352,7 +343,8 @@ def generate_graph(idx, data):
                 variable_count: array of variable count, respective to "time".
                 violations: array of bool, determining whether the calculation
                     was correct or not for each test, respecive to "time".
-                
+        static_out_dir: output directory for the static graphs.
+        plotly_out_dir: output directory for the plotly graphs.
     '''
 
     # Create figure
@@ -467,7 +459,7 @@ def generate_graph(idx, data):
     if not do_show:
         pyplot.close(figure)
 
-def get_plot_data(all_graphs, all_files):
+def get_plot_data(all_graphs, all_files, in_dir):
     '''Creates a plot data from the files, produced by the global runner.'''
 
     plot_data = []
@@ -482,7 +474,7 @@ def get_plot_data(all_graphs, all_files):
               f"    Function type: {function_type}\n"
               f"    Objective: {objective}\n"
               f"    Test size: {test_size}")
-        sorted_vals_by_tool = get_sorted_vals_by_tool(objective, graph, function_type, all_files)
+        sorted_vals_by_tool = get_sorted_vals_by_tool(objective, graph, function_type, all_files, in_dir)
 
         plot_data.append({
             "figure_info": {
@@ -514,16 +506,23 @@ def get_all_graphs(in_dir):
     return all_graphs, all_files
 
 def main():
-    print_messages()
+    adbench_dir = os.path.dirname(os.path.realpath(__file__))
+    ad_root_dir = os.path.dirname(adbench_dir)
+    in_dir = os.path.join(ad_root_dir, "tmp")
+    out_dir = os.path.join(in_dir, "graphs")
+    static_out_dir = os.path.join(out_dir, static_out_dir_rel)
+    plotly_out_dir = os.path.join(out_dir, plotly_out_dir_rel)
+
+    print_messages(out_dir)
 
     print("\nGetting plot data...\n")
     all_graphs, all_files = get_all_graphs(in_dir)
-    plot_data = get_plot_data(all_graphs, all_files)
+    plot_data = get_plot_data(all_graphs, all_files, in_dir)
 
     # Loop through each of graphs to be created
     print("\nGenerating graphs...\n")
     for (figure_idx, data) in enumerate(plot_data, start=1):
-        generate_graph(figure_idx, data)
+        generate_graph(figure_idx, data, static_out_dir, plotly_out_dir)
 
     print(f"\nPlotted {figure_idx} graphs")
 
