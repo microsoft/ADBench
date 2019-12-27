@@ -209,16 +209,21 @@ def print_messages():
 
     if do_help:
         ref_msg = f'''
-This script produces graphs that visualize benchmark.
+This script produces graphs that visualize benchmark. It also creates the 
+following JSON files:
+
+    "{PLOT_DATA_FILE_NAME}": contains all plotted data (times, tool names etc.)
+    "{GRAPH_INDEX_FILE_NAME}": contains all test sizes
+    
 CMD arguments:
     --save
-            if specified then script saves produced graphs in PNG.
+            if specified then the script saves produced graphs in PNG.
 
     --plotly
-            if specified then script saves graphs in the plotly format.
+            if specified then the script saves graphs in the plotly format.
 
     --show
-            if specified then script shows produced graphs on the
+            if specified then the script shows produced graphs on the
             screen. Note, that this is default option if --save or
             --plotly are not defined.
 
