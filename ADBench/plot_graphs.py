@@ -219,6 +219,11 @@ CMD arguments:
             screen. Note, that this is default option if --save or
             --plotly are not defined.
 
+    --use-file <file>
+            use specified file as plot data input instead of collecting info
+            from the global runner output files. Output directory will be the
+            folder where the specified file is located.
+
     --help, -h, -?
             show this message
 '''
