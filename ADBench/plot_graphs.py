@@ -30,6 +30,9 @@ CORRECTNESS_SUBSTRING = "_correctness_"
 VIOLATION_LABEL = "Wrong calculation result"
 ALL_TERMINATED_SUFFIX = " (all crashed/timed out)"
 
+PLOT_DATA_FILE_NAME = "plot_data.json"
+GRAPH_INDEX_FILE_NAME = "graphs_index.json"
+
 figure_size = (9, 6) if do_plotly else (12, 8)
 fig_dpi = 96
 save_dpi = 144
@@ -580,12 +583,12 @@ def main():
     print(f"\nPlotted {figure_idx} graphs")
 
     print("\nWriting graphs index...")
-    with open(os.path.join(out_dir, "graphs_index.json"), "w") as index_file:
+    with open(os.path.join(out_dir, GRAPH_INDEX_FILE_NAME), "w") as index_file:
         index_file.write(json.dumps(all_graph_dict))
 
     if not use_file:
         print("\nWriting plot data...")
-        with open(os.path.join(out_dir, "plot_data.json"), "w") as plot_data_file:
+        with open(os.path.join(out_dir, PLOT_DATA_FILE_NAME), "w") as plot_data_file:
             plot_data_file.write(json.dumps(plot_data))
 
     if do_show:
