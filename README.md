@@ -4,6 +4,12 @@ This project aims to provide a running-time comparison for different tools for a
 as described in https://arxiv.org/abs/1807.10129, (source in [Documentation/ms.tex](Documentation/ms.tex)).
 It outputs a set of relevant graphs (see [Graph Archive](#graph-archive)).
 
+At the start of the 20s, the graph for GMM (Gaussian Mixture Model, a nice "messy" workload with interesting derivatives) looked like this:
+
+![Jan 2020](https://github.com/microsoft/ADBench/raw/master/Documents/figs/2020_Jan.png)
+
+
+
 For information about the layout of the project, see [Development](docs/Development.md#structure-of-the-repository).
 
 For information about the current status of the project, see [Status](/STATUS.md).
