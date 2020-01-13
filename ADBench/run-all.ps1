@@ -51,7 +51,10 @@ param(# Which build to test.
       [double]$time_limit=10,  
       
       # Kill the test after this many seconds 
-      [double]$timeout=300,    
+      [double]$timeout=300,
+
+      # Kill the test if it consumes more than this many gigabytes of RAM.
+      [double]$max_memory_amount_in_gb=[double]::PositiveInfinity,
       
       # Where to store the ouput, defaults to tmp/ in the project root 
       [string]$tmpdir="",
@@ -156,11 +159,14 @@ function mkdir_p($path) {
 }
 
 # Type of run command function returning value
-enum RunCommandStatus { Finished; Timeout }
+enum RunCommandStatus { Finished; Timeout; OutOfMemory }
 
 # Run command and (reliably) get output
 function run_command ($indent, $outfile, $timeout, $cmd) {
     write-host "Run [$cmd $args]"
+
+    $status = [RunCommandStatus]::Finished
+
     $ProcessInfo = New-Object System.Diagnostics.ProcessStartInfo
     $ProcessInfo.FileName = $cmd
     $ProcessInfo.RedirectStandardError = $true
@@ -169,26 +175,53 @@ function run_command ($indent, $outfile, $timeout, $cmd) {
     $ProcessInfo.Arguments = $args
     $Process = New-Object System.Diagnostics.Process
     $Process.StartInfo = $ProcessInfo
+
     try {
         $Process.Start() | Out-Null
     } catch {
         write-error "Failed to start process $cmd $args"
         throw "failed"
     }
-    $status = $Process.WaitForExit($timeout * 1000)
-    if ($status) {
-        $stdout = $Process.StandardOutput.ReadToEnd().Trim().Replace("`n", "`n${indent}stdout> ")
-        $stderr = $Process.StandardError.ReadToEnd().Trim().Replace("`n", "`n${indent}stderr> ")
-        $allOutput = "${indent}stdout> " + $stdout + "`n${indent}stderr> " + $stderr
-        Write-Host "$allOutput"
-        return [RunCommandStatus]::Finished
-    } else {
-        $Process.Kill()
-        Write-Host "${indent}Killed after $timeout seconds"
-        Store-NonFatalError "Process killed after $timeout seconds`n[$cmd $args]"
-        create_timeout_file $outfile $timeout
-        return [RunCommandStatus]::Timeout
+
+    $OOMCheckingInterval = 500      # milliseconds
+    while (-not $Process.WaitForExit($OOMCheckingInterval)) {
+        $Process.Refresh()
+        if (-not $Process.HasExited) {
+            $mem = 0
+            try {
+                $mem = $Process.PeakPagedMemorySize64
+            } catch {
+                # nothing to do because the process can exit by itself
+            }
+
+            $runTime = ((Get-Date) - $Process.StartTime).Duration().TotalSeconds
+
+            if ($runTime -ge $timeout) {
+                $Process.Kill()
+                Write-Host "${indent}Killed after $timeout seconds"
+                Store-NonFatalError "Process killed after $timeout seconds`n[$cmd $args]"
+                create_timeout_file $outfile $timeout
+
+                $status = [RunCommandStatus]::Timeout
+                break
+            } elseif ($mem -ge $max_memory_amount_in_bytes) {
+                $Process.Kill()
+                $mem = [math]::round($mem / (1024 * 1024 * 1024), 2)
+                Write-Host "${indent}Killed due to consuming $mem GB of operating memory"
+                Store-NonFatalError "Process killed due to consuming $mem GB of operating memory`n[$cmd $args]"
+                
+                $status = [RunCommandStatus]::OutOfMemory
+                break
+            }
+        }
     }
+
+    $stdout = $Process.StandardOutput.ReadToEnd().Trim().Replace("`n", "`n${indent}stdout> ")
+    $stderr = $Process.StandardError.ReadToEnd().Trim().Replace("`n", "`n${indent}stderr> ")
+    $allOutput = "${indent}stdout> " + $stdout + "`n${indent}stderr> " + $stderr
+    Write-Host "$allOutput"
+
+    return $status
 }
 
 # Create result time file with timeout content
@@ -232,6 +265,9 @@ if ($gmm_k_vals_param) { $gmm_k_vals = $gmm_k_vals_param }
 # define test sizes, to be sorted ascending
 sort_size_parameters
 
+# convert max memory amount parameter to bytes
+$max_memory_amount_in_bytes = $max_memory_amount_in_gb * 1024 * 1024 * 1024
+
 # Set tmpdir default
 if (!$tmpdir) { $tmpdir = "$dir/tmp" }
 $tmpdir += "/$buildtype"
@@ -261,7 +297,7 @@ enum ToolType
     LSTM = 8
 }
 
-enum RunTestStatus { Success; Timeout; Skipped; IncorrectResults }   # run benchmark statuses
+enum RunTestStatus { Success; Timeout; Skipped; IncorrectResults; OutOfMemory }   # run benchmark statuses
 
 # Custom Tool class
 Class Tool {
@@ -437,6 +473,10 @@ Class Tool {
         if ($run_command_status -eq [RunCommandStatus]::Timeout) {
             $status = [RunTestStatus]::Timeout
         }
+
+        if ($run_command_status -eq [RunCommandStatus]::OutOfMemory) {
+            $status = [RunTestStatus]::OutOfMemory
+        }
         
         return $status
     }
@@ -491,6 +531,16 @@ Class Tool {
         $this.check_correctness($dir_out, $postfix, $fn)
     }
 
+    # Perform actions in case of guaranteed out of memory
+    [void] perform_guaranteed_oom_actions([string]$run_obj, [string]$dir_out, [string]$fn) {
+        Store-NonFatalError "Test didn't run due to guaranteed out of memory`nObjective: $run_obj`nTest file name: $fn"
+
+        # this is made for the result consistency, because in case of out of memory
+        # correctness checking is performed
+        $postfix = $this.get_out_name_postfix($run_obj)
+        $this.check_correctness($dir_out, $postfix, $fn)
+    }
+
     # Run all gmm tests for this tool
     [void] testgmm () {
         if ($this.gmm_both) { $types = @("-FULL", "-SPLIT") }
@@ -507,6 +557,7 @@ Class Tool {
                 mkdir_p $dir_out
 
                 $first_timeout_k = $script:gmm_k_vals[-1] + 1
+                $first_oom_k = $script:gmm_k_vals[-1] + 1
                 foreach ($d in $script:gmm_d_vals) {
                     Write-Host "      d=$d"
                     foreach ($k in $script:gmm_k_vals) {
@@ -518,10 +569,15 @@ Class Tool {
                         if ($k -ge $first_timeout_k) {
                             Write-Host "          Didn't run due to guaranteed timeout"
                             $this.perform_guaranteed_timeout_actions($run_obj, $dir_out, $fn)
+                        } elseif ($k -ge $first_oom_k) {
+                            Write-Host "          Didn't run due to guaranteed out of memory"
+                            $this.perform_guaranteed_oom_actions($run_obj, $dir_out, $fn)
                         } else {
                             $status = $this.run($run_obj, $dir_in, $dir_out, $fn)
                             if ($status -eq [RunTestStatus]::Timeout) {
                                 $first_timeout_k = $k
+                            } elseif ($status -eq [RunTestStatus]::OutOfMemory) {
+                                $first_oom_k = $k
                             }
                         }
                     }
@@ -545,6 +601,9 @@ Class Tool {
             if ($status -eq [RunTestStatus]::Timeout) {
                 Write-Host "      Didn't run due to guaranteed timeout"
                 $this.perform_guaranteed_timeout_actions("BA", $dir_out, $fn)
+            } elseif ($status -eq [RunTestStatus]::OutOfMemory) {
+                Write-Host "      Didn't run due to guaranteed out of memory"
+                $this.perform_guaranteed_oom_actions("BA", $dir_out, $fn)
             } else {
                 $status = $this.run("BA", [Tool]::ba_dir_in, $dir_out, $fn)
             }
@@ -562,6 +621,7 @@ Class Tool {
                 $dir_in = "$([Tool]::hand_dir_in)${type}_$sz/"
                 $dir_out = "$script:tmpdir/hand/${type}_$sz/$($this.name)/"
                 mkdir_p $dir_out
+                $run_obj = "Hand-${type}"
 
                 $status = [RunTestStatus]::Success
                 for ($n = $script:hand_min_n; $n -le $script:hand_max_n; $n++) {
@@ -570,9 +630,12 @@ Class Tool {
 
                     if ($status -eq [RunTestStatus]::Timeout) {
                         Write-Host "        Didn't run due to guaranteed timeout"
-                        $this.perform_guaranteed_timeout_actions("Hand-${type}", $dir_out, $fn)
+                        $this.perform_guaranteed_timeout_actions($run_obj, $dir_out, $fn)
+                    } elseif ($status -eq [RunTestStatus]::OutOfMemory) {
+                        Write-Host "      Didn't run due to guaranteed out of memory"
+                        $this.perform_guaranteed_oom_actions($run_obj, $dir_out, $fn)
                     } else {
-                        $status = $this.run("Hand-${type}", $dir_in, $dir_out, $fn)
+                        $status = $this.run($run_obj, $dir_in, $dir_out, $fn)
                     }
                 }
             }
@@ -585,6 +648,7 @@ Class Tool {
         mkdir_p $dir_out
 
         $first_timeout_c = $script:lstm_c_vals[-1] + 1
+        $first_oom_c = $script:lstm_c_vals[-1] + 1
         foreach ($l in $script:lstm_l_vals) {
             Write-Host "    l=$l"
 
@@ -594,10 +658,15 @@ Class Tool {
                 if ($c -ge $first_timeout_c) {
                     Write-Host "        Didn't run due to guaranteed timeout"
                     $this.perform_guaranteed_timeout_actions("LSTM", $dir_out, "lstm_l${l}_c$c")
+                }elseif ($c -ge $first_oom_c) {
+                    Write-Host "        Didn't run due to guaranteed out of memory"
+                    $this.perform_guaranteed_oom_actions("LSTM", $dir_out, "lstm_l${l}_c$c")
                 } else {
                     $status = $this.run("LSTM", [Tool]::lstm_dir_in, $dir_out, "lstm_l${l}_c$c")
                     if ($status -eq [RunTestStatus]::Timeout) {
                         $first_timeout_c = $c
+                    } elseif ($status -eq [RunTestStatus]::OutOfMemory) {
+                        $first_oom_c = $c
                     }
                 }
             }
