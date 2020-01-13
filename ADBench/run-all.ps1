@@ -54,8 +54,7 @@ param(# Which build to test.
       [double]$timeout=300,
 
       # Kill the test if it consumes more than this many gigabytes of RAM.
-      # If parameter value is less or equal to zero, RAM checking isn't performed.
-      [double]$max_memory_amount_in_gb=-1,
+      [double]$max_memory_amount_in_gb=[double]::PositiveInfinity,
       
       # Where to store the ouput, defaults to tmp/ in the project root 
       [string]$tmpdir="",
@@ -205,7 +204,7 @@ function run_command ($indent, $outfile, $timeout, $cmd) {
 
                 $status = [RunCommandStatus]::Timeout
                 break
-            } elseif (($max_memory_amount_in_gb -gt 0) -and ($mem -ge $max_memory_amount_in_bytes)) {
+            } elseif ($mem -ge $max_memory_amount_in_bytes) {
                 $Process.Kill()
                 $mem = [math]::round($mem / (1024 * 1024 * 1024), 2)
                 Write-Host "${indent}Killed due to consuming $mem GB of operating memory"
