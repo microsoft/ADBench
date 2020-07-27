@@ -10,7 +10,6 @@
 #include "../../shared/light_matrix.h"
 #include "../../shared/defs.h"
 
-#include "hand/hand.h"
 #include "hand/hand_d.h"
 
 // Data for hand objective converted from input
@@ -30,8 +29,6 @@ struct HandObjectiveData
     Matrix points;
 };
 
-
-
 class TapenadeHand : public ITest<HandInput, HandOutput> {
     HandObjectiveData* objective_input = nullptr;
     HandInput input;
@@ -40,6 +37,9 @@ class TapenadeHand : public ITest<HandInput, HandOutput> {
 
     std::vector<double> theta_d;                // buffer for theta differentiation directions
     std::vector<double> us_d;                   // buffer for us differentiation directions
+    Matrix_diff *base_relativesd ;              // buffer needed to hold the diff of objective_input->base_relatives
+    Matrix_diff *inverse_base_absolutesd ;      // buffer needed to hold the diff of objective_input->inverse_base_absolutes
+    Matrix_diff base_positionsd ;               // buffer needed to hold the diff of objective_input->base_positions
 
     std::vector<double> us_jacobian_column;     // buffer for holding jacobian column while differentiating by us
 
@@ -54,8 +54,9 @@ public:
     ~TapenadeHand() { free_objective_input(); }
 
 private:
-    static HandObjectiveData* convert_to_hand_objective_data(const HandInput& input);
+    HandObjectiveData* convert_to_hand_objective_data(const HandInput& input);
     static Matrix convert_to_matrix(const LightMatrix<double>& mat);
+    static Matrix_diff buildMatrixDiff(const LightMatrix<double>& mat);
 
     void free_objective_input();
     void calculate_jacobian_simple();
