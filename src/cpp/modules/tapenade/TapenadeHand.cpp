@@ -131,8 +131,11 @@ void TapenadeHand::calculate_jacobian_simple()
             objective_input->bone_names,
             objective_input->parents,
             objective_input->base_relatives,
+            base_relativesd,
             objective_input->inverse_base_absolutes,
+            inverse_base_absolutesd,
             &objective_input->base_positions,
+            &base_positionsd,
             &objective_input->weights,
             objective_input->triangles,
             objective_input->is_mirrored,
@@ -172,8 +175,11 @@ void TapenadeHand::calculate_jacobian_complicated()
             objective_input->bone_names,
             objective_input->parents,
             objective_input->base_relatives,
+            base_relativesd,
             objective_input->inverse_base_absolutes,
+            inverse_base_absolutesd,
             &objective_input->base_positions,
+            &base_positionsd,
             &objective_input->weights,
             objective_input->triangles,
             objective_input->is_mirrored,
@@ -205,8 +211,11 @@ void TapenadeHand::calculate_jacobian_complicated()
             objective_input->bone_names,
             objective_input->parents,
             objective_input->base_relatives,
+            base_relativesd,
             objective_input->inverse_base_absolutes,
+            inverse_base_absolutesd,
             &objective_input->base_positions,
+            &base_positionsd,
             &objective_input->weights,
             objective_input->triangles,
             objective_input->is_mirrored,
@@ -250,19 +259,24 @@ HandObjectiveData* TapenadeHand::convert_to_hand_objective_data(const HandInput&
     result->bone_count = imd.bone_names.size();
     result->parents = imd.parents.data();
     result->base_positions = convert_to_matrix(imd.base_positions);
+    base_positionsd = buildMatrixDiff(imd.base_positions) ;
     result->weights = convert_to_matrix(imd.weights);
     result->triangles = imd.triangles.data();
     result->is_mirrored = imd.is_mirrored ? 1 : 0;
 
     result->bone_names = new const char* [result->bone_count];
     result->base_relatives = new Matrix[result->bone_count];
+    base_relativesd = new Matrix_diff[result->bone_count];
     result->inverse_base_absolutes = new Matrix[result->bone_count];
+    inverse_base_absolutesd = new Matrix_diff[result->bone_count];
 
     for (int i = 0; i < result->bone_count; i++)
     {
         result->bone_names[i] = imd.bone_names[i].data();
         result->base_relatives[i] = convert_to_matrix(imd.base_relatives[i]);
+        base_relativesd[i] = buildMatrixDiff(imd.base_relatives[i]);
         result->inverse_base_absolutes[i] = convert_to_matrix(imd.inverse_base_absolutes[i]);
+        inverse_base_absolutesd[i] = buildMatrixDiff(imd.inverse_base_absolutes[i]);
     }
 
     return result;
@@ -279,15 +293,28 @@ Matrix TapenadeHand::convert_to_matrix(const LightMatrix<double>& mat)
     };
 }
 
-
+Matrix_diff TapenadeHand::buildMatrixDiff(const LightMatrix<double>& mat)
+{
+    int length = mat.nrows_ * mat.ncols_ ;
+    double *dataContents = (double*)malloc(length * sizeof(double));
+    for (int j=0 ; j<length ; ++j) dataContents[j] = 0.0 ;
+    return {dataContents} ;
+}
 
 void TapenadeHand::free_objective_input()
 {
     if (objective_input != nullptr)
     {
+        free(base_positionsd.data) ;
+        for (int i = 0; i < objective_input->bone_count; i++) {
+          free(base_relativesd[i].data) ;
+          free(inverse_base_absolutesd[i].data) ;
+        }
         delete[] objective_input->bone_names;
         delete[] objective_input->base_relatives;
+        delete[] base_relativesd;
         delete[] objective_input->inverse_base_absolutes;
+        delete[] inverse_base_absolutesd;
 
         delete objective_input;
         objective_input = nullptr;
