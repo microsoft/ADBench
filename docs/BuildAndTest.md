@@ -45,6 +45,10 @@ Open the folder with the cloned repository in Visual Studio Code. The repository
 
 When you open the folder repository in VS Code with all the recommended extensions, it should automatically prompt you to perform CMake configuration, after which buttons for selecting build configuration, building all targets, and running unit tests should appear on the VS Code's bottom bar.
 
+#### Python Environments
+
+The build scripts will install dependencies using pip. We recommend using a virtual environment tool such as [venv](https://docs.python.org/3/library/venv.html) to create a separate environment before running the scripts.
+
 #### From Command Line (Windows and Linux)
 
 To build in `my-build` subfolder of the folder with the cloned repository:
