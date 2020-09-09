@@ -13,6 +13,7 @@ endfunction()
 JOIN("${GMM_D_VALS}" ", " GMM_D_STR)
 JOIN("${GMM_K_VALS}" ", " GMM_K_STR)
 
+set (Python3_FIND_REGISTRY NEVER)
 find_package(Python3 COMPONENTS Interpreter)
 
 if (${Python3_Interpreter_FOUND})
