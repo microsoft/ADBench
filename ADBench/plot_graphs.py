@@ -53,6 +53,7 @@ tool_styles = {
 
     # Python tools
     "PyTorch": ("g", "s", "Python, PyTorch"),
+    "TorchScript": ("c", "s", "Python, TorchScript"),
     "Tensorflow": ("r", "s", "Python, Tensorflow (2.0, eager)"),
     "TensorflowGraph": ("purple", "s", "Python, Tensorflow (2.0, graph)"),
     "Autograd": ("c", "s", "Python, Autograd"),
