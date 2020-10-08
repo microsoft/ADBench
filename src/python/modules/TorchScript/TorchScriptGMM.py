@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from __future__ import annotations
+
 import numpy as np
 import torch
 
@@ -9,7 +11,16 @@ from shared.ITest import ITest
 from shared.GMMData import GMMInput, GMMOutput
 from modules.TorchScript.gmm_objective import gmm_objective
 
-
+# TorchScript doesn't currently support * argument unpacking so make an explicit set of arguments.
+@torch.jit.script
+def calculate_objective_explicit(times:int, alphas, means, icf, x, wishart_gamma, wishart_m):
+    
+    objective = torch.empty(0, 0)
+    for i in range(times):
+        # Tried to access nonexistent attribute or method 'inputs' of type 'Tensor (inferred)'.:
+        # self.objective = gmm_objective(*self.inputs, *self.params)
+        objective = gmm_objective(alphas, means, icf, x, wishart_gamma, wishart_m)
+    return objective
 
 class TorchScriptGMM(ITest):
     '''Test class for GMM differentiation by TorchScript.'''
@@ -35,13 +46,17 @@ class TorchScriptGMM(ITest):
 
         return GMMOutput(self.objective.item(), self.gradient.numpy())
 
-    def calculate_objective(self, times):
+    def calculate_objective(self, times:int):
         '''Calculates objective function many times.'''
 
-        for i in range(times):
-            self.objective = gmm_objective(*self.inputs, *self.params)
+        self.objective = calculate_objective_explicit(times, *self.inputs, *self.params)
 
-    def calculate_jacobian(self, times):
+        #for i in range(times):
+            # Tried to access nonexistent attribute or method 'inputs' of type 'Tensor (inferred)'.:
+            #self.objective = gmm_objective(*self.inputs, *self.params)
+            
+
+    def calculate_jacobian(self, times:int):
         '''Calculates objective function jacobian many times.'''
 
         for i in range(times):
