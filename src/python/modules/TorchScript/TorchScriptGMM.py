@@ -13,12 +13,10 @@ from modules.TorchScript.gmm_objective import gmm_objective
 
 # TorchScript doesn't currently support * argument unpacking so make an explicit set of arguments.
 @torch.jit.script
-def calculate_objective_explicit(times:int, alphas, means, icf, x, wishart_gamma, wishart_m):
+def calculate_objective_ts(times:int, alphas, means, icf, x, wishart_gamma, wishart_m):
     
     objective = torch.empty(0, 0)
     for i in range(times):
-        # Tried to access nonexistent attribute or method 'inputs' of type 'Tensor (inferred)'.:
-        # self.objective = gmm_objective(*self.inputs, *self.params)
         objective = gmm_objective(alphas, means, icf, x, wishart_gamma, wishart_m)
     return objective
 
@@ -49,7 +47,7 @@ class TorchScriptGMM(ITest):
     def calculate_objective(self, times:int):
         '''Calculates objective function many times.'''
 
-        self.objective = calculate_objective_explicit(times, *self.inputs, *self.params)
+        self.objective = calculate_objective_ts(times, *self.inputs, *self.params)
 
         #for i in range(times):
             # Tried to access nonexistent attribute or method 'inputs' of type 'Tensor (inferred)'.:
