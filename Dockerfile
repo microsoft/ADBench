@@ -19,10 +19,10 @@ RUN wget -q https://github.com/PowerShell/PowerShell/releases/download/v6.2.3/po
     && ln -s /utils/powershell/pwsh /usr/local/bin \
     && rm powershell-6.2.3-linux-x64.tar.gz
 
-# Install dotnet 2.1
+# Install dotnet 3.1
 RUN wget -q https://dot.net/v1/dotnet-install.sh \
     && chmod +x dotnet-install.sh \
-    && ./dotnet-install.sh -c 2.1 \
+    && ./dotnet-install.sh -c 3.1 \
     # Create a symlink to dotnet
     && ln -s ~/.dotnet/dotnet /usr/local/bin
 
