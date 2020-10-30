@@ -12,7 +12,7 @@ To run benchmarks in a docker container, follow the guide [here](./Docker.md).
 
 - [CMake 3.12+](https://cmake.org/)
 - A compatible build system and C++ compiler (e.g. MSBuild and MSVC++ on Windows, Make and GCC on Linux)
-- [.NET Core 2.1 SDK](https://dotnet.microsoft.com/download/dotnet-core/2.1)
+- [.NET Core 3.1 SDK](https://dotnet.microsoft.com/download/dotnet-core/3.1)
 - [Python 3](https://www.python.org/)
     
     Pip and setuptools must be installed and upgraded:
