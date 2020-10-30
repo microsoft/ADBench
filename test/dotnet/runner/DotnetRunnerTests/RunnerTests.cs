@@ -46,7 +46,7 @@ namespace DotnetRunnerTests
             Benchmark.MeasureShortestTime(minimumMeasurableTime, runCount, timeLimit, baTest.CalculateObjective);
 
             //Number of runs should be less then runCount variable because totalTime will be reached. 
-            baTestMock.Verify(test => test.CalculateObjective(It.IsAny<int>()), Times.Between(1, (int)Math.Ceiling(timeLimit / executionTime), Range.Exclusive));
+            baTestMock.Verify(test => test.CalculateObjective(It.IsAny<int>()), Times.Between(1, (int)Math.Ceiling(timeLimit / executionTime), Moq.Range.Exclusive));
         }
 
         [Fact]
