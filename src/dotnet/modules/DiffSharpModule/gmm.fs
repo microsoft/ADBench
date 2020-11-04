@@ -1,12 +1,18 @@
 ﻿module gmm
 
-open DiffSharp.AD.Float64
+open DiffSharp
 open DotnetRunner.Data
 open System.Composition
 open DiffSharp.Util
 open utils
 
-let frobeniusNormSq (m: DM) = m.GetRows () |> Seq.sumBy DV.l2normSq
+
+type D = Tensor
+type DV = Tensor
+type DM = Tensor
+
+let frobeniusNormSq (m: Tensor) = m. () |> Seq.sumBy dsharp.mseLoss
+// let frobeniusNormSq (m: DM) = m.GetRows () |> Seq.sumBy DV.l2normSq
 
 let unpackQ (logdiag: DV) (lt: DV) : DM =
     let d = logdiag.Length
@@ -63,7 +69,7 @@ type DiffSharpGMM() =
     [<DefaultValue>] val mutable input : GMMInput
     [<DefaultValue>] val mutable gmmObjectiveWrapper : DV -> D
     let mutable objective : D = D 0.
-    let mutable gradient : DV = DV.empty
+    let mutable gradient : Tensor = dsharp.tensor [||]
      
     override this.Prepare(input: GMMInput) : unit = 
         this.input <- input

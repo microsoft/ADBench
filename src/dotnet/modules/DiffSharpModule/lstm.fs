@@ -1,6 +1,6 @@
 ﻿module lstm
 
-open DiffSharp.AD.Float64
+open DiffSharp
 open DotnetRunner.Data
 open System.Composition
 open DiffSharp.Util

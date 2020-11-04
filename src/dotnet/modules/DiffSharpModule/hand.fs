@@ -1,12 +1,12 @@
 ﻿module hand
 
-open DiffSharp.AD.Float64
+open DiffSharp
 open DotnetRunner.Data
 open System.Composition
 open DiffSharp.Util
 open utils
 
-let identity n = DM.init n n (fun i j -> if i = j then 1.0 else 0.0)
+let identity n = dsharp.init2d n n (fun i j -> if i = j then 1.0 else 0.0)
 
 let angleAxisToRotationMatrix (angleAxis: DV) : DM =
     let n = DV.l2norm angleAxis

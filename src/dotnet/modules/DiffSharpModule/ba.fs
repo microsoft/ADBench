@@ -4,7 +4,7 @@ open System
 open System.Diagnostics
 open System.IO
 
-open DiffSharp.AD.Float64
+open DiffSharp
 open DotnetRunner.Data
 open System.Composition
 open DotnetRunner
