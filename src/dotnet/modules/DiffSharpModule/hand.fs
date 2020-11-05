@@ -1,5 +1,6 @@
 ﻿module hand
 
+(*
 open DiffSharp
 open DotnetRunner.Data
 open System.Composition
@@ -18,22 +19,24 @@ let angleAxisToRotationMatrix (angleAxis: DV) : DM =
         let z = angleAxis.[2] / n
         let s = sin n
         let c = cos n
-        DM.ofArray 3 [|
+        dsharp.tensor [|
             x * x + (1 - x * x) * c; x * y * (1 - c) - z * s; x * z * (1 - c) + y * s;
             x * y * (1 - c) + z * s; y * y + (1 - y * y) * c; y * z * (1 - c) - x * s;
             x * z * (1 - c) - y * s; z * y * (1 - c) + x * s; z * z + (1 - z * z) * c
         |]
 
 let applyGlobalTransform (poseParams: DV array) (positions: DM) : DM =
-    ((angleAxisToRotationMatrix poseParams.[0]) |> DM.mapRows ((.*) poseParams.[1])) * positions + poseParams.[2]
+    angleAxisToRotationMatrix poseParams.[0] * poseParams.[1] * positions + poseParams.[2]
 
 let relativesToAbsolutes (relatives: DM array) (parents: int array) : DM array =
-    Array.fold2 (fun (state: DM list * int) (relative: DM) (parent: int) ->
+    (([], -1), relatives, parents) 
+    |||> Array.fold2 (fun (state: DM list * int) (relative: DM) (parent: int) ->
         let reversedAbsolutes, lastIdx = state
         if parent = -1
         then relative :: reversedAbsolutes, lastIdx + 1
         else reversedAbsolutes.[lastIdx - parent] * relative :: reversedAbsolutes, lastIdx + 1
-    ) ([], -1) relatives parents |> fst |> List.rev |> Array.ofList
+    ) 
+    |> fst |> List.rev |> Array.ofList
     // Note: it's possible to use a mutable array instead of indexing the linked list,
     // but the performace boost it gives is too miniscule to justify sacrificing the
     // purity of the functional code.
@@ -54,7 +57,7 @@ let eulerAnglesToRotationMatrix (xzy: DV) : DM =
     let sinty = sin(ty)
     let costz = cos(tz)
     let sintz = sin(tz)
-    DM.ofArray 4 [|
+    dsharp.tensor [|
         costy * costz;  -costx * sintz + sintx * sinty * costz; sintx * sintz + costx * sinty * costz;  D 0.0;
         costy * sintz;  costx * costz + sintx * sinty * sintz;  -sintx * costz + costx * sinty * sintz; D 0.0;
         -sinty;         sintx * costy;                          costx * costy;                          D 0.0;
@@ -78,12 +81,15 @@ let getSkinnedVertexPositions (model: HandModel) (poseParams: DV array) (applyGl
     let absolutes = relativesToAbsolutes relatives model.Parents
     let transforms = Array.map2 (*) absolutes (Array.map DM model.InverseBaseAbsolutes)
     let basePositions = DM model.BasePositions
-    let positions = Array.fold2 (fun (pos: DM) (transform: DM) (weights: float array) ->
-        pos + (transform.[0..2, *] * basePositions |> DM.mapRows ((.*) (DV weights)))) (DM.zeroCreate 3 (model.BasePositions.GetLength(1))) transforms model.Weights
+    let positions =
+        (DM.zeroCreate 3 (model.BasePositions.GetLength(1)), transforms, model.Weights)
+        |||> Array.fold2 (fun (pos: DM) (transform: DM) (weights: float array) ->
+            pos + (transform.[0..2, *] * basePositions |> DM.mapRows ((.*) (DV weights)))) 
 
-    let positions = if model.IsMirrored
-                    then DM.mapiRows (fun i row -> if i = 0 then -row else row) positions
-                    else positions
+    let positions =
+        if model.IsMirrored
+        then DM.mapiRows (fun i row -> if i = 0 then -row else row) positions
+        else positions
 
     if applyGlobal
     then applyGlobalTransform poseParams positions
@@ -93,13 +99,14 @@ let toPoseParams (theta: DV) (nBones: int) : DV array =
     let n = 3 + nBones
     let nFingers = 5
     let cols = 5 + nFingers * 4
-    Array.init n (fun i -> match i with
-                            | 0 -> theta.[0..2]
-                            | 1 -> DV [| 1.0; 1.0; 1.0 |]
-                            | 2 -> theta.[3..5]
-                            | j when j >= cols || j = 3 || j % 4 = 0 -> DV.zeroCreate 3
-                            | j when j % 4 = 1 -> toDV [| theta.[j + 1]; theta.[j + 2]; D 0.0 |]
-                            | j -> toDV [| theta.[j + 2]; D 0.0; D 0.0 |])
+    Array.init n (fun i -> 
+        match i with
+        | 0 -> theta.[0..2]
+        | 1 -> DV [| 1.0; 1.0; 1.0 |]
+        | 2 -> theta.[3..5]
+        | j when j >= cols || j = 3 || j % 4 = 0 -> DV.zeroCreate 3
+        | j when j % 4 = 1 -> toDV [| theta.[j + 1]; theta.[j + 2]; D 0.0 |]
+        | j -> toDV [| theta.[j + 2]; D 0.0; D 0.0 |])
 
 let handObjectiveSimple (model: HandModel) (correspondences: int array) (points: DV array) (theta: DV) : DV =
     let poseParams = toPoseParams theta model.BoneNames.Length
@@ -166,3 +173,4 @@ type DiffSharpHand() =
                                 (fun i j -> if (i < thetaCount && j >= 2 && i + 2 = j) || (i >= thetaCount && j < 2 && (i - thetaCount - j) % 2 = 0) then 1.0 else 0.0)
             output.Jacobian <- (j * compression).GetRows () |> Seq.map convert |> Array.ofSeq
         output
+*)

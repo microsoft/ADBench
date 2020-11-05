@@ -1,7 +1,29 @@
 ﻿module utils
 
-open DiffSharp.AD.Float64
+open DiffSharp
+type D = Tensor
+type DV = Tensor
+type DM = Tensor
 
+(*
+let d (x: float) : D = dsharp.tensor x
+let dv (x: float[]) : DV = dsharp.tensor x
+let dm (x: float[,]) : DM = dsharp.tensor x
+module DV =
+    let l2normSq (x: DV) : D = 
+        dsharp.sum(x*x)
+
+    let l2norm (x: DV) : D = 
+        sqrt(l2normSq(x))
+
+*)
+
+type dsharp with
+    static member max(t: Tensor, dim: int) = 
+        // todo - not right for dim > 2
+        t.unstack(dim) |> Array.map (fun t -> t.max()) |> fun ts -> dsharp.stack(ts, dim)
+
+        
 [<AbstractClass>]
 type DiffSharpModuleBase<'input, 'output> () =
     [<DefaultValue>] val mutable packedInput : DV

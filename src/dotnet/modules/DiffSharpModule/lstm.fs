@@ -1,5 +1,6 @@
 ﻿module lstm
 
+(*
 open DiffSharp
 open DotnetRunner.Data
 open System.Composition
@@ -77,3 +78,4 @@ type DiffSharpLSTM() =
         output.Gradient <- convert gradient
         output
 
+*)
