@@ -11,13 +11,15 @@ type D = Tensor
 type DV = Tensor
 type DM = Tensor
 
-let frobeniusNormSq (m: Tensor) = m. () |> Seq.sumBy dsharp.mseLoss
+// let frobeniusNormSq (m: Tensor) = m. () |> Seq.sumBy
 // let frobeniusNormSq (m: DM) = m.GetRows () |> Seq.sumBy DV.l2normSq
 
 let unpackQ (logdiag: DV) (lt: DV) : DM =
-    let d = logdiag.Length
-    DM.init d d (fun i j ->
-                    if i < j then D 0.
+    //let d = logdiag.Length
+    let d = logdiag.shape.Length
+   
+    dsharp.init2d d d (fun i j ->
+                    if i < j then dsharp.tensor 0.
                     else if i = j then exp logdiag.[i]
                     else lt.[d * j + i - j - 1 - j * (j + 1) / 2])
 
@@ -43,14 +45,24 @@ let logWishartPrior (qsAndSums: (DM * D) array) wishartGamma wishartM p =
     0.5 * wishartGamma * wishartGamma * frobenius - float wishartM * sumQs - float k * c
 
 let gmmObjective (alphas: DV) (means: DV[]) (icf: DV[]) (x: DM) (wishartGamma: float) (wishartM: int) =
-    let d = x.Cols
-    let n = x.Rows
+    // let d = x.Cols
+    // let n = x.Rows
+
+    let d = x.shape.GetLength(1) //TODO: check dimension ordering
+    let n = x.shape.GetLength(0)
+
     let constant = - float n * float d * 0.5 * log (2. * System.Math.PI)
-    let alphasAndMeans = Array.zip (alphas.ToArray ()) means
+
+    
+
+    let alphasAndMeans = Array.zip (alphas.toArray() :?> DV[]) means
     let qsAndSums = icf |> Array.map (fun (v:DV) ->
                         let logdiag = v.[0..d - 1]
                         let lt = v.[d..]
-                        unpackQ logdiag lt, DV.Sum logdiag)
+                        unpackQ logdiag lt, dsharp.sum logdiag)
+
+
+    dsharp.sum
 
     let slse = x.GetRows ()
                 |> Seq.sumBy (fun xi ->
@@ -61,21 +73,24 @@ let gmmObjective (alphas: DV) (means: DV[]) (icf: DV[]) (x: DM) (wishartGamma: f
                             -0.5 * (DV.l2normSq (q * (xi - meansk))) + alpha + sumQ
                         ) qsAndSums alphasAndMeans)
 
-    constant + slse  - float(n) * logsumexp alphas + logWishartPrior qsAndSums wishartGamma wishartM d
+    constant + slse - float(n) * logsumexp alphas + logWishartPrior qsAndSums wishartGamma wishartM d
 
 [<Export(typeof<DotnetRunner.ITest<GMMInput, GMMOutput>>)>]
 type DiffSharpGMM() =
     inherit DiffSharpModuleBase<GMMInput, GMMOutput>()
     [<DefaultValue>] val mutable input : GMMInput
     [<DefaultValue>] val mutable gmmObjectiveWrapper : DV -> D
-    let mutable objective : D = D 0.
+    let mutable objective : D = dsharp.tensor 0.
     let mutable gradient : Tensor = dsharp.tensor [||]
      
     override this.Prepare(input: GMMInput) : unit = 
         this.input <- input
-        this.packedInput <- Array.map toDV (Array.concat [ [| input.Alphas |]; input.Means; input.Icf ]) |> DV.concat
+        this.packedInput <- Array.map dsharp.tensor (Array.concat [ [| input.Alphas |]; input.Means; input.Icf ]) |> DV.concat //Use view?
         let icfStartIndex = input.K + input.D * input.K
-        let xDM = input.X |> Seq.ofArray |> Seq.map Seq.ofArray |> toDM
+        let xDM = input.X |> Seq.ofArray |> Seq.map Seq.ofArray |> dsharp.tensor
+
+        
+
         this.gmmObjectiveWrapper <- (fun par ->
             let alphas = par.[0..input.K - 1]
             let means = DV.splitEqual input.K par.[input.K..icfStartIndex - 1] |> Array.ofSeq
