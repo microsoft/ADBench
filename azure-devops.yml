@@ -14,6 +14,11 @@ jobs:
       addToPath: true
       architecture: x64
 
+  - task: UseDotNet@2
+    inputs:
+      packageType: 'sdk'
+      version: '3.1.403'
+
   - task: PowerShell@2
     displayName: 'PowerShell Script'
     inputs:

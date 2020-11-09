@@ -4,8 +4,8 @@
 choco install --limit-output julia
 julia -e 'import Pkg; Pkg.add.([\"SpecialFunctions\", \"ForwardDiff\"])'
 
-python -m pip install --user matplotlib plotly numpy scipy autograd
-python -m pip install torch==1.2.0+cpu torchvision==0.4.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+# python -m pip install --user matplotlib plotly numpy scipy autograd
+# python -m pip install torch==1.2.0+cpu torchvision==0.4.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
 
 # I'm not sure that setting up vcvars is necessary in Azure Dev Ops.
 # We have a VS2017 host so presumably it has all the paths set up
