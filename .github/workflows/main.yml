@@ -26,7 +26,7 @@ jobs:
     - name: Setup Julia environment
       # You may pin to the exact commit or the version.
       # uses: julia-actions/setup-julia@9d7e519ae7e64c071cc7fd8ab44962b5a780063b
-      uses: julia-actions/setup-julia@v1.2.1
+      uses: julia-actions/setup-julia@v1.6.0
       with:
         # The Julia version to download (if necessary) and use. Example: 1.0.4
         version: 1.5
