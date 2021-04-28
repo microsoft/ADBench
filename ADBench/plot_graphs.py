@@ -578,6 +578,9 @@ def main():
     static_out_dir = os.path.join(out_dir, static_out_dir_rel)
     plotly_out_dir = os.path.join(out_dir, plotly_out_dir_rel)
 
+    os.makedirs(static_out_dir, exist_ok=True)
+    os.makedirs(plotly_out_dir, exist_ok=True)
+
     print("\nGenerating graphs...\n")
     if do_save or do_plotly:
         print(f"Output directory: {out_dir}")
