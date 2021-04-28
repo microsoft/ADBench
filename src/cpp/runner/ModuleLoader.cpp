@@ -15,13 +15,17 @@ FUNCTION_PTR ModuleLoader::load_function(const std::string& symbol_name) const
 
 ModuleLoader::ModuleLoader(const char* file_path)
 {
+    std::string reason;
 #ifdef _WIN32
     module_ptr_ = LoadLibraryA(file_path);
 #elif defined(__linux__) || defined(__APPLE__)
     module_ptr_ = dlopen(file_path, RTLD_NOW | RTLD_LOCAL);
+    if (module_ptr_ == nullptr) {
+        reason = ": " + std::string(dlerror());
+    }
 #endif
     if (module_ptr_ == nullptr) {
-        throw runtime_error(("Can't load library " + std::string(file_path)).c_str());
+        throw runtime_error(("Can't load library " + std::string(file_path) + reason).c_str());
     }
 }
 
