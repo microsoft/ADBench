@@ -12,7 +12,7 @@
 #undef max
 #define MODULE_PTR HINSTANCE
 #define FUNCTION_PTR FARPROC
-#elif __linux__ 
+#elif defined(__linux__) || defined(__APPLE__)
 #include <dlfcn.h>
 #define MODULE_PTR void*
 #define FUNCTION_PTR void*

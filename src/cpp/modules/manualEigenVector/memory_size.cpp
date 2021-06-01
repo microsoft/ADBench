@@ -10,6 +10,10 @@
 #include <cstddef>
 #include <sys/sysinfo.h>
 
+#elif defined(__APPLE__)
+#include <sys/types.h>
+#include <sys/sysctl.h>
+
 #else
 #error "Cannot define size of memory for current OS."
 #endif
@@ -27,6 +31,11 @@ unsigned long long int get_memory_size()
     if (sysinfo(&sys_info) != -1)
         total_ram = ((unsigned long long int)sys_info.totalram * sys_info.mem_unit);
     return total_ram;
+#elif defined(__APPLE__)
+    int64_t memsize;
+    size_t len = sizeof(memsize);
+    sysctlbyname("hw.memsize", &memsize, &len, NULL, 0);
+    return memsize;
 #else
     // Unknown OS
     return 0L;
