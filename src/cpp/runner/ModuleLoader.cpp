@@ -18,7 +18,7 @@ ModuleLoader::ModuleLoader(const char* file_path)
 #ifdef _WIN32
     module_ptr_ = LoadLibraryA(file_path);
 #elif defined(__linux__) || defined(__APPLE__)
-    module_ptr_ = dlopen(file_path, RTLD_NOW || RTLD_LOCAL);
+    module_ptr_ = dlopen(file_path, RTLD_NOW | RTLD_LOCAL);
 #endif
     if (module_ptr_ == nullptr) {
         throw runtime_error(("Can't load library " + std::string(file_path)).c_str());
