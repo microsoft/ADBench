@@ -67,6 +67,10 @@ set(CMAKE_SHARED_MODULE_SUFFIX .dll)
 # Make all platforms use similar names for release and debug binaries.
 set(CMAKE_DEBUG_POSTFIX "")
 
+# Enable C++14 features for all C++ code.
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
 # Include sub-projects.
 add_subdirectory ("ADBench")
 add_subdirectory ("src")
