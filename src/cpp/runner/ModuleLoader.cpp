@@ -5,7 +5,7 @@ FUNCTION_PTR ModuleLoader::load_function(const std::string& symbol_name) const
 #ifdef _WIN32
     return GetProcAddress(module_ptr_,
                           symbol_name.c_str());
-#elif __linux__ 
+#elif defined(__linux__) || defined(__APPLE__)
     return dlsym(module_ptr_, symbol_name.c_str());
 #endif
 }
@@ -14,7 +14,7 @@ ModuleLoader::ModuleLoader(const char* file_path)
 {
 #ifdef _WIN32
     module_ptr_ = LoadLibraryA(file_path);
-#elif __linux__ 
+#elif defined(__linux__) || defined(__APPLE__)
     module_ptr_ = dlopen(file_path, RTLD_NOW || RTLD_LOCAL);
 #endif
     if (module_ptr_ == nullptr) {
@@ -88,7 +88,7 @@ ModuleLoader::~ModuleLoader()
     {
 #ifdef _WIN32
         FreeLibrary(module_ptr_);
-#elif __linux__ 
+#elif defined(__linux__) || defined(__APPLE__)
         dlclose(module_ptr_);
 #endif
     }
