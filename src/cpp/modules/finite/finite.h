@@ -7,6 +7,7 @@
 #include <functional>
 #include <algorithm>
 #include <iostream>
+#include <limits>
 #include <cmath>
 
 const double FINITE_DIFFERENCES_DEFAULT_EPSILON = std::cbrt(std::numeric_limits<double>::epsilon());
