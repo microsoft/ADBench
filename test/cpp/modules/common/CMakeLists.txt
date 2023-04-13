@@ -15,7 +15,7 @@ endif (UNIX)
 
 gtest_discover_tests(commonTests "" AUTO)
 add_dependencies(commonTests Manual)
-target_link_libraries(commonTests PUBLIC GTest::main)
+target_link_libraries(commonTests PUBLIC GTest::gtest_main)
 add_custom_command(TARGET commonTests PRE_BUILD 
     COMMAND "${CMAKE_COMMAND}" -E copy 
         "${CMAKE_SOURCE_DIR}/data/gmm/test.txt"

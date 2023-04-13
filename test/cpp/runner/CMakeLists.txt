@@ -3,10 +3,10 @@ project("CppRunnerTests" CXX)
 include(GoogleTest)
 
 add_library(MockGMM MODULE "MockGMM.cpp")
-target_link_libraries(MockGMM PUBLIC GMock::main) 
+target_link_libraries(MockGMM PUBLIC GTest::gmock_main)
 
 add_executable(cppRunnerTests CppRunnerTests.cpp "../../../src/cpp/runner/ModuleLoader.cpp")
-target_link_libraries(cppRunnerTests PUBLIC GMock::main) 
+target_link_libraries(cppRunnerTests PUBLIC GTest::gmock_main)
 
 if (UNIX)
 	target_link_libraries(cppRunnerTests PUBLIC dl)

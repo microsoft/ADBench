@@ -32,8 +32,8 @@ endif()
 include("etc/HunterGate.cmake")
 
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.23.177.tar.gz"
-    SHA1 "c3d4bf987a1c5f8ce9bb8b2b80bc6c123185cd66"
+    URL "https://github.com/cpp-pm/hunter/archive/v0.24.15.tar.gz"
+    SHA1 "8010d63d5ae611c564889d5fe12d3cb7a45703ac"
     LOCAL
 )
 
@@ -82,9 +82,8 @@ option(ENABLE_TESTS "Enable tests" ON)
 if (${ENABLE_TESTS})
     # Get gtest and gmock packages
     hunter_add_package(GTest)
-	
-	find_package (GTest CONFIG REQUIRED)
-    find_package(GMock CONFIG REQUIRED)
+
+    find_package(GTest CONFIG REQUIRED)
 
     if(NOT EXISTS "${GTest_LICENSES}")
         message(FATAL_ERROR "File not found: '${GTest_LICENSES}")
@@ -92,6 +91,6 @@ if (${ENABLE_TESTS})
     message("License file: '${GTest_LICENSES}'")
 
     enable_testing()
-	add_subdirectory ("test")
+    add_subdirectory ("test")
 endif()
 
