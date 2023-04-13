@@ -5,7 +5,7 @@ import torch
 
 
 
-def to_torch_tensor(param, grad_req = False, dtype = torch.float64):
+def to_torch_tensor(param, grad_req = False, dtype = torch.float64, device = 'cpu'):
     '''Converts given single parameter to torch tensors. Note that parameter
     can be an ndarray-like object.
     
@@ -23,12 +23,13 @@ def to_torch_tensor(param, grad_req = False, dtype = torch.float64):
     return torch.tensor(
         param,
         dtype = dtype,
-        requires_grad = grad_req
+        requires_grad = grad_req,
+        device = device,
     )
 
 
 
-def to_torch_tensors(params, grad_req = False, dtype = torch.float64):
+def to_torch_tensors(params, grad_req = False, dtype = torch.float64, device = 'cpu'):
     '''Converts given multiple parameters to torch tensors. Note that
     parameters can be ndarray-lake objects.
     
@@ -44,7 +45,7 @@ def to_torch_tensors(params, grad_req = False, dtype = torch.float64):
     '''
 
     return tuple(
-        torch.tensor(param, dtype = dtype, requires_grad = grad_req)
+        torch.tensor(param, dtype = dtype, requires_grad = grad_req, device = device)
         for param in params
     )
 

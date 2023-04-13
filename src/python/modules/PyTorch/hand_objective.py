@@ -5,10 +5,10 @@ import torch
 
 
 def to_pose_params(theta, nbones):
-    pose_params = torch.zeros((int(nbones) + 3, 3), dtype=torch.float64)
+    pose_params = torch.zeros((int(nbones) + 3, 3), dtype=torch.float64, device=theta.device)
 
     pose_params[0, :] = theta[0:3]
-    pose_params[1, :] = torch.ones((3,))
+    pose_params[1, :] = torch.ones((3,), device=theta.device)
     pose_params[2, :] = theta[3:6]
 
     i_theta = 6
@@ -32,19 +32,19 @@ def euler_angles_to_rotation_matrix(xzy):
     ty = xzy[2]
     tz = xzy[1]
 
-    Rx = torch.eye(3)
+    Rx = torch.eye(3, device=xzy.device)
     Rx[1, 1] = torch.cos(tx)
     Rx[2, 1] = torch.sin(tx)
     Rx[1, 2] = -Rx[2, 1]
     Rx[2, 2] = Rx[1, 1]
 
-    Ry = torch.eye(3)
+    Ry = torch.eye(3, device=xzy.device)
     Ry[0, 0] = torch.cos(ty)
     Ry[2, 0] = torch.sin(ty)
     Ry[0, 2] = -Ry[2, 0]
     Ry[2, 2] = Ry[0, 0]
 
-    Rz = torch.eye(3)
+    Rz = torch.eye(3, device=xzy.device)
     Rz[0, 0] = torch.cos(tz)
     Rz[1, 0] = torch.sin(tz)
     Rz[0, 1] = -Rz[1, 0]
@@ -55,7 +55,7 @@ def euler_angles_to_rotation_matrix(xzy):
 
 def get_posed_relatives(pose_params, base_relatives):
     def inner(rot_param, base_relative):
-        tr = torch.eye(4, dtype=torch.float64)
+        tr = torch.eye(4, dtype=torch.float64, device=rot_param.device)
         R = euler_angles_to_rotation_matrix(rot_param)
         tr[:3, :3] = R
         return base_relative @ tr
@@ -89,7 +89,7 @@ def angle_axis_to_rotation_matrix(angle_axis):
         y = angle_axis_normalized[1]
         z = angle_axis_normalized[2]
         s, c = torch.sin(n), torch.cos(n)
-        R = torch.zeros((3, 3), dtype=torch.float64)
+        R = torch.zeros((3, 3), dtype=torch.float64, device=angle_axis.device)
         R[0, 0] = x * x + (1 - x * x) * c
         R[0, 1] = x * y * (1 - c) - z * s
         R[0, 2] = x * z * (1 - c) + y * s
@@ -104,7 +104,7 @@ def angle_axis_to_rotation_matrix(angle_axis):
         return R
 
     if n < 0.0001:
-        return torch.eye(3)
+        return torch.eye(3, deivce=angle_axis.device)
     else:
         return aa2R()
 

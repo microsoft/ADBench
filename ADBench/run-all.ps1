@@ -699,6 +699,7 @@ $tool_descriptors = @(
     [Tool]::new("DiffSharpModule", "dotnet", [ObjectiveType] "GMM, BA, Hand, LSTM", $true, $default_tolerance)
     [Tool]::new("Tapenade", "cpp", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, $default_tolerance)
     [Tool]::new("PyTorch", "python", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, 1e-7)
+    [Tool]::new("PyTorchGPU", "python", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, 1e-7)
     [Tool]::new("TorchScript", "python", [ObjectiveType] "GMM", $true, 1e-7)
     [Tool]::new("Tensorflow", "python", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, $default_tolerance)
     [Tool]::new("TensorflowGraph", "python", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, $default_tolerance)

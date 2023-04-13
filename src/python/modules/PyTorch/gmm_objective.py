@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 import math
-from scipy import special as scipy_special
 import torch
 
 
@@ -21,7 +20,7 @@ def logsumexpvec(x):
 
 
 def log_gamma_distrib(a, p):
-    return scipy_special.multigammaln(a, p)
+    return torch.special.multigammaln(a, p)
 
 
 def sqsum(x):
@@ -48,7 +47,7 @@ def constructL(d, icf):
     def make_L_col(i):
         nelems = d - i - 1
         col = torch.cat([
-            torch.zeros(i + 1, dtype = torch.float64),
+            torch.zeros(i + 1, dtype = torch.float64, device=icf.device),
             icf[constructL.Lparamidx:(constructL.Lparamidx + nelems)]
         ])
 

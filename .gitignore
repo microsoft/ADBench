@@ -22,6 +22,9 @@ ipch/
 *.cachefile
 .vs
 
+# Vim
+*.swp
+
 # Build results
 Debug/
 Release/
@@ -33,4 +36,3 @@ build/
 __pycache__
 *.obj
 *.exe
-
