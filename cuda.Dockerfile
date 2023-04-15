@@ -1,15 +1,25 @@
-# Using nvidia/cuda:11.1.1-devel-ubuntu20.04 as base image
+# Using nvidia/cuda:11.8.0-devel-ubuntu22.04 as base image
 # CUDA version shoud be consistent with **/requirements-cuda.txt
-FROM nvidia/cuda:11.1.1-devel-ubuntu20.04
+FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
 
 # Install linux packages
 RUN apt-get update
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         wget \
         python3 \
+        python3-dev \
         python3-pip \
         cmake \
+        # Required by DiffSharp
+        libopenblas-dev \
+        libssl-dev \
+        # Required by matplotlib
+        libpng-dev \
         && rm -rf /var/lib/apt/lists/*
+
+# Legacy libssl 1.0 requried by .NET runner
+RUN wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl1.0/libssl1.0.0_1.0.2n-1ubuntu5_amd64.deb
+RUN DEBIAN_FRONTEND=noninteractive dpkg -i libssl1.0.0_1.0.2n-1ubuntu5_amd64.deb
 
 # Install julia
 WORKDIR /utils/julia
@@ -47,6 +57,8 @@ COPY . .
 # Setting workdir for building the project
 WORKDIR /adb/build
 
+# For matplotlib font issue
+ENV MPLLOCALFREETYPE=1
 # Configure and build
 RUN cmake -DCMAKE_BUILD_TYPE=release -DCUDA=ON .. \
     && make
