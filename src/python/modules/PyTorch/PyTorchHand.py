@@ -23,25 +23,29 @@ class PyTorchHand(ITest):
         nrows = 3 * len(input.data.correspondences)
         self.complicated = len(input.us) > 0
 
+        # Work around a PyTorch issue: https://github.com/pytorch/pytorch/issues/99405
+        bone_count = torch.tensor(self.bone_count)
+        is_mirrored = torch.tensor(input.data.model.is_mirrored)
+
         if self.complicated:
             self.inputs = to_torch_tensor(
                 np.append(input.us.flatten(), input.theta),
                 grad_req = True
             )
             self.params = (
-                self.bone_count,
+                bone_count,
                 to_torch_tensor(input.data.model.parents, dtype = torch.int32),
                 to_torch_tensor(input.data.model.base_relatives),
                 to_torch_tensor(input.data.model.inverse_base_absolutes),
                 to_torch_tensor(input.data.model.base_positions),
                 to_torch_tensor(input.data.model.weights),
-                input.data.model.is_mirrored,
+                is_mirrored,
                 to_torch_tensor(input.data.points),
                 to_torch_tensor(
                     input.data.correspondences,
                     dtype = torch.int32
                 ),
-                input.data.model.triangles
+                to_torch_tensor(input.data.model.triangles)
             )
 
             self.objective_function = hand_objective_complicated
@@ -53,13 +57,13 @@ class PyTorchHand(ITest):
             )
 
             self.params = (
-                self.bone_count,
+                bone_count,
                 to_torch_tensor(input.data.model.parents, dtype = torch.int32),
                 to_torch_tensor(input.data.model.base_relatives),
                 to_torch_tensor(input.data.model.inverse_base_absolutes),
                 to_torch_tensor(input.data.model.base_positions),
                 to_torch_tensor(input.data.model.weights),
-                input.data.model.is_mirrored,
+                is_mirrored,
                 to_torch_tensor(input.data.points),
                 to_torch_tensor(input.data.correspondences, dtype = torch.int32)
             )

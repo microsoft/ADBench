@@ -42,7 +42,7 @@ class TorchScriptGMM(ITest):
     def output(self):
         '''Returns calculation result.'''
 
-        return GMMOutput(self.objective.item(), self.gradient.numpy())
+        return GMMOutput(self.objective.item(), self.gradient.detach().numpy())
 
     def calculate_objective(self, times:int):
         '''Calculates objective function many times.'''

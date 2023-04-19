@@ -68,45 +68,22 @@ def torch_jacobian(func, inputs, params = None, flatten = True):
         torch tensor, torch tensor: function result and function jacobian.
     '''
 
-    def recurse_backwards(output, inputs, J, flatten):
-        '''Recursively calls .backward on multi-dimensional output.'''
+    def func_wrapper(*args, **kvs):
+        out = func(*args, **kvs)
+        return (out, out)
 
-        def get_grad(tensor, flatten):
-            '''Returns tensor gradient flatten representation. Added for
-            performing concatenation of scalar tensors gradients.'''
-
-            if tensor.dim() > 0:
-                if flatten:
-                    return tensor.grad.flatten()
-                else:
-                    return tensor.grad
-            else:
-                return tensor.grad.view(1)
-
-
-        if output.dim() > 0:
-            for item in output:
-                recurse_backwards(item, inputs, J, flatten)
-        else:
-            for inp in inputs:
-                inp.grad = None
-
-            output.backward(retain_graph = True)
-
-            J.append(torch.cat(
-                list(get_grad(inp, flatten) for inp in inputs)
-            ))
-
-
+    jac_func = torch.func.jacrev(func_wrapper, tuple(range(len(inputs))), has_aux=True)
     if params != None:
-        res = func(*inputs, *params)
+        J, res = jac_func(*inputs, *params)
     else:
-        res = func(*inputs)
+        J, res = jac_func(*inputs)
 
-    J = []
-    recurse_backwards(res, inputs, J, flatten)
-
-    J = torch.stack(J)
+    # J[i].shape = (out..., in...)
+    J = tuple(
+        J[i].reshape(-1, inputs[i].numel())
+        for i in range(len(inputs))
+    )  # J[i].shape = (out, in)
+    J = torch.cat(J, dim=1)  # shape = (out, (in1 + in2...))
     if flatten:
         J = J.t().flatten()
 

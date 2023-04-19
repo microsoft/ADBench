@@ -31,7 +31,7 @@ class PyTorchGPULSTM(ITest):
     def output(self):
         '''Returns calculation result.'''
 
-        return LSTMOutput(self.objective.item(), self.gradient.cpu().numpy())
+        return LSTMOutput(self.objective.item(), self.gradient.detach().cpu().numpy())
 
     def calculate_objective(self, times):
         '''Calculates objective function many times.'''

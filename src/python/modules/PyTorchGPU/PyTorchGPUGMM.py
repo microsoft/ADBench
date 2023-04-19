@@ -35,7 +35,7 @@ class PyTorchGPUGMM(ITest):
     def output(self):
         '''Returns calculation result.'''
 
-        return GMMOutput(self.objective.item(), self.gradient.cpu().numpy())
+        return GMMOutput(self.objective.item(), self.gradient.detach().cpu().numpy())
 
     def calculate_objective(self, times):
         '''Calculates objective function many times.'''

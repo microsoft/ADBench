@@ -30,7 +30,7 @@ class PyTorchLSTM(ITest):
     def output(self):
         '''Returns calculation result.'''
 
-        return LSTMOutput(self.objective.item(), self.gradient.numpy())
+        return LSTMOutput(self.objective.item(), self.gradient.detach().numpy())
 
     def calculate_objective(self, times):
         '''Calculates objective function many times.'''
