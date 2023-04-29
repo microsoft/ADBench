@@ -3,6 +3,7 @@
 
 import os
 import sys
+import traceback
 sys.path.append(sys.path[0] + ("/" if sys.path[0] else None) + "..")
 from shared import GMMData
 from shared import BAData
@@ -71,9 +72,11 @@ def main(argv):
         )
 
     except RuntimeError as ex:
-        eprint("Runtime exception caught: ", ex)
+        eprint("Runtime exception caught: ")
+        traceback.print_exception(ex, file=sys.stderr)
     except Exception as ex:
-        eprint("An exception caught: ", ex)
+        eprint("An exception caught: ")
+        traceback.print_exception(ex, file=sys.stderr)
 
     return 0
 

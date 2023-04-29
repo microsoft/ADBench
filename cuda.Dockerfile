@@ -6,6 +6,7 @@ FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
 RUN apt-get update
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         wget \
+        git \
         python3 \
         python3-dev \
         python3-pip \
@@ -13,6 +14,10 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         # Required by DiffSharp
         libopenblas-dev \
         libssl-dev \
+        # Required by FreeTensor
+        autoconf automake libtool \
+        openjdk-11-jdk \
+        libgmp-dev \
         # Required by matplotlib
         libpng-dev \
         && rm -rf /var/lib/apt/lists/*
@@ -49,6 +54,14 @@ RUN python3 -m pip install --upgrade pip
 
 # Module for python packages installing
 RUN python3 -m pip install pip setuptools>=41.0.0
+
+# Install FreeTensor
+WORKDIR /utils/freetensor
+RUN git clone --recurse-submodules --depth 1 https://github.com/roastduck/FreeTensor.git
+RUN python3 -m pip install --find-links https://download.pytorch.org/whl/torch_stable.html numpy sourceinspect astor Pygments torch==2.0.0+cu118
+WORKDIR /utils/freetensor/FreeTensor/build
+RUN cmake .. -DCMAKE_BUILD_TYPE=Release -DFT_WITH_CUDA=ON -DFT_WITH_PYTORCH=ON && make -j && make install
+ENV PYTHONPATH=/usr/local/lib/:/utils/freetensor/FreeTensor/python:$PYTHONPATH
 
 WORKDIR /adb
 # Copy code to /adb (.dockerignore exclude some files)
