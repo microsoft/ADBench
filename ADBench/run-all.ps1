@@ -29,52 +29,52 @@ https://github.com/awf/ADBench
 
 #>
 
-param(# Which build to test.  
+param(# Which build to test.
       # Builds should leave a script file 'cmake-vars-$buildtype.ps1' in the ADBench directory.
       # which sets $bindir to the build directory,
       # And if only some D,K are valid for GMM, sets $gmm_d_vals, and $gmm_k_vals
       [string]$buildtype="Release",
-      
-      # Estimated time of accurate result achievement. 
-      # A runner cyclically reruns measured function until total time becomes more than that value. 
+
+      # Estimated time of accurate result achievement.
+      # A runner cyclically reruns measured function until total time becomes more than that value.
       # Supported only by the benchmark runner-based tools
       # (those with ToolType cpp, dotnet, julia, or python).
       [double]$minimum_measurable_time = 0.5,
 
-      # Maximum number of times to run the function for timing                
-      [int]$nruns_f=10,        
-      
+      # Maximum number of times to run the function for timing
+      [int]$nruns_f=10,
+
       # Maximum number of times to run the jacobian for timing
-      [int]$nruns_J=10,        
-      
+      [int]$nruns_J=10,
+
       # How many seconds to wait before we believe we have accurate timings
-      [double]$time_limit=10,  
-      
-      # Kill the test after this many seconds 
+      [double]$time_limit=10,
+
+      # Kill the test after this many seconds
       [double]$timeout=300,
 
       # Kill the test if it consumes more than this many gigabytes of RAM.
       [double]$max_memory_amount_in_gb=[double]::PositiveInfinity,
-      
-      # Where to store the ouput, defaults to tmp/ in the project root 
+
+      # Where to store the ouput, defaults to tmp/ in the project root
       [string]$tmpdir="",
-      
+
       # Repeat tests, even if output file exists
       [switch]$repeat,
-      
+
       # Repeat only failed tests
       [switch]$repeat_failures,
-      
+
       # List of tools to run
       [string[]]$tools=@(),
-      
+
       # Don't delete produced jacobians even if they're accurate
-      [switch]$keep_correct_jacobians, 
-      
+      [switch]$keep_correct_jacobians,
+
       # GMM D values to try.  Must be a subset of the list of
-      # compiled values in ADBench/cmake-vars-$buildtype.ps1                         
+      # compiled values in ADBench/cmake-vars-$buildtype.ps1
       [int[]]$gmm_d_vals_param,
-      
+
       # GMM K values to run.  As above.
       [int[]]$gmm_k_vals_param,
 
@@ -209,7 +209,7 @@ function run_command ($indent, $outfile, $timeout, $cmd) {
                 $mem = [math]::round($mem / (1024 * 1024 * 1024), 2)
                 Write-Host "${indent}Killed due to consuming $mem GB of operating memory"
                 Store-NonFatalError "Process killed due to consuming $mem GB of operating memory`n[$cmd $args]"
-                
+
                 $status = [RunCommandStatus]::OutOfMemory
                 break
             }
@@ -327,16 +327,16 @@ Class Tool {
         This will create a Tool:
         - called "Finite"
         - run from binary executables
-        - runs all four tests 
+        - runs all four tests
         - does not do GMM in separate FULL and SPLIT modes
         - doesn't require separate executables for different GMM sizes
         - does not check the correctness of the computed jacobians
 
         .NOTES
-        $objectives is an enumerable variable, 
+        $objectives is an enumerable variable,
         where each flag determines whether to run a certain objective:
         GMM, BA, HAND, LSTM
-        
+
         #>
 
         $this.name = $name
@@ -358,16 +358,16 @@ Class Tool {
         This will create a Tool:
         - called "Finite"
         - run from binary executables
-        - runs all four tests 
+        - runs all four tests
         - does not do GMM in separate FULL and SPLIT modes
         - doesn't require separate executables for different GMM sizes
         - does not check the correctness of the computed jacobians
 
         .NOTES
-        $objectives is an enumerable variable, 
+        $objectives is an enumerable variable,
         where each flag determines whether to run a certain objective:
         GMM, BA, HAND, LSTM
-        
+
         #>
 
         $this.name = $name
@@ -477,11 +477,11 @@ Class Tool {
         if ($run_command_status -eq [RunCommandStatus]::OutOfMemory) {
             $status = [RunTestStatus]::OutOfMemory
         }
-        
+
         return $status
     }
 
-    # Get postfix for tool output file name 
+    # Get postfix for tool output file name
     [string] get_out_name_postfix([string]$objective) {
         $postfix = $this.name
 
@@ -704,6 +704,7 @@ $tool_descriptors = @(
     [Tool]::new("Tensorflow", "python", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, $default_tolerance)
     [Tool]::new("TensorflowGraph", "python", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, $default_tolerance)
     [Tool]::new("FreeTensor", "python", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, 1e-7)
+    [Tool]::new("FreeTensorGPU", "python", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, 1e-7)
     [Tool]::new("Autograd", "py", [ObjectiveType] "GMM, BA", $false, 0.0, $true, $false)
     [Tool]::new("Julia", "julia_tool", [ObjectiveType] "GMM, BA", $false, 0.0)
     [Tool]::new("Zygote", "julia", [ObjectiveType] "GMM, BA, Hand, LSTM", $true, $default_tolerance)

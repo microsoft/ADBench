@@ -10,7 +10,7 @@ from modules.FreeTensor.ba_objective import compute_reproj_err, compute_w_err
 
 
 
-class FreeTensorBA(ITest):
+class FreeTensorGPUBA(ITest):
     '''Test class for BA diferentiation by FreeTensor.'''
 
     def prepare(self, input):
@@ -24,51 +24,54 @@ class FreeTensorBA(ITest):
         self.obs = to_ft_tensor(input.obs, dtype = 'int64')
         self.feats = to_ft_tensor(input.feats)
 
-        @ft.optimize(schedule_callback=lambda s: s.auto_schedule(ft.CPU()))
-        def comp_objective(
-                p: ft.JIT[int],
-                n: ft.JIT[int],
-                m: ft.JIT[int],
-                cams, x, w, obs, feats):
-            cams: ft.Var[(n, BA_NCAMPARAMS), "float64"]
-            x: ft.Var[(m, 3), "float64"]
-            w: ft.Var[(p,), "float64"]
-            obs: ft.Var[(p, 2), "int64"]
-            feats: ft.Var[(p, 2), "float64"]
+        self.device = ft.GPU()
+        with self.device:
 
-            reproj_error = ft.empty((2 * p,), "float64")
-            w_err = ft.empty((p,), "float64")
-            for j in range(self.p):
-                reproj_error[j * 2 : (j + 1) * 2] = compute_reproj_err(
-                        cams[obs[j, 0]], x[obs[j, 1]], w[j], feats[j])
-                w_err[j] = compute_w_err(w[j])
-            return reproj_error, w_err
+            @ft.optimize(schedule_callback=lambda s: s.auto_schedule(self.device))
+            def comp_objective(
+                    p: ft.JIT[int],
+                    n: ft.JIT[int],
+                    m: ft.JIT[int],
+                    cams, x, w, obs, feats):
+                cams: ft.Var[(n, BA_NCAMPARAMS), "float64"]
+                x: ft.Var[(m, 3), "float64"]
+                w: ft.Var[(p,), "float64"]
+                obs: ft.Var[(p, 2), "int64"]
+                feats: ft.Var[(p, 2), "float64"]
 
-        @ft.optimize(schedule_callback=lambda s: s.auto_schedule(ft.CPU()))
-        def comp_jacobian(
-                p: ft.JIT[int],
-                n: ft.JIT[int],
-                m: ft.JIT[int],
-                cams, x, w, obs, feats):
-            cams: ft.Var[(n, BA_NCAMPARAMS), "float64"]
-            x: ft.Var[(m, 3), "float64"]
-            w: ft.Var[(p,), "float64"]
-            obs: ft.Var[(p, 2), "int64"]
-            feats: ft.Var[(p, 2), "float64"]
+                reproj_error = ft.empty((2 * p,), "float64")
+                w_err = ft.empty((p,), "float64")
+                for j in range(self.p):
+                    reproj_error[j * 2 : (j + 1) * 2] = compute_reproj_err(
+                            cams[obs[j, 0]], x[obs[j, 1]], w[j], feats[j])
+                    w_err[j] = compute_w_err(w[j])
+                return reproj_error, w_err
 
-            reproj_error = ft.empty((2 * p,), "float64")
-            w_err = ft.empty((p,), "float64")
-            J_reproj_error = ft.empty((p, 2 * (BA_NCAMPARAMS + 3 + 1)), "float64")
-            J_w_err = ft.empty((p,), "float64")
-            for j in range(self.p):
-                reproj_error[j * 2 : (j + 1) * 2], J_reproj_error[j] = ft_jacobian_inline(
-                        compute_reproj_err,
-                        (cams[obs[j, 0]], x[obs[j, 1]], w[j]),
-                        (feats[j],))
-                w_err[j], J_w_err[j:j+1] = ft_jacobian_inline(
-                        compute_w_err,
-                        (w[j],))
-            return reproj_error, w_err, J_reproj_error, J_w_err
+            @ft.optimize(schedule_callback=lambda s: s.auto_schedule(self.device))
+            def comp_jacobian(
+                    p: ft.JIT[int],
+                    n: ft.JIT[int],
+                    m: ft.JIT[int],
+                    cams, x, w, obs, feats):
+                cams: ft.Var[(n, BA_NCAMPARAMS), "float64"]
+                x: ft.Var[(m, 3), "float64"]
+                w: ft.Var[(p,), "float64"]
+                obs: ft.Var[(p, 2), "int64"]
+                feats: ft.Var[(p, 2), "float64"]
+
+                reproj_error = ft.empty((2 * p,), "float64")
+                w_err = ft.empty((p,), "float64")
+                J_reproj_error = ft.empty((p, 2 * (BA_NCAMPARAMS + 3 + 1)), "float64")
+                J_w_err = ft.empty((p,), "float64")
+                for j in range(self.p):
+                    reproj_error[j * 2 : (j + 1) * 2], J_reproj_error[j] = ft_jacobian_inline(
+                            compute_reproj_err,
+                            (cams[obs[j, 0]], x[obs[j, 1]], w[j]),
+                            (feats[j],))
+                    w_err[j], J_w_err[j:j+1] = ft_jacobian_inline(
+                            compute_w_err,
+                            (w[j],))
+                return reproj_error, w_err, J_reproj_error, J_w_err
 
         self.comp_objective = comp_objective
         self.comp_jacobian = comp_jacobian
@@ -93,6 +96,7 @@ class FreeTensorBA(ITest):
             self.reproj_error, self.w_err = self.comp_objective(
                     self.p, self.cams.shape[0], self.x.shape[0],
                     self.cams, self.x, self.w, self.obs, self.feats)
+        self.device.sync()
 
     def calculate_jacobian(self, times):
         ''' Calculates objective function jacobian many times.'''
@@ -112,3 +116,4 @@ class FreeTensorBA(ITest):
                 self.jacobian.insert_reproj_err_block(j, camIdx, ptIdx, J_reproj_error[j])
             for j in range(self.p):
                 self.jacobian.insert_w_err_block(j, J_w_err[j])
+        self.device.sync()
