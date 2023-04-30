@@ -42,6 +42,7 @@ class PyTorchGPUGMM(ITest):
 
         for i in range(times):
             self.objective = gmm_objective(*self.inputs, *self.params)
+        torch.cuda.synchronize()
 
     def calculate_jacobian(self, times):
         '''Calculates objective function jacobian many times.'''
@@ -52,3 +53,4 @@ class PyTorchGPUGMM(ITest):
                 self.inputs,
                 self.params
             )
+        torch.cuda.synchronize()

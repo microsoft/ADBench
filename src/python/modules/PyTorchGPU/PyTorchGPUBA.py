@@ -68,6 +68,7 @@ class PyTorchGPUBA(ITest):
                 self.w_err[j] = compute_w_err(self.w[j])
 
             self.reproj_error = reproj_error.flatten()
+        torch.cuda.synchronize()
 
     def calculate_jacobian(self, times):
         ''' Calculates objective function jacobian many times.'''
@@ -101,3 +102,4 @@ class PyTorchGPUBA(ITest):
                 self.jacobian.insert_w_err_block(j, J)
 
             self.reproj_error = reproj_error.flatten()
+        torch.cuda.synchronize()

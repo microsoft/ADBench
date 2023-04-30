@@ -38,6 +38,7 @@ class PyTorchGPULSTM(ITest):
 
         for i in range(times):
             self.objective = lstm_objective(*self.inputs, *self.params)
+        torch.cuda.synchronize()
 
     def calculate_jacobian(self, times):
         ''' Calculates objective function jacobian many times.'''
@@ -48,3 +49,4 @@ class PyTorchGPULSTM(ITest):
                 self.inputs,
                 self.params
             )
+        torch.cuda.synchronize()

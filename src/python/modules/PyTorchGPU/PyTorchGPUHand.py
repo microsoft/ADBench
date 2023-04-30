@@ -93,6 +93,7 @@ class PyTorchGPUHand(ITest):
                 self.inputs,
                 *self.params
             )
+        torch.cuda.synchronize()
 
     def calculate_jacobian(self, times):
         '''Calculates objective function jacobian many times.'''
@@ -128,3 +129,4 @@ class PyTorchGPUHand(ITest):
                 self.jacobian = torch.cat(( us_J, theta_J), 1)
             else:
                 self.jacobian = J
+        torch.cuda.synchronize()
