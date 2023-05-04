@@ -14,42 +14,45 @@ def to_ft_tensors(params, dtype = 'float64'):
 
 
 
-def ft_jacobian(func, inputs, params = None, flatten = True):
+def ft_jacobian(func, n_inputs, flatten = True):
     '''Calculates jacobian and return value of the given function that uses
     FreeTensor arrays.
 
     Args:
         func (callable): function which jacobian is calculating.
-        inputs (tuple of torch tensors): function inputs by which it is
-            differentiated.
-        params (tuple of torch tensors, optional): function inputs by which it
-            is doesn't differentiated. Defaults to None.
         flatten (bool, optional): if True then jacobian will be written in
             1D array row-major. Defaults to True.
 
     Returns:
-        torch tensor, torch tensor: function result and function jacobian.
+        fn(inputs, params) -> (torch tensor, torch tensor): Function to compute
+        function result and function jacobian.
     '''
 
     ast = ft.jacrev(
-            func, [ft.Parameter(i) for i in range(len(inputs))], ft.Return(),
+            func, [ft.Parameter(i) for i in range(n_inputs)], ft.Return(),
             flatten=flatten, attach_backward=True)
     exe = ft.optimize(ast)
-    if params is None:
-        params = []
-    res = exe(*inputs, *params)
-    J = exe.backward()
 
-    if flatten:
+    def f(inputs, params = None):
+        assert len(inputs) == n_inputs
 
-        @ft.optimize
-        def post_flatten(n: ft.JIT[int], m: ft.JIT[int], x):
-            x: ft.Var[(n, m), 'float64']
-            return ft.flatten_pytorch(ft.transpose(x))
+        if params is None:
+            params = []
+        res = exe(*inputs, *params)
+        J = exe.backward()
 
-        J = post_flatten(J.shape[0], J.shape[1], J)
+        if flatten:
 
-    return res, J
+            @ft.optimize
+            def post_flatten(n: ft.JIT[int], m: ft.JIT[int], x):
+                x: ft.Var[(n, m), 'float64']
+                return ft.flatten_pytorch(ft.transpose(x))
+
+            J = post_flatten(J.shape[0], J.shape[1], J)
+
+        return res, J
+
+    return f
 
 @ft.inline
 def ft_jacobian_inline(func, inputs, params = None, flatten = True):

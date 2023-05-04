@@ -71,7 +71,7 @@ def gmm_objective(alphas, means, icf, x, wishart_gamma, wishart_m):
     Qdiags = torch.exp(icf[:, :d])
     sum_qs = torch.sum(icf[:, :d], 1)
     Ls = torch.stack([constructL(d, curr_icf) for curr_icf in icf])
-    
+
     xcentered = torch.stack(tuple( x[i] - means for i in range(n) ))
     Lxcentered = Qtimesx(Qdiags, Ls, xcentered)
     sqsum_Lxcentered = torch.sum(Lxcentered ** 2, 2)
