@@ -4,7 +4,7 @@ import freetensor as ft
 from modules.FreeTensor.utils import to_ft_tensor, to_ft_tensors, ft_jacobian
 from shared.ITest import ITest
 from shared.GMMData import GMMInput, GMMOutput
-from modules.FreeTensor.gmm_objective import gmm_objective
+from modules.FreeTensor.gmm_objective import gmm_objective_inline
 
 
 
@@ -26,8 +26,26 @@ class FreeTensorGMM(ITest):
         assert input.icf.shape == (self.k, self.d * (self.d + 1) // 2)
         assert input.x.shape == (self.n, self.d)
 
-        self.comp_objective = ft.optimize(gmm_objective)
-        self.comp_jacobian = ft_jacobian(gmm_objective, len(self.inputs))
+        @ft.transform
+        def gmm_objective(
+                alphas, means, icf, x, wishart_gamma, wishart_m,
+                d: ft.JIT[int],
+                k: ft.JIT[int],
+                n: ft.JIT[int]):
+            alphas: ft.Var[(k,), "float64"]
+            means: ft.Var[(k, d), "float64"]
+            icf: ft.Var[(k, d * (d + 1) // 2), "float64"]
+            x: ft.Var[(n, d), "float64"]
+            wishart_gamma: ft.Var[(), "float64"]
+            wishart_m: ft.Var[(), "int32"]
+            return gmm_objective_inline(alphas, means, icf, x, wishart_gamma, wishart_m)
+
+        self.comp_objective = ft.optimize(
+                gmm_objective,
+                schedule_callback=lambda s: s.auto_schedule(ft.CPU()))
+        self.comp_jacobian = ft_jacobian(
+                gmm_objective, len(self.inputs),
+                schedule_callback=lambda s: s.auto_schedule(ft.CPU()))
 
     def output(self):
         '''Returns calculation result.'''

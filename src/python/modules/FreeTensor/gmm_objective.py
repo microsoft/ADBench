@@ -20,13 +20,18 @@ def logsumexpvec(x):
 
 @ft.inline
 def gammaln(x):
+    assert ft.ndim(x) == 0
     assert ft.dtype(x) == "float64"
-    return ft.unary_op(lambda item: ft.intrinsic("lgamma(%)", item, ret_type="float64"), x)
+    return ft.intrinsic("lgamma(%)", x, ret_type="float64")
 
 
 @ft.inline
 def log_gamma_distrib(a, p):
-    return ft.reduce_sum(gammaln(a), axes=[-1], keepdims=False) + (p * (p - 1) * math.log(math.pi) * 0.25)
+    s = ft.empty((), "float64")
+    s[...] = 0
+    for i in range(0, p):
+        s[...] += gammaln(a - (i / 2))
+    return s + (p * (p - 1) * math.log(math.pi) * 0.25)
 
 
 @ft.inline
@@ -72,18 +77,10 @@ def Qtimesx(Qdiag, L, x):
     return Qdiag * x + f
 
 
-@ft.transform
-def gmm_objective(
-        alphas, means, icf, x, wishart_gamma, wishart_m,
-        d: ft.JIT[int],
-        k: ft.JIT[int],
-        n: ft.JIT[int]):
-    alphas: ft.Var[(k,), "float64"]
-    means: ft.Var[(k, d), "float64"]
-    icf: ft.Var[(k, d * (d + 1) // 2), "float64"]
-    x: ft.Var[(n, d), "float64"]
-    wishart_gamma: ft.Var[(), "float64"]
-    wishart_m: ft.Var[(), "int32"]
+@ft.inline
+def gmm_objective_inline(alphas, means, icf, x, wishart_gamma, wishart_m):
+    n = x.shape(0)
+    d = x.shape(1)
 
     Qdiags = ft.exp(icf[:, :d])
     sum_qs = ft.reduce_sum(icf[:, :d], axes=[1], keepdims=False)

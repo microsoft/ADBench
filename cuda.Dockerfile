@@ -18,6 +18,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         autoconf automake libtool \
         openjdk-11-jdk \
         libgmp-dev \
+        libmkl-dev \
         # Required by matplotlib
         libpng-dev \
         && rm -rf /var/lib/apt/lists/*
@@ -60,7 +61,7 @@ WORKDIR /utils/freetensor
 RUN git clone --recurse-submodules --depth 1 https://github.com/roastduck/FreeTensor.git
 RUN python3 -m pip install --find-links https://download.pytorch.org/whl/torch_stable.html numpy sourceinspect astor Pygments torch==2.0.0+cu118
 WORKDIR /utils/freetensor/FreeTensor/build
-RUN cmake .. -DCMAKE_BUILD_TYPE=Release -DFT_WITH_CUDA=ON -DFT_WITH_PYTORCH=ON && make -j && make install
+RUN cmake .. -DCMAKE_BUILD_TYPE=Release -DFT_WITH_CUDA=ON -DFT_WITH_PYTORCH=ON -DFT_WITH_MKL=ON && make -j && make install
 ENV PYTHONPATH=/usr/local/lib/:/utils/freetensor/FreeTensor/python:$PYTHONPATH
 
 WORKDIR /adb

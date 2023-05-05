@@ -14,7 +14,7 @@ def to_ft_tensors(params, dtype = 'float64'):
 
 
 
-def ft_jacobian(func, n_inputs, flatten = True):
+def ft_jacobian(func, n_inputs, flatten = True, schedule_callback = None):
     '''Calculates jacobian and return value of the given function that uses
     FreeTensor arrays.
 
@@ -31,7 +31,7 @@ def ft_jacobian(func, n_inputs, flatten = True):
     ast = ft.jacrev(
             func, [ft.Parameter(i) for i in range(n_inputs)], ft.Return(),
             flatten=flatten, attach_backward=True)
-    exe = ft.optimize(ast)
+    exe = ft.optimize(ast, schedule_callback=schedule_callback)
 
     def f(inputs, params = None):
         assert len(inputs) == n_inputs
