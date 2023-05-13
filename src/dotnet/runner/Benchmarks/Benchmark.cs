@@ -75,11 +75,12 @@ namespace DotnetRunner.Benchmarks
 
             var repeats = findRepeatsResult.Repeats;
             var minSample = findRepeatsResult.Sample;
-            var totalTime = findRepeatsResult.TotalTime;
 
+            // Recount `time_limit` and `run` from 0, despite "find_repeats_for_minimum_measurable_time",
+            // because there might be lazy intializations
+            var totalTime = TimeSpan.Zero;
             var sw = new System.Diagnostics.Stopwatch();
-            // "run" begins from 1 because a first run already done by "findRepeatsForMinimumMeasurableTime" function
-            for (var run = 1; (run < nruns) && (totalTime < timeLimit); run++)
+            for (var run = 0; (run < nruns) && (totalTime < timeLimit); run++)
             {
                 sw.Start();
                 func(repeats);

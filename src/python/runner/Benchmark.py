@@ -53,10 +53,11 @@ def measure_shortest_time(minimum_measurable_time, nruns, time_limit, func):
 
         repeats = find_repeats_result.repeats
         min_sample = find_repeats_result.sample
-        total_time = find_repeats_result.total_time
 
-        # "run" begins from 1 because a first run already done by "find_repeats_for_minimum_measurable_time" function
-        run = 1
+        # Recount `time_limit` and `run` from 0, despite "find_repeats_for_minimum_measurable_time",
+        # because there might be lazy intializations
+        total_time = 0
+        run = 0
         while (run < nruns) and (total_time < time_limit):
             run += 1
             t1 = time.time()

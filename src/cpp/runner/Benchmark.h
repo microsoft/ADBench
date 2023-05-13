@@ -22,12 +22,12 @@ using std::chrono::high_resolution_clock;
 
 struct DefaultParameters {};
 
- //Reads input_file into Input struct. replicate_point flag duplicates one vector over all input data. 
+ //Reads input_file into Input struct. replicate_point flag duplicates one vector over all input data.
  //Templated function "read_input_data" is deleted to cause a link error if a corresponding template specialization is not implemented.
 template<class Input, class Parameters>
 Input read_input_data(const std::string& input_file, const Parameters& params) = delete;
 
-//Template of a pointer to a function which is a member of the ITest class and takes a single argument of int type. 
+//Template of a pointer to a function which is a member of the ITest class and takes a single argument of int type.
 template <class Input, class Output>
 using test_member_function = void (ITest<Input, Output>::*) (int);
 
@@ -97,10 +97,11 @@ duration<double> measure_shortest_time(const duration<double> minimum_measurable
 
     auto repeats = find_repeats_result.repeats;
     auto min_sample = find_repeats_result.sample;
-    auto total_time = find_repeats_result.total_time;
 
-    // "run" begins from 1 because a first run already done by "find_repeats_for_minimum_measurable_time" function
-    for (auto run = 1; (run < nruns) && (total_time < time_limit); run++)
+    // Recount `time_limit` and `run` from 0, despite "find_repeats_for_minimum_measurable_time",
+    // because there might be lazy intializations
+    auto total_time = duration<double>(0s);
+    for (auto run = 0; (run < nruns) && (total_time < time_limit); run++)
     {
         auto t1 = high_resolution_clock::now();
         call_member_function(test, func, repeats);

@@ -60,7 +60,10 @@ function measure_shortest_time!(context::Any, minimum_measurable_time::Float64, 
     if repeats == measurable_time_not_achieved
         throw(ErrorException("It was not possible to reach the number of repeats sufficient to achieve the minimum measurable time."))
     end
-    run = 1
+    # Recount `time_limit` and `run` from 0, despite "find_repeats_for_minimum_measurable_time",
+    # because there might be lazy intializations
+    total_time = 0.0
+    run = 0
     while run < nruns && total_time < time_limit
         current_run_time = @elapsed func(context, repeats)
         min_sample = min(min_sample, current_run_time / repeats)
