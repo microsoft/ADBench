@@ -45,7 +45,7 @@ class PyTorchHand(ITest):
                     input.data.correspondences,
                     dtype = torch.int32
                 ),
-                to_torch_tensor(input.data.model.triangles)
+                to_torch_tensor(input.data.model.triangles, dtype = torch.int32)
             )
 
             self.objective_function = hand_objective_complicated
@@ -81,7 +81,7 @@ class PyTorchHand(ITest):
             self.objective.detach().flatten().numpy(),
             self.jacobian.detach().numpy()
         )
-    
+
     def calculate_objective(self, times):
         '''Calculates objective function many times.'''
 
