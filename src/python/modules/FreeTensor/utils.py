@@ -33,7 +33,7 @@ def ft_jacobian(func, n_inputs, flatten = True, schedule_callback = None, device
     with device:
         ast = ft.jacrev(
                 func, [ft.Parameter(i) for i in range(n_inputs)], ft.Return(),
-                flatten=flatten, attach_backward=True)
+                flatten=True, attach_backward=True)
         exe = ft.optimize(ast, schedule_callback=schedule_callback)
 
         @ft.optimize(schedule_callback=schedule_callback)
@@ -74,7 +74,7 @@ def ft_jacobian_inline(func, inputs, params = None, flatten = True):
 
     ast = ft.jacrev(
             func, [ft.Parameter(i) for i in ft.static_range(len(inputs))], ft.Return(),
-            flatten=flatten, attach_backward=True, tape_in_closure=False)
+            flatten=True, attach_backward=True, tape_in_closure=False)
     if params is None:
         params = []
     res = ast(*inputs, *params)
