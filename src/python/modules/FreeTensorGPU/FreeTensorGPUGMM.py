@@ -60,6 +60,7 @@ class FreeTensorGPUGMM(ITest):
 
         for i in range(times):
             self.objective = self.comp_objective(*self.inputs, *self.params, self.d, self.k, self.n)
+        self.device.sync()
 
     def calculate_jacobian(self, times):
         '''Calculates objective function jacobian many times.'''
@@ -69,3 +70,4 @@ class FreeTensorGPUGMM(ITest):
                 self.inputs,
                 self.params + (self.d, self.k, self.n)
             )
+        self.device.sync()
