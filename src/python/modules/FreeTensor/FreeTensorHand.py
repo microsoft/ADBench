@@ -139,12 +139,16 @@ class FreeTensorHand(ITest):
                     points,
                     correspondences)
 
-        self.comp_objective = ft.optimize(comp_objective)
-        self.comp_jacobian = ft_jacobian(comp_objective, 1, False)
+        self.comp_objective = ft.optimize(
+                comp_objective,
+                schedule_callback=lambda s: s.auto_schedule(ft.CPU()))
+        self.comp_jacobian = ft_jacobian(
+                comp_objective, 1, False,
+                schedule_callback=lambda s: s.auto_schedule(ft.CPU()))
 
         if self.complicated:
 
-            @ft.optimize
+            @ft.optimize(schedule_callback=lambda s: s.auto_schedule(ft.CPU()))
             def post_jacobian(n_rows: ft.JIT[int], n_cols: ft.JIT[int], J):
                 J: ft.Var[(n_rows, n_cols), "float64"]
 

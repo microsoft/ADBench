@@ -11,6 +11,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         python3-dev \
         python3-pip \
         cmake \
+        # Required by Clang
+        libtinfo5 \
         # Required by DiffSharp
         libopenblas-dev \
         libssl-dev \
@@ -22,6 +24,13 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         # Required by matplotlib
         libpng-dev \
         && rm -rf /var/lib/apt/lists/*
+
+# Install Clang 16
+WORKDIR /utils/clang
+RUN wget https://github.com/llvm/llvm-project/releases/download/llvmorg-16.0.0/clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz \
+    && tar -xf clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
+ENV PATH=/utils/clang/clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04/bin/:$PATH
+ENV LD_LIBRARY_PATH=/utils/clang/clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04/lib:$LD_LIBRARY_PATH
 
 # Legacy libssl 1.0 requried by .NET runner
 RUN wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl1.0/libssl1.0.0_1.0.2n-1ubuntu5_amd64.deb
@@ -62,7 +71,7 @@ RUN git clone --recurse-submodules --depth 1 https://github.com/roastduck/FreeTe
 RUN python3 -m pip install --find-links https://download.pytorch.org/whl/torch_stable.html numpy sourceinspect astor Pygments torch==2.0.0+cu118
 WORKDIR /utils/freetensor/FreeTensor/build
 # Disable FT_WITH_PYTORCH for now for known issues with OpenMP
-RUN cmake .. -DCMAKE_BUILD_TYPE=Release -DFT_WITH_CUDA=ON -DFT_WITH_PYTORCH=OFF -DFT_WITH_MKL=ON && make -j && make install
+RUN CC=clang CXX=clang++ cmake .. -DCMAKE_BUILD_TYPE=Release -DFT_WITH_CUDA=ON -DFT_WITH_PYTORCH=OFF -DFT_WITH_MKL=ON -DCMAKE_CXX_FLAGS="-Wno-unused-function" && make -j && make install
 ENV PYTHONPATH=/usr/local/lib/:/utils/freetensor/FreeTensor/python:$PYTHONPATH
 
 WORKDIR /adb
@@ -82,5 +91,7 @@ WORKDIR /adb/ADBench
 RUN sed -i 's/\r//' run-wrapper.sh \
     # make wrapper script executable
     && chmod +x run-wrapper.sh
+
+ENV OMP_PROC_BIND=true
 
 ENTRYPOINT ["./run-wrapper.sh"]

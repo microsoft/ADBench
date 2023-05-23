@@ -51,7 +51,7 @@ param(# Which build to test.
       [double]$time_limit=10,
 
       # Kill the test after this many seconds
-      [double]$timeout=300,
+      [double]$timeout=600,
 
       # Kill the test if it consumes more than this many gigabytes of RAM.
       [double]$max_memory_amount_in_gb=[double]::PositiveInfinity,
