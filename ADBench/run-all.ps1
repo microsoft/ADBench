@@ -705,6 +705,7 @@ $tool_descriptors = @(
     [Tool]::new("TensorflowGraph", "python", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, $default_tolerance)
     [Tool]::new("FreeTensor", "python", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, 1e-7)
     [Tool]::new("FreeTensorGPU", "python", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, 1e-7)
+    [Tool]::new("FreeTensorEnzyme", "python", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, 1e-7)
     [Tool]::new("Autograd", "py", [ObjectiveType] "GMM, BA", $false, 0.0, $true, $false)
     [Tool]::new("Julia", "julia_tool", [ObjectiveType] "GMM, BA", $false, 0.0)
     [Tool]::new("Zygote", "julia", [ObjectiveType] "GMM, BA, Hand, LSTM", $true, $default_tolerance)

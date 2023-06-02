@@ -32,6 +32,14 @@ RUN wget https://github.com/llvm/llvm-project/releases/download/llvmorg-16.0.0/c
 ENV PATH=/utils/clang/clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04/bin/:$PATH
 ENV LD_LIBRARY_PATH=/utils/clang/clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04/lib:$LD_LIBRARY_PATH
 
+# Install Enzyme
+WORKDIR /utils/enzyme
+RUN wget https://github.com/EnzymeAD/Enzyme/archive/refs/tags/v0.0.66.tar.gz \
+    && tar -xf tar -xf v0.0.66.tar.gz
+WORKDIR /utils/enzyme/Enzyme-0.0.66/enzyme/build
+RUN cmake .. -DLLVM_DIR=/utils/clang/clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04/lib/cmake/llvm -DCMAKE_MODULE_PATH=/utils/clang/clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04/lib/cmake/llvm \
+    && make -j
+
 # Legacy libssl 1.0 requried by .NET runner
 RUN wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl1.0/libssl1.0.0_1.0.2n-1ubuntu5_amd64.deb
 RUN DEBIAN_FRONTEND=noninteractive dpkg -i libssl1.0.0_1.0.2n-1ubuntu5_amd64.deb
