@@ -13,6 +13,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         cmake \
         # Required by Clang
         libtinfo5 \
+        # Required by Enzyme
+        libtinfo-dev \
         # Required by DiffSharp
         libopenblas-dev \
         libssl-dev \
@@ -34,9 +36,9 @@ ENV LD_LIBRARY_PATH=/utils/clang/clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04
 
 # Install Enzyme
 WORKDIR /utils/enzyme
-RUN wget https://github.com/EnzymeAD/Enzyme/archive/refs/tags/v0.0.66.tar.gz \
-    && tar -xf tar -xf v0.0.66.tar.gz
-WORKDIR /utils/enzyme/Enzyme-0.0.66/enzyme/build
+RUN wget https://github.com/EnzymeAD/Enzyme/archive/refs/tags/v0.0.69.tar.gz \
+    && tar -xf v0.0.69.tar.gz
+WORKDIR /utils/enzyme/Enzyme-0.0.69/enzyme/build
 RUN cmake .. -DLLVM_DIR=/utils/clang/clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04/lib/cmake/llvm -DCMAKE_MODULE_PATH=/utils/clang/clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04/lib/cmake/llvm \
     && make -j
 
