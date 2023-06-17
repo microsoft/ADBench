@@ -83,6 +83,17 @@ class FreeTensorGPUBA(ITest):
     def output(self):
         '''Returns calculation result.'''
 
+        # Postprocess Jacobian into BASparseMat
+        J_reproj_error = self.J_reproj_error.numpy()
+        J_w_err = self.J_w_err.numpy()
+        obs = self.obs.numpy()
+        for j in range(self.p):
+            camIdx = obs[j, 0]
+            ptIdx = obs[j, 1]
+            self.jacobian.insert_reproj_err_block(j, camIdx, ptIdx, J_reproj_error[j])
+        for j in range(self.p):
+            self.jacobian.insert_w_err_block(j, J_w_err[j])
+
         return BAOutput(
             self.reproj_error.numpy(),
             self.w_err.numpy(),
@@ -102,18 +113,8 @@ class FreeTensorGPUBA(ITest):
         ''' Calculates objective function jacobian many times.'''
 
         for i in range(times):
-            self.reproj_error, self.w_err, J_reproj_error, J_w_err = self.comp_jacobian(
+            self.reproj_error, self.w_err, self.J_reproj_error, self.J_w_err = self.comp_jacobian(
                     self.p, self.cams.shape[0], self.x.shape[0],
                     self.cams, self.x, self.w, self.obs, self.feats)
 
-            # TODO: We should exclude the insertion to BASparseMat, including those for
-            # other AD tools, from timing
-            J_reproj_error = J_reproj_error.numpy()
-            J_w_err = J_w_err.numpy()
-            for j in range(self.p):
-                camIdx = self.obs.numpy()[j, 0]
-                ptIdx = self.obs.numpy()[j, 1]
-                self.jacobian.insert_reproj_err_block(j, camIdx, ptIdx, J_reproj_error[j])
-            for j in range(self.p):
-                self.jacobian.insert_w_err_block(j, J_w_err[j])
         self.device.sync()

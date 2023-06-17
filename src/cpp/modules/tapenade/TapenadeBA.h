@@ -20,7 +20,7 @@ private:
     std::vector<double> state;
 
     // buffer for reprojection error jacobian part holding (column-major)
-    std::vector<double> reproj_err_d;
+    std::vector<double> reproj_err_d, zach_weight_error_d;
 
     // buffer for reprojection error jacobian block row holding
     std::vector<double> reproj_err_d_row;

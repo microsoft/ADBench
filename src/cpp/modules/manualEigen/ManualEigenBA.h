@@ -13,7 +13,7 @@ class ManualEigenBA : public ITest<BAInput, BAOutput> {
 private:
     BAInput _input;
     BAOutput _output;
-    std::vector<double> _reproj_err_d;
+    std::vector<double> _reproj_err_d, _zach_weight_error_d;
 
 public:
     // This function must be called before any other function.

@@ -3,6 +3,8 @@
 
 #include "TapenadeBA.h"
 
+constexpr int n_new_cols = BA_NCAMPARAMS + 3 + 1;
+
 // This function must be called before any other function.
 void TapenadeBA::prepare(BAInput&& input)
 {
@@ -13,14 +15,23 @@ void TapenadeBA::prepare(BAInput&& input)
         BASparseMat(this->input.n, this->input.m, this->input.p)
     };
 
-    reproj_err_d = std::vector<double>(2 * (BA_NCAMPARAMS + 3 + 1));
-    reproj_err_d_row = std::vector<double>(BA_NCAMPARAMS + 3 + 1);
+    reproj_err_d = std::vector<double>(2 * n_new_cols * input.p);
+    zach_weight_error_d = std::vector<double>(input.p);
+    reproj_err_d_row = std::vector<double>(n_new_cols);
 }
 
 
 
 BAOutput TapenadeBA::output()
 {
+    for (int i = 0; i < input.p; ++i) {
+        int camIdx = input.obs[2 * i + 0];
+        int ptIdx = input.obs[2 * i + 1];
+        result.J.insert_reproj_err_block(i, camIdx, ptIdx, reproj_err_d.data() + i * 2 * n_new_cols);
+    }
+    for (int i = 0; i < input.p; ++i) {
+        result.J.insert_w_err_block(i, zach_weight_error_d[i]);
+    }
     return result;
 }
 
@@ -92,9 +103,9 @@ void TapenadeBA::calculate_reproj_error_jacobian_part()
         );
 
         // fill first row elements
-        for (int j = 0; j < BA_NCAMPARAMS + 3 + 1; j++)
+        for (int j = 0; j < n_new_cols; j++)
         {
-            reproj_err_d[2 * j] = reproj_err_d_row[j];
+            reproj_err_d[i * n_new_cols * 2 + 2 * j] = reproj_err_d_row[j];
         }
 
         // calculate second row
@@ -113,12 +124,10 @@ void TapenadeBA::calculate_reproj_error_jacobian_part()
         );
 
         // fill second row elements
-        for (int j = 0; j < BA_NCAMPARAMS + 3 + 1; j++)
+        for (int j = 0; j < n_new_cols; j++)
         {
-            reproj_err_d[2 * j + 1] = reproj_err_d_row[j];
+            reproj_err_d[i * n_new_cols * 2 + 2 * j + 1] = reproj_err_d_row[j];
         }
-
-        result.J.insert_reproj_err_block(i, camIdx, ptIdx, reproj_err_d.data());
     }
 }
 
@@ -128,16 +137,13 @@ void TapenadeBA::calculate_weight_error_jacobian_part()
 {
     for (int j = 0; j < input.p; j++)
     {
-        double wb;              // stores calculated derivative
-
         double err = 0.0;       // stores fictive result
                                 // (Tapenade doesn't calculate an original function in reverse mode)
 
         double errb = 1.0;      // stores dY
                                 // (equals to 1.0 for derivative calculation)
 
-        compute_zach_weight_error_b(&input.w[j], &wb, &err, &errb);
-        result.J.insert_w_err_block(j, wb);
+        compute_zach_weight_error_b(&input.w[j], &zach_weight_error_d[j], &err, &errb);
     }
 }
 
