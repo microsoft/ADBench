@@ -170,7 +170,8 @@ def hand_objective_complicated_1(theta, nbones, parents, base_relatives,
                                                     mirror_factor)
 
     selected_triangles = torch.index_select(triangles, 0,
-                                            correspondences.to(torch.int64))
+                                            correspondences.to(
+                                                torch.int64)).to(torch.int64)
     pos = torch.index_select(
         vertex_positions, 0,
         selected_triangles.flatten()).reshape(selected_triangles.shape +
