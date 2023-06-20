@@ -701,7 +701,7 @@ $tool_descriptors = @(
     [Tool]::new("PyTorch", "python", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, 1e-7)
     [Tool]::new("PyTorchGPU", "python", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, 1e-7)
     [Tool]::new("PyTorchVmap", "python", [ObjectiveType] "BA, Hand", $true, 1e-7)
-    [Tool]::new("PyTorchVmapGPU", "python", [ObjectiveType] "BA", $true, 1e-7)
+    [Tool]::new("PyTorchVmapGPU", "python", [ObjectiveType] "BA, Hand", $true, 1e-7)
     [Tool]::new("TorchScript", "python", [ObjectiveType] "GMM", $true, 1e-7)
     [Tool]::new("Tensorflow", "python", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, $default_tolerance)
     [Tool]::new("TensorflowGraph", "python", [ObjectiveType] "BA, LSTM, GMM, Hand", $true, $default_tolerance)
